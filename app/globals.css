@@ -1,0 +1,174 @@
+/* ================================
+   OVERSIZE ESCORT HUB
+   Premium Ops / High-Tech Theme
+================================ */
+
+:root {
+  /* Core colors */
+  --bg-main: #060b16;
+  --bg-deep: #030712;
+  --bg-glass: rgba(255, 255, 255, 0.045);
+
+  /* Amazon Prime Blue system */
+  --blue-main: #00a8e8;
+  --blue-soft: rgba(0, 168, 232, 0.35);
+  --blue-glow: rgba(0, 168, 232, 0.55);
+
+  /* Text */
+  --text-main: #e5e7eb;
+  --text-muted: #9ca3af;
+
+  /* Borders */
+  --border-soft: rgba(255, 255, 255, 0.12);
+}
+
+/* RESET */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background:
+    radial-gradient(
+      900px circle at 20% 10%,
+      rgba(0, 168, 232, 0.15),
+      transparent 40%
+    ),
+    radial-gradient(
+      700px circle at 80% 20%,
+      rgba(0, 168, 232, 0.08),
+      transparent 45%
+    ),
+    linear-gradient(180deg, #070c18, #030712);
+  color: var(--text-main);
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, Ubuntu, sans-serif;
+}
+
+/* ================================
+   TYPOGRAPHY
+================================ */
+
+h1, h2, h3 {
+  margin: 0;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+}
+
+.brand-3d {
+  color: var(--blue-main);
+  text-shadow:
+    0 1px 0 rgba(255,255,255,0.15),
+    0 8px 24px rgba(0,168,232,0.45),
+    0 0 40px rgba(0,168,232,0.35);
+}
+
+/* ================================
+   GLASS PANELS
+================================ */
+
+.glass {
+  background: var(--bg-glass);
+  border: 1px solid var(--border-soft);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 18px;
+}
+
+/* ================================
+   BUTTON SYSTEM (ONE COLOR)
+================================ */
+
+.btn {
+  padding: 14px 26px;
+  border-radius: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  border: 1px solid var(--border-soft);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn-primary {
+  background: linear-gradient(
+    135deg,
+    #00a8e8,
+    #1fb6ff
+  );
+  color: #001018;
+  box-shadow:
+    0 10px 30px rgba(0,168,232,0.45),
+    inset 0 1px 0 rgba(255,255,255,0.35);
+}
+
+.btn-primary:hover {
+  filter: brightness(1.08);
+}
+
+.btn-ghost {
+  background: rgba(255,255,255,0.06);
+  color: var(--text-main);
+}
+
+.btn-ghost:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+/* ================================
+   HUB TICKER (WALL STREET STYLE)
+================================ */
+
+.ticker-bar {
+  width: 100%;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border-soft);
+  background: linear-gradient(
+    180deg,
+    rgba(0,0,0,0.6),
+    rgba(0,0,0,0.85)
+  );
+}
+
+.ticker {
+  white-space: nowrap;
+  padding: 10px 0;
+  font-size: 14px;
+  color: var(--blue-main);
+  animation: tickerMove 28s linear infinite;
+}
+
+@keyframes tickerMove {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+/* ================================
+   BADGES / PILLS
+================================ */
+
+.pill {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  border: 1px solid var(--border-soft);
+  background: rgba(0,0,0,0.35);
+}
+
+/* ================================
+   UTIL
+================================ */
+
+.muted {
+  color: var(--text-muted);
+}
