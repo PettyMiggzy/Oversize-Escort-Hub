@@ -1,8 +1,8 @@
 // FILE: app/page.tsx
 // ACTION: Replace the ENTIRE contents of app/page.tsx with this file.
 // NOTE: Only changes vs your last version:
-// - Updates bid-board wording to "lowest reasonable bid" (not charity).
-// - Expands "Coming Soon" and adds a full "Coming Later (Pro Perks)" section.
+// - Footer now includes About + Terms links (and keeps your tagline)
+// - Adds S.footerRight + S.footerLink styles
 // - Does NOT touch anything else.
 
 export default function Page() {
@@ -176,7 +176,7 @@ export default function Page() {
             ]}
           />
 
-                <InfoCard
+          <InfoCard
             title="Admin & Compliance Center"
             text="A real workflow for verification, audits, and enforcement."
             bullets={[
@@ -269,10 +269,14 @@ export default function Page() {
         </div>
       </section>
 
-      {/* ===== FOOTER ===== */}
+      {/* ===== FOOTER (UPDATED ONLY) ===== */}
       <footer style={S.footer}>
         <span>© Oversize Escort Hub</span>
-        <span>Built for the industry • Not a forum</span>
+        <span style={S.footerRight}>
+          <a href="/about" style={S.footerLink}>About</a>
+          <a href="/terms" style={S.footerLink}>Terms</a>
+          <span>Built for the industry • Not a forum</span>
+        </span>
       </footer>
 
       <style>{`
@@ -434,4 +438,8 @@ const S: any = {
     borderTop: "1px solid rgba(255,255,255,.08)",
     opacity: 0.7,
   },
+
+  // ✅ ADDED (ONLY)
+  footerRight: { display: "flex", gap: 14, alignItems: "center" },
+  footerLink: { color: "#e5e7eb", textDecoration: "none", fontWeight: 700 },
 };
