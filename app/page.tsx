@@ -1011,7 +1011,7 @@ function CarrierDashPage({ setPage }: { setPage: (p: Page) => void }) {
               {[["Lead", ESCORTS[0], "var(--gr)"], ["Rear", ESCORTS[1], "var(--gr)"], ["High Pole", null, "var(--am)"]].map(([pos, esc, c]) => (
                 <div key={pos as string} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderBottom: "1px solid var(--l1)" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                    <span className="chip ch-dim">{pos}</span>
+                    <span className="chip ch-dim">{typeof pos === "string" ? pos : (pos as typeof ESCORTS[0])?.name ?? ""}</span>
                     {esc ? (
                       <div>
                         <div style={{ fontSize: 12, fontWeight: 600 }}>{(esc as typeof ESCORTS[0]).name}</div>
