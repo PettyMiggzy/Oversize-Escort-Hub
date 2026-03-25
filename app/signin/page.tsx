@@ -1,212 +1,164 @@
-// FILE: app/signin/page.tsx
-// ACTION: Replace ENTIRE file
+"use client";
+import { useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { useRouter } from "next/navigation";
+
+const CSS = `
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#06080a;--p1:#0f1318;--p2:#141a1f;--l1:#1c2229;--l2:#252d36;--or:#ff6200;--am:#f5a200;--gr:#00cc7a;--rd:#ff3535;--bl:#3d8ef8;--t1:#dce0e6;--t2:#6e7a88;--t3:#363f4a}
+body{background:var(--bg);color:var(--t1);font-family:'Inter',system-ui,sans-serif;font-size:13px;line-height:1.6;min-height:100vh}
+.bb{font-family:'Bebas Neue',Impact,sans-serif;letter-spacing:.03em;text-transform:uppercase}
+.mo{font-family:'DM Mono','Courier New',monospace}
+input{font-family:'Inter',system-ui,sans-serif;background:var(--p2);border:1px solid var(--l2);color:var(--t1);padding:10px 14px;border-radius:3px;font-size:13px;outline:none;width:100%}
+input:focus{border-color:var(--or)}
+button{cursor:pointer;font-family:'Inter',system-ui,sans-serif}
+.wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.box{background:var(--p1);border:1px solid var(--l1);border-radius:4px;padding:40px;width:100%;max-width:440px}
+.label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--t2);display:block;margin-bottom:6px}
+.field{margin-bottom:18px}
+.btn{display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;padding:13px 22px;border:none;width:100%;margin-bottom:12px;cursor:pointer}
+.btn-or{background:var(--or);color:#000}
+.btn-am{background:var(--am);color:#000}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.role-toggle{display:flex;border:1px solid var(--l1);border-radius:3px;overflow:hidden;margin-bottom:20px}
+.role-btn{flex:1;padding:10px;background:transparent;border:none;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--t2);cursor:pointer}
+.role-btn.active-escort{background:var(--am);color:#000}
+.role-btn.active-carrier{background:var(--or);color:#000}
+.error{background:rgba(255,53,53,.1);border:1px solid rgba(255,53,53,.2);color:var(--rd);font-family:'DM Mono',monospace;font-size:10px;padding:10px 14px;border-radius:3px;margin-bottom:16px}
+.success{background:rgba(0,204,122,.1);border:1px solid rgba(0,204,122,.2);color:var(--gr);font-family:'DM Mono',monospace;font-size:10px;padding:10px 14px;border-radius:3px;margin-bottom:16px}
+.switch{text-align:center;margin-top:4px}
+.switch span{font-family:'DM Mono',monospace;font-size:10px;color:var(--t2)}
+.switch button{background:none;border:none;color:var(--or);font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;text-decoration:underline;margin-left:4px}
+`;
 
 export default function SignInPage() {
+  const router = useRouter();
+  const [mode, setMode] = useState<"signup" | "signin">("signup");
+  const [role, setRole] = useState<"escort" | "carrier">("escort");
+  const [fullName, setFullName] = useState("");
+  const [company, setCompany] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  async function handleSubmit() {
+    setError("");
+    setSuccess("");
+    setLoading(true);
+
+    if (mode === "signup") {
+      const { error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: fullName, company_name: company, role },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+      if (signUpError) {
+        setError(signUpError.message);
+      } else {
+        setSuccess("Check your email to confirm your account, then sign in.");
+      }
+    } else {
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      if (signInError) {
+        setError(signInError.message);
+      } else if (data.user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", data.user.id)
+          .single();
+        if (profile?.role === "carrier") {
+          router.push("/dashboard/carrier");
+        } else {
+          router.push("/dashboard/escort");
+        }
+      }
+    }
+    setLoading(false);
+  }
+
   return (
-    <main style={S.main}>
-      <Header />
-
-      <section style={S.wrap}>
-        <div style={S.card}>
-          <h1 style={S.h1}>Access the Hub</h1>
-          <p style={S.sub}>
-            All users must create an account to interact with the platform.
-            Email is required. Phone number is required for notifications,
-            enforcement, and account security.
-          </p>
-
-          {/* ===== SIGN IN / SIGN UP ===== */}
-          <form style={S.form}>
-            <Field label="Email Address">
-              <input type="email" style={S.input} required />
-            </Field>
-
-            <Field label="Mobile Phone Number">
-              <input
-                type="tel"
-                style={S.input}
-                placeholder="No prepaid / VoIP numbers"
-                required
-              />
-            </Field>
-
-            <Field label="Account Type">
-              <select style={S.input}>
-                <option>Pilot Escort (Individual)</option>
-                <option>Pilot Escort Company</option>
-                <option>Broker / Carrier</option>
-                <option>Oversize Driver</option>
-              </select>
-            </Field>
-
-            <div style={S.notice}>
-              By continuing, you authorize Oversize Escort Hub to communicate
-              via email and SMS. Phone numbers are used for alerts and account
-              enforcement.
-            </div>
-
-            <button style={S.primaryBtn}>CONTINUE</button>
-          </form>
-
-          {/* ===== COMING SOON ===== */}
-          <div style={S.comingSoon}>
-            <div style={S.csTitle}>Coming Soon</div>
-            <div style={S.csRow}>
-              <span>📱 iOS App</span>
-              <span>🤖 Android App</span>
-              <span>⚡ FastPay Invoicing</span>
-              <span>🧾 Factoring</span>
+    <>
+      <style>{CSS}</style>
+      <div className="wrap">
+        <div className="box">
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 24 }}>
+            <img src="/logo.png" alt="OEH" style={{ width: 36, height: 36, objectFit: "contain" }} />
+            <div>
+              <div className="bb" style={{ fontSize: 20, color: "var(--t1)" }}>
+                {mode === "signup" ? "Start Free Trial" : "Welcome Back"}
+              </div>
+              <div className="mo" style={{ fontSize: 9, color: "var(--t2)", letterSpacing: ".1em" }}>
+                OVERSIZE ESCORT HUB
+              </div>
             </div>
           </div>
-        </div>
-      </section>
 
-      <Footer />
-    </main>
-  );
-}
+          {mode === "signup" && (
+            <div className="role-toggle">
+              <button className={`role-btn ${role === "escort" ? "active-escort" : ""}`} onClick={() => setRole("escort")}>
+                Escort / P/EVO
+              </button>
+              <button className={`role-btn ${role === "carrier" ? "active-carrier" : ""}`} onClick={() => setRole("carrier")}>
+                Carrier / Operator
+              </button>
+            </div>
+          )}
 
-/* ================= COMPONENTS ================= */
+          {error && <div className="error">{error}</div>}
+          {success && <div className="success">{success}</div>}
 
-function Header() {
-  return (
-    <header style={S.header}>
-      <a href="/" style={S.brand}>OVERSIZE ESCORT HUB</a>
-      <nav style={S.nav}>
-        <a style={S.navLink} href="/loads">Load Boards</a>
-        <a style={S.navLink} href="/post-load">Post Load</a>
-        <a style={S.navLink} href="/pricing">Membership</a>
-        <a style={S.navLink} href="/verify">Verification</a>
-      </nav>
-    </header>
-  );
-}
+          {mode === "signup" && (
+            <div className="field">
+              <label className="label">Full Name</label>
+              <input type="text" placeholder="Your full name" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+            </div>
+          )}
 
-function Footer() {
-  return (
-    <footer style={S.footer}>
-      <div style={S.footerInner}>
-        <div>
-          <strong>OVERSIZE ESCORT HUB</strong>
-          <div style={S.footerMuted}>
-            support@oversize-escort-hub.com
+          <div className="field">
+            <label className="label">Email Address</label>
+            <input type="email" placeholder="your@email.com" value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
-        </div>
-        <div style={S.footerLinks}>
-          <a style={S.footerLink} href="/terms">Terms</a>
-          <a style={S.footerLink} href="/privacy">Privacy</a>
+
+          <div className="field">
+            <label className="label">Password</label>
+            <input type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} />
+          </div>
+
+          {mode === "signup" && (
+            <div className="field">
+              <label className="label">Company / Business Name (optional)</label>
+              <input type="text" placeholder="Your company name" value={company} onChange={(e) => setCompany(e.target.value)} />
+            </div>
+          )}
+
+          <button
+            className={`btn ${role === "carrier" ? "btn-or" : "btn-am"}`}
+            onClick={handleSubmit}
+            disabled={loading || !email || !password}
+          >
+            {loading ? "Please wait..." : mode === "signup" ? "Create Free Account →" : "Sign In →"}
+          </button>
+
+          <div className="switch">
+            <span>{mode === "signup" ? "Already have an account?" : "Don't have an account?"}</span>
+            <button onClick={() => { setMode(mode === "signup" ? "signin" : "signup"); setError(""); setSuccess(""); }}>
+              {mode === "signup" ? "Sign In" : "Start Free Trial"}
+            </button>
+          </div>
+
+          <div className="mo" style={{ fontSize: 9, color: "var(--t3)", textAlign: "center", marginTop: 20, lineHeight: 1.6 }}>
+            30-day free trial · No credit card required<br />
+            $2.00/mi standard · $100 overnight · $250 no-go
+          </div>
         </div>
       </div>
-    </footer>
+    </>
   );
 }
-
-function Field({ label, children }: any) {
-  return (
-    <div style={S.field}>
-      <label style={S.label}>{label}</label>
-      {children}
-    </div>
-  );
-}
-
-/* ================= STYLES ================= */
-
-const S: any = {
-  main: { minHeight: "100vh", background: "#060b16", color: "#e5e7eb" },
-
-  header: {
-    padding: "18px 56px",
-    borderBottom: "1px solid rgba(255,255,255,0.1)",
-    display: "flex",
-    justifyContent: "space-between",
-  },
-  brand: {
-    fontWeight: 900,
-    color: "#00a8e8",
-    textDecoration: "none",
-  },
-  nav: { display: "flex", gap: 16 },
-  navLink: { color: "#cbd5e1", textDecoration: "none", fontWeight: 700 },
-
-  wrap: {
-    padding: "60px 56px",
-    display: "flex",
-    justifyContent: "center",
-  },
-
-  card: {
-    width: "100%",
-    maxWidth: 520,
-    background: "rgba(255,255,255,0.045)",
-    border: "1px solid rgba(255,255,255,0.14)",
-    borderRadius: 26,
-    padding: 28,
-    backdropFilter: "blur(16px)",
-  },
-
-  h1: { margin: 0, fontSize: 34, fontWeight: 900 },
-  sub: { marginTop: 8, fontSize: 14, color: "#9ca3af" },
-
-  form: { marginTop: 22, display: "grid", gap: 16 },
-  field: { display: "flex", flexDirection: "column", gap: 6 },
-  label: { fontSize: 13, fontWeight: 800 },
-
-  input: {
-    padding: "14px",
-    borderRadius: 14,
-    background: "rgba(0,0,0,0.45)",
-    border: "1px solid rgba(255,255,255,0.18)",
-    color: "#fff",
-    fontSize: 14,
-  },
-
-  notice: {
-    fontSize: 12,
-    color: "#9ca3af",
-    borderLeft: "3px solid #00a8e8",
-    paddingLeft: 10,
-  },
-
-  primaryBtn: {
-    marginTop: 10,
-    padding: "16px",
-    borderRadius: 16,
-    background: "linear-gradient(135deg,#00a8e8,#1fb6ff)",
-    fontWeight: 900,
-    color: "#001018",
-    border: "none",
-    cursor: "pointer",
-  },
-
-  comingSoon: {
-    marginTop: 26,
-    paddingTop: 18,
-    borderTop: "1px solid rgba(255,255,255,0.12)",
-  },
-  csTitle: {
-    fontWeight: 900,
-    fontSize: 13,
-    letterSpacing: 1.2,
-    color: "#00a8e8",
-    marginBottom: 10,
-  },
-  csRow: {
-    display: "flex",
-    gap: 12,
-    flexWrap: "wrap",
-    fontSize: 13,
-    color: "#cbd5e1",
-    fontWeight: 700,
-  },
-
-  footer: {
-    padding: "30px 56px",
-    borderTop: "1px solid rgba(255,255,255,0.1)",
-    marginTop: 60,
-  },
-  footerInner: { display: "flex", justifyContent: "space-between" },
-  footerMuted: { fontSize: 13, color: "#9ca3af" },
-  footerLinks: { display: "flex", gap: 16 },
-  footerLink: { color: "#cbd5e1", textDecoration: "none", fontWeight: 700 },
-};

@@ -1,10 +1,7 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  output: "export",
-  images: {
-    unoptimized: true,
-  },
-};
+  // No output: 'export' — we need server-side features for Supabase auth
+}
 
-export default nextConfig;
+export default nextConfig
