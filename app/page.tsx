@@ -391,7 +391,7 @@ function HomePage({ setPage }: { setPage: (p: Page) => void }) {
         <span className="mo" style={{ fontSize: 9, letterSpacing: ".16em", textTransform: "uppercase", color: "var(--t2)" }}>Platform</span>
         <span style={{ width: 1, height: 16, background: "var(--l1)" }} />
         <span className="mo" style={{ fontSize: 10, color: "var(--t2)" }}>Three boards · Verified escorts · Real-time bidding · No commissions · No job fees · Ever</span>
-        <span style={{ marginLeft: "auto" }} className="mo" style2={{ fontSize: 9, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--t2)" }}>$670M US Market · 50,000+ P/EVO Operators</span>
+        <span className="mo" style={{ marginLeft: "auto", fontSize: 9, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--t2)" }}>$670M US Market · 50,000+ P/EVO Operators</span>
       </div>
 
       {/* FLAT BOARD PREVIEW */}
