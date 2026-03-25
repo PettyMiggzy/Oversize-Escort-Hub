@@ -1,28 +1,29 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
 // ─── DATA ───────────────────────────────────────────────────────────────────
 
+// Rates: $2.00/mi standard · short runs (<250mi) may hit $500/day minimum · $100 overnight · $250 no-go
 const FLAT_LOADS = [
-  { id: "FL-4481", from: "Jacksonville, FL", to: "Montgomery, AL", mi: 344, rate: 2.95, pos: "Lead", certs: ["P/EVO"], pay: "FastPay", status: "open", carrier: "Sunshine State Oversize", score: 4.8 },
-  { id: "FL-4490", from: "Houston, TX", to: "Oklahoma City, OK", mi: 488, rate: 2.75, pos: "Rear", certs: ["P/EVO"], pay: "7-Day", status: "open", carrier: "Gulf Coast Transport LLC", score: 4.6 },
-  { id: "FL-4391", from: "Columbus, OH", to: "Indianapolis, IN", mi: 174, rate: 3.10, pos: "Lead", certs: ["P/EVO", "TWIC"], pay: "FastPay", status: "filled", carrier: "Buckeye Heavy Haul", score: 4.9 },
-  { id: "FL-4402", from: "Bakersfield, CA", to: "Las Vegas, NV", mi: 280, rate: 3.40, pos: "Lead+Rear", certs: ["P/EVO", "Witpac"], pay: "10-Day", status: "open", carrier: "Desert Wind Transport", score: 4.7 },
-  { id: "FL-4388", from: "Memphis, TN", to: "Birmingham, AL", mi: 210, rate: 2.65, pos: "Lead", certs: ["P/EVO"], pay: "7-Day", status: "open", carrier: "MidSouth Oversize", score: 4.4 },
-  { id: "FL-4510", from: "Dallas, TX", to: "Shreveport, LA", mi: 193, rate: 2.80, pos: "Rear", certs: ["P/EVO"], pay: "FastPay", status: "open", carrier: "Lone Star Oversize LLC", score: 4.9 },
+  { id: "FL-4481", from: "Jacksonville, FL", to: "Montgomery, AL", mi: 344, rate: 2.00, pos: "Lead", certs: ["P/EVO"], pay: "FastPay", status: "open", carrier: "Sunshine State Oversize", score: 4.8 },
+  { id: "FL-4490", from: "Houston, TX", to: "Oklahoma City, OK", mi: 488, rate: 2.00, pos: "Rear", certs: ["P/EVO"], pay: "7-Day", status: "open", carrier: "Gulf Coast Transport LLC", score: 4.6 },
+  { id: "FL-4391", from: "Columbus, OH", to: "Indianapolis, IN", mi: 174, rate: 2.00, pos: "Lead", certs: ["P/EVO", "TWIC"], pay: "FastPay", status: "filled", carrier: "Buckeye Heavy Haul", score: 4.9, note: "$500 day min applied" },
+  { id: "FL-4402", from: "Bakersfield, CA", to: "Las Vegas, NV", mi: 280, rate: 2.00, pos: "Lead+Rear", certs: ["P/EVO", "Witpac"], pay: "10-Day", status: "open", carrier: "Desert Wind Transport", score: 4.7 },
+  { id: "FL-4388", from: "Memphis, TN", to: "Birmingham, AL", mi: 210, rate: 2.00, pos: "Lead", certs: ["P/EVO"], pay: "7-Day", status: "open", carrier: "MidSouth Oversize", score: 4.4, note: "$500 day min applied" },
+  { id: "FL-4510", from: "Dallas, TX", to: "Shreveport, LA", mi: 193, rate: 2.00, pos: "Rear", certs: ["P/EVO"], pay: "FastPay", status: "open", carrier: "Lone Star Oversize LLC", score: 4.9, note: "$500 day min applied" },
 ];
 
 const BID_LOADS = [
-  { id: "BID-771", from: "Dallas, TX", to: "Memphis, TN", mi: 473, rate: 2.90, pos: "Lead", certs: ["P/EVO"], carrier: "Tex-Ark Oversize", score: 4.7, bids: 3, timer: 187, status: "live" },
-  { id: "BID-664", from: "Phoenix, AZ", to: "Albuquerque, NM", mi: 467, rate: 3.50, pos: "Lead", certs: ["P/EVO", "Witpac"], carrier: "Desert Run LLC", score: 4.8, bids: 1, timer: 44, status: "live" },
-  { id: "BID-559", from: "Nashville, TN", to: "St. Louis, MO", mi: 312, rate: 2.20, pos: "Rear", certs: ["P/EVO"], carrier: "MidAmerica Heavy", score: 4.5, bids: 4, timer: 0, status: "filled" },
-  { id: "BID-601", from: "Chicago, IL", to: "Detroit, MI", mi: 281, rate: 2.45, pos: "Lead", certs: ["P/EVO"], carrier: "Great Lakes Transport", score: 4.6, bids: 2, timer: 0, status: "expired" },
+  { id: "BID-771", from: "Dallas, TX", to: "Memphis, TN", mi: 473, rate: 2.00, pos: "Lead", certs: ["P/EVO"], carrier: "Tex-Ark Oversize", score: 4.7, bids: 3, timer: 187, status: "live" },
+  { id: "BID-664", from: "Phoenix, AZ", to: "Albuquerque, NM", mi: 467, rate: 2.00, pos: "Lead", certs: ["P/EVO", "Witpac"], carrier: "Desert Run LLC", score: 4.8, bids: 1, timer: 44, status: "live" },
+  { id: "BID-559", from: "Nashville, TN", to: "St. Louis, MO", mi: 312, rate: 2.00, pos: "Rear", certs: ["P/EVO"], carrier: "MidAmerica Heavy", score: 4.5, bids: 4, timer: 0, status: "filled" },
+  { id: "BID-601", from: "Chicago, IL", to: "Detroit, MI", mi: 281, rate: 2.00, pos: "Lead", certs: ["P/EVO"], carrier: "Great Lakes Transport", score: 4.6, bids: 2, timer: 0, status: "expired" },
 ];
 
 const OPEN_BIDS = [
-  { id: "OB-331", from: "Houston, TX", to: "New Orleans, LA", mi: 349, rate: 2.55, pos: "Lead", certs: ["P/EVO"], carrier: "Gulf Coast Transport", score: 4.6, bids: 6, closes: "18h 22m", minPay: 2.30, maxPay: 2.75 },
-  { id: "OB-288", from: "Chicago, IL", to: "Detroit, MI", mi: 281, rate: 2.30, pos: "Lead+Rear", certs: ["P/EVO", "TWIC"], carrier: "Great Lakes Heavy", score: 4.8, bids: 9, closes: "22h 05m", minPay: 2.10, maxPay: 2.55 },
-  { id: "OB-299", from: "Atlanta, GA", to: "Charlotte, NC", mi: 244, rate: 2.70, pos: "Rear", certs: ["P/EVO"], carrier: "Southeast Oversize", score: 4.4, bids: 4, closes: "41h 10m", minPay: 2.40, maxPay: 2.70 },
+  { id: "OB-331", from: "Houston, TX", to: "New Orleans, LA", mi: 349, rate: 2.00, pos: "Lead", certs: ["P/EVO"], carrier: "Gulf Coast Transport", score: 4.6, bids: 6, closes: "18h 22m", minPay: 1.75, maxPay: 2.00 },
+  { id: "OB-288", from: "Chicago, IL", to: "Detroit, MI", mi: 281, rate: 2.00, pos: "Lead+Rear", certs: ["P/EVO", "TWIC"], carrier: "Great Lakes Heavy", score: 4.8, bids: 9, closes: "22h 05m", minPay: 1.70, maxPay: 2.00 },
+  { id: "OB-299", from: "Atlanta, GA", to: "Charlotte, NC", mi: 244, rate: 2.00, pos: "Rear", certs: ["P/EVO"], carrier: "Southeast Oversize", score: 4.4, bids: 4, closes: "41h 10m", minPay: 1.80, maxPay: 2.00 },
 ];
 
 const ESCORTS = [
@@ -33,14 +34,15 @@ const ESCORTS = [
 ];
 
 const TIERS = [
-  { id: "trial", name: "Free Trial", price: 0, sub: "30 days · one per device", color: "#6e7a88", features: ["View load board (no contact info)", "Search escorts directory", "30-day limit · FingerprintJS enforced", "No bidding · no alerts"] },
-  { id: "member", name: "Member", price: 19.99, sub: "per month", color: "#3d8ef8", features: ["Full bidding on all boards", "Email alerts on new loads", "60s after Pro on bid board loads", "In-platform messaging", "Multi-state load filters"], daily: 1.99 },
-  { id: "pro", name: "Pro", price: 29.99, sub: "per month", color: "#f5a200", features: ["SMS instant on bid loads (60s head start)", "Deadhead Minimizer + return load feed", "I'm Available broadcast", "Deadhead calculator + savings dashboard", "Invoice generator", "First cert verification free"], daily: 4.99, popular: true },
-  { id: "carrier", name: "Carrier Member", price: 9.99, sub: "per month", color: "#00cc7a", features: ["Post unlimited loads free", "Permit Management Hub", "True Cost Per Load Tracker", "Preferred Escort Network", "Quick Rebook (3+ jobs same escort)"], carrierPro: 19.99 },
+  { id: "trial", name: "Free Trial", price: 0, sub: "30 days · one per device", color: "#6e7a88", features: ["View load board (no contact info)", "Search escorts directory", "30-day limit · FingerprintJS enforced", "No bidding · no alerts"], daily: null, popular: false, carrierPro: null },
+  { id: "member", name: "Member", price: 19.99, sub: "per month", color: "#3d8ef8", features: ["Full bidding on all boards", "Email alerts on new loads", "60s after Pro on bid board loads", "In-platform messaging", "Multi-state load filters"], daily: 1.99, popular: false, carrierPro: null },
+  { id: "pro", name: "Pro", price: 29.99, sub: "per month", color: "#f5a200", features: ["SMS instant on bid loads (60s head start)", "Deadhead Minimizer + return load feed", "I'm Available broadcast", "Deadhead calculator + savings dashboard", "Invoice generator", "First cert verification free"], daily: 4.99, popular: true, carrierPro: null },
+  { id: "carrier", name: "Carrier Member", price: 9.99, sub: "per month", color: "#00cc7a", features: ["Post unlimited loads free", "Permit Management Hub", "True Cost Per Load Tracker", "Preferred Escort Network", "Quick Rebook (3+ jobs same escort)"], daily: null, popular: false, carrierPro: 19.99 },
 ];
 
 const PAGES = ["home", "flatboard", "openboard", "bidboard", "escorts", "escprofile", "dashboard-e", "dashboard-c", "postload", "pricing", "verification", "signin"] as const;
 type Page = typeof PAGES[number];
+type Role = "carrier" | "escort" | null;
 
 // ─── STYLES ─────────────────────────────────────────────────────────────────
 
@@ -59,7 +61,6 @@ table{width:100%;border-collapse:collapse}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
 @keyframes scrolltick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
-/* TICKER */
 .ticker{height:28px;background:#030507;border-bottom:1px solid var(--l1);overflow:hidden;display:flex;align-items:center}
 .ticker-track{display:flex;animation:scrolltick 90s linear infinite;white-space:nowrap}
 .tick-item{display:inline-flex;align-items:center;gap:8px;padding:0 28px;border-right:1px solid var(--l1);height:28px;font-family:'DM Mono',monospace;font-size:10px;color:var(--t2);letter-spacing:.05em}
@@ -68,7 +69,6 @@ table{width:100%;border-collapse:collapse}
 .dot-am{background:var(--am);box-shadow:0 0 5px var(--am)}
 .dot-or{background:var(--or)}
 
-/* NAV */
 .nav{background:rgba(6,8,10,.98);border-bottom:1px solid var(--l1);height:56px;display:flex;align-items:center;padding:0 24px;gap:20px;position:sticky;top:0;z-index:100;backdrop-filter:blur(8px)}
 .nav-mark{width:34px;height:34px;background:var(--or);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',Impact,sans-serif;font-size:19px;color:#000;letter-spacing:.02em;flex-shrink:0}
 .nav-name{font-family:'Bebas Neue',Impact,sans-serif;font-size:15px;letter-spacing:.08em;color:var(--t1)}
@@ -80,33 +80,29 @@ table{width:100%;border-collapse:collapse}
 .nav-bid::before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--am);box-shadow:0 0 6px var(--am);margin-right:7px;animation:pulse 1.4s infinite}
 .nav-cta{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;background:var(--or);color:#000;border:none;padding:8px 16px;font-weight:700;margin-left:auto}
 
-/* BID STRIP */
 .bid-strip{background:var(--p2);border-bottom:1px solid var(--l1);padding:0 24px;height:44px;display:flex;align-items:center;gap:16px}
 .bid-live{display:flex;align-items:center;gap:7px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--am)}
 .bid-live::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--am);box-shadow:0 0 7px var(--am);animation:pulse 1.4s infinite}
 .bid-cta{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;padding:7px 16px;background:rgba(245,162,0,.1);border:1px solid var(--am);color:var(--am);margin-left:auto;transition:background .15s}
 .bid-cta:hover{background:rgba(245,162,0,.18)}
 
-/* HERO */
-.hero{display:grid;grid-template-columns:1fr 1fr;min-height:520px;border-bottom:1px solid var(--l1)}
-.hero-carrier{background:var(--bg);border-right:1px solid var(--l1);padding:56px 48px;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden}
+.hero{background:var(--bg);padding:56px 48px;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden;border-bottom:1px solid var(--l1)}
 .hero-carrier::before{content:'';position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 39px,var(--l1) 39px,var(--l1) 40px),repeating-linear-gradient(90deg,transparent,transparent 39px,var(--l1) 39px,var(--l1) 40px);opacity:.22;pointer-events:none}
-.hero-escort{background:var(--p1);padding:56px 48px;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden}
+.hero-escort{background:var(--p1)}
 .hero-escort::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 80% 50%,rgba(245,162,0,.04) 0%,transparent 70%);pointer-events:none}
-.hero-inner{position:relative;z-index:1}
+.hero-inner{position:relative;z-index:1;max-width:680px}
 .hero-tag{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.22em;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px}
 .hero-tag::before{content:'';display:inline-block;width:18px;height:1px}
 .tag-or{color:var(--or)}.tag-or::before{background:var(--or)}
 .tag-am{color:var(--am)}.tag-am::before{background:var(--am)}
 .hero-hl{font-family:'Bebas Neue',Impact,sans-serif;font-size:64px;line-height:.92;letter-spacing:.02em;margin-bottom:18px}
-.hero-sub{font-size:13px;color:var(--t2);line-height:1.85;max-width:380px;margin-bottom:16px}
-.stat-row{display:flex;gap:0;margin-bottom:28px}
+.hero-sub{font-size:13px;color:var(--t2);line-height:1.85;max-width:520px;margin-bottom:16px}
+.stat-row{display:flex;gap:0;margin-bottom:28px;max-width:480px}
 .stat{flex:1;padding:12px 16px;background:var(--p2);border:1px solid var(--l1)}
 .stat:first-child{border-radius:3px 0 0 3px}.stat:last-child{border-radius:0 3px 3px 0}
 .stat-n{font-family:'Bebas Neue',Impact,sans-serif;font-size:26px;line-height:1;margin-bottom:2px}
 .stat-l{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--t2)}
 
-/* BUTTONS */
 .btn{display:inline-flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;padding:12px 22px;border:none;transition:opacity .15s}
 .btn:hover{opacity:.85}
 .btn-or{background:var(--or);color:#000}
@@ -117,7 +113,6 @@ table{width:100%;border-collapse:collapse}
 .btn-sm{padding:7px 14px;font-size:8px}
 .btn-row{display:flex;gap:8px;flex-wrap:wrap}
 
-/* SECTION */
 .section{padding:52px 24px}
 .section-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px}
 .eyebrow{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;margin-bottom:6px}
@@ -126,7 +121,6 @@ table{width:100%;border-collapse:collapse}
 .section-link::after{content:'→'}
 .section-link:hover{color:var(--t1)}
 
-/* CHIP */
 .chip{display:inline-flex;align-items:center;gap:3px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:2px}
 .ch-gr{background:rgba(0,204,122,.1);color:var(--gr);border:1px solid rgba(0,204,122,.2)}
 .ch-am{background:rgba(245,162,0,.1);color:var(--am);border:1px solid rgba(245,162,0,.2)}
@@ -135,7 +129,6 @@ table{width:100%;border-collapse:collapse}
 .ch-dim{background:var(--p2);color:var(--t2);border:1px solid var(--l1)}
 .ch-rd{background:rgba(255,53,53,.1);color:var(--rd);border:1px solid rgba(255,53,53,.2)}
 
-/* TABLE */
 .data-table{border:1px solid var(--l1);border-radius:4px;overflow:hidden}
 .data-table table{font-family:'DM Mono',monospace;font-size:11px}
 .data-table thead th{background:var(--p2);padding:8px 12px;text-align:left;font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--t2);border-bottom:1px solid var(--l1);white-space:nowrap;font-weight:500}
@@ -143,28 +136,23 @@ table{width:100%;border-collapse:collapse}
 .data-table tbody tr:last-child td{border-bottom:none}
 .data-table tbody tr:hover td{background:rgba(255,255,255,.015)}
 
-/* PAY SCORE */
 .ps{display:inline-flex;align-items:center;gap:4px;font-family:'DM Mono',monospace;font-size:9px;padding:2px 7px;border-radius:2px}
 .ps-hi{background:rgba(0,204,122,.1);color:var(--gr);border:1px solid rgba(0,204,122,.2)}
 .ps-lo{background:rgba(245,162,0,.1);color:var(--am);border:1px solid rgba(245,162,0,.2)}
 .ps-bad{background:rgba(255,53,53,.1);color:var(--rd);border:1px solid rgba(255,53,53,.2)}
 
-/* LOCK */
 .lock-bar{background:var(--p2);border:1px solid var(--l1);border-radius:3px;padding:10px 16px;display:flex;align-items:center;gap:12px;margin-top:10px;flex-wrap:wrap}
 .lock-phone{font-family:'DM Mono',monospace;font-size:12px;color:var(--t3)}
 .lock-msg{font-family:'DM Mono',monospace;font-size:10px;color:var(--t2)}
 
-/* CARD */
 .card{background:var(--p1);border:1px solid var(--l1);border-radius:4px;padding:18px}
 .card:hover{border-color:var(--l2)}
 
-/* BID TIMER */
 .bid-timer{font-family:'Bebas Neue',Impact,sans-serif;font-size:28px;line-height:1;letter-spacing:.04em}
 .timer-red{color:var(--rd)}
 .timer-am{color:var(--am)}
 .timer-gr{color:var(--gr)}
 
-/* DASHBOARD */
 .dash-grid{display:grid;grid-template-columns:240px 1fr;gap:0;min-height:calc(100vh - 84px)}
 .dash-nav{background:var(--p1);border-right:1px solid var(--l1);padding:20px 0}
 .dash-nav-item{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--t2);padding:11px 20px;display:flex;align-items:center;gap:9px;cursor:pointer;transition:background .15s}
@@ -176,13 +164,11 @@ table{width:100%;border-collapse:collapse}
 .metric-n{font-family:'Bebas Neue',Impact,sans-serif;font-size:28px;line-height:1;margin-bottom:2px}
 .metric-l{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--t2)}
 
-/* FEAT GRID */
 .feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .feat-card{background:var(--p1);border:1px solid var(--l1);border-top:2px solid;border-radius:4px;padding:18px}
 .feat-title{font-family:'Bebas Neue',Impact,sans-serif;font-size:18px;color:var(--t1);margin-bottom:7px;line-height:1.1}
 .feat-body{font-size:12px;color:var(--t2);line-height:1.75}
 
-/* PRICING */
 .price-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 .price-card{background:var(--p1);border:1px solid var(--l1);border-radius:4px;padding:20px;display:flex;flex-direction:column;gap:14px}
 .price-card.popular{border-color:var(--am)}
@@ -191,10 +177,8 @@ table{width:100%;border-collapse:collapse}
 .price-feat{font-family:'DM Mono',monospace;font-size:10px;color:var(--t2);display:flex;align-items:flex-start;gap:6px;line-height:1.5}
 .price-feat::before{content:'✓';color:var(--gr);flex-shrink:0}
 
-/* VERIFICATION */
 .verify-tier{background:var(--p1);border:1px solid var(--l1);border-left:3px solid;border-radius:4px;padding:18px 20px;display:flex;align-items:flex-start;gap:16px;margin-bottom:10px}
 
-/* FOOTER */
 footer{background:var(--p1);border-top:1px solid var(--l1);padding:40px 24px 24px}
 .footer-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:44px;margin-bottom:28px}
 .footer-col h4{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--t2);margin-bottom:12px}
@@ -202,27 +186,22 @@ footer{background:var(--p1);border-top:1px solid var(--l1);padding:40px 24px 24p
 .footer-col a:hover{color:var(--t1)}
 .footer-bottom{display:flex;justify-content:space-between;padding-top:20px;border-top:1px solid var(--l1);font-family:'DM Mono',monospace;font-size:9px;color:var(--t3);letter-spacing:.06em}
 
-/* PLATFORM DIVIDER */
 .platform-div{background:var(--p2);border-bottom:1px solid var(--l1);border-top:1px solid var(--l1);padding:12px 24px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
-
-/* ESC GRID */
 .esc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-
-/* OPEN BID CARDS */
 .ob-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 
-/* SIGNIN */
 .signin-wrap{min-height:calc(100vh - 84px);display:flex;align-items:center;justify-content:center;background:var(--bg)}
 .signin-box{background:var(--p1);border:1px solid var(--l1);border-radius:4px;padding:36px;width:100%;max-width:420px}
 .form-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--t2);display:block;margin-bottom:6px}
 .form-field{margin-bottom:16px}
-
-/* POSTLOAD */
 .postload-wrap{max-width:780px;margin:0 auto;padding:40px 24px}
 
+.role-picker{min-height:calc(100vh - 84px);display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);padding:40px 24px}
+.role-card{background:var(--p1);border-radius:4px;padding:36px 28px;cursor:pointer;transition:background .15s;flex:1}
+.role-card:hover{background:rgba(255,255,255,.03)}
+.role-bar{background:var(--p2);border-bottom:1px solid var(--l1);padding:6px 24px;display:flex;align-items:center;gap:12px}
+
 @media(max-width:900px){
-  .hero{grid-template-columns:1fr}
-  .hero-carrier{border-right:none;border-bottom:1px solid var(--l1)}
   .price-grid{grid-template-columns:repeat(2,1fr)}
   .feat-grid{grid-template-columns:repeat(2,1fr)}
   .esc-grid{grid-template-columns:repeat(2,1fr)}
@@ -236,14 +215,14 @@ footer{background:var(--p1);border-top:1px solid var(--l1);padding:40px 24px 24p
 
 function Ticker() {
   const items = [
-    { dot: "dot-gr", text: "FL-4481 · Jacksonville FL→Montgomery AL · 344mi · $2.95/mi · FILLED · FastPay" },
-    { dot: "dot-am", text: "BID BOARD LIVE · BID-771 · Dallas TX→Memphis TN · 3:12 remaining · 3 bids · low $2.65" },
+    { dot: "dot-gr", text: "FL-4481 · Jacksonville FL→Montgomery AL · 344mi · $2.00/mi · $688 est. · OPEN · FastPay" },
+    { dot: "dot-am", text: "BID BOARD LIVE · BID-771 · Dallas TX→Memphis TN · 3:12 remaining · 3 bids · $2.00/mi ceiling" },
     { dot: "dot-gr", text: "Marcus T. · Background Check badge approved · #1 TX · 284 jobs · 4.97 rating" },
-    { dot: "dot-or", text: "OPEN BID · OB-331 · Houston TX→New Orleans LA · closes in 18h · 6 bids received" },
-    { dot: "dot-gr", text: "Pro SMS sent · BID-664 dropped · AZ→NM · $3.50 ceiling · 60s head start" },
-    { dot: "dot-am", text: "BID-559 FILLED · Nashville→St. Louis · Rick B. wins · $2.20/mi" },
-    { dot: "dot-gr", text: "Lone Star Oversize LLC · Pay Score 4.9 · load filled in 3 min" },
-    { dot: "dot-or", text: "OPEN BID · IL→MI · 281mi · 9 bids · low $2.30/mi · 22h remaining" },
+    { dot: "dot-or", text: "OPEN BID · OB-331 · Houston TX→New Orleans LA · closes in 18h · 6 bids · $2.00/mi ceiling" },
+    { dot: "dot-gr", text: "Standard rates: $2.00/mi or $500/day · $100 overnight · $250 no-go fee" },
+    { dot: "dot-am", text: "BID-559 FILLED · Nashville→St. Louis · 312mi · $2.00/mi · $624 pay" },
+    { dot: "dot-gr", text: "Lone Star Oversize LLC · Pay Score 4.9 · load filled in 3 min · FastPay" },
+    { dot: "dot-or", text: "OPEN BID · IL→MI · 281mi · $2.00/mi ceiling · 9 bids · $500 day min applies" },
   ];
   return (
     <div className="ticker">
@@ -263,7 +242,7 @@ function Nav({ page, setPage }: { page: Page; setPage: (p: Page) => void }) {
   return (
     <div className="nav">
       <div style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }} onClick={() => setPage("home")}>
-        <div className="nav-mark">OEH</div>
+        <img src="/logo.png" alt="Oversize Escort Hub" style={{ width: 38, height: 38, objectFit: "contain" }} />
         <div className="nav-name">Oversize Escort Hub</div>
       </div>
       <div className="nav-div" />
@@ -288,7 +267,7 @@ function Footer({ setPage }: { setPage: (p: Page) => void }) {
       <div className="footer-grid">
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-            <div className="nav-mark" style={{ width: 28, height: 28, fontSize: 15 }}>OEH</div>
+            <img src="/logo.png" alt="Oversize Escort Hub" style={{ width: 32, height: 32, objectFit: "contain" }} />
             <span className="bb" style={{ fontSize: 14, letterSpacing: ".06em" }}>Oversize Escort Hub</span>
           </div>
           <p style={{ fontSize: 12, color: "var(--t2)", lineHeight: 1.75, maxWidth: 230 }}>
@@ -337,27 +316,101 @@ function PayScore({ score }: { score: number }) {
   return <span className={`ps ${cls}`}>{score} ⭐</span>;
 }
 
-// ─── PAGES ───────────────────────────────────────────────────────────────────
+// ─── HOME PAGE ───────────────────────────────────────────────────────────────
 
 function HomePage({ setPage }: { setPage: (p: Page) => void }) {
-  return (
-    <>
-      <div className="bid-strip">
-        <div className="bid-live">5-Min Bid Board</div>
-        <div style={{ width: 1, height: 18, background: "var(--l1)" }} />
-        <div className="mo" style={{ fontSize: 10, color: "var(--t2)", flex: 1 }}>3 loads live · Pro: SMS instant · Member: 60s delay · Closes on timer / fill / cancel — whichever comes first</div>
-        <button className="bid-cta" onClick={() => setPage("bidboard")}>View Live Board →</button>
-      </div>
+  const [role, setRole] = useState<Role>(null);
 
-      <div className="hero">
-        <div className="hero-carrier">
+  // ── Role picker ──
+  if (!role) {
+    return (
+      <div className="role-picker">
+        <div className="bb" style={{ fontSize: 52, textAlign: "center", marginBottom: 6 }}>WHO ARE YOU?</div>
+        <p className="mo" style={{ fontSize: 11, color: "var(--t2)", marginBottom: 48, letterSpacing: ".12em", textTransform: "uppercase" }}>
+          Select your role to get started
+        </p>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, width: "100%", maxWidth: 720 }}>
+          <div
+            className="role-card"
+            style={{ border: "2px solid var(--or)" }}
+            onClick={() => setRole("carrier")}
+          >
+            <div className="bb" style={{ fontSize: 34, color: "var(--or)", marginBottom: 10 }}>OVERSIZE CARRIER</div>
+            <p style={{ fontSize: 13, color: "var(--t2)", lineHeight: 1.8, marginBottom: 20 }}>
+              Owner operators &amp; carriers who need verified P/EVO escorts for oversize loads.
+            </p>
+            <div className="mo" style={{ fontSize: 10, color: "var(--or)", letterSpacing: ".1em" }}>
+              POST LOADS · BID BOARD · FIND ESCORTS →
+            </div>
+          </div>
+          <div
+            className="role-card"
+            style={{ border: "2px solid var(--am)" }}
+            onClick={() => setRole("escort")}
+          >
+            <div className="bb" style={{ fontSize: 34, color: "var(--am)", marginBottom: 10 }}>PILOT CAR / P/EVO</div>
+            <p style={{ fontSize: 13, color: "var(--t2)", lineHeight: 1.8, marginBottom: 20 }}>
+              Licensed pilot car escorts &amp; P/EVO operators looking for oversize loads to run.
+            </p>
+            <div className="mo" style={{ fontSize: 10, color: "var(--am)", letterSpacing: ".1em" }}>
+              FIND LOADS · DEADHEAD MINIMIZER · BID →
+            </div>
+          </div>
+        </div>
+        <button
+          className="mo"
+          style={{ marginTop: 28, background: "none", border: "none", color: "var(--t3)", fontSize: 10, letterSpacing: ".1em", cursor: "pointer" }}
+          onClick={() => setRole("carrier")}
+        >
+          Browse as guest →
+        </button>
+      </div>
+    );
+  }
+
+  // ── Role switcher bar ──
+  const RoleBar = () => (
+    <div className="role-bar">
+      <span className="mo" style={{ fontSize: 9, color: "var(--t2)", letterSpacing: ".12em", textTransform: "uppercase" }}>Viewing as:</span>
+      <span
+        className="chip"
+        style={{
+          background: role === "carrier" ? "rgba(255,98,0,.1)" : "rgba(245,162,0,.1)",
+          color: role === "carrier" ? "var(--or)" : "var(--am)",
+          border: `1px solid ${role === "carrier" ? "var(--or)" : "var(--am)"}`,
+        }}
+      >
+        {role === "carrier" ? "Oversize Carrier" : "Pilot Car / P/EVO"}
+      </span>
+      <button
+        className="mo"
+        style={{ background: "none", border: "none", color: "var(--t2)", fontSize: 9, letterSpacing: ".1em", cursor: "pointer", textDecoration: "underline" }}
+        onClick={() => setRole(null)}
+      >
+        Switch Role
+      </button>
+    </div>
+  );
+
+  // ── Carrier homepage ──
+  if (role === "carrier") {
+    return (
+      <>
+        <RoleBar />
+        <div className="bid-strip">
+          <div className="bid-live">5-Min Bid Board</div>
+          <div style={{ width: 1, height: 18, background: "var(--l1)" }} />
+          <div className="mo" style={{ fontSize: 10, color: "var(--t2)", flex: 1 }}>3 loads live · Pro: SMS instant · Member: 60s delay · Closes on timer / fill / cancel — whichever comes first</div>
+          <button className="bid-cta" onClick={() => setPage("bidboard")}>View Live Board →</button>
+        </div>
+        <div className="hero hero-carrier">
           <div className="hero-inner">
             <div className="hero-tag tag-or">For Oversize Carriers &amp; Owner Operators</div>
             <div className="hero-hl" style={{ color: "var(--or)" }}>STOP<br />OVERPAYING<br />FOR<br />ESCORTS.</div>
-            <p className="hero-sub">You pay permits AND escorts out of your own cut. <strong style={{ color: "var(--t1)" }}>Potentially $2,000+ overhead before you make a dollar</strong> — with zero tools to control it. Until now.</p>
-            <p className="hero-sub">Standard $2.50/mi run. Winning bids on our board come in at $2.10. On 3–4 loads/week that's <strong style={{ color: "var(--t1)" }}>$1,500–$2,000 back in your pocket monthly.</strong></p>
+            <p className="hero-sub">On many runs, permits and escorts come straight out of your load revenue — <strong style={{ color: "var(--t1)" }}>overhead that adds up fast with no tools to control it.</strong> Until now.</p>
+            <p className="hero-sub">Industry standard is $2.00/mi or $500/day. Carriers who bid smart and book direct <strong style={{ color: "var(--t1)" }}>keep more of every load.</strong></p>
             <div className="stat-row">
-              <div className="stat"><div className="stat-n" style={{ color: "var(--or)" }}>$800</div><div className="stat-l">Avg Saved/Month</div></div>
+              <div className="stat"><div className="stat-n" style={{ color: "var(--or)" }}>$800+</div><div className="stat-l">Saved/Month (Top Users)</div></div>
               <div className="stat"><div className="stat-n" style={{ color: "var(--gr)" }}>Free</div><div className="stat-l">Always Post Loads</div></div>
               <div className="stat"><div className="stat-n" style={{ color: "var(--or)" }}>3×</div><div className="stat-l">FastPay Fill Speed</div></div>
             </div>
@@ -368,21 +421,95 @@ function HomePage({ setPage }: { setPage: (p: Page) => void }) {
           </div>
         </div>
 
-        <div className="hero-escort">
-          <div className="hero-inner">
-            <div className="hero-tag tag-am">For Pilot Car Escorts / P/EVO Operators</div>
-            <div className="hero-hl" style={{ color: "var(--am)" }}>STOP<br />DRIVING<br />HOME<br />EMPTY.</div>
-            <p className="hero-sub">The average P/EVO escort deadheads home after <strong style={{ color: "var(--t1)" }}>40% of runs.</strong> ~6 empty trips/month × 200mi = <strong style={{ color: "var(--rd)" }}>$804/month lost</strong> in fuel and zero revenue miles.</p>
-            <p className="hero-sub">Pro surfaces return loads near your drop, sorted toward home state first. At $29.99/mo that's a <strong style={{ color: "var(--am)" }}>26× return.</strong></p>
-            <div className="stat-row">
-              <div className="stat"><div className="stat-n" style={{ color: "var(--am)" }}>$4,800</div><div className="stat-l">Recovered/Year</div></div>
-              <div className="stat"><div className="stat-n" style={{ color: "var(--am)" }}>26×</div><div className="stat-l">ROI at $29.99/mo</div></div>
-              <div className="stat"><div className="stat-n" style={{ color: "var(--gr)" }}>60s</div><div className="stat-l">Pro Head Start</div></div>
+        <div className="platform-div">
+          <span className="mo" style={{ fontSize: 9, letterSpacing: ".16em", textTransform: "uppercase", color: "var(--t2)" }}>Platform</span>
+          <span style={{ width: 1, height: 16, background: "var(--l1)" }} />
+          <span className="mo" style={{ fontSize: 10, color: "var(--t2)" }}>Three boards · Verified escorts · Real-time bidding · No commissions · No job fees · Ever</span>
+          <span className="mo" style={{ marginLeft: "auto", fontSize: 9, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--t2)" }}>$670M US Market · 50,000+ P/EVO Operators</span>
+        </div>
+
+        {/* FLAT BOARD PREVIEW */}
+        <div className="section" style={{ paddingBottom: 0 }}>
+          <div className="section-header">
+            <div>
+              <div className="eyebrow" style={{ color: "var(--gr)" }}>Live Board</div>
+              <div className="section-title">FLAT RATE LOADS</div>
             </div>
-            <div className="btn-row">
-              <button className="btn btn-am" onClick={() => setPage("pricing")}>Go Pro — $29.99/mo →</button>
-              <button className="btn btn-ghost" onClick={() => setPage("signin")}>Start Free Trial</button>
+            <button className="section-link" onClick={() => setPage("flatboard")}>View All Loads</button>
+          </div>
+          <div className="data-table">
+            <table>
+              <thead>
+                <tr><th>Load ID</th><th>Route</th><th>Miles</th><th>Rate</th><th>Position</th><th>Certs</th><th>Pay Terms</th><th>Carrier Pay Score</th><th>Carrier Contact</th><th>Status</th><th></th></tr>
+              </thead>
+              <tbody>
+                {FLAT_LOADS.slice(0, 5).map((l) => (
+                  <tr key={l.id} style={{ opacity: l.status === "filled" ? 0.42 : 1 }}>
+                    <td className="mo" style={{ color: "var(--t2)", fontSize: 9 }}>{l.id}</td>
+                    <td style={{ fontWeight: 500, fontSize: 12 }}>{l.from} → {l.to}</td>
+                    <td className="mo">{l.mi}</td>
+                    <td className="mo" style={{ color: "var(--gr)", fontWeight: 600 }}>${l.rate.toFixed(2)}/mi</td>
+                    <td style={{ fontSize: 10 }}>{l.pos}</td>
+                    <td>{l.certs.map((c) => <span key={c} className="chip ch-dim">{c}</span>)}</td>
+                    <td>{l.pay === "FastPay" ? <span className="chip ch-gr">⚡ FastPay</span> : <span className="mo" style={{ fontSize: 10, color: "var(--t2)" }}>{l.pay}</span>}</td>
+                    <td><PayScore score={l.score} /></td>
+                    <td>
+                      <div className="mo" style={{ fontSize: 11, color: "var(--t3)" }}>📞 (XXX) XXX-XXXX</div>
+                      <div className="mo" style={{ fontSize: 9, color: "var(--t3)" }}>🔒 Member only</div>
+                    </td>
+                    <td>{l.status === "filled" ? <span className="chip ch-dim">FILLED</span> : <span className="chip ch-gr">OPEN</span>}</td>
+                    <td>{l.status !== "filled" && <button className="mo" style={{ background: "none", border: "none", color: "var(--or)", fontSize: 9, letterSpacing: ".1em" }}>RESPOND →</button>}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <LockBar setPage={setPage} />
+        </div>
+
+        {/* TOP ESCORTS */}
+        <div className="section" style={{ paddingTop: 32 }}>
+          <div className="section-header">
+            <div>
+              <div className="eyebrow" style={{ color: "var(--gr)" }}>Verified P/EVO Professionals</div>
+              <div className="section-title">TOP RANKED ESCORTS</div>
             </div>
+            <button className="section-link" onClick={() => setPage("escorts")}>View All</button>
+          </div>
+          <div className="esc-grid">
+            {ESCORTS.map((e) => <EscortCard key={e.id} e={e} setPage={setPage} />)}
+          </div>
+        </div>
+
+        <FeatureSection setPage={setPage} />
+      </>
+    );
+  }
+
+  // ── Escort / Pilot homepage ──
+  return (
+    <>
+      <RoleBar />
+      <div className="bid-strip">
+        <div className="bid-live">5-Min Bid Board</div>
+        <div style={{ width: 1, height: 18, background: "var(--l1)" }} />
+        <div className="mo" style={{ fontSize: 10, color: "var(--t2)", flex: 1 }}>3 loads live · Pro: SMS instant · Member: 60s delay · Closes on timer / fill / cancel — whichever comes first</div>
+        <button className="bid-cta" onClick={() => setPage("bidboard")}>View Live Board →</button>
+      </div>
+      <div className="hero hero-escort">
+        <div className="hero-inner">
+          <div className="hero-tag tag-am">For Pilot Car Escorts / P/EVO Operators</div>
+          <div className="hero-hl" style={{ color: "var(--am)" }}>STOP<br />DRIVING<br />HOME<br />EMPTY.</div>
+          <p className="hero-sub">The average P/EVO escort deadheads home after <strong style={{ color: "var(--t1)" }}>40% of runs.</strong> At $2.00/mi that&apos;s real revenue sitting on the table every single week.</p>
+          <p className="hero-sub">Pro surfaces return loads near your drop, sorted toward home state first. <strong style={{ color: "var(--am)" }}>One recovered run at 150mi pays for a month of Pro.</strong></p>
+          <div className="stat-row">
+            <div className="stat"><div className="stat-n" style={{ color: "var(--am)" }}>$1,200</div><div className="stat-l">Recovered/Year</div></div>
+            <div className="stat"><div className="stat-n" style={{ color: "var(--am)" }}>3×</div><div className="stat-l">ROI at $29.99/mo</div></div>
+            <div className="stat"><div className="stat-n" style={{ color: "var(--gr)" }}>60s</div><div className="stat-l">Pro Head Start</div></div>
+          </div>
+          <div className="btn-row">
+            <button className="btn btn-am" onClick={() => setPage("pricing")}>Go Pro — $29.99/mo →</button>
+            <button className="btn btn-ghost" onClick={() => setPage("signin")}>Start Free Trial</button>
           </div>
         </div>
       </div>
@@ -391,48 +518,6 @@ function HomePage({ setPage }: { setPage: (p: Page) => void }) {
         <span className="mo" style={{ fontSize: 9, letterSpacing: ".16em", textTransform: "uppercase", color: "var(--t2)" }}>Platform</span>
         <span style={{ width: 1, height: 16, background: "var(--l1)" }} />
         <span className="mo" style={{ fontSize: 10, color: "var(--t2)" }}>Three boards · Verified escorts · Real-time bidding · No commissions · No job fees · Ever</span>
-        <span className="mo" style={{ marginLeft: "auto", fontSize: 9, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--t2)" }}>$670M US Market · 50,000+ P/EVO Operators</span>
-      </div>
-
-      {/* FLAT BOARD PREVIEW */}
-      <div className="section" style={{ paddingBottom: 0 }}>
-        <div className="section-header">
-          <div>
-            <div className="eyebrow" style={{ color: "var(--gr)" }}>Live Board</div>
-            <div className="section-title">FLAT RATE LOADS</div>
-          </div>
-          <button className="section-link" onClick={() => setPage("flatboard")}>View All Loads</button>
-        </div>
-        <div className="data-table">
-          <table>
-            <thead>
-              <tr>
-                <th>Load ID</th><th>Route</th><th>Miles</th><th>Rate</th><th>Position</th><th>Certs</th><th>Pay Terms</th><th>Carrier Pay Score</th><th>Carrier Contact</th><th>Status</th><th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {FLAT_LOADS.slice(0, 5).map((l) => (
-                <tr key={l.id} style={{ opacity: l.status === "filled" ? 0.42 : 1 }}>
-                  <td className="mo" style={{ color: "var(--t2)", fontSize: 9 }}>{l.id}</td>
-                  <td style={{ fontWeight: 500, fontSize: 12 }}>{l.from} → {l.to}</td>
-                  <td className="mo">{l.mi}</td>
-                  <td className="mo" style={{ color: "var(--gr)", fontWeight: 600 }}>${l.rate.toFixed(2)}/mi</td>
-                  <td style={{ fontSize: 10 }}>{l.pos}</td>
-                  <td>{l.certs.map((c) => <span key={c} className="chip ch-dim">{c}</span>)}</td>
-                  <td>{l.pay === "FastPay" ? <span className="chip ch-gr">⚡ FastPay</span> : <span className="mo" style={{ fontSize: 10, color: "var(--t2)" }}>{l.pay}</span>}</td>
-                  <td><PayScore score={l.score} /></td>
-                  <td>
-                    <div className="mo" style={{ fontSize: 11, color: "var(--t3)" }}>📞 (XXX) XXX-XXXX</div>
-                    <div className="mo" style={{ fontSize: 9, color: "var(--t3)" }}>🔒 Member only</div>
-                  </td>
-                  <td>{l.status === "filled" ? <span className="chip ch-dim">FILLED</span> : <span className="chip ch-gr">OPEN</span>}</td>
-                  <td>{l.status !== "filled" && <button className="mo" style={{ background: "none", border: "none", color: "var(--or)", fontSize: 9, letterSpacing: ".1em" }}>RESPOND →</button>}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <LockBar setPage={setPage} />
       </div>
 
       {/* DEADHEAD MINIMIZER */}
@@ -446,10 +531,10 @@ function HomePage({ setPage }: { setPage: (p: Page) => void }) {
         <div style={{ background: "var(--p1)", border: "1px solid var(--l1)", borderLeft: "3px solid var(--am)", borderRadius: 4, padding: "24px 28px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 36 }}>
             <div>
-              <p style={{ fontSize: 13, color: "var(--t2)", lineHeight: 1.85, marginBottom: 16 }}>6 empty return trips/month × 200mi avg = <strong style={{ color: "var(--rd)" }}>$804/month lost.</strong> Pro automatically surfaces return loads near your drop point, sorted toward home state first, refreshed every 15 min.</p>
+              <p style={{ fontSize: 13, color: "var(--t2)", lineHeight: 1.85, marginBottom: 16 }}>6 empty return trips/month × 200mi avg = <strong style={{ color: "var(--rd)" }}>$240/month in fuel lost</strong> with zero revenue to show for it. Pro automatically surfaces return loads near your drop point, sorted toward home state first, refreshed every 15 min.</p>
               <div style={{ background: "var(--bg)", border: "1px solid var(--l1)", borderRadius: 3, padding: 14, marginBottom: 16 }}>
                 <div className="mo" style={{ fontSize: 9, letterSpacing: ".15em", textTransform: "uppercase", color: "var(--t2)", marginBottom: 10 }}>Deadhead Calculator · Live Example</div>
-                {[["Deadhead cost (80mi × $0.67/mi)", "−$53.60", "var(--rd)"], ["Load pay ($2.60/mi × 340mi)", "+$884.00", "var(--gr)"], ["Net after deadhead", "$830.40", "var(--gr)"]].map(([l, v, c], i) => (
+                {[["Deadhead cost (80mi × $0.67/mi)", "−$53.60", "var(--rd)"], ["Load pay ($2.00/mi × 340mi)", "+$680.00", "var(--gr)"], ["Net after deadhead", "$626.40", "var(--gr)"]].map(([l, v, c], i) => (
                   <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: i === 2 ? 13 : 11, padding: "5px 0", borderBottom: i < 2 ? "1px solid var(--l1)" : "none", fontWeight: i === 2 ? 600 : 400 }}>
                     <span style={{ color: i === 2 ? "var(--t1)" : "var(--t2)" }}>{l}</span>
                     <span style={{ color: c }}>{v}</span>
@@ -457,7 +542,7 @@ function HomePage({ setPage }: { setPage: (p: Page) => void }) {
                 ))}
               </div>
               <div style={{ padding: "12px 16px", background: "rgba(245,162,0,.07)", border: "1px solid rgba(245,162,0,.2)", borderRadius: 3, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" as const }}>
-                <div className="mo" style={{ fontSize: 11, color: "var(--am)", lineHeight: 1.55 }}>"Average Pro escort recovers $4,800/year.<br />At $29.99/mo that&apos;s a 26× return."</div>
+                <div className="mo" style={{ fontSize: 11, color: "var(--am)", lineHeight: 1.55 }}>&quot;Stop deadheading home empty. Return loads near your drop — at $2.00/mi, one recovered run pays for Pro 20×.&quot;</div>
                 <button className="btn btn-am btn-sm" onClick={() => setPage("pricing")}>GO PRO →</button>
               </div>
             </div>
@@ -481,54 +566,82 @@ function HomePage({ setPage }: { setPage: (p: Page) => void }) {
         </div>
       </div>
 
-      {/* TOP ESCORTS */}
+      {/* AVAILABLE LOADS PREVIEW */}
       <div className="section" style={{ paddingTop: 0 }}>
         <div className="section-header">
           <div>
-            <div className="eyebrow" style={{ color: "var(--gr)" }}>Verified P/EVO Professionals</div>
-            <div className="section-title">TOP RANKED ESCORTS</div>
+            <div className="eyebrow" style={{ color: "var(--gr)" }}>Live Board</div>
+            <div className="section-title">AVAILABLE LOADS</div>
           </div>
-          <button className="section-link" onClick={() => setPage("escorts")}>View All</button>
+          <button className="section-link" onClick={() => setPage("flatboard")}>View All Loads</button>
         </div>
-        <div className="esc-grid">
-          {ESCORTS.map((e) => <EscortCard key={e.id} e={e} setPage={setPage} />)}
+        <div className="data-table">
+          <table>
+            <thead>
+              <tr><th>Load ID</th><th>Route</th><th>Miles</th><th>Rate</th><th>Est. Pay</th><th>Position</th><th>Pay Terms</th><th>Carrier Score</th><th>Status</th><th></th></tr>
+            </thead>
+            <tbody>
+              {FLAT_LOADS.slice(0, 4).map((l) => (
+                <tr key={l.id} style={{ opacity: l.status === "filled" ? 0.42 : 1 }}>
+                  <td className="mo" style={{ color: "var(--t2)", fontSize: 9 }}>{l.id}</td>
+                  <td style={{ fontWeight: 500, fontSize: 12 }}>{l.from} → {l.to}</td>
+                  <td className="mo">{l.mi}</td>
+                  <td className="mo" style={{ color: "var(--gr)", fontWeight: 600 }}>${l.rate.toFixed(2)}/mi</td>
+                  <td className="mo" style={{ color: "var(--gr)" }}>${(l.mi * l.rate).toFixed(0)}</td>
+                  <td style={{ fontSize: 10 }}>{l.pos}</td>
+                  <td>{l.pay === "FastPay" ? <span className="chip ch-gr">⚡ FastPay</span> : <span className="mo" style={{ fontSize: 10, color: "var(--t2)" }}>{l.pay}</span>}</td>
+                  <td><PayScore score={l.score} /></td>
+                  <td>{l.status === "filled" ? <span className="chip ch-dim">FILLED</span> : <span className="chip ch-gr">OPEN</span>}</td>
+                  <td>{l.status !== "filled" && <button className="btn btn-am btn-sm" onClick={() => setPage("pricing")}>Respond →</button>}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
+        <LockBar setPage={setPage} />
       </div>
 
-      {/* FEATURES */}
-      <div className="section" style={{ paddingTop: 0 }}>
-        <div style={{ textAlign: "center", marginBottom: 28 }}>
-          <div className="eyebrow" style={{ color: "var(--t2)", textAlign: "center", marginBottom: 6 }}>Why the Industry Is Switching</div>
-          <div className="bb" style={{ fontSize: 34, color: "var(--t1)" }}>EVERYTHING THE INDUSTRY WAS MISSING</div>
-        </div>
-        <div className="feat-grid">
-          {[
-            { c: "var(--am)", t: "5-Min Bid Board", d: "Industry first. Closes on timer, carrier fills it, or carrier cancels — whichever comes first. Pro gets SMS instantly, Members see it 60 seconds later." },
-            { c: "var(--gr)", t: "Verified P/EVO Escorts", d: "4-tier trust ladder: P/EVO cert, vehicle verified, background check badge, admin verified. Fraudulent listings cannot exist here." },
-            { c: "var(--am)", t: "Deadhead Minimizer", d: "Return load feed sorted toward home state. Pre-arrival SMS. I'm Available broadcast. Recovers avg $4,800/year at $29.99/mo." },
-            { c: "var(--or)", t: "Carrier Pay Score (Public)", d: "Pay speed, communication, load accuracy, no-go fee history — all public. 4.9 fills in minutes. 2.8 sits on the board." },
-            { c: "var(--bl)", t: "Open Bid Board", d: "24-72h window. Carrier reviews all bids, picks whoever they want. Escorts attach a personal pitch to every bid." },
-            { c: "var(--gr)", t: "Two-Way Reviews", d: "Escorts rate carriers: pay speed, professionalism, accuracy. Carriers rate escorts: reliability, skill, communication." },
-            { c: "var(--or)", t: "Contact Info Wall", d: "Phone, email, company name hidden behind membership. Free trial sees redacted info. Every conversation on record." },
-            { c: "var(--bl)", t: "Multi-Escort Coordinator", d: "One load needs Lead + Rear + High Pole. Post once, award all three from one screen. All get same load package and comms." },
-            { c: "var(--gr)", t: "No Commissions. Ever.", d: "Flat subscription. Zero job fees. Zero percentage cut. You bid what you want. What you earn is yours. Not now, not at scale, not ever." },
-          ].map((f) => (
-            <div key={f.t} className="feat-card" style={{ borderTopColor: f.c }}>
-              <div className="feat-title">{f.t}</div>
-              <p className="feat-body">{f.d}</p>
-            </div>
-          ))}
-        </div>
-        <div style={{ marginTop: 16, background: "var(--p2)", border: "1px solid var(--l1)", borderRadius: 3, padding: "11px 18px", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" as const }}>
-          <span className="mo" style={{ fontSize: 10, color: "var(--rd)" }}>⚠ Load Covered: killed SMS Aug 2025 · fraudulent listings · website looks like 2005</span>
-          <span style={{ color: "var(--l2)" }}>|</span>
-          <span className="mo" style={{ fontSize: 10, color: "var(--rd)" }}>⚠ Pilot Car Loads: persistent login failures · zero verification · no bidding</span>
-          <button className="mo" style={{ marginLeft: "auto", background: "none", border: "none", color: "var(--t2)", fontSize: 9, letterSpacing: ".12em", textTransform: "uppercase" }} onClick={() => setPage("pricing")}>See full comparison →</button>
-        </div>
-      </div>
+      <FeatureSection setPage={setPage} />
     </>
   );
 }
+
+function FeatureSection({ setPage }: { setPage: (p: Page) => void }) {
+  return (
+    <div className="section" style={{ paddingTop: 0 }}>
+      <div style={{ textAlign: "center", marginBottom: 28 }}>
+        <div className="eyebrow" style={{ color: "var(--t2)", textAlign: "center", marginBottom: 6 }}>Why the Industry Is Switching</div>
+        <div className="bb" style={{ fontSize: 34, color: "var(--t1)" }}>EVERYTHING THE INDUSTRY WAS MISSING</div>
+      </div>
+      <div className="feat-grid">
+        {[
+          { c: "var(--am)", t: "5-Min Bid Board", d: "Industry first. Closes on timer, carrier fills it, or carrier cancels — whichever comes first. Pro gets SMS instantly, Members see it 60 seconds later." },
+          { c: "var(--gr)", t: "Verified P/EVO Escorts", d: "4-tier trust ladder: P/EVO cert, vehicle verified, background check badge, admin verified. Fraudulent listings cannot exist here." },
+          { c: "var(--am)", t: "Deadhead Minimizer", d: "Return load feed sorted toward home state. Pre-arrival SMS. I'm Available broadcast. Every empty mile home at $2.00/mi is money left on the table." },
+          { c: "var(--or)", t: "Carrier Pay Score (Public)", d: "Pay speed, communication, load accuracy, no-go fee history — all public. 4.9 fills in minutes. 2.8 sits on the board." },
+          { c: "var(--bl)", t: "Open Bid Board", d: "24-72h window. Carrier reviews all bids, picks whoever they want. Escorts attach a personal pitch to every bid." },
+          { c: "var(--gr)", t: "Two-Way Reviews", d: "Escorts rate carriers: pay speed, professionalism, accuracy. Carriers rate escorts: reliability, skill, communication." },
+          { c: "var(--or)", t: "Contact Info Wall", d: "Phone, email, company name hidden behind membership. Free trial sees redacted info. Every conversation on record." },
+          { c: "var(--bl)", t: "Multi-Escort Coordinator", d: "One load needs Lead + Rear + High Pole. Post once, award all three from one screen. All get same load package and comms." },
+          { c: "var(--gr)", t: "No Commissions. Ever.", d: "Flat subscription. Zero job fees. Zero percentage cut. You bid what you want. What you earn is yours. Not now, not at scale, not ever." },
+        ].map((f) => (
+          <div key={f.t} className="feat-card" style={{ borderTopColor: f.c }}>
+            <div className="feat-title">{f.t}</div>
+            <p className="feat-body">{f.d}</p>
+          </div>
+        ))}
+      </div>
+      <div style={{ marginTop: 16, background: "var(--p2)", border: "1px solid var(--l1)", borderRadius: 3, padding: "11px 18px", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" as const }}>
+        <span className="mo" style={{ fontSize: 10, color: "var(--rd)" }}>⚠ Load Covered: killed SMS Aug 2025 · fraudulent listings · website looks like 2005</span>
+        <span style={{ color: "var(--l2)" }}>|</span>
+        <span className="mo" style={{ fontSize: 10, color: "var(--rd)" }}>⚠ Pilot Car Loads: persistent login failures · zero verification · no bidding</span>
+        <button className="mo" style={{ marginLeft: "auto", background: "none", border: "none", color: "var(--t2)", fontSize: 9, letterSpacing: ".12em", textTransform: "uppercase" }} onClick={() => setPage("pricing")}>See full comparison →</button>
+      </div>
+    </div>
+  );
+}
+
+// ─── ESCORT CARD ─────────────────────────────────────────────────────────────
 
 function EscortCard({ e, setPage }: { e: typeof ESCORTS[0]; setPage: (p: Page) => void }) {
   return (
@@ -546,10 +659,17 @@ function EscortCard({ e, setPage }: { e: typeof ESCORTS[0]; setPage: (p: Page) =
         </div>
       </div>
       <div style={{ display: "flex", gap: 4, flexWrap: "wrap" as const, marginBottom: 10 }}>
-        {e.badges.slice(0, 3).map((b) => <span key={b} className={`chip ${b === "Rate Reliable" ? "ch-am" : "ch-gr"}`}>✓ {b}</span>)}
+        {e.badges.slice(0, 3).map((b) => (
+          <span key={b} className={`chip ${b === "Rate Reliable" ? "ch-am" : "ch-gr"}`} style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+            {b === "P/EVO Verified" && <img src="/verified.png" alt="" style={{ width: 14, height: 14, objectFit: "contain" }} />}
+            {b === "BGC" && <img src="/verified.png" alt="" style={{ width: 14, height: 14, objectFit: "contain" }} />}
+            {b === "Witpac" && <img src="/bid.png" alt="" style={{ width: 14, height: 14, objectFit: "contain" }} />}
+            {!["P/EVO Verified", "BGC", "Witpac"].includes(b) && "✓"} {b}
+          </span>
+        ))}
       </div>
       <div style={{ display: "flex", gap: 12, padding: "9px 0", borderTop: "1px solid var(--l1)", borderBottom: "1px solid var(--l1)", marginBottom: 10 }}>
-        {[{ n: e.jobs, l: "Jobs" }, { n: e.rating, l: "Rating", c: "var(--gr)" }, { n: `${e.rel}%`, l: "Reliability", c: "var(--bl)" }].map((s) => (
+        {[{ n: e.jobs, l: "Jobs", c: undefined }, { n: e.rating, l: "Rating", c: "var(--gr)" }, { n: `${e.rel}%`, l: "Reliability", c: "var(--bl)" }].map((s) => (
           <div key={s.l} style={{ textAlign: "center" }}>
             <div className="bb" style={{ fontSize: 20, lineHeight: 1, color: s.c || "var(--t1)" }}>{s.n}</div>
             <div className="mo" style={{ fontSize: 8, color: "var(--t2)", letterSpacing: ".08em", textTransform: "uppercase" }}>{s.l}</div>
@@ -564,6 +684,8 @@ function EscortCard({ e, setPage }: { e: typeof ESCORTS[0]; setPage: (p: Page) =
     </div>
   );
 }
+
+// ─── OTHER PAGES ─────────────────────────────────────────────────────────────
 
 function FlatBoardPage({ setPage }: { setPage: (p: Page) => void }) {
   const [stateFilter, setStateFilter] = useState("ALL");
@@ -593,9 +715,7 @@ function FlatBoardPage({ setPage }: { setPage: (p: Page) => void }) {
       <div className="data-table">
         <table>
           <thead>
-            <tr>
-              <th>Load ID</th><th>Route</th><th>Miles</th><th>Rate</th><th>Est. Pay</th><th>Position</th><th>Certs Required</th><th>Pay Terms</th><th>Pay Score</th><th>Contact</th><th>Status</th><th></th>
-            </tr>
+            <tr><th>Load ID</th><th>Route</th><th>Miles</th><th>Rate</th><th>Est. Pay</th><th>Position</th><th>Certs Required</th><th>Pay Terms</th><th>Pay Score</th><th>Contact</th><th>Status</th><th></th></tr>
           </thead>
           <tbody>
             {FLAT_LOADS.map((l) => (
@@ -648,12 +768,15 @@ function BidBoardPage({ setPage }: { setPage: (p: Page) => void }) {
 
   return (
     <div className="section">
-      <div style={{ background: "var(--p2)", border: "1px solid var(--l1)", borderLeft: "3px solid var(--am)", borderRadius: 4, padding: "16px 20px", marginBottom: 20 }}>
-        <div className="bb" style={{ fontSize: 22, color: "var(--am)", marginBottom: 6 }}>5-MINUTE BID BOARD</div>
-        <p className="mo" style={{ fontSize: 10, color: "var(--t2)", lineHeight: 1.75 }}>
-          Loads close when: <span style={{ color: "var(--am)" }}>① Timer hits zero</span> · <span style={{ color: "var(--gr)" }}>② Carrier fills it</span> · <span style={{ color: "var(--t2)" }}>③ Carrier cancels</span> — whichever comes first.<br />
-          <span style={{ color: "var(--am)" }}>Pro members:</span> SMS instant on load drop · <span style={{ color: "var(--bl)" }}>Members:</span> 60 second delay · <span style={{ color: "var(--t2)" }}>Free trial:</span> View only, no bidding
-        </p>
+      <div style={{ background: "var(--p2)", border: "1px solid var(--l1)", borderLeft: "3px solid var(--am)", borderRadius: 4, padding: "16px 20px", marginBottom: 20, display: "flex", alignItems: "center", gap: 16 }}>
+        <img src="/bid.png" alt="Bid Board" style={{ width: 52, height: 52, objectFit: "contain", flexShrink: 0 }} />
+        <div>
+          <div className="bb" style={{ fontSize: 22, color: "var(--am)", marginBottom: 6 }}>5-MINUTE BID BOARD</div>
+          <p className="mo" style={{ fontSize: 10, color: "var(--t2)", lineHeight: 1.75 }}>
+            Loads close when: <span style={{ color: "var(--am)" }}>① Timer hits zero</span> · <span style={{ color: "var(--gr)" }}>② Carrier fills it</span> · <span style={{ color: "var(--t2)" }}>③ Carrier cancels</span> — whichever comes first.<br />
+            <span style={{ color: "var(--am)" }}>Pro members:</span> SMS instant on load drop · <span style={{ color: "var(--bl)" }}>Members:</span> 60 second delay · <span style={{ color: "var(--t2)" }}>Free trial:</span> View only, no bidding
+          </p>
+        </div>
       </div>
       <div style={{ display: "grid", gap: 12 }}>
         {BID_LOADS.map((l) => {
@@ -676,7 +799,7 @@ function BidBoardPage({ setPage }: { setPage: (p: Page) => void }) {
                     <div className="mo" style={{ fontSize: 9, color: "var(--t2)" }}>Ceiling rate</div>
                   </div>
                   <div>
-                    <div><PayScore score={l.score} /></div>
+                    <PayScore score={l.score} />
                     <div className="mo" style={{ fontSize: 9, color: "var(--t2)", marginTop: 3 }}>Carrier Pay Score</div>
                   </div>
                   <div>
@@ -730,15 +853,13 @@ function OpenBidPage({ setPage }: { setPage: (p: Page) => void }) {
                 <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 2 }}>{l.from}</div>
                 <div style={{ fontWeight: 600, fontSize: 14, color: "var(--t2)" }}>→ {l.to}</div>
               </div>
-              <div style={{ textAlign: "right" }}>
-                <span className="chip ch-bl">OPEN BID</span>
-              </div>
+              <span className="chip ch-bl">OPEN BID</span>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 14 }}>
               {[["Miles", `${l.mi} mi`], ["Ceiling", `$${l.rate.toFixed(2)}/mi`], ["Position", l.pos], ["Bids In", `${l.bids} bids`], ["Bid Range", `$${l.minPay}–$${l.maxPay}/mi`], ["Closes", l.closes]].map(([lbl, val]) => (
                 <div key={lbl}>
                   <div className="mo" style={{ fontSize: 8, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--t2)", marginBottom: 2 }}>{lbl}</div>
-                  <div className="mo" style={{ fontSize: 11, color: val.toString().startsWith("$") && lbl === "Ceiling" ? "var(--gr)" : "var(--t1)", fontWeight: 500 }}>{val}</div>
+                  <div className="mo" style={{ fontSize: 11, color: "var(--t1)", fontWeight: 500 }}>{val}</div>
                 </div>
               ))}
             </div>
@@ -792,10 +913,10 @@ function EscProfilePage({ setPage }: { setPage: (p: Page) => void }) {
               {e.badges.map((b) => <span key={b} className={`chip ${b === "Rate Reliable" ? "ch-am" : "ch-gr"}`}>✓ {b}</span>)}
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 14, padding: "10px 0", borderTop: "1px solid var(--l1)", borderBottom: "1px solid var(--l1)" }}>
-              {[["bb", e.jobs.toString(), "Jobs", "var(--t1)"], ["bb", e.rating.toString(), "Rating", "var(--gr)"], ["bb", `${e.rel}%`, "Reliability", "var(--bl)"]].map(([, n, l, c]) => (
-                <div key={l} style={{ textAlign: "center" }}>
-                  <div className="bb" style={{ fontSize: 22, color: c, lineHeight: 1 }}>{n}</div>
-                  <div className="mo" style={{ fontSize: 8, color: "var(--t2)", textTransform: "uppercase", letterSpacing: ".08em" }}>{l}</div>
+              {[{ n: e.jobs.toString(), l: "Jobs", c: "var(--t1)" }, { n: e.rating.toString(), l: "Rating", c: "var(--gr)" }, { n: `${e.rel}%`, l: "Reliability", c: "var(--bl)" }].map((s) => (
+                <div key={s.l} style={{ textAlign: "center" }}>
+                  <div className="bb" style={{ fontSize: 22, color: s.c, lineHeight: 1 }}>{s.n}</div>
+                  <div className="mo" style={{ fontSize: 8, color: "var(--t2)", textTransform: "uppercase", letterSpacing: ".08em" }}>{s.l}</div>
                 </div>
               ))}
             </div>
@@ -871,7 +992,7 @@ function EscortDashPage({ setPage }: { setPage: (p: Page) => void }) {
           <>
             <div className="bb" style={{ fontSize: 24, marginBottom: 20 }}>OVERVIEW</div>
             <div className="metric-grid">
-              {[["$4,820", "Deadhead Saved This Year", "var(--am)"], ["$920", "Deadhead Saved This Month", "var(--am)"], ["4.97", "Platform Rating", "var(--gr)"], ["#1 TX", "Regional Rank", "var(--or)"]].map(([n, l, c]) => (
+              {[["$1,200", "Deadhead Saved This Year", "var(--am)"], ["$240", "Deadhead Saved This Month", "var(--am)"], ["4.97", "Platform Rating", "var(--gr)"], ["#1 TX", "Regional Rank", "var(--or)"]].map(([n, l, c]) => (
                 <div key={l} className="metric">
                   <div className="metric-n" style={{ color: c }}>{n}</div>
                   <div className="metric-l">{l}</div>
@@ -881,7 +1002,7 @@ function EscortDashPage({ setPage }: { setPage: (p: Page) => void }) {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <div className="card">
                 <div className="mo" style={{ fontSize: 9, letterSpacing: ".12em", textTransform: "uppercase", color: "var(--t2)", marginBottom: 12 }}>Recent Jobs</div>
-                {[["FL-4481", "Jacksonville → Montgomery", "$1,015", "FastPay"], ["BID-559", "Nashville → St. Louis", "$686", "7-Day"], ["FL-4344", "Houston → Shreveport", "$537", "FastPay"]].map(([id, route, pay, terms]) => (
+                {[["FL-4481", "Jacksonville → Montgomery", "$688", "FastPay"], ["BID-559", "Nashville → St. Louis", "$624", "7-Day"], ["FL-4344", "Houston → Shreveport", "$386", "FastPay"]].map(([id, route, pay, terms]) => (
                   <div key={id} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--l1)", fontSize: 12 }}>
                     <div>
                       <div className="mo" style={{ fontSize: 9, color: "var(--t2)" }}>{id}</div>
@@ -910,8 +1031,8 @@ function EscortDashPage({ setPage }: { setPage: (p: Page) => void }) {
           <>
             <div className="bb" style={{ fontSize: 24, marginBottom: 8 }}>DEADHEAD MINIMIZER</div>
             <div style={{ background: "rgba(245,162,0,.07)", border: "1px solid rgba(245,162,0,.2)", borderRadius: 3, padding: "12px 16px", marginBottom: 20, display: "flex", justifyContent: "space-between" }}>
-              <span className="mo" style={{ fontSize: 11, color: "var(--am)" }}>Deadhead Saved This Month: <strong>$920</strong></span>
-              <span className="mo" style={{ fontSize: 11, color: "var(--am)" }}>This Year: <strong>$4,820</strong></span>
+              <span className="mo" style={{ fontSize: 11, color: "var(--am)" }}>Deadhead Saved This Month: <strong>$240</strong></span>
+              <span className="mo" style={{ fontSize: 11, color: "var(--am)" }}>This Year: <strong>$1,200</strong></span>
             </div>
             <div className="mo" style={{ fontSize: 9, letterSpacing: ".14em", textTransform: "uppercase", color: "var(--t2)", marginBottom: 10 }}>Return Loads Near Your Last Drop (within 100mi)</div>
             <div className="data-table">
@@ -1005,17 +1126,17 @@ function CarrierDashPage({ setPage }: { setPage: (p: Page) => void }) {
         {tab === "multi" && (
           <>
             <div className="bb" style={{ fontSize: 24, marginBottom: 8 }}>MULTI-ESCORT COORDINATOR</div>
-            <p style={{ fontSize: 12, color: "var(--t2)", marginBottom: 20, lineHeight: 1.75 }}>One load that requires Lead + Rear + High Pole. Post it once. Specify each position. Award all three from one screen. All escorts receive the same load package, comms thread, and location share.</p>
+            <p style={{ fontSize: 12, color: "var(--t2)", marginBottom: 20, lineHeight: 1.75 }}>One load that requires Lead + Rear + High Pole. Post it once. Specify each position. Award all three from one screen.</p>
             <div className="card">
               <div className="mo" style={{ fontSize: 9, letterSpacing: ".12em", textTransform: "uppercase", color: "var(--t2)", marginBottom: 14 }}>Load FL-4481 — Position Awards</div>
-              {[["Lead", ESCORTS[0], "var(--gr)"], ["Rear", ESCORTS[1], "var(--gr)"], ["High Pole", null, "var(--am)"]].map(([pos, esc, c]) => (
-                <div key={pos as string} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderBottom: "1px solid var(--l1)" }}>
+              {([["Lead", ESCORTS[0]], ["Rear", ESCORTS[1]], ["High Pole", null]] as [string, typeof ESCORTS[0] | null][]).map(([pos, esc]) => (
+                <div key={pos} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderBottom: "1px solid var(--l1)" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                    <span className="chip ch-dim">{typeof pos === "string" ? pos : (pos as typeof ESCORTS[0])?.name ?? ""}</span>
+                    <span className="chip ch-dim">{pos}</span>
                     {esc ? (
                       <div>
-                        <div style={{ fontSize: 12, fontWeight: 600 }}>{(esc as typeof ESCORTS[0]).name}</div>
-                        <div className="mo" style={{ fontSize: 9, color: "var(--t2)" }}>{(esc as typeof ESCORTS[0]).co}</div>
+                        <div style={{ fontSize: 12, fontWeight: 600 }}>{esc.name}</div>
+                        <div className="mo" style={{ fontSize: 9, color: "var(--t2)" }}>{esc.co}</div>
                       </div>
                     ) : (
                       <span className="mo" style={{ fontSize: 11, color: "var(--am)" }}>Position unfilled — searching board</span>
@@ -1039,7 +1160,7 @@ function CarrierDashPage({ setPage }: { setPage: (p: Page) => void }) {
                 <thead><tr><th>Permit #</th><th>State</th><th>Load</th><th>Issued</th><th>Expires</th><th>Status</th></tr></thead>
                 <tbody>
                   {[["TX-2026-48812", "TX", "FL-4510", "Mar 20, 2026", "Mar 27, 2026", "active"], ["LA-2026-19341", "LA", "FL-4510", "Mar 20, 2026", "Mar 27, 2026", "active"], ["OK-2026-77023", "OK", "FL-4490", "Mar 15, 2026", "Mar 22, 2026", "expired"]].map(([pn, st, ld, iss, exp, status]) => (
-                    <tr key={pn as string}>
+                    <tr key={pn}>
                       <td className="mo" style={{ fontSize: 10 }}>{pn}</td>
                       <td className="mo" style={{ fontSize: 10 }}>{st}</td>
                       <td className="mo" style={{ fontSize: 10, color: "var(--bl)" }}>{ld}</td>
@@ -1069,7 +1190,11 @@ function PostLoadPage({ setPage }: { setPage: (p: Page) => void }) {
   return (
     <div className="postload-wrap">
       <div className="bb" style={{ fontSize: 28, marginBottom: 4 }}>POST A LOAD</div>
-      <p className="mo" style={{ fontSize: 10, color: "var(--t2)", marginBottom: 28 }}>Free for all carriers. Choose your board type: Flat Rate (first escort to respond wins) · 5-Min Bid (fastest price competition) · Open Bid (24-72h, you pick the escort)</p>
+      <p className="mo" style={{ fontSize: 10, color: "var(--t2)", marginBottom: 16 }}>Free for all carriers. Choose your board type: Flat Rate (first escort to respond wins) · 5-Min Bid (fastest price competition) · Open Bid (24-72h, you pick the escort)</p>
+      <div style={{ background: "rgba(0,204,122,.07)", border: "1px solid rgba(0,204,122,.2)", borderRadius: 3, padding: "10px 16px", marginBottom: 24 }} className="mo">
+        <span style={{ fontSize: 10, color: "var(--gr)" }}>📋 Industry Standard Rates: </span>
+        <span style={{ fontSize: 10, color: "var(--t2)" }}>$2.00/mi or $500/day (whichever is higher) · $100 overnight · $250 no-go fee (if escort arrives and load is canceled)</span>
+      </div>
       <div style={{ display: "flex", gap: 10, marginBottom: 24 }}>
         {[["Flat Rate", "var(--gr)", "First to respond wins"], ["5-Min Bid Board", "var(--am)", "Fast price competition"], ["Open Bid Board", "var(--bl)", "You pick the escort"]].map(([name, c, desc]) => (
           <div key={name} className="card" style={{ flex: 1, borderTop: `2px solid ${c}`, cursor: "pointer" }}>
@@ -1087,21 +1212,15 @@ function PostLoadPage({ setPage }: { setPage: (p: Page) => void }) {
         ))}
         <div className="form-field">
           <label className="form-label">Position Required</label>
-          <select style={{ width: "100%" }}>
-            <option>Lead</option><option>Rear</option><option>Lead + Rear</option><option>Lead + Rear + High Pole</option>
-          </select>
+          <select style={{ width: "100%" }}><option>Lead</option><option>Rear</option><option>Lead + Rear</option><option>Lead + Rear + High Pole</option></select>
         </div>
         <div className="form-field">
           <label className="form-label">Certifications Required</label>
-          <select style={{ width: "100%" }}>
-            <option>P/EVO Only</option><option>P/EVO + Witpac</option><option>P/EVO + NY</option><option>P/EVO + TWIC</option>
-          </select>
+          <select style={{ width: "100%" }}><option>P/EVO Only</option><option>P/EVO + Witpac</option><option>P/EVO + NY</option><option>P/EVO + TWIC</option></select>
         </div>
         <div className="form-field">
           <label className="form-label">Pay Terms</label>
-          <select style={{ width: "100%" }}>
-            <option>FastPay (same-day)</option><option>7-Day</option><option>10-Day</option><option>15-Day</option>
-          </select>
+          <select style={{ width: "100%" }}><option>FastPay (same-day)</option><option>7-Day</option><option>10-Day</option><option>15-Day</option></select>
         </div>
         <div className="form-field">
           <label className="form-label">Preferred Start Date</label>
@@ -1149,9 +1268,11 @@ function PricingPage({ setPage }: { setPage: (p: Page) => void }) {
         ))}
       </div>
       <div style={{ marginTop: 28, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-        {[["Cert Verification", ["P/EVO, Witpac, NY, TWIC, HAZMAT", "Member: $9.99/cert · Pro: $3.99/cert · First cert FREE for Pro"]],
+        {[
+          ["Cert Verification", ["P/EVO, Witpac, NY, TWIC, HAZMAT", "Member: $9.99/cert · Pro: $3.99/cert · First cert FREE for Pro"]],
           ["Background Check Review", ["Upload from Checkr/Sterling/First Advantage", "Member: $14.99 · Pro: $9.99 · Renewal: $9.99/$3.99"]],
-          ["Carrier Verified Badge", ["One-time $24.99 · Manual review by admin", "Brian reviews with law enforcement background"]]].map(([title, items]) => (
+          ["Carrier Verified Badge", ["One-time $24.99 · Manual review by admin", "Brian reviews with law enforcement background"]],
+        ].map(([title, items]) => (
           <div key={title as string} className="card">
             <div className="mo" style={{ fontSize: 9, letterSpacing: ".12em", textTransform: "uppercase", color: "var(--t2)", marginBottom: 10 }}>{title}</div>
             {(items as string[]).map((item) => <p key={item} style={{ fontSize: 11, color: "var(--t2)", lineHeight: 1.65, marginBottom: 4 }}>{item}</p>)}
@@ -1175,14 +1296,15 @@ function VerificationPage() {
         <span style={{ fontSize: 10, color: "var(--t2)" }}>4-tier trust ladder. All opt-in — no verification is required to use the platform. All standards published publicly. Fraudulent listings cannot exist here.</span>
       </div>
       {[
-        { tier: "Tier 1", name: "P/EVO Verified", c: "var(--gr)", desc: "Upload your current state P/EVO or EVO certification. Admin reviews and marks your profile. Cert must be current — expired certs are flagged. Carriers can filter for verified-only escorts." },
-        { tier: "Tier 2", name: "Vehicle Verified", c: "var(--bl)", desc: "Submit your vehicle registration, insurance card (min $1M liability), and a photo of your escort setup with required equipment. Vehicle age, condition, and equipment compliance are reviewed." },
-        { tier: "Tier 3", name: "Background Checked", c: "var(--am)", desc: "You run your own background check through Checkr, Sterling, or First Advantage (must be under 90 days old). Must include criminal history AND MVR. Upload the PDF report. Brian reviews with law enforcement background. $14.99 Member / $9.99 Pro." },
-        { tier: "Tier 4", name: "Admin Verified", c: "var(--or)", desc: "Highest trust level. Requires all three previous tiers plus additional review. Admin-verified escorts appear first in carrier searches. Reserved for escorts with proven track record on the platform." },
+        { tier: "Tier 1", name: "P/EVO Verified", c: "var(--gr)", img: "/verified.png", desc: "Upload your current state P/EVO or EVO certification. Admin reviews and marks your profile. Cert must be current — expired certs are flagged." },
+        { tier: "Tier 2", name: "Vehicle Verified", c: "var(--bl)", img: "/pending.png", desc: "Submit your vehicle registration, insurance card (min $1M liability), and a photo of your escort setup with required equipment." },
+        { tier: "Tier 3", name: "Background Checked", c: "var(--am)", img: "/pending.png", desc: "You run your own background check through Checkr, Sterling, or First Advantage (must be under 90 days old). Upload the PDF report. $14.99 Member / $9.99 Pro." },
+        { tier: "Tier 4", name: "Admin Verified", c: "var(--or)", img: "/verified.png", desc: "Highest trust level. Requires all three previous tiers plus additional review. Admin-verified escorts appear first in carrier searches." },
       ].map((v) => (
         <div key={v.tier} className="verify-tier" style={{ borderLeftColor: v.c }}>
-          <div style={{ minWidth: 90 }}>
-            <div className="mo" style={{ fontSize: 9, color: "var(--t2)", marginBottom: 2 }}>{v.tier}</div>
+          <div style={{ minWidth: 100, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+            <img src={v.img} alt={v.name} style={{ width: 48, height: 48, objectFit: "contain" }} />
+            <div className="mo" style={{ fontSize: 9, color: "var(--t2)" }}>{v.tier}</div>
             <div className="chip" style={{ background: "transparent", color: v.c, border: `1px solid ${v.c}`, fontSize: 9 }}>✓ {v.name}</div>
           </div>
           <p style={{ fontSize: 12, color: "var(--t2)", lineHeight: 1.75 }}>{v.desc}</p>
@@ -1210,16 +1332,14 @@ function SignInPage({ setPage }: { setPage: (p: Page) => void }) {
   return (
     <div className="signin-wrap">
       <div className="signin-box">
-        <div className="bb" style={{ fontSize: 26, marginBottom: 4 }}>
-          {mode === "signup" ? "START FREE" : "SIGN IN"}
-        </div>
+        <div className="bb" style={{ fontSize: 26, marginBottom: 4 }}>{mode === "signup" ? "START FREE" : "SIGN IN"}</div>
         <p className="mo" style={{ fontSize: 10, color: "var(--t2)", marginBottom: 20 }}>
           {mode === "signup" ? "30-day free trial. No credit card required." : "Welcome back to Oversize Escort Hub."}
         </p>
         {mode === "signup" && (
           <div style={{ display: "flex", gap: 0, marginBottom: 20, border: "1px solid var(--l1)", borderRadius: 3, overflow: "hidden" }}>
             {(["escort", "carrier"] as const).map((r) => (
-              <button key={r} onClick={() => setRole(r)} style={{ flex: 1, padding: "9px 0", background: role === r ? (r === "escort" ? "var(--am)" : "var(--or)") : "transparent", color: role === r ? "#000" : "var(--t2)", border: "none", fontFamily: "'DM Mono',monospace", fontSize: 9, letterSpacing: ".12em", textTransform: "uppercase", fontWeight: 700 }}>
+              <button key={r} onClick={() => setRole(r)} style={{ flex: 1, padding: "9px 0", background: role === r ? (r === "escort" ? "var(--am)" : "var(--or)") : "transparent", color: role === r ? "#000" : "var(--t2)", border: "none", fontFamily: "'DM Mono',monospace", fontSize: 9, letterSpacing: ".12em", textTransform: "uppercase" as const, fontWeight: 700 }}>
                 {r === "escort" ? "Escort / P/EVO" : "Carrier / Operator"}
               </button>
             ))}
@@ -1245,14 +1365,11 @@ function SignInPage({ setPage }: { setPage: (p: Page) => void }) {
             <input type="text" placeholder="Optional" style={{ width: "100%" }} />
           </div>
         )}
-        <button className="btn btn-or" style={{ width: "100%", justifyContent: "center", marginBottom: 12 }}
-          onClick={() => setPage(role === "carrier" ? "dashboard-c" : "dashboard-e")}>
+        <button className="btn btn-or" style={{ width: "100%", justifyContent: "center", marginBottom: 12 }} onClick={() => setPage(role === "carrier" ? "dashboard-c" : "dashboard-e")}>
           {mode === "signup" ? "Create Free Account →" : "Sign In →"}
         </button>
         <div style={{ textAlign: "center" }}>
-          <span className="mo" style={{ fontSize: 10, color: "var(--t2)" }}>
-            {mode === "signup" ? "Already have an account? " : "Don't have an account? "}
-          </span>
+          <span className="mo" style={{ fontSize: 10, color: "var(--t2)" }}>{mode === "signup" ? "Already have an account? " : "Don't have an account? "}</span>
           <button onClick={() => setMode(mode === "signup" ? "signin" : "signup")} style={{ background: "none", border: "none", color: "var(--or)", fontFamily: "'DM Mono',monospace", fontSize: 10, cursor: "pointer", letterSpacing: ".06em" }}>
             {mode === "signup" ? "Sign In" : "Start Free Trial"}
           </button>
@@ -1266,7 +1383,6 @@ function SignInPage({ setPage }: { setPage: (p: Page) => void }) {
 
 export default function OEHPlatform() {
   const [page, setPage] = useState<Page>("home");
-
   return (
     <>
       <style>{CSS}</style>
