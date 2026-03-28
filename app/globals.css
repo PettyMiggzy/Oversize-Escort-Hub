@@ -85,3 +85,86 @@ h1, h2, h3 {
 .muted {
   color: var(--text-muted);
 }
+
+/* ── OEH Design System Variables ── */
+:root {
+  --oeh-bg: #06080a;
+  --oeh-p1: #0f1318;
+  --oeh-p2: #141a1f;
+  --oeh-l1: #1c2229;
+  --oeh-l2: #252d36;
+  --oeh-orange: #ff6200;
+  --oeh-amber: #f5a200;
+  --oeh-green: #00cc7a;
+  --oeh-red: #ff3535;
+  --oeh-blue: #3d8ef8;
+  --oeh-cyan: #00b4ff;
+  --oeh-t1: #dce0e6;
+  --oeh-t2: #6e7a88;
+  --oeh-t3: #363f4a;
+  --oeh-muted: #6e7a88;
+}
+
+/* ── Brand neon text ── */
+.brand-neon {
+  color: var(--oeh-orange);
+  text-shadow: 0 0 16px rgba(255,98,0,0.4);
+}
+
+/* ── Button system ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'DM Mono', 'Courier New', monospace;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 10px 18px;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  text-decoration: none;
+}
+.btn:hover { opacity: 0.85; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--oeh-t2);
+  border: 1px solid var(--oeh-l2);
+}
+.btn-ghost:hover { color: var(--oeh-t1); border-color: var(--oeh-t2); }
+
+.btn-prime {
+  background: var(--oeh-orange);
+  color: #000;
+}
+
+/* ── Glass effect ── */
+.glass {
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* ── Marquee/ticker ── */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.animate-marquee {
+  display: inline-block;
+  animation: marquee 60s linear infinite;
+  white-space: nowrap;
+}
+
+/* ── Mobile ── */
+@media (max-width: 640px) {
+  .sm\:block { display: block !important; }
+}
+@media (min-width: 640px) {
+  .sm\:block { display: block; }
+  .hidden { display: none; }
+}
