@@ -160,6 +160,9 @@ function Tier({
         boxShadow: highlight
           ? "0 18px 50px rgba(0,168,232,0.18)"
           : "none",
+        display: "flex",
+        flexDirection: "column" as const,
+        gap: 0,
       }}
     >
       <div style={S.badge}>{badge}</div>
@@ -172,6 +175,26 @@ function Tier({
           <li key={p}>• {p}</li>
         ))}
       </ul>
+
+      <div style={{ marginTop: "auto", paddingTop: 16 }}>
+        <a
+          href="/signin"
+          style={{
+            display: "block",
+            textAlign: "center",
+            textDecoration: "none",
+            padding: "12px 16px",
+            borderRadius: 12,
+            border: highlight ? "1px solid #00a8e8" : "1px solid rgba(255,255,255,0.2)",
+            background: highlight ? "linear-gradient(135deg,#00a8e8,#1fb6ff)" : "rgba(255,255,255,0.06)",
+            color: highlight ? "#001018" : "#e5e7eb",
+            fontWeight: 900,
+            fontSize: 13,
+          }}
+        >
+          {price === "FREE" ? "Start Free Trial" : "Get Started"}
+        </a>
+      </div>
     </div>
   );
 }

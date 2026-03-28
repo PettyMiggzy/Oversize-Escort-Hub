@@ -309,19 +309,20 @@ export default function LoadsPage() {
                     </div>
                   </div>
 
-                  <div style={S.expandActions}>
-                    {l.contact.method === "Email" ? (
-                      <a href={`mailto:${l.contact.value}`} style={S.actionBtn}>
-                        Email
+                  {/* Lock wall — contact info hidden from non-members */}
+                  <div style={S.lockWall}>
+                    <div style={S.lockBlurred}>
+                      📞 {l.contact.method}: {l.contact.value.replace(/./g, "●")}
+                    </div>
+                    <div style={S.lockMsg}>🔒 Member access required — contact info hidden from free accounts</div>
+                    <div style={S.expandActions}>
+                      <a href="/pricing" style={S.actionBtn}>
+                        Upgrade to Member — $19.99/mo →
                       </a>
-                    ) : (
-                      <a href={`tel:${l.contact.value.replace(/[^0-9+]/g, "")}`} style={S.actionBtn}>
-                        Call
+                      <a href="/bid-board" style={S.actionBtnGhost}>
+                        Switch to Bid Board
                       </a>
-                    )}
-                    <a href="/bid-board" style={S.actionBtnGhost}>
-                      Switch to Bid Board
-                    </a>
+                    </div>
                   </div>
                 </div>
               )}
@@ -542,6 +543,27 @@ const S: any = {
     color: "rgba(229,231,235,0.90)",
     fontWeight: 950,
     fontSize: 13,
+  },
+
+  lockWall: {
+    marginTop: 12,
+    padding: "14px 16px",
+    background: "rgba(0,0,0,0.3)",
+    border: "1px solid rgba(255,255,255,0.12)",
+    borderRadius: 12,
+  },
+  lockBlurred: {
+    filter: "blur(4px)",
+    fontSize: 14,
+    color: "rgba(229,231,235,0.86)",
+    fontWeight: 750,
+    marginBottom: 6,
+    userSelect: "none" as const,
+  },
+  lockMsg: {
+    fontSize: 12,
+    color: "rgba(229,231,235,0.55)",
+    marginBottom: 10,
   },
 
   empty: {
