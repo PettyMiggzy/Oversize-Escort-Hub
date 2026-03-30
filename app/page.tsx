@@ -1,6 +1,5 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
 
@@ -1646,7 +1645,6 @@ function SignInPage({ setPage, showToast }: { setPage: (p: Page) => void; showTo
 // ─── ROOT ─────────────────────────────────────────────────────────────────────
 
 export default function OEHPlatform() {
-  const router = useRouter();
   const [page, setPage] = useState<Page>("home");
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -1655,27 +1653,6 @@ export default function OEHPlatform() {
 
   function showToast(msg: string, type: "gr" | "rd" | "am") {
     setToast({ msg, type });
-  }
-
-  // Route map: pages that have real Next.js routes get router.push, others use internal state
-  function navigate(p: Page) {
-    const routeMap: Partial<Record<Page, string>> = {
-      signin: "/signin",
-      postload: "/post-load",
-      pricing: "/pricing",
-      flatboard: "/loads",
-      bidboard: "/bid-board",
-      escorts: "/loads",
-      verification: "/verify",
-      "dashboard-e": "/dashboard",
-      "dashboard-c": "/dashboard",
-    };
-    const route = routeMap[p];
-    if (route) {
-      router.push(route);
-    } else {
-      setPage(p);
-    }
   }
 
   async function loadProfile(userId: string) {
@@ -1727,20 +1704,20 @@ export default function OEHPlatform() {
     <>
       <style>{CSS}</style>
       <Ticker />
-      <Nav page={page} setPage={navigate} user={user} profile={profile} onSignOut={handleSignOut} />
-      {page === "home" && <HomePage setPage={navigate} user={user} profile={profile} />}
-      {page === "flatboard" && <FlatBoardPage setPage={navigate} />}
-      {page === "bidboard" && <BidBoardPage setPage={navigate} />}
-      {page === "openboard" && <OpenBidPage setPage={navigate} />}
-      {page === "escorts" && <EscortsPage setPage={navigate} />}
-      {page === "escprofile" && <EscProfilePage setPage={navigate} />}
-      {page === "dashboard-e" && <EscortDashPage setPage={navigate} profile={profile} />}
-      {page === "dashboard-c" && <CarrierDashPage setPage={navigate} user={user} profile={profile} />}
-      {page === "postload" && <PostLoadPage setPage={navigate} user={user} profile={profile} showToast={showToast} />}
-      {page === "pricing" && <PricingPage setPage={navigate} />}
+      <Nav page={page} setPage={setPage} user={user} profile={profile} onSignOut={handleSignOut} />
+      {page === "home" && <HomePage setPage={setPage} user={user} profile={profile} />}
+      {page === "flatboard" && <FlatBoardPage setPage={setPage} />}
+      {page === "bidboard" && <BidBoardPage setPage={setPage} />}
+      {page === "openboard" && <OpenBidPage setPage={setPage} />}
+      {page === "escorts" && <EscortsPage setPage={setPage} />}
+      {page === "escprofile" && <EscProfilePage setPage={setPage} />}
+      {page === "dashboard-e" && <EscortDashPage setPage={setPage} profile={profile} />}
+      {page === "dashboard-c" && <CarrierDashPage setPage={setPage} user={user} profile={profile} />}
+      {page === "postload" && <PostLoadPage setPage={setPage} user={user} profile={profile} showToast={showToast} />}
+      {page === "pricing" && <PricingPage setPage={setPage} />}
       {page === "verification" && <VerificationPage />}
-      {page === "signin" && <SignInPage setPage={navigate} showToast={showToast} />}
-      <Footer setPage={navigate} />
+      {page === "signin" && <SignInPage setPage={setPage} showToast={showToast} />}
+      <Footer setPage={setPage} />
       {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
     </>
   );

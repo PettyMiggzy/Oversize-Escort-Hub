@@ -68,7 +68,16 @@ export default function SignInPage() {
       if (signInError) {
         setError(signInError.message);
       } else if (data.user) {
-        router.push("/");
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", data.user.id)
+          .single();
+        if (profile?.role === "carrier") {
+          router.push("/dashboard/carrier");
+        } else {
+          router.push("/dashboard/escort");
+        }
       }
     }
     setLoading(false);
