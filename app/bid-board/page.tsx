@@ -1,178 +1,259 @@
+// FILE: app/bid-board/page.tsx
+// ACTION: Replace the ENTIRE contents of this file with this full working page.
+// Includes: ticker, full nav buttons, dense auction rows, auto-rotation, and compact layout.
+
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import { useEffect, useMemo, useRef, useState } from "react";
-import { supabase } from "@/lib/supabase";
+
+type PayTerm =
+  | { kind: "FastPay"; days: number }
+  | { kind: "Standard"; label: string }
+  | { kind: "Custom"; label: string };
 
 type BidLoad = {
   id: string;
-  origin: string;
-  dest: string;
-  miles: number;
-  rate: number;
-  pos: string;
-  certs: string[];
-  score: number;
-  bids: number;
-  timer: number; // seconds remaining
-  status: "live" | "expired";
-  isSample?: boolean;
+  date: string; // MM/DD/YYYY
+  origin: { state: string; city: string; zip: string };
+  dest: { state: string; city: string; zip: string };
+  miles?: number;
+  position: string; // Lead / Escort / High Pole / Route Survey / Steer
+  payTerm: PayTerm;
+  baseline?: string; // broker/carrier "lowest acceptable" / baseline guidance shown up front
+  auctionEndsAt: number; // epoch ms
+  status: "LIVE" | "AWARDING" | "AWARDED" | "NO_BIDS";
+  proWindowSecsLeft?: number; // Pro-only first 60 seconds
+  flags?: Array<"QuickPay" | "TextOnly" | "PassportReq" | "WitpacReq" | "NYReq">;
 };
 
-const MOCK_BID_LOADS: BidLoad[] = [
+// ===== MOCK DATA (swap for backend later) =====
+const MOCK_BIDS: BidLoad[] = [
   {
-    id: "BID-771",
-    origin: "Dallas, TX",
-    dest: "Memphis, TN",
-    miles: 473,
-    rate: 2.0,
-    pos: "Lead",
-    certs: ["P/EVO"],
-    score: 4.7,
-    bids: 3,
-    timer: 187,
-    status: "live",
-    isSample: true,
+    id: "BB-4890",
+    date: "01/06/2026",
+    origin: { state: "TX", city: "Dallas", zip: "75201" },
+    dest: { state: "LA", city: "Baton Rouge", zip: "70801" },
+    miles: 271,
+    position: "Lead + Escort",
+    payTerm: { kind: "FastPay", days: 10 },
+    baseline: "$2.95/mi",
+    auctionEndsAt: Date.now() + 4 * 60_000 + 12_000, // ~4:12
+    status: "LIVE",
+    flags: ["QuickPay"],
   },
   {
-    id: "BID-664",
-    origin: "Phoenix, AZ",
-    dest: "Albuquerque, NM",
-    miles: 467,
-    rate: 2.0,
-    pos: "Lead",
-    certs: ["P/EVO", "Witpac"],
-    score: 4.8,
-    bids: 1,
-    timer: 260,
-    status: "live",
-    isSample: true,
+    id: "BB-4821",
+    date: "01/07/2026",
+    origin: { state: "IN", city: "Indianapolis", zip: "46204" },
+    dest: { state: "OH", city: "Columbus", zip: "43215" },
+    miles: 312,
+    position: "High Pole",
+    payTerm: { kind: "Standard", label: "7-Day Pay" },
+    baseline: "$750 Day Rate",
+    auctionEndsAt: Date.now() + 1 * 60_000 + 47_000, // ~1:47
+    status: "LIVE",
+    proWindowSecsLeft: 58,
   },
   {
-    id: "BID-559",
-    origin: "Houston, TX",
-    dest: "New Orleans, LA",
-    miles: 349,
-    rate: 2.0,
-    pos: "Rear",
-    certs: ["P/EVO"],
-    score: 4.6,
-    bids: 5,
-    timer: 44,
-    status: "live",
-    isSample: true,
+    id: "BB-4702",
+    date: "01/06/2026",
+    origin: { state: "CA", city: "Bakersfield", zip: "93301" },
+    dest: { state: "NV", city: "Reno", zip: "89501" },
+    miles: 418,
+    position: "Route Survey",
+    payTerm: { kind: "Standard", label: "10-Day Pay" },
+    baseline: "$500 Flat",
+    auctionEndsAt: Date.now() + 7 * 60_000 + 5_000, // ~7:05
+    status: "LIVE",
+    flags: ["TextOnly"],
   },
   {
-    id: "BID-412",
-    origin: "Atlanta, GA",
-    dest: "Charlotte, NC",
-    miles: 244,
-    rate: 2.0,
-    pos: "Lead+Rear",
-    certs: ["P/EVO"],
-    score: 4.4,
-    bids: 2,
-    timer: 92,
-    status: "live",
-    isSample: true,
+    id: "BB-4557",
+    date: "01/08/2026",
+    origin: { state: "WA", city: "Tacoma", zip: "98402" },
+    dest: { state: "OR", city: "Portland", zip: "97201" },
+    miles: 157,
+    position: "Escort",
+    payTerm: { kind: "Custom", label: "Custom (within 10 biz days)" },
+    baseline: "$2.40/mi",
+    auctionEndsAt: Date.now() + 11 * 60_000 + 30_000, // ~11:30
+    status: "LIVE",
+    flags: ["PassportReq"],
   },
 ];
 
-function fmtTimer(s: number) {
-  if (s <= 0) return "0:00";
+function fmtPayTerm(pt: PayTerm) {
+  if (pt.kind === "FastPay") return `FastPay (${pt.days}d)`;
+  return pt.label;
+}
+
+function fmtRoute(l: BidLoad) {
+  return `${l.origin.state} → ${l.dest.state}`;
+}
+
+function msToMMSS(ms: number) {
+  const s = Math.max(0, Math.floor(ms / 1000));
   const m = Math.floor(s / 60);
-  const sec = s % 60;
-  return `${m}:${sec.toString().padStart(2, "0")}`;
+  const r = s % 60;
+  return `${String(m).padStart(2, "0")}:${String(r).padStart(2, "0")}`;
+}
+
+function shortFlag(f: NonNullable<BidLoad["flags"]>[number]) {
+  switch (f) {
+    case "QuickPay":
+      return "FastPay";
+    case "TextOnly":
+      return "Text";
+    case "PassportReq":
+      return "Passport";
+    case "WitpacReq":
+      return "Witpac";
+    case "NYReq":
+      return "NY";
+    default:
+      return f;
+  }
 }
 
 export default function BidBoardPage() {
-  const [loads, setLoads] = useState<BidLoad[]>([]);
-  const [loadingData, setLoadingData] = useState(true);
-  const [timers, setTimers] = useState<Record<string, number>>({});
+  const [now, setNow] = useState(() => Date.now());
+  const [items, setItems] = useState<BidLoad[]>(() => MOCK_BIDS);
+
+  // filters
   const [q, setQ] = useState("");
   const [pos, setPos] = useState("All");
   const [state, setState] = useState("All");
+  const [pay, setPay] = useState("Any");
   const [sort, setSort] = useState<"EndsSoon" | "Newest">("EndsSoon");
 
-  useEffect(() => {
-    async function fetchBidLoads() {
-      const { data } = await supabase
-        .from("loads")
-        .select("*")
-        .eq("board_type", "bid")
-        .eq("status", "open")
-        .order("created_at", { ascending: false });
+  // rotation / density
+  const PAGE_SIZE = 12; // higher = denser
+  const ROTATE_EVERY_MS = 10_000;
+  const [start, setStart] = useState(0);
+  const lastRotate = useRef(Date.now());
 
-      if (data && data.length > 0) {
-        // Map Supabase loads to BidLoad shape
-        const mapped: BidLoad[] = data.map((l: any) => ({
-          id: l.id.slice(0, 8).toUpperCase(),
-          origin: `${l.pu_city}, ${l.pu_state}`,
-          dest: `${l.dl_city}, ${l.dl_state}`,
-          miles: l.miles ?? 0,
-          rate: l.per_mile_rate ?? 2.0,
-          pos: l.position,
-          certs: [
-            l.requires_p_evo && "P/EVO",
-            l.requires_witpac && "Witpac",
-            l.requires_ny_cert && "NY",
-            l.requires_twic && "TWIC",
-          ].filter(Boolean) as string[],
-          score: l.poster_rating ?? 4.5,
-          bids: 0,
-          timer: 300, // 5 min default
-          status: "live" as const,
-          isSample: false,
-        }));
-        setLoads(mapped);
-        setTimers(Object.fromEntries(mapped.map((l) => [l.id, l.timer])));
-      } else {
-        setLoads(MOCK_BID_LOADS);
-        setTimers(Object.fromEntries(MOCK_BID_LOADS.map((l) => [l.id, l.timer])));
-      }
-      setLoadingData(false);
-    }
-    fetchBidLoads();
+  // tick time
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
   }, []);
 
-  // Countdown timer
+  // pro window countdown + auction auto-award simulation
   useEffect(() => {
-    const interval = setInterval(() => {
-      setTimers((prev) => {
-        const next = { ...prev };
-        Object.keys(next).forEach((k) => {
-          if (next[k] > 0) next[k]--;
-        });
-        return next;
-      });
+    const t = setInterval(() => {
+      setItems((prev) =>
+        prev.map((l) => {
+          // pro window
+          let next = l;
+          if (typeof l.proWindowSecsLeft === "number" && l.proWindowSecsLeft > 0) {
+            next = { ...next, proWindowSecsLeft: l.proWindowSecsLeft - 1 };
+          }
+
+          // auction time reached: move to AWARDING then AWARDED/NO_BIDS
+          if (next.status === "LIVE" && now >= next.auctionEndsAt) {
+            next = { ...next, status: "AWARDING" };
+          }
+          return next;
+        })
+      );
     }, 1000);
-    return () => clearInterval(interval);
-  }, []);
+    return () => clearInterval(t);
+  }, [now]);
 
-  const hasSamples = loads.some((l) => l.isSample);
+  // finalize AWARDING -> AWARDED after 5s (mock)
+  useEffect(() => {
+    const t = setInterval(() => {
+      setItems((prev) =>
+        prev.map((l) => {
+          if (l.status !== "AWARDING") return l;
+          // mock decision: if baseline exists, assume awarded; else no bids
+          return { ...l, status: l.baseline ? "AWARDED" : "NO_BIDS" };
+        })
+      );
+    }, 5000);
+    return () => clearInterval(t);
+  }, []);
 
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
-    let out = [...loads];
+    let out = [...items];
+
     if (query) {
-      out = out.filter((l) =>
-        [l.id, l.origin, l.dest, l.pos, ...l.certs].join(" ").toLowerCase().includes(query)
-      );
+      out = out.filter((l) => {
+        const hay = [
+          l.id,
+          l.date,
+          fmtRoute(l),
+          l.origin.city,
+          l.origin.state,
+          l.origin.zip,
+          l.dest.city,
+          l.dest.state,
+          l.dest.zip,
+          l.position,
+          l.baseline ?? "",
+          fmtPayTerm(l.payTerm),
+          (l.flags ?? []).join(" "),
+          l.status,
+        ]
+          .join(" ")
+          .toLowerCase();
+        return hay.includes(query);
+      });
     }
-    if (pos !== "All") out = out.filter((l) => l.pos.includes(pos));
-    if (state !== "All") {
-      out = out.filter((l) => l.origin.includes(state) || l.dest.includes(state));
+
+    if (pos !== "All") out = out.filter((l) => l.position.includes(pos));
+    if (state !== "All") out = out.filter((l) => l.origin.state === state || l.dest.state === state);
+
+    if (pay !== "Any") {
+      out = out.filter((l) => {
+        if (pay === "FastPay") return l.payTerm.kind === "FastPay";
+        if (pay === "Standard") return l.payTerm.kind === "Standard";
+        if (pay === "Custom") return l.payTerm.kind === "Custom";
+        return true;
+      });
     }
-    if (sort === "EndsSoon") {
-      out.sort((a, b) => (timers[a.id] ?? 0) - (timers[b.id] ?? 0));
-    }
+
+    if (sort === "EndsSoon") out.sort((a, b) => a.auctionEndsAt - b.auctionEndsAt);
+    else out.sort((a, b) => b.auctionEndsAt - a.auctionEndsAt);
+
     return out;
-  }, [loads, q, pos, state, sort, timers]);
+  }, [items, pay, pos, q, sort, state]);
+
+  const visible = useMemo(() => {
+    if (filtered.length <= PAGE_SIZE) return filtered;
+    return filtered.slice(start, start + PAGE_SIZE);
+  }, [filtered, start]);
+
+  // auto-rotate
+  useEffect(() => {
+    const t = setInterval(() => {
+      const current = Date.now();
+      if (current - lastRotate.current < ROTATE_EVERY_MS) return;
+      lastRotate.current = current;
+
+      setStart((prev) => {
+        const total = filtered.length;
+        if (total <= PAGE_SIZE) return 0;
+        const next = prev + PAGE_SIZE;
+        return next >= total ? 0 : next;
+      });
+    }, 500);
+
+    return () => clearInterval(t);
+  }, [filtered.length]);
+
+  function placeBid(id: string) {
+    // mock: clicking bid just marks as "AWARDING" to show action
+    setItems((prev) => prev.map((l) => (l.id === id && l.status === "LIVE" ? { ...l, status: "AWARDING" } : l)));
+    setTimeout(() => {
+      setItems((prev) => prev.map((l) => (l.id === id && l.status === "AWARDING" ? { ...l, status: "AWARDED" } : l)));
+    }, 5000);
+  }
 
   return (
     <main style={B.main}>
-      {/* Ticker */}
+      {/* ===== TICKER ===== */}
       <div style={B.tickerBar}>
         <div style={B.ticker}>
           🔥 Bid Board Live • 5-Min Window • Lowest reasonable bid wins • Ties break by Rank • Pro gets first 60s + SMS •
@@ -180,204 +261,284 @@ export default function BidBoardPage() {
         </div>
       </div>
 
-      {/* Nav header */}
+      {/* ===== NAV HEADER ===== */}
       <header style={B.header}>
         <a href="/" style={B.brandWrap}>
           <div style={B.brand}>OVERSIZE ESCORT HUB</div>
           <div style={B.subBrand}>LIVE • RANKED • VERIFIED</div>
         </a>
+
         <nav style={B.nav}>
-          <a href="/" style={B.navLink}>Home</a>
-          <a href="/loads" style={B.navLink}>Loads</a>
-          <a href="/bid-board" style={{ ...B.navLink, ...B.navActive }}>Bid Board</a>
-          <a href="/pricing" style={B.navLink}>Membership</a>
-          <a href="/verify" style={B.navLink}>Verification</a>
-          <a href="/post-load" style={B.cta}>Post Load (FREE)</a>
+          <a href="/" style={B.navLink}>
+            Home
+          </a>
+          <a href="/loads" style={B.navLink}>
+            Loads
+          </a>
+          <a href="/bid-board" style={{ ...B.navLink, ...B.navActive }}>
+            Bid Board
+          </a>
+          <a href="/pricing" style={B.navLink}>
+            Membership
+          </a>
+          <a href="/verify" style={B.navLink}>
+            Verification
+          </a>
+          <a href="/post-load" style={B.cta}>
+            Post Load (FREE)
+          </a>
         </nav>
       </header>
 
-      {/* Page head */}
+      {/* ===== PAGE HEAD ===== */}
       <div style={B.pageHead}>
         <div>
-          <h1 style={B.h1}>5-Minute Bid Board</h1>
+          <h1 style={B.h1}>Bid Board (Auction)</h1>
           <p style={B.sub}>
-            Loads close on timer. Pro members see loads first (SMS instant), Members get 60s delay. First to lowest
-            reasonable bid wins.
+            Bidding runs for <b>5 minutes</b>. Award goes to the lowest <b>reasonable</b> bid that meets requirements.
+            Ties break by rank.
           </p>
         </div>
+
         <div style={B.rightChips}>
           <span style={B.chip}>Window: 5 min</span>
-          <span style={B.chip}>Pro: SMS Instant</span>
-          <span style={B.chip}>Member: 60s delay</span>
+          <span style={B.chip}>Pro: First 60s + SMS</span>
+          <span style={B.chip}>Auto-Rotates</span>
         </div>
       </div>
 
-      {/* Sample banner */}
-      {hasSamples && !loadingData && (
-        <div style={B.sampleBanner}>
-          <span style={B.sampleIcon}>🚀</span>
-          <div>
-            <div style={B.sampleTitle}>Sample Data — Platform Launching Soon</div>
-            <div style={B.sampleDesc}>
-              Early members get first access to every real bid load posted. Lock in your Pro spot now.
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Filters */}
+      {/* ===== FILTERS ===== */}
       <div style={B.filters}>
         <input
           style={B.search}
-          placeholder="Search route, city, position, cert..."
+          placeholder="Search route, city, zip, load id, position, pay..."
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />
+
         <select style={B.select} value={state} onChange={(e) => setState(e.target.value)}>
           <option value="All">All States</option>
-          {["TX", "LA", "AZ", "NM", "GA", "NC", "FL", "TN", "CA", "NV", "IN", "OH"].map((s) => (
-            <option key={s} value={s}>{s}</option>
-          ))}
+          <option value="TX">TX</option>
+          <option value="LA">LA</option>
+          <option value="IN">IN</option>
+          <option value="OH">OH</option>
+          <option value="CA">CA</option>
+          <option value="NV">NV</option>
+          <option value="WA">WA</option>
+          <option value="OR">OR</option>
         </select>
+
         <select style={B.select} value={pos} onChange={(e) => setPos(e.target.value)}>
           <option value="All">All Positions</option>
           <option value="Lead">Lead</option>
-          <option value="Rear">Rear</option>
-          <option value="Lead+Rear">Lead+Rear</option>
+          <option value="Escort">Escort</option>
+          <option value="High Pole">High Pole</option>
+          <option value="Route Survey">Route Survey</option>
+          <option value="Steer">Steer</option>
         </select>
-        <select style={B.select} value={sort} onChange={(e) => setSort(e.target.value as "EndsSoon" | "Newest")}>
-          <option value="EndsSoon">Ends Soonest</option>
-          <option value="Newest">Newest First</option>
+
+        <select style={B.select} value={pay} onChange={(e) => setPay(e.target.value)}>
+          <option value="Any">Any Pay Type</option>
+          <option value="FastPay">FastPay</option>
+          <option value="Standard">Standard</option>
+          <option value="Custom">Custom</option>
         </select>
+
+        <select style={B.select} value={sort} onChange={(e) => setSort(e.target.value as any)}>
+          <option value="EndsSoon">Ends Soon</option>
+          <option value="Newest">Newest</option>
+        </select>
+
         <div style={B.count}>
-          <b>{filtered.length}</b> auction{filtered.length !== 1 ? "s" : ""}
+          Showing <b>{filtered.length}</b> auctions • rotating <b>{PAGE_SIZE}</b> at a time
         </div>
       </div>
 
-      {/* Board + sidebar */}
+      {/* ===== BOARD + SIDEBAR ===== */}
       <div style={B.grid}>
         <section style={B.board}>
-          {loadingData ? (
-            <div style={B.empty}>Loading bid board...</div>
-          ) : filtered.length === 0 ? (
-            <div style={B.empty}>
-              No auctions match your filters.
-              <div style={B.emptySub}>Try clearing search/filters.</div>
-            </div>
-          ) : (
-            filtered.map((l) => {
-              const t = timers[l.id] ?? 0;
-              const isLive = l.status === "live" && t > 0;
-              const timerCls = t > 60 ? "timer-am" : "timer-hot";
-              const timerColor = t > 120 ? "#f5a200" : "#ff3535";
+          <div style={B.tableHead}>
+            <span style={B.th}>Date</span>
+            <span style={B.th}>Route</span>
+            <span style={B.th}>Role</span>
+            <span style={B.th}>Miles</span>
+            <span style={B.th}>Baseline</span>
+            <span style={B.th}>Pay</span>
+            <span style={B.th}>Flags</span>
+            <span style={B.th}>Time</span>
+            <span style={B.th}></span>
+          </div>
 
-              return (
-                <div key={l.id} style={{ ...B.card, borderColor: isLive ? "rgba(245,162,0,0.4)" : "rgba(28,34,41,0.8)" }}>
-                  <div style={B.cardGrid}>
-                    {/* Left: load info */}
-                    <div style={B.cardInfo}>
-                      <div style={B.cardId}>
-                        {l.id}
-                        {l.isSample && <span style={B.sampleBadge}>SAMPLE</span>}
-                      </div>
-                      <div style={B.cardRoute}>
-                        {l.origin} → {l.dest}
-                      </div>
-                      <div style={B.cardMeta}>
-                        {l.miles} mi &nbsp;·&nbsp; {l.pos}
-                        {l.certs.length > 0 && (
-                          <span>
-                            {" "}·{" "}
-                            {l.certs.map((c) => (
-                              <span key={c} style={B.certBadge}>{c}</span>
-                            ))}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Center: rate + score */}
-                    <div style={B.cardCenter}>
-                      <div style={B.cardRate}>${l.rate.toFixed(2)}/mi</div>
-                      <div style={B.cardRateLabel}>Ceiling rate</div>
-                      <div style={B.cardScore}>{l.score} ⭐</div>
-                      <div style={B.cardScoreLabel}>Pay Score</div>
-                    </div>
-
-                    {/* Right: timer + bid button */}
-                    <div style={B.cardRight}>
-                      {isLive ? (
-                        <>
-                          <div style={{ ...B.timer, color: timerColor }}>{fmtTimer(t)}</div>
-                          <div style={B.timerLabel}>Time Remaining</div>
-                          <div style={B.bidCount}>{l.bids} bids</div>
-                          <a href="/pricing" style={B.bidBtn}>🔒 BID (MEMBER)</a>
-                        </>
-                      ) : (
-                        <span style={B.expiredBadge}>EXPIRED</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })
-          )}
+          <div style={B.rows}>
+            {visible.length === 0 ? (
+              <div style={B.empty}>
+                No auctions match your filters.
+                <div style={B.emptySub}>Try clearing search/filters.</div>
+              </div>
+            ) : (
+              visible.map((l) => <BidRow key={l.id} load={l} now={now} onBid={() => placeBid(l.id)} />)
+            )}
+          </div>
         </section>
 
         <aside style={B.sidebar}>
           <div style={B.sideCard}>
-            <div style={B.sideTitle}>How Bidding Works</div>
+            <div style={B.sideTitle}>Ad Spot</div>
+            <div style={B.sideText}>Rotating placements • weekly slots • pro audience.</div>
+            <a style={B.sideLink} href="mailto:support@oversize-escort-hub.com">
+              Advertise → Email Support
+            </a>
+          </div>
+
+          <div style={B.sideCard}>
+            <div style={B.sideTitle}>Top Escort • This Month</div>
+            <div style={B.sideText}>Ranked by reliability + completed jobs + reviews.</div>
+            <div style={B.badgeRow}>
+              <span style={B.badge}>🏆 Rank</span>
+              <span style={B.badge}>⭐ Reviews</span>
+              <span style={B.badge}>✅ Verified</span>
+            </div>
+          </div>
+
+          <div style={B.sideCard}>
+            <div style={B.sideTitle}>How Awards Work</div>
             <div style={B.sideText}>
-              Loads close after 5 minutes. Lowest reasonable bid that meets requirements wins. Ties break by platform
-              rank.
+              Lowest <b>reasonable</b> bid that meets requirements wins. If two bids match, higher rank wins.
             </div>
             <div style={B.sideMini}>
-              <div>• Pro: SMS instant on new loads</div>
-              <div>• Member: 60s delay after Pro</div>
-              <div>• Free: View only</div>
+              <div>• Pro window: first 60 seconds</div>
+              <div>• Auto-award after 5 minutes</div>
+              <div>• Pay terms shown up front</div>
             </div>
           </div>
 
           <div style={B.sideCard}>
             <div style={B.sideTitle}>Pro Advantage</div>
-            <div style={B.sideText}>
-              First 60s access + SMS alerts + priority tie-break. One recovered run pays for Pro 10× over.
-            </div>
-            <a href="/pricing" style={B.sideCta}>Upgrade to Pro →</a>
-          </div>
-
-          <div style={B.sideCard}>
-            <div style={B.sideTitle}>Post a Bid Load</div>
-            <div style={B.sideText}>Carriers: post to the 5-min bid board free. Get competitive pricing fast.</div>
-            <a href="/post-load" style={B.sideCta}>Post Load Free →</a>
+            <div style={B.sideText}>First 60s access + SMS alerts + priority tie-break.</div>
+            <a href="/pricing" style={B.sideCta}>
+              Upgrade to Pro
+            </a>
           </div>
         </aside>
       </div>
 
-      {/* Footer */}
+      {/* ===== FOOTER ===== */}
       <footer style={B.footer}>
         <div style={B.footerLeft}>
           <div style={B.footerBrand}>OVERSIZE ESCORT HUB</div>
           <div style={B.footerSub}>support@oversize-escort-hub.com • verification@oversize-escort-hub.com</div>
         </div>
         <div style={B.footerRight}>
-          <a href="/terms" style={B.footerLink}>Terms</a>
-          <a href="/privacy" style={B.footerLink}>Privacy</a>
-          <a href="/conduct" style={B.footerLink}>Conduct</a>
+          <a href="/terms" style={B.footerLink}>
+            Terms
+          </a>
+          <a href="/privacy" style={B.footerLink}>
+            Privacy
+          </a>
+          <a href="/conduct" style={B.footerLink}>
+            Conduct
+          </a>
         </div>
       </footer>
 
-      <style>{`@keyframes tickerMove { from { transform: translateX(100%); } to { transform: translateX(-100%); } }`}</style>
+      <style>{`
+        @keyframes tickerMove {
+          from { transform: translateX(100%); }
+          to { transform: translateX(-100%); }
+        }
+      `}</style>
     </main>
   );
 }
 
-const B: Record<string, React.CSSProperties> = {
+function BidRow({ load, now, onBid }: { load: BidLoad; now: number; onBid: () => void }) {
+  const msLeft = Math.max(0, load.auctionEndsAt - now);
+  const proLeft = load.proWindowSecsLeft ?? 0;
+  const isProWindow = proLeft > 0;
+
+  const timerLabel =
+    load.status === "AWARDED"
+      ? "AWARDED"
+      : load.status === "NO_BIDS"
+      ? "NO BIDS"
+      : load.status === "AWARDING"
+      ? "AWARDING…"
+      : isProWindow
+      ? `PRO ${String(proLeft).padStart(2, "0")}s`
+      : msToMMSS(msLeft);
+
+  const timerStyle =
+    load.status === "AWARDED"
+      ? B.timerAwarded
+      : load.status === "NO_BIDS"
+      ? B.timerNoBids
+      : load.status === "AWARDING"
+      ? B.timerAwarding
+      : isProWindow
+      ? B.timerPro
+      : msLeft <= 30_000
+      ? B.timerHot
+      : B.timer;
+
+  const flags = load.flags ?? [];
+
+  return (
+    <div style={B.row}>
+      <span style={B.cell}>{load.date}</span>
+
+      <span style={B.cellStrong}>
+        {fmtRoute(load)}
+        <span style={B.cellSub}>
+          {" "}
+          • {load.origin.city}, {load.origin.state} → {load.dest.city}, {load.dest.state} • <b>{load.id}</b>
+        </span>
+      </span>
+
+      <span style={B.cell}>{load.position}</span>
+      <span style={B.cell}>{typeof load.miles === "number" ? `${load.miles} mi` : "—"}</span>
+      <span style={B.cellPay}>{load.baseline ?? "—"}</span>
+      <span style={B.cell}>{fmtPayTerm(load.payTerm)}</span>
+
+      <span style={B.cell}>
+        {flags.length === 0 ? (
+          <span style={{ opacity: 0.5 }}>—</span>
+        ) : (
+          <>
+            {flags.slice(0, 2).map((f) => (
+              <span key={f} style={B.flag}>
+                {f === "QuickPay" ? "⚡" : f === "TextOnly" ? "📲" : f === "PassportReq" ? "🛂" : "🏷"}{" "}
+                {shortFlag(f)}
+              </span>
+            ))}
+            {flags.length > 2 ? <span style={{ marginLeft: 8, opacity: 0.6 }}>+{flags.length - 2}</span> : null}
+          </>
+        )}
+      </span>
+
+      <span style={timerStyle}>{timerLabel}</span>
+
+      <button
+        style={{
+          ...B.bidBtn,
+          opacity: load.status === "LIVE" ? 1 : 0.55,
+          cursor: load.status === "LIVE" ? "pointer" : "not-allowed",
+        }}
+        disabled={load.status !== "LIVE"}
+        onClick={onBid}
+      >
+        Place Bid
+      </button>
+    </div>
+  );
+}
+
+const B: any = {
   main: {
     minHeight: "100vh",
     background: "#060b16",
     color: "#e5e7eb",
-    fontFamily: '"Inter", ui-sans-serif, system-ui, -apple-system, sans-serif',
+    fontFamily:
+      '"Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, sans-serif',
   },
 
   tickerBar: {
@@ -398,79 +559,65 @@ const B: Record<string, React.CSSProperties> = {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: "16px clamp(16px, 4vw, 48px)",
+    padding: "22px 48px",
     borderBottom: "1px solid rgba(255,255,255,0.08)",
     background: "rgba(255,255,255,0.02)",
-    flexWrap: "wrap",
-    gap: 12,
   },
   brandWrap: { textDecoration: "none", color: "inherit" },
   brand: {
-    fontSize: "clamp(16px, 3vw, 26px)",
+    fontSize: 26,
     fontWeight: 950,
     color: "#00b4ff",
     textShadow: "0 0 20px rgba(0,180,255,0.35)",
     letterSpacing: 0.4,
   },
   subBrand: { marginTop: 4, fontSize: 12, opacity: 0.7, letterSpacing: 2 },
-  nav: { display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" },
+
+  nav: { display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" as const },
   navLink: { color: "rgba(229,231,235,0.85)", textDecoration: "none", fontWeight: 800, fontSize: 13 },
   navActive: { color: "#00b4ff" },
   cta: {
     textDecoration: "none",
-    padding: "8px 12px",
+    padding: "10px 14px",
     borderRadius: 12,
     border: "1px solid rgba(255,255,255,0.14)",
     background: "linear-gradient(135deg, #00a8e8, #1fb6ff)",
     color: "#001018",
     fontWeight: 950,
-    fontSize: 12,
+    fontSize: 13,
+    boxShadow: "0 14px 40px rgba(0,168,232,0.26)",
   },
 
   pageHead: {
-    padding: "18px clamp(16px, 4vw, 48px) 10px",
+    padding: "18px 48px 10px",
     display: "flex",
     justifyContent: "space-between",
     gap: 12,
     alignItems: "flex-end",
-    flexWrap: "wrap",
+    flexWrap: "wrap" as const,
   },
-  h1: { margin: 0, fontSize: "clamp(22px, 4vw, 30px)", fontWeight: 950 },
-  sub: { marginTop: 6, marginBottom: 0, fontSize: 13, color: "rgba(229,231,235,0.65)", maxWidth: 640 },
-  rightChips: { display: "flex", gap: 8, flexWrap: "wrap" },
+  h1: { margin: 0, fontSize: 30, fontWeight: 950 },
+  sub: { marginTop: 6, marginBottom: 0, fontSize: 14, color: "rgba(229,231,235,0.65)" },
+  rightChips: { display: "flex", gap: 10, flexWrap: "wrap" as const },
   chip: {
-    padding: "6px 10px",
+    padding: "8px 12px",
     borderRadius: 999,
     border: "1px solid rgba(255,255,255,0.12)",
     background: "rgba(0,0,0,0.18)",
     color: "rgba(229,231,235,0.82)",
     fontWeight: 900,
-    fontSize: 11,
+    fontSize: 12,
   },
-
-  sampleBanner: {
-    margin: "0 clamp(16px, 4vw, 48px) 12px",
-    background: "linear-gradient(135deg,rgba(245,162,0,.08),rgba(255,98,0,.06))",
-    border: "1px solid rgba(245,162,0,0.2)",
-    borderRadius: 4,
-    padding: "14px 18px",
-    display: "flex",
-    alignItems: "flex-start",
-    gap: 12,
-  },
-  sampleIcon: { fontSize: 22, flexShrink: 0 },
-  sampleTitle: { fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#f5a200", fontWeight: 600, marginBottom: 4 },
-  sampleDesc: { fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#6e7a88", lineHeight: 1.6 },
 
   filters: {
-    padding: "12px clamp(16px, 4vw, 48px) 14px",
+    padding: "12px 48px 14px",
     display: "flex",
-    gap: 8,
+    gap: 10,
     alignItems: "center",
-    flexWrap: "wrap",
+    flexWrap: "wrap" as const,
   },
   search: {
-    flex: "1 1 250px",
+    flex: "1 1 360px",
     padding: "10px 12px",
     borderRadius: 12,
     border: "1px solid rgba(255,255,255,0.12)",
@@ -479,7 +626,6 @@ const B: Record<string, React.CSSProperties> = {
     fontWeight: 750,
     fontSize: 13,
     outline: "none",
-    minWidth: 0,
   },
   select: {
     padding: "10px 12px",
@@ -488,121 +634,142 @@ const B: Record<string, React.CSSProperties> = {
     background: "rgba(0,0,0,0.22)",
     color: "#e5e7eb",
     fontWeight: 850,
-    fontSize: 12,
+    fontSize: 13,
     outline: "none",
   },
-  count: { marginLeft: "auto", fontSize: 12, color: "rgba(229,231,235,0.62)", fontWeight: 800 },
+  count: {
+    marginLeft: "auto",
+    fontSize: 12,
+    color: "rgba(229,231,235,0.62)",
+    fontWeight: 800,
+  },
 
   grid: {
-    padding: "0 clamp(16px, 4vw, 48px) 0",
+    padding: "0 48px 0",
     display: "grid",
-    gridTemplateColumns: "1fr clamp(200px, 25vw, 300px)",
+    gridTemplateColumns: "1fr 320px",
     gap: 14,
     alignItems: "start",
   },
 
   board: {
-    display: "grid",
-    gap: 10,
-  },
-
-  card: {
+    border: "1px solid rgba(255,255,255,0.10)",
+    borderRadius: 16,
+    overflow: "hidden",
     background: "rgba(255,255,255,0.02)",
-    border: "1px solid rgba(28,34,41,0.8)",
-    borderLeft: "3px solid rgba(245,162,0,0.4)",
-    borderRadius: 4,
-    padding: "16px 20px",
   },
-  cardGrid: {
+
+  tableHead: {
     display: "grid",
-    gridTemplateColumns: "1fr auto auto",
-    gap: 20,
+    gridTemplateColumns: ".9fr 2.5fr 1.2fr .7fr .9fr 1fr 1.1fr .8fr 1fr",
+    padding: "10px 12px",
+    borderBottom: "1px solid rgba(255,255,255,0.10)",
+    color: "rgba(229,231,235,0.55)",
+    fontWeight: 950,
+    letterSpacing: 1.4,
+    textTransform: "uppercase",
+    fontSize: 12,
+    background: "rgba(0,0,0,0.18)",
+  },
+  th: {},
+
+  rows: {},
+  row: {
+    display: "grid",
+    gridTemplateColumns: ".9fr 2.5fr 1.2fr .7fr .9fr 1fr 1.1fr .8fr 1fr",
+    padding: "10px 12px",
     alignItems: "center",
+    borderBottom: "1px solid rgba(255,255,255,0.06)",
   },
-  cardInfo: {},
-  cardId: {
-    fontFamily: "'DM Mono', monospace",
-    fontSize: 9,
-    color: "#6e7a88",
-    marginBottom: 4,
-    letterSpacing: "0.1em",
-  },
-  cardRoute: { fontWeight: 700, fontSize: 15, color: "#fff", marginBottom: 4 },
-  cardMeta: { fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#6e7a88" },
+  cell: { fontSize: 13, color: "rgba(229,231,235,0.86)", fontWeight: 750 },
+  cellStrong: { fontSize: 13, color: "#ffffff", fontWeight: 950, whiteSpace: "nowrap" as const, overflow: "hidden" },
+  cellSub: { fontSize: 12, fontWeight: 800, color: "rgba(229,231,235,0.55)" },
+  cellPay: { fontSize: 13, fontWeight: 950, color: "#00b4ff" },
 
-  cardCenter: { textAlign: "center", minWidth: 100 },
-  cardRate: { fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 26, color: "#00cc7a", lineHeight: 1 },
-  cardRateLabel: { fontFamily: "'DM Mono', monospace", fontSize: 8, color: "#6e7a88", marginBottom: 8 },
-  cardScore: {
-    fontFamily: "'DM Mono', monospace",
-    fontSize: 11,
-    padding: "2px 8px",
-    borderRadius: 2,
-    background: "rgba(0,204,122,.1)",
-    color: "#00cc7a",
-    border: "1px solid rgba(0,204,122,.2)",
-    display: "inline-block",
+  flag: {
+    display: "inline-flex",
+    alignItems: "center",
+    padding: "4px 8px",
+    borderRadius: 999,
+    border: "1px solid rgba(255,255,255,0.10)",
+    background: "rgba(0,0,0,0.18)",
+    color: "rgba(229,231,235,0.80)",
+    fontWeight: 900,
+    fontSize: 12,
+    marginRight: 8,
+    whiteSpace: "nowrap" as const,
   },
-  cardScoreLabel: { fontFamily: "'DM Mono', monospace", fontSize: 8, color: "#6e7a88", marginTop: 4 },
 
-  cardRight: { textAlign: "center", minWidth: 120 },
-  timer: { fontFamily: "'Bebas Neue', Impact, sans-serif", fontSize: 32, lineHeight: 1, letterSpacing: "0.04em" },
-  timerLabel: { fontFamily: "'DM Mono', monospace", fontSize: 8, color: "#6e7a88", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 },
-  bidCount: { fontFamily: "'DM Mono', monospace", fontSize: 9, color: "#6e7a88", marginBottom: 8 },
+  timer: {
+    fontSize: 13,
+    fontWeight: 950,
+    color: "rgba(229,231,235,0.85)",
+    padding: "6px 10px",
+    borderRadius: 999,
+    border: "1px solid rgba(255,255,255,0.12)",
+    background: "rgba(0,0,0,0.18)",
+    width: "fit-content",
+  },
+  timerHot: {
+    fontSize: 13,
+    fontWeight: 950,
+    color: "#ffd166",
+    padding: "6px 10px",
+    borderRadius: 999,
+    border: "1px solid rgba(255,209,102,0.30)",
+    background: "rgba(255,209,102,0.10)",
+  },
+  timerPro: {
+    fontSize: 13,
+    fontWeight: 950,
+    color: "#7dd3fc",
+    padding: "6px 10px",
+    borderRadius: 999,
+    border: "1px solid rgba(0,168,232,0.35)",
+    background: "rgba(0,168,232,0.12)",
+  },
+  timerAwarding: {
+    fontSize: 13,
+    fontWeight: 950,
+    color: "#a78bfa",
+    padding: "6px 10px",
+    borderRadius: 999,
+    border: "1px solid rgba(167,139,250,0.35)",
+    background: "rgba(167,139,250,0.12)",
+  },
+  timerAwarded: {
+    fontSize: 13,
+    fontWeight: 950,
+    color: "#00e676",
+    padding: "6px 10px",
+    borderRadius: 999,
+    border: "1px solid rgba(0,230,118,0.30)",
+    background: "rgba(0,230,118,0.10)",
+  },
+  timerNoBids: {
+    fontSize: 13,
+    fontWeight: 950,
+    color: "rgba(229,231,235,0.55)",
+    padding: "6px 10px",
+    borderRadius: 999,
+    border: "1px solid rgba(255,255,255,0.12)",
+    background: "rgba(0,0,0,0.18)",
+  },
+
   bidBtn: {
-    display: "block",
-    textDecoration: "none",
-    fontFamily: "'DM Mono', monospace",
-    fontSize: 9,
-    letterSpacing: "0.14em",
-    textTransform: "uppercase",
-    fontWeight: 700,
-    padding: "8px 14px",
-    background: "rgba(245,162,0,.1)",
-    border: "1px solid rgba(245,162,0,.3)",
-    color: "#f5a200",
-    textAlign: "center",
-  },
-  expiredBadge: {
-    fontFamily: "'DM Mono', monospace",
-    fontSize: 11,
-    padding: "6px 14px",
-    background: "rgba(110,122,136,.12)",
-    border: "1px solid rgba(110,122,136,.2)",
-    color: "#6e7a88",
-    borderRadius: 2,
-  },
-
-  sampleBadge: {
-    marginLeft: 8,
-    display: "inline-flex",
-    alignItems: "center",
-    fontFamily: "'DM Mono', monospace",
-    fontSize: 8,
-    letterSpacing: "0.08em",
-    textTransform: "uppercase",
-    padding: "2px 6px",
-    borderRadius: 2,
-    background: "rgba(245,162,0,.06)",
-    color: "#f5a200",
-    border: "1px solid rgba(245,162,0,.15)",
-  },
-  certBadge: {
-    display: "inline-flex",
-    alignItems: "center",
-    fontFamily: "'DM Mono', monospace",
-    fontSize: 8,
-    padding: "1px 6px",
-    marginRight: 4,
-    borderRadius: 2,
-    background: "rgba(110,122,136,.12)",
-    border: "1px solid rgba(110,122,136,.2)",
-    color: "#6e7a88",
+    padding: "10px 12px",
+    borderRadius: 12,
+    border: "1px solid rgba(255,255,255,0.14)",
+    background: "linear-gradient(135deg, #00a8e8, #1fb6ff)",
+    color: "#001018",
+    fontWeight: 950,
+    fontSize: 13,
+    boxShadow: "0 14px 40px rgba(0,168,232,0.26)",
   },
 
   empty: {
     padding: "26px 12px",
-    textAlign: "center",
+    textAlign: "center" as const,
     fontWeight: 950,
     color: "rgba(229,231,235,0.72)",
   },
@@ -610,40 +777,57 @@ const B: Record<string, React.CSSProperties> = {
 
   sidebar: { display: "grid", gap: 12 },
   sideCard: {
-    borderRadius: 4,
-    border: "1px solid rgba(28,34,41,0.8)",
+    borderRadius: 16,
+    border: "1px solid rgba(255,255,255,0.10)",
     background: "rgba(255,255,255,0.02)",
-    padding: 16,
+    padding: 14,
   },
-  sideTitle: { fontWeight: 950, color: "#00b4ff", marginBottom: 8, fontSize: 14 },
-  sideText: { fontSize: 12, color: "rgba(229,231,235,0.68)", lineHeight: 1.6 },
-  sideMini: { marginTop: 10, fontSize: 11, color: "rgba(229,231,235,0.55)", lineHeight: 1.7 },
+  sideTitle: { fontWeight: 950, color: "#00b4ff", marginBottom: 6 },
+  sideText: { fontSize: 13, color: "rgba(229,231,235,0.68)", lineHeight: 1.5 },
+  sideMini: { marginTop: 10, fontSize: 12, color: "rgba(229,231,235,0.65)", lineHeight: 1.6 },
+  sideLink: {
+    display: "inline-block",
+    marginTop: 10,
+    textDecoration: "none",
+    color: "#7dd3fc",
+    fontWeight: 950,
+    fontSize: 13,
+  },
+  badgeRow: { display: "flex", gap: 8, flexWrap: "wrap" as const, marginTop: 10 },
+  badge: {
+    fontSize: 12,
+    fontWeight: 900,
+    padding: "6px 10px",
+    borderRadius: 999,
+    border: "1px solid rgba(255,255,255,0.10)",
+    background: "rgba(0,0,0,0.18)",
+    color: "rgba(229,231,235,0.80)",
+  },
   sideCta: {
     display: "inline-flex",
-    marginTop: 12,
-    padding: "9px 14px",
-    borderRadius: 4,
-    border: "1px solid rgba(0,168,232,0.3)",
-    background: "rgba(0,168,232,0.08)",
+    marginTop: 10,
+    padding: "10px 12px",
+    borderRadius: 12,
+    border: "1px solid rgba(255,255,255,0.14)",
+    background: "rgba(0,180,255,0.12)",
     color: "#7dd3fc",
     textDecoration: "none",
     fontWeight: 950,
-    fontSize: 12,
   },
 
   footer: {
     marginTop: 22,
-    padding: "22px clamp(16px, 4vw, 48px)",
+    padding: "22px 48px",
     borderTop: "1px solid rgba(255,255,255,0.08)",
     display: "flex",
     justifyContent: "space-between",
     gap: 12,
-    flexWrap: "wrap",
+    flexWrap: "wrap" as const,
     color: "rgba(229,231,235,0.70)",
   },
   footerLeft: { display: "flex", flexDirection: "column", gap: 6 },
   footerBrand: { fontWeight: 950, letterSpacing: 1.2 },
-  footerSub: { fontSize: 12, opacity: 0.75 },
-  footerRight: { display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" },
+  footerSub: { fontSize: 13, opacity: 0.75 },
+  footerRight: { display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" as const },
   footerLink: { textDecoration: "none", color: "rgba(229,231,235,0.75)", fontWeight: 850, fontSize: 13 },
 };
