@@ -1689,13 +1689,6 @@ export default function OEHPlatform() {
     showToast("Signed out successfully", "gr");
   }
 
-  if (loadingAuth) {
-    return (
-      <>
-        <style>{CSS}</style>
-        <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <div className="mo" style={{ fontSize: 10, color: "var(--t2)", letterSpacing: ".2em" }}>LOADING...</div>
-        </div>
       </>
     );
   }
