@@ -1634,6 +1634,7 @@ function SignInPage({ setPage, showToast }: { setPage: (p: Page) => void; showTo
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [smsOptIn, setSmsOptIn] = useState(false);
+  const [termsOptIn, setTermsOptIn] = useState(false);
 
   async function handleSubmit() {
     setLoading(true);
@@ -1694,12 +1695,20 @@ function SignInPage({ setPage, showToast }: { setPage: (p: Page) => void; showTo
             <input type="text" placeholder="Your company name" value={company} onChange={(e) => setCompany(e.target.value)} />
           </div>
         )}
-        <button className="btn btn-or" style={{ width: "100%", justifyContent: "center", marginBottom: 12 }} onClick={handleSubmit} disabled={loading || !email || !password || (mode === "signup" && !smsOptIn)}>
+        <button className="btn btn-or" style={{ width: "100%", justifyContent: "center", marginBottom: 12 }} onClick={handleSubmit} disabled={loading || !email || !password || (mode === "signup" && (!smsOptIn || !termsOptIn))}>
         {mode === "signup" && (
-          <div style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 14, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6, padding: "10px 12px" }}>
-            <input type="checkbox" id="sms_opt" checked={smsOptIn} onChange={(e) => setSmsOptIn(e.target.checked)} style={{ marginTop: 2, accentColor: "var(--or)", flexShrink: 0, width: 14, height: 14 }} />
-            <label htmlFor="sms_opt" style={{ fontSize: 10, color: "#e5e7eb", lineHeight: 1.7, cursor: "pointer" }}>
-              By creating an account I agree to the{" "}<a href="/privacy" style={{ color: "var(--or)" }}>Privacy Policy</a>{" "}and{" "}<a href="/terms" style={{ color: "var(--or)" }}>Terms of Service</a>, and consent to receive SMS notifications. Msg &amp; data rates may apply. Reply STOP to opt out.
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
+            <label style={{ display: "flex", gap: 10, alignItems: "flex-start", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6, padding: "10px 12px", cursor: "pointer" }}>
+              <input type="checkbox" id="sms_opt" checked={smsOptIn} onChange={(e) => setSmsOptIn(e.target.checked)} style={{ marginTop: 2, accentColor: "var(--or)", flexShrink: 0, width: 14, height: 14 }} />
+              <span style={{ fontSize: 10, color: "#e5e7eb", lineHeight: 1.7 }}>
+                I agree to receive SMS notifications from Oversize Escort Hub. Msg &amp; data rates may apply. Reply STOP to opt out, HELP for info.
+              </span>
+            </label>
+            <label style={{ display: "flex", gap: 10, alignItems: "flex-start", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6, padding: "10px 12px", cursor: "pointer" }}>
+              <input type="checkbox" id="terms_opt" checked={termsOptIn} onChange={(e) => setTermsOptIn(e.target.checked)} style={{ marginTop: 2, accentColor: "var(--or)", flexShrink: 0, width: 14, height: 14 }} />
+              <span style={{ fontSize: 10, color: "#e5e7eb", lineHeight: 1.7 }}>
+                I agree to the <a href="/privacy" style={{ color: "var(--or)" }}>Privacy Policy</a> and <a href="/terms" style={{ color: "var(--or)" }}>Terms of Service</a>.
+              </span>
             </label>
           </div>
         )}
