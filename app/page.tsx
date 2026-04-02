@@ -1614,6 +1614,7 @@ function SignInPage({ setPage, showToast }: { setPage: (p: Page) => void; showTo
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [smsOptIn, setSmsOptIn] = useState(false);
 
   async function handleSubmit() {
     setLoading(true);
@@ -1674,7 +1675,16 @@ function SignInPage({ setPage, showToast }: { setPage: (p: Page) => void; showTo
             <input type="text" placeholder="Your company name" value={company} onChange={(e) => setCompany(e.target.value)} />
           </div>
         )}
-        <button className="btn btn-or" style={{ width: "100%", justifyContent: "center", marginBottom: 12 }} onClick={handleSubmit} disabled={loading || !email || !password}>
+        <button className="btn btn-or" style={{ width: "100%", justifyContent: "center", marginBottom: 12 }} onClick={handleSubmit} disabled={loading || !email || !password || (mode === "signup" && !smsOptIn)}>
+        {mode === "signup" && (
+          <div style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 14 }}>
+            <input type="checkbox" id="sms_opt" checked={smsOptIn} onChange={(e) => setSmsOptIn(e.target.checked)} style={{ marginTop: 3, accentColor: "var(--or)", flexShrink: 0 }} />
+            <label htmlFor="sms_opt" style={{ fontSize: 10, color: "var(--t2)", lineHeight: 1.6, cursor: "pointer" }}>
+              I agree to receive SMS notifications from Oversize Escort Hub. Msg &amp; data rates may apply. Reply STOP to opt out, HELP for help.{" "}
+              <a href="/privacy" style={{ color: "var(--or)" }}>Privacy Policy</a> · <a href="/terms" style={{ color: "var(--or)" }}>Terms</a>
+            </label>
+          </div>
+        )}
           {loading ? "Please wait..." : mode === "signup" ? "Create Free Account →" : "Sign In →"}
         </button>
         <div style={{ textAlign: "center" }}>
@@ -1753,7 +1763,7 @@ export default function OEHPlatform() {
       {page === "escprofile" && <EscProfilePage setPage={setPage} />}
       {page === "dashboard-e" && <EscortDashPage setPage={setPage} profile={profile} />}
       {page === "dashboard-c" && <CarrierDashPage setPage={setPage} user={user} profile={profile} />}
-      {page === "postload" && <PostLoadPage setPage={setPage} {user} profile={profile} showToast={showToast}
+      {page === "postload" && <PostLoadPage setPage={setPage} user={user} profile={profile} showToast={showToast} />}
       Create: New File{user} profile={profile} showToast={showToast} />}
       {page === "pricing" && <PricingPage setPage={setPage} />}
       {page === "verification" && <VerificationPage />}
