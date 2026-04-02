@@ -256,6 +256,21 @@ footer{background:var(--p1);border-top:1px solid var(--l1);padding:40px 24px 24p
   .footer-grid{grid-template-columns:1fr 1fr}
   .dash-grid{grid-template-columns:1fr}
   .dash-nav{display:none}
+  .ham-btn{display:flex;align-items:center;justify-content:center}
+  .nav-links{display:none}
+  .nav-right{gap:6px}
+  .nav-get-started{font-size:9px;padding:7px 12px}
+.ham-btn{display:none;background:none;border:none;cursor:pointer;padding:8px;color:var(--t1)}
+.ham-btn span{display:block;width:22px;height:2px;background:var(--t1);margin:4px 0;transition:.3s}
+.mobile-drawer{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:999;background:rgba(0,0,0,.7)}
+.mobile-drawer-inner{position:absolute;top:0;right:0;width:80%;max-width:300px;height:100%;background:var(--p1);border-left:1px solid var(--l1);overflow-y:auto;padding:20px 0}
+.drawer-header{display:flex;align-items:center;justify-content:space-between;padding:0 20px 20px;border-bottom:1px solid var(--l1);margin-bottom:10px}
+.drawer-close{background:none;border:none;color:var(--t1);font-size:24px;cursor:pointer;padding:4px}
+.drawer-link{display:block;width:100%;text-align:left;background:none;border:none;color:var(--t2);font-family:"DM Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;padding:14px 20px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05)}
+.drawer-link:hover,.drawer-link.active{color:var(--or);background:rgba(255,255,255,.03)}
+.drawer-user{padding:16px 20px;border-top:1px solid var(--l1);margin-top:10px}
+.drawer-signout{width:100%;margin-top:12px;background:none;border:1px solid var(--l2);color:var(--t2);font-family:"DM Mono",monospace;font-size:9px;letter-spacing:.1em;padding:10px;cursor:pointer;border-radius:2px}
+.drawer-signout:hover{border-color:var(--rd);color:var(--rd)}
 }
 `;
 
@@ -297,40 +312,70 @@ function Ticker() {
 }
 
 function Nav({ page, setPage, user, profile, onSignOut }: {
-  page: Page;
-  setPage: (p: Page) => void;
-  user: User | null;
-  profile: Profile | null;
-  onSignOut: () => void;
+  page: Page; setPage: (p: Page) => void; user: User | null; profile: Profile | null; onSignOut: () => void
 }) {
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const navLinks: [Page, string][] = [
+    ["flatboard", "Flat Rate"],
+    ["openboard", "Open Bids"],
+    ["escorts", "Find Escorts"],
+    ["postload", "Post a Load"],
+    ["pricing", "Pricing"],
+    ["verification", "Verification"],
+    ["bidboard", "Bid Board"],
+  ];
+  const closeDrawer = () => setDrawerOpen(false);
   return (
     <div className="nav">
-      <div style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }} onClick={() => setPage("home")}>
-        <img src="/logo.png" alt="OEH" style={{ width: 38, height: 38, objectFit: "contain" }} />
-        <div className="nav-name">Oversize Escort Hub</div>
-      </div>
-      <div className="nav-div" />
-      <div style={{ display: "flex", flex: 1 }}>
-        {(["flatboard", "openboard", "escorts", "postload", "pricing", "verification"] as Page[]).map((p) => (
-          <button key={p} className={`nav-link${page === p ? " active" : ""}`} onClick={() => setPage(p)}>
-            {p === "flatboard" ? "Flat Rate" : p === "openboard" ? "Open Bids" : p === "escorts" ? "Find Escorts" : p === "postload" ? "Post a Load" : p === "pricing" ? "Pricing" : "Verification"}
-          </button>
+      <div className="nav-name" style={{ cursor: "pointer" }} onClick={() => setPage("home")}>Oversize Escort Hub</div>
+      {/* Desktop links */}
+      <div className="nav-links" style={{ display: "flex", gap: 2, alignItems: "center" }}>
+        {navLinks.map(([p, label]) => (
+          <button key={p} className={`nav-link${page === p ? " active" : ""}`} onClick={() => setPage(p)}>{label}</button>
         ))}
-        <button className={`nav-link nav-bid${page === "bidboard" ? " active" : ""}`} onClick={() => setPage("bidboard")}>Bid Board</button>
       </div>
-      {user && profile ? (
-        <div className="nav-user">
-          <span style={{ color: "var(--t1)", fontWeight: 600 }}>{profile.full_name || profile.email}</span>
-          <span className={`chip ${profile.tier === "pro" ? "ch-am" : profile.tier === "member" ? "ch-bl" : "ch-dim"}`} style={{ fontSize: 7 }}>
-            {profile.tier.toUpperCase()}
+      {/* Desktop right */}
+      <div className="nav-right" style={{ display: "flex", alignItems: "center", gap: 10, marginLeft: "auto" }}>
+        {user && profile ? (
+          <span className="nav-user">
+            {profile.full_name || "there"}{" · "}
+            <span style={{ color: "var(--or)", fontSize: 8 }}>{profile.tier?.toUpperCase()}</span>{" "}
+            <button className="nav-signout" onClick={onSignOut}>SIGN OUT</button>
+            <button className="nav-signout" style={{ marginLeft: 4 }} onClick={() => setPage(profile.role === "carrier" ? "dashboard-c" : "dashboard-e")}>DASHBOARD →</button>
           </span>
-          <button className="nav-link" style={{ height: "auto", padding: "0 8px" }} onClick={() => setPage(profile.role === "carrier" ? "dashboard-c" : "dashboard-e")}>
-            Dashboard
-          </button>
-          <button className="nav-signout" onClick={onSignOut}>Sign Out</button>
+        ) : (
+          <button className="nav-get-started btn btn-or btn-sm" onClick={() => setPage("signin")}>GET STARTED</button>
+        )}
+        {/* Hamburger */}
+        <button className="ham-btn" onClick={() => setDrawerOpen(true)} aria-label="Menu">
+          <span/><span/><span/>
+        </button>
+      </div>
+      {/* Mobile drawer */}
+      {drawerOpen && (
+        <div className="mobile-drawer" onClick={closeDrawer}>
+          <div className="mobile-drawer-inner" onClick={e => e.stopPropagation()}>
+            <div className="drawer-header">
+              <span className="mo" style={{ fontSize: 10, letterSpacing: ".1em", color: "var(--or)" }}>OVERSIZE ESCORT HUB</span>
+              <button className="drawer-close" onClick={closeDrawer}>✕</button>
+            </div>
+            {navLinks.map(([p, label]) => (
+              <button key={p} className={`drawer-link${page === p ? " active" : ""}`} onClick={() => { setPage(p); closeDrawer(); }}>{label}</button>
+            ))}
+            <div className="drawer-user">
+              {user && profile ? (
+                <>
+                  <div className="mo" style={{ fontSize: 9, color: "var(--t2)", marginBottom: 4 }}>Signed in as <strong style={{ color: "var(--t1)" }}>{profile.full_name}</strong></div>
+                  <div className="mo" style={{ fontSize: 8, color: "var(--or)", marginBottom: 10 }}>{profile.tier?.toUpperCase()} · {profile.role?.toUpperCase()}</div>
+                  <button className="drawer-link" onClick={() => { setPage(profile.role === "carrier" ? "dashboard-c" : "dashboard-e"); closeDrawer(); }}>→ Dashboard</button>
+                  <button className="drawer-signout" onClick={() => { onSignOut(); closeDrawer(); }}>SIGN OUT</button>
+                </>
+              ) : (
+                <button className="btn btn-or btn-sm" style={{ width: "100%" }} onClick={() => { setPage("signin"); closeDrawer(); }}>GET STARTED</button>
+              )}
+            </div>
+          </div>
         </div>
-      ) : (
-        <button className="nav-cta" onClick={() => setPage("signin")}>Get Started</button>
       )}
     </div>
   );
