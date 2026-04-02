@@ -1,263 +1,83 @@
-// FILE: app/pricing/page.tsx
-// ACTION: Replace ENTIRE file
+"use client"
+import { useState } from "react"
+import { supabase } from "@/lib/supabase"
+
+const PRICES = {
+  member:      "price_1TF00LLmfugPCRbAl6sF0Oup",
+  pro:         "price_1TF021LmfugPCRbA7CGgLhC0",
+  pevo_member: "price_1TF0D4LmfugPCRbAd4hMO22R",
+  pevo_pro:    "price_1TF0DiLmfugPCRbAPWsN2K5x",
+  bgc:         "price_1TF0EILmfugPCRbAvM6Q5rhW",
+}
+
+async function startCheckout(priceId: string, setLoading: (v: string) => void) {
+  setLoading(priceId)
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) { window.location.href = "/signin?redirect=pricing"; return }
+    const res = await fetch("/api/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ priceId, userId: session.user.id }),
+    })
+    const { url, error } = await res.json()
+    if (error) { alert("Error: " + error); return }
+    window.location.href = url
+  } finally {
+    setLoading("")
+  }
+}
+
+function Tier({ badge, title, price, desc, points, cta, onCTA, loading, highlight }: {
+  badge: string; title: string; price: string; desc: string; points: string[]
+  cta: string; onCTA: () => void; loading: boolean; highlight?: boolean
+}) {
+  return (
+    <div style={{ background: highlight ? "#111827" : "#111", border: highlight ? "2px solid #00a8e8" : "1px solid #1f2937", borderRadius: 12, padding: 28, display: "flex", flexDirection: "column", gap: 12 }}>
+      <span style={{ background: highlight ? "#00a8e8" : "#1f2937", color: highlight ? "#000" : "#9ca3af", fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 99, letterSpacing: 1, alignSelf: "flex-start" }}>{badge}</span>
+      <h2 style={{ color: "#fff", fontSize: 22, fontWeight: 700, margin: 0 }}>{title}</h2>
+      <p style={{ color: "#00a8e8", fontSize: 28, fontWeight: 800, margin: 0 }}>{price}</p>
+      <p style={{ color: "#9ca3af", fontSize: 14, margin: 0 }}>{desc}</p>
+      <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 8, flexGrow: 1 }}>
+        {points.map(p => <li key={p} style={{ color: "#d1d5db", fontSize: 14, display: "flex", gap: 8 }}><span style={{ color: "#00a8e8" }}>✓</span>{p}</li>)}
+      </ul>
+      <button onClick={onCTA} disabled={loading} style={{ background: highlight ? "#00a8e8" : "#1f2937", color: highlight ? "#000" : "#fff", border: "none", borderRadius: 8, padding: "13px 0", fontWeight: 700, fontSize: 15, cursor: "pointer", marginTop: 8, opacity: loading ? 0.6 : 1 }}>
+        {loading ? "Loading..." : cta}
+      </button>
+    </div>
+  )
+}
 
 export default function PricingPage() {
+  const [loading, setLoading] = useState("")
   return (
-    <main style={S.main}>
-      <Header />
-
-      <section style={S.wrap}>
-        <h1 style={S.h1}>Membership & Access</h1>
-        <p style={S.sub}>
-          Built to be fair, transparent, and incentive-driven.  
-          Trial to explore. Member to compete. Pro to win.
-        </p>
-
-        {/* ===== TIERS ===== */}
-        <div style={S.grid3}>
-          <Tier
-            badge="TRIAL"
-            title="30-Day Trial"
-            price="FREE"
-            desc="Explore the platform and understand how the hub works."
-            points={[
-              "Profile required to view boards",
-              "Regular load board access",
-              "Bid board preview only",
-              "Email notifications only",
-              "No SMS alerts",
-            ]}
-          />
-
-          <Tier
-            badge="MEMBER"
-            title="Member"
-            price="$19.99 / month"
-            highlight
-            desc="Full access to compete for loads and build rank."
-            points={[
-              "Access to regular + bid boards",
-              "60-second Pro delay on new bid loads",
-              "Email notifications",
-              "Rank + reviews enabled",
-              "Annual option: 15% discount",
-              "$1.99 daily access option",
-              "$19.99 yearly compliance due",
-            ]}
-          />
-
-          <Tier
-            badge="PRO"
-            title="Pro"
-            price="$29.99 / month"
-            desc="Priority access and competitive advantage."
-            points={[
-              "First 60-second bid access",
-              "SMS alerts for bid board",
-              "Priority tie-breaks",
-              "No yearly compliance due",
-              "20% off annual subscription",
-              "Discounted verification pricing",
-              "$4.99 daily Pro access option",
-            ]}
-          />
+    <main style={{ background: "#0a0a0a", color: "#ccc", fontFamily: "sans-serif", minHeight: "100vh" }}>
+      <section style={{ maxWidth: 1100, margin: "0 auto", padding: "60px 24px" }}>
+        <h1 style={{ textAlign: "center", fontSize: 36, fontWeight: 800, color: "#fff", marginBottom: 8 }}>Membership & Access</h1>
+        <p style={{ textAlign: "center", color: "#9ca3af", marginBottom: 56 }}>Trial to explore. Member to compete. Pro to win.</p>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 24 }}>
+          <Tier badge="TRIAL" title="30-Day Trial" price="FREE" desc="Explore the platform and understand how the hub works."
+            points={["Profile required to view boards","View load listings","Cannot see contact info","One trial per device"]}
+            cta="Start Free Trial" onCTA={() => window.location.href = "/signin"} loading={false} />
+          <Tier badge="MEMBER" title="Member" price="$19.99/mo" desc="Compete for loads. See contact info. Get in the game."
+            points={["Everything in Trial","See carrier contact info","Bid on open loads","Priority listing visibility"]}
+            cta="Get Member" onCTA={() => startCheckout(PRICES.member, setLoading)} loading={loading === PRICES.member} highlight />
+          <Tier badge="PRO" title="Pro" price="$29.99/mo" desc="Stop Driving Home Empty. The deadhead minimizer alone pays for this."
+            points={["Everything in Member","Stop Driving Home Empty","~$4,800/yr recovered","Priority in search"]}
+            cta="Go Pro" onCTA={() => startCheckout(PRICES.pro, setLoading)} loading={loading === PRICES.pro} />
         </div>
-
-        {/* ===== VERIFICATION ===== */}
-        <div style={S.panel}>
-          <h2 style={S.h2}>Verification & Compliance</h2>
-          <p style={S.text}>
-            Verification is optional but recommended. Where possible, certifications
-            are verified and re-checked at random intervals.
-          </p>
-
-          <ul style={S.list}>
-            <li>• Initial certification verification: <strong>$9.99</strong></li>
-            <li>• Additional certificates: <strong>$3.99 each</strong></li>
-            <li>• Pro members receive discounted verification</li>
-            <li>• Money-back guarantee if verification cannot be completed</li>
-          </ul>
-
-          <div style={S.notice}>
-            Escorts are responsible for maintaining proper insurance.  
-            This platform provides visibility and verification where possible, not coverage.
+        <div style={{ marginTop: 48, background: "#111", border: "1px solid #1f2937", borderRadius: 12, padding: "32px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
+          <div>
+            <span style={{ background: "#1d4ed8", color: "#fff", fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 99 }}>BACKGROUND CHECK</span>
+            <h3 style={{ color: "#fff", fontSize: 22, fontWeight: 700, margin: "12px 0 6px" }}>Verified Badge — $14.99</h3>
+            <p style={{ color: "#9ca3af", fontSize: 14, maxWidth: 520 }}>One-time fee. Submit your PDF, Brian reviews manually. Badge appears on your profile upon approval.</p>
           </div>
-        </div>
-
-        {/* ===== PAY TERMS ===== */}
-        <div style={S.panel}>
-          <h2 style={S.h2}>Pay Terms & Rules</h2>
-
-          <ul style={S.list}>
-            <li>• Fast Pay: within 10 business days (clearly flagged)</li>
-            <li>• Custom pay timeframes allowed and displayed</li>
-            <li>• Overnight recommended: $100</li>
-            <li>• No-go fee (on-site cancel): $300 recommended</li>
-            <li>• Escort cancel policy: tier reduction after 3 cancels in 60 days</li>
-            <li>• 30-day suspension after repeated cancellations</li>
-          </ul>
-
-          <div style={S.notice}>
-            All agreements are between escort and posting party.  
-            Oversize Escort Hub provides the marketplace and transparency.
-          </div>
+          <button onClick={() => startCheckout(PRICES.bgc, setLoading)} disabled={loading === PRICES.bgc}
+            style={{ background: "#1d4ed8", color: "#fff", border: "none", borderRadius: 8, padding: "14px 28px", fontWeight: 700, fontSize: 15, cursor: "pointer", opacity: loading === PRICES.bgc ? 0.6 : 1 }}>
+            {loading === PRICES.bgc ? "Loading..." : "Get Verified — $14.99"}
+          </button>
         </div>
       </section>
-
-      <Footer />
     </main>
-  );
+  )
 }
-
-/* ================= COMPONENTS ================= */
-
-function Header() {
-  return (
-    <header style={S.header}>
-      <a href="/" style={S.brand}>OVERSIZE ESCORT HUB</a>
-      <nav style={S.nav}>
-        <a style={S.navLink} href="/loads">Load Boards</a>
-        <a style={S.navLink} href="/post-load">Post Load</a>
-        <a style={S.navLink} href="/verify">Verification</a>
-        <a style={S.navLink} href="/signin">Sign In</a>
-      </nav>
-    </header>
-  );
-}
-
-function Footer() {
-  return (
-    <footer style={S.footer}>
-      <div style={S.footerInner}>
-        <div>
-          <strong>OVERSIZE ESCORT HUB</strong>
-          <div style={S.footerMuted}>
-            support@oversize-escort-hub.com
-          </div>
-        </div>
-        <div style={S.footerLinks}>
-          <a style={S.footerLink} href="/terms">Terms</a>
-          <a style={S.footerLink} href="/privacy">Privacy</a>
-        </div>
-      </div>
-    </footer>
-  );
-}
-
-function Tier({
-  badge,
-  title,
-  price,
-  desc,
-  points,
-  highlight,
-}: any) {
-  return (
-    <div
-      style={{
-        ...S.card,
-        borderColor: highlight ? "rgba(0,168,232,0.6)" : S.card.border,
-        boxShadow: highlight
-          ? "0 18px 50px rgba(0,168,232,0.18)"
-          : "none",
-      }}
-    >
-      <div style={S.badge}>{badge}</div>
-      <div style={S.cardTitle}>{title}</div>
-      <div style={S.price}>{price}</div>
-      <div style={S.desc}>{desc}</div>
-
-      <ul style={S.points}>
-        {points.map((p: string) => (
-          <li key={p}>• {p}</li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-/* ================= STYLES ================= */
-
-const S: any = {
-  main: { minHeight: "100vh", background: "#060b16", color: "#e5e7eb" },
-
-  header: {
-    padding: "18px 56px",
-    borderBottom: "1px solid rgba(255,255,255,0.1)",
-    display: "flex",
-    justifyContent: "space-between",
-  },
-  brand: {
-    fontWeight: 900,
-    color: "#00a8e8",
-    textDecoration: "none",
-  },
-  nav: { display: "flex", gap: 16 },
-  navLink: { color: "#cbd5e1", textDecoration: "none", fontWeight: 700 },
-
-  wrap: { padding: "44px 56px" },
-  h1: { margin: 0, fontSize: 40, fontWeight: 900 },
-  h2: { margin: 0, fontSize: 28, fontWeight: 900 },
-  sub: { marginTop: 8, color: "#9ca3af", maxWidth: 760 },
-
-  grid3: {
-    marginTop: 28,
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))",
-    gap: 16,
-  },
-
-  card: {
-    background: "rgba(255,255,255,0.045)",
-    border: "1px solid rgba(255,255,255,0.14)",
-    borderRadius: 22,
-    padding: 20,
-    backdropFilter: "blur(14px)",
-  },
-
-  badge: {
-    display: "inline-block",
-    padding: "6px 12px",
-    borderRadius: 999,
-    fontSize: 12,
-    fontWeight: 900,
-    border: "1px solid rgba(255,255,255,0.12)",
-    background: "rgba(0,0,0,0.25)",
-    marginBottom: 10,
-  },
-
-  cardTitle: { fontWeight: 950, fontSize: 18, color: "#00a8e8" },
-  price: { marginTop: 6, fontWeight: 950, fontSize: 26 },
-  desc: { marginTop: 6, fontSize: 14, color: "#9ca3af" },
-
-  points: { marginTop: 12, paddingLeft: 12, lineHeight: 1.8 },
-
-  panel: {
-    marginTop: 36,
-    background: "rgba(255,255,255,0.03)",
-    border: "1px solid rgba(255,255,255,0.12)",
-    borderRadius: 22,
-    padding: 22,
-  },
-
-  text: { marginTop: 8, fontSize: 15, color: "#cbd5e1", maxWidth: 860 },
-  list: { marginTop: 12, lineHeight: 1.8 },
-
-  notice: {
-    marginTop: 14,
-    fontSize: 12,
-    color: "#9ca3af",
-    borderLeft: "3px solid #00a8e8",
-    paddingLeft: 10,
-  },
-
-  footer: {
-    padding: "30px 56px",
-    borderTop: "1px solid rgba(255,255,255,0.1)",
-    marginTop: 50,
-  },
-  footerInner: { display: "flex", justifyContent: "space-between" },
-  footerMuted: { fontSize: 13, color: "#9ca3af" },
-  footerLinks: { display: "flex", gap: 16 },
-  footerLink: { color: "#cbd5e1", textDecoration: "none", fontWeight: 700 },
-};

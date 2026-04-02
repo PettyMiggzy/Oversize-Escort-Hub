@@ -1,6 +1,10 @@
 export default function TermsOfService() {
   return (
     <div style={{ background: "#0a0a0a", minHeight: "100vh", color: "#ccc", fontFamily: "sans-serif" }}>
+      <div style={{ background: "#0f0f0f", borderBottom: "1px solid #1a1a1a", padding: "14px 24px", display: "flex", alignItems: "center", gap: 16 }}>
+        <a href="/" style={{ background: "none", border: "1px solid #333", color: "#888", fontFamily: "DM Mono, monospace", fontSize: 10, letterSpacing: ".1em", padding: "6px 14px", cursor: "pointer", borderRadius: 2, textDecoration: "none" }}>← BACK</a>
+        <span style={{ fontSize: 10, letterSpacing: ".2em", color: "#f90" }}>OVERSIZE ESCORT HUB</span>
+      </div>
       <div style={{ maxWidth: 800, margin: "0 auto", padding: "60px 24px", lineHeight: 1.8 }}>
         <div style={{ marginBottom: 40 }}>
           <div style={{ fontSize: 10, letterSpacing: ".2em", color: "#f90", marginBottom: 8 }}>OVERSIZE ESCORT HUB</div>
