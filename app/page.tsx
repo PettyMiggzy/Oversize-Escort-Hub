@@ -5,7 +5,7 @@ import type { User } from "@supabase/supabase-js";
 
 // ─── TYPES ───────────────────────────────────────────────────────────────────
 
-type Role = "carrier" | "escort" | null;
+type Role = "carrier" | "escort" | "broker" | null;
 type Page = "home" | "flatboard" | "openboard" | "bidboard" | "escorts" | "escprofile" | "dashboard-e" | "dashboard-c" | "dashboard-b" | "postload" | "pricing" | "verification" | "signin";
 
 type Profile = {
