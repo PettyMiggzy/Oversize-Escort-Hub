@@ -6,7 +6,7 @@ import type { User } from "@supabase/supabase-js";
 // ─── TYPES ───────────────────────────────────────────────────────────────────
 
 type Role = "carrier" | "escort" | null;
-type Page = "home" | "flatboard" | "openboard" | "bidboard" | "escorts" | "escprofile" | "dashboard-e" | "dashboard-c" | "postload" | "pricing" | "verification" | "signin";
+type Page = "home" | "flatboard" | "openboard" | "bidboard" | "escorts" | "escprofile" | "dashboard-e" | "dashboard-c" | "dashboard-b" | "postload" | "pricing" | "verification" | "signin";
 
 type Profile = {
   id: string;
@@ -486,6 +486,11 @@ function HomePage({ setPage, user, profile }: { setPage: (p: Page) => void; user
           </div>
         </div>
         <button className="mo" style={{ marginTop: 28, background: "none", border: "none", color: "var(--t3)", fontSize: 10, letterSpacing: ".1em", cursor: "pointer" }} onClick={() => setRole("carrier")}>
+          <div className="role-card" style={{ border: "2px solid var(--t2)", marginTop: 12 }} onClick={() => setRole("broker")}>
+            <div className="bb" style={{ fontSize: 34, color: "var(--t2)", marginBottom: 10 }}>FREIGHT BROKER</div>
+            <p style={{ fontSize: 11, color: "var(--t2)", lineHeight: 1.5, marginBottom: 16 }}>Licensed freight brokers who need verified P/EVO escorts for oversize shipments.</p>
+            <div className="mo" style={{ fontSize: 9, color: "var(--t2)", letterSpacing: ".1em" }}>POST LOADS · FIND ESCORTS · MANAGE SHIPMENTS →</div>
+          </div>
           Browse as guest →
         </button>
       </div>
@@ -1642,7 +1647,7 @@ function SignInPage({ setPage, showToast }: { setPage: (p: Page) => void; showTo
         </div>
         {mode === "signup" && (
           <div style={{ display: "flex", border: "1px solid var(--l1)", borderRadius: 3, overflow: "hidden", marginBottom: 20 }}>
-            {(["escort", "carrier"] as const).map((r) => (
+            {(["escort", "carrier", "broker"] as const).map((r) => (
               <button key={r} onClick={() => setRole(r)} style={{ flex: 1, padding: "10px 0", background: role === r ? (r === "escort" ? "var(--am)" : "var(--or)") : "transparent", color: role === r ? "#000" : "var(--t2)", border: "none", fontFamily: "'DM Mono',monospace", fontSize: 9, letterSpacing: ".12em", textTransform: "uppercase" as const, fontWeight: 700 }}>
                 {r === "escort" ? "Escort / P/EVO" : "Carrier / Operator"}
               </button>
