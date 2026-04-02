@@ -1677,9 +1677,9 @@ function SignInPage({ setPage, showToast }: { setPage: (p: Page) => void; showTo
         )}
         <button className="btn btn-or" style={{ width: "100%", justifyContent: "center", marginBottom: 12 }} onClick={handleSubmit} disabled={loading || !email || !password || (mode === "signup" && !smsOptIn)}>
         {mode === "signup" && (
-          <div style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 14 }}>
-            <input type="checkbox" id="sms_opt" checked={smsOptIn} onChange={(e) => setSmsOptIn(e.target.checked)} style={{ marginTop: 3, accentColor: "var(--or)", flexShrink: 0 }} />
-            <label htmlFor="sms_opt" style={{ fontSize: 10, color: "var(--t2)", lineHeight: 1.6, cursor: "pointer" }}>
+          <div style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 14, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6, padding: "10px 12px" }}>
+            <input type="checkbox" id="sms_opt" checked={smsOptIn} onChange={(e) => setSmsOptIn(e.target.checked)} style={{ marginTop: 2, accentColor: "var(--or)", flexShrink: 0, width: 14, height: 14 }} />
+            <label htmlFor="sms_opt" style={{ fontSize: 10, color: "#e5e7eb", lineHeight: 1.7, cursor: "pointer" }}>
               I agree to receive SMS notifications from Oversize Escort Hub. Msg &amp; data rates may apply. Reply STOP to opt out, HELP for help.{" "}
               <a href="/privacy" style={{ color: "var(--or)" }}>Privacy Policy</a> · <a href="/terms" style={{ color: "var(--or)" }}>Terms</a>
             </label>
