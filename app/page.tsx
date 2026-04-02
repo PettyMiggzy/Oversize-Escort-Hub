@@ -19,6 +19,12 @@ type Profile = {
   state: string | null;
   p_evo_verified: boolean;
   bgc_verified: boolean;
+  req_high_pole: boolean;
+  req_route_survey: boolean;
+  ctts_bc: boolean;
+  ctts_ab: boolean;
+  oapc: boolean;
+  sask_pilot: boolean;
   vehicle_verified: boolean;
   admin_verified: boolean;
   rating: number;
@@ -1065,7 +1071,7 @@ function EscortsPage({ setPage }: { setPage: (p: Page) => void }) {
       <EarlyBanner role="carrier" />
       <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap" as const }}>
         <select><option>All States</option><option>Texas</option><option>Arizona</option><option>Georgia</option><option>Tennessee</option></select>
-        <select><option>All Certifications</option><option>P/EVO Verified</option><option>Witpac</option><option>NY</option><option>TWIC</option></select>
+        <select><option>All Certifications</option><option>P/EVO Verified</option><option>Witpac</option><option>NY Cert</option><option>TWIC</option><option>High Pole</option><option>Route Survey</option><option>CTTS (BC)</option><option>CTTS (Alberta)</option><option>OAPC (Ontario)</option><option>Saskatchewan</option></select>
         <select><option>All Tiers</option><option>Admin Verified</option><option>Background Checked</option><option>Vehicle Verified</option></select>
         <select><option>Sort: Highest Rated</option><option>Most Jobs</option><option>Fastest Response</option></select>
       </div>
@@ -1138,7 +1144,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
     puCity: "", puState: "", dlCity: "", dlState: "",
     miles: "", rate: "2.00", position: "Lead", payType: "FastPay",
     width: "", height: "", weight: "", notes: "", startDate: "",
-    reqPevo: true, reqWitpac: false, reqNy: false, reqTwic: false,
+    reqPevo: true, reqWitpac: false, reqNy: false, reqTwic: false, reqHighPole: false, reqRouteSurvey: false, reqCttsbc: false, reqCttsab: false, reqOapc: false, reqSask: false,
   });
   const [saving, setSaving] = useState(false);
 
@@ -1170,6 +1176,12 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
       requires_witpac: form.reqWitpac,
       requires_ny_cert: form.reqNy,
       requires_twic: form.reqTwic,
+      requires_high_pole: form.reqHighPole,
+      requires_route_survey: form.reqRouteSurvey,
+      requires_ctts_bc: form.reqCttsbc,
+      requires_ctts_ab: form.reqCttsab,
+      requires_oapc: form.reqOapc,
+      requires_sask: form.reqSask,
       load_width: parseFloat(form.width) || null,
       load_height: parseFloat(form.height) || null,
       load_weight: parseFloat(form.weight) || null,
@@ -1238,7 +1250,8 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
       <div className="form-field" style={{ marginTop: 4 }}>
         <label className="form-label">Certifications Required</label>
         <div style={{ display: "flex", gap: 16, flexWrap: "wrap" as const, marginTop: 6 }}>
-          {([ ["reqPevo", "P/EVO"], ["reqWitpac", "Witpac"], ["reqNy", "NY Cert"], ["reqTwic", "TWIC"]] as [keyof typeof form, string][]).map(([k, label]) => (
+          <div className="mo" style={{ fontSize: 9, color: "var(--t3)", marginBottom: 6 }}>— US CERTS —</div>
+          {([ ["reqPevo", "P/EVO"], ["reqWitpac", "Witpac"], ["reqNy", "NY Cert"], ["reqTwic", "TWIC"], ["reqHighPole", "High Pole"], ["reqRouteSurvey", "Route Survey"]] as [keyof typeof form, string][]).map(([k, label]) => (
             <label key={k} style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
               <input type="checkbox" checked={form[k] as boolean} onChange={(e) => set(k, e.target.checked)} style={{ width: "auto", padding: 0 }} />
               <span className="mo" style={{ fontSize: 10, color: "var(--t2)" }}>{label}</span>
@@ -1586,6 +1599,12 @@ function VerificationPage() {
       </div>
       {[
         { tier: "Tier 1", name: "P/EVO Verified", c: "var(--gr)", img: "/verified.png", desc: "Upload your current state P/EVO or EVO certification. Admin reviews and marks your profile. Expired certs are flagged." },
+        { tier: "US", name: "High Pole", c: "var(--or)", img: "/verified.png", desc: "High pole escort certification. Required for loads exceeding standard height limits." },
+        { tier: "US", name: "Route Survey", c: "var(--or)", img: "/verified.png", desc: "Certified route survey operator. Required for pre-run route surveys on complex loads." },
+        { tier: "CA", name: "CTTS — BC", c: "var(--am)", img: "/verified.png", desc: "Commercial Transport Training Services certification for British Columbia operations." },
+        { tier: "CA", name: "CTTS — Alberta", c: "var(--am)", img: "/verified.png", desc: "Commercial Transport Training Services certification for Alberta operations." },
+        { tier: "CA", name: "OAPC — Ontario", c: "var(--am)", img: "/verified.png", desc: "Ontario Association of Pilot Car Operators certification. Required for Ontario escorts." },
+        { tier: "CA", name: "Saskatchewan", c: "var(--am)", img: "/verified.png", desc: "Saskatchewan pilot car certification for provincial oversize operations." },
         { tier: "Tier 2", name: "Vehicle Verified", c: "var(--bl)", img: "/pending.png", desc: "Submit vehicle registration, insurance card (min $1M liability), and photo of your escort setup." },
         { tier: "Tier 3", name: "Background Checked", c: "var(--am)", img: "/pending.png", desc: "Run your own check through Checkr, Sterling, or First Advantage (under 90 days). Upload PDF. $14.99 Member / $9.99 Pro." },
         { tier: "Tier 4", name: "Admin Verified", c: "var(--or)", img: "/verified.png", desc: "Highest trust level. Requires all 3 previous tiers. Admin-verified escorts appear first in carrier searches." },
@@ -1680,8 +1699,7 @@ function SignInPage({ setPage, showToast }: { setPage: (p: Page) => void; showTo
           <div style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 14, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6, padding: "10px 12px" }}>
             <input type="checkbox" id="sms_opt" checked={smsOptIn} onChange={(e) => setSmsOptIn(e.target.checked)} style={{ marginTop: 2, accentColor: "var(--or)", flexShrink: 0, width: 14, height: 14 }} />
             <label htmlFor="sms_opt" style={{ fontSize: 10, color: "#e5e7eb", lineHeight: 1.7, cursor: "pointer" }}>
-              I agree to receive SMS notifications from Oversize Escort Hub. Msg &amp; data rates may apply. Reply STOP to opt out, HELP for help.{" "}
-              <a href="/privacy" style={{ color: "var(--or)" }}>Privacy Policy</a> · <a href="/terms" style={{ color: "var(--or)" }}>Terms</a>
+              By creating an account I agree to the{" "}<a href="/privacy" style={{ color: "var(--or)" }}>Privacy Policy</a>{" "}and{" "}<a href="/terms" style={{ color: "var(--or)" }}>Terms of Service</a>, and consent to receive SMS notifications. Msg &amp; data rates may apply. Reply STOP to opt out.
             </label>
           </div>
         )}
