@@ -1734,9 +1734,6 @@ export default function OEHPlatform() {
     showToast("Signed out successfully", "gr");
   }
 
-      </>
-    );
-  }
 
   return (
     <>
