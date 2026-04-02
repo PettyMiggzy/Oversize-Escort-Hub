@@ -1608,7 +1608,7 @@ function VerificationPage() {
 
 function SignInPage({ setPage, showToast }: { setPage: (p: Page) => void; showToast: (msg: string, type: "gr" | "rd" | "am") => void }) {
   const [mode, setMode] = useState<"signup" | "signin">("signup");
-  const [role, setRole] = useState<"escort" | "carrier">("escort");
+  const [role, setRole] = useState<"escort" | "carrier" | "broker">("escort");
   const [fullName, setFullName] = useState("");
   const [company, setCompany] = useState("");
   const [email, setEmail] = useState("");
