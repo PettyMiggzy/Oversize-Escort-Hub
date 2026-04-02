@@ -1753,7 +1753,7 @@ export default function OEHPlatform() {
       {page === "escprofile" && <EscProfilePage setPage={setPage} />}
       {page === "dashboard-e" && <EscortDashPage setPage={setPage} profile={profile} />}
       {page === "dashboard-c" && <CarrierDashPage setPage={setPage} user={user} profile={profile} />}
-      {page === "postload" && <PostLoadPage setPage={setPage} user=1730
+      {page === "postload" && <PostLoadPage setPage={setPage} {user} profile={profile} showToast={showToast}
       Create: New File{user} profile={profile} showToast={showToast} />}
       {page === "pricing" && <PricingPage setPage={setPage} />}
       {page === "verification" && <VerificationPage />}
