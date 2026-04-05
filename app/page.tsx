@@ -6,7 +6,7 @@ import type { User } from "@supabase/supabase-js";
 // ─── TYPES ───────────────────────────────────────────────────────────────────
 
 type Role = "carrier" | "escort" | "broker" | null;
-type Page = "home" | "flatboard" | "openboard" | "bidboard" | "escorts" | "escprofile" | "dashboard-e" | "dashboard-c" | "dashboard-b" | "postload" | "pricing" | "verification" | "signin";
+type Page = "home" | "flatboard" | "openboard" | "bidboard" | "escorts" | "escprofile" | "dashboard-e" | "dashboard-c" | "dashboard-b" | "postload" | "pricing" | "verification" | "signin" | "invoice" | "expenses" | "job-history" | "permits" | "deadhead" | "admin" | "dot-lookup" | "state-reqs" | "weather" | "cb-radio" | "fuel-calc" | "per-diem" | "cert-tracker" | "factoring" | "tools";
 
 type Profile = {
   id: string;
@@ -19,12 +19,6 @@ type Profile = {
   state: string | null;
   p_evo_verified: boolean;
   bgc_verified: boolean;
-  req_high_pole: boolean;
-  req_route_survey: boolean;
-  ctts_bc: boolean;
-  ctts_ab: boolean;
-  oapc: boolean;
-  sask_pilot: boolean;
   vehicle_verified: boolean;
   admin_verified: boolean;
   rating: number;
@@ -1071,7 +1065,7 @@ function EscortsPage({ setPage }: { setPage: (p: Page) => void }) {
       <EarlyBanner role="carrier" />
       <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap" as const }}>
         <select><option>All States</option><option>Texas</option><option>Arizona</option><option>Georgia</option><option>Tennessee</option></select>
-        <select><option>All Certifications</option><option>P/EVO Verified</option><option>Witpac</option><option>NY Cert</option><option>TWIC</option><option>High Pole</option><option>Route Survey</option><option>CTTS (BC)</option><option>CTTS (Alberta)</option><option>OAPC (Ontario)</option><option>Saskatchewan</option></select>
+        <select><option>All Certifications</option><option>P/EVO Verified</option><option>Witpac</option><option>NY</option><option>TWIC</option></select>
         <select><option>All Tiers</option><option>Admin Verified</option><option>Background Checked</option><option>Vehicle Verified</option></select>
         <select><option>Sort: Highest Rated</option><option>Most Jobs</option><option>Fastest Response</option></select>
       </div>
@@ -1144,7 +1138,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
     puCity: "", puState: "", dlCity: "", dlState: "",
     miles: "", rate: "2.00", position: "Lead", payType: "FastPay",
     width: "", height: "", weight: "", notes: "", startDate: "",
-    reqPevo: true, reqWitpac: false, reqNy: false, reqTwic: false, reqHighPole: false, reqRouteSurvey: false, reqCttsbc: false, reqCttsab: false, reqOapc: false, reqSask: false,
+    reqPevo: true, reqWitpac: false, reqNy: false, reqTwic: false,
   });
   const [saving, setSaving] = useState(false);
 
@@ -1176,12 +1170,6 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
       requires_witpac: form.reqWitpac,
       requires_ny_cert: form.reqNy,
       requires_twic: form.reqTwic,
-      requires_high_pole: form.reqHighPole,
-      requires_route_survey: form.reqRouteSurvey,
-      requires_ctts_bc: form.reqCttsbc,
-      requires_ctts_ab: form.reqCttsab,
-      requires_oapc: form.reqOapc,
-      requires_sask: form.reqSask,
       load_width: parseFloat(form.width) || null,
       load_height: parseFloat(form.height) || null,
       load_weight: parseFloat(form.weight) || null,
@@ -1250,8 +1238,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
       <div className="form-field" style={{ marginTop: 4 }}>
         <label className="form-label">Certifications Required</label>
         <div style={{ display: "flex", gap: 16, flexWrap: "wrap" as const, marginTop: 6 }}>
-          <div className="mo" style={{ fontSize: 9, color: "var(--t3)", marginBottom: 6 }}>— US CERTS —</div>
-          {([ ["reqPevo", "P/EVO"], ["reqWitpac", "Witpac"], ["reqNy", "NY Cert"], ["reqTwic", "TWIC"], ["reqHighPole", "High Pole"], ["reqRouteSurvey", "Route Survey"]] as [keyof typeof form, string][]).map(([k, label]) => (
+          {([ ["reqPevo", "P/EVO"], ["reqWitpac", "Witpac"], ["reqNy", "NY Cert"], ["reqTwic", "TWIC"]] as [keyof typeof form, string][]).map(([k, label]) => (
             <label key={k} style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
               <input type="checkbox" checked={form[k] as boolean} onChange={(e) => set(k, e.target.checked)} style={{ width: "auto", padding: 0 }} />
               <span className="mo" style={{ fontSize: 10, color: "var(--t2)" }}>{label}</span>
@@ -1599,12 +1586,6 @@ function VerificationPage() {
       </div>
       {[
         { tier: "Tier 1", name: "P/EVO Verified", c: "var(--gr)", img: "/verified.png", desc: "Upload your current state P/EVO or EVO certification. Admin reviews and marks your profile. Expired certs are flagged." },
-        { tier: "US", name: "High Pole", c: "var(--or)", img: "/verified.png", desc: "High pole escort certification. Required for loads exceeding standard height limits." },
-        { tier: "US", name: "Route Survey", c: "var(--or)", img: "/verified.png", desc: "Certified route survey operator. Required for pre-run route surveys on complex loads." },
-        { tier: "CA", name: "CTTS — BC", c: "var(--am)", img: "/verified.png", desc: "Commercial Transport Training Services certification for British Columbia operations." },
-        { tier: "CA", name: "CTTS — Alberta", c: "var(--am)", img: "/verified.png", desc: "Commercial Transport Training Services certification for Alberta operations." },
-        { tier: "CA", name: "OAPC — Ontario", c: "var(--am)", img: "/verified.png", desc: "Ontario Association of Pilot Car Operators certification. Required for Ontario escorts." },
-        { tier: "CA", name: "Saskatchewan", c: "var(--am)", img: "/verified.png", desc: "Saskatchewan pilot car certification for provincial oversize operations." },
         { tier: "Tier 2", name: "Vehicle Verified", c: "var(--bl)", img: "/pending.png", desc: "Submit vehicle registration, insurance card (min $1M liability), and photo of your escort setup." },
         { tier: "Tier 3", name: "Background Checked", c: "var(--am)", img: "/pending.png", desc: "Run your own check through Checkr, Sterling, or First Advantage (under 90 days). Upload PDF. $14.99 Member / $9.99 Pro." },
         { tier: "Tier 4", name: "Admin Verified", c: "var(--or)", img: "/verified.png", desc: "Highest trust level. Requires all 3 previous tiers. Admin-verified escorts appear first in carrier searches." },
@@ -1634,7 +1615,6 @@ function SignInPage({ setPage, showToast }: { setPage: (p: Page) => void; showTo
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [smsOptIn, setSmsOptIn] = useState(false);
-  const [termsOptIn, setTermsOptIn] = useState(false);
 
   async function handleSubmit() {
     setLoading(true);
@@ -1695,20 +1675,13 @@ function SignInPage({ setPage, showToast }: { setPage: (p: Page) => void; showTo
             <input type="text" placeholder="Your company name" value={company} onChange={(e) => setCompany(e.target.value)} />
           </div>
         )}
-        <button className="btn btn-or" style={{ width: "100%", justifyContent: "center", marginBottom: 12 }} onClick={handleSubmit} disabled={loading || !email || !password || (mode === "signup" && (!smsOptIn || !termsOptIn))}>
+        <button className="btn btn-or" style={{ width: "100%", justifyContent: "center", marginBottom: 12 }} onClick={handleSubmit} disabled={loading || !email || !password || (mode === "signup" && !smsOptIn)}>
         {mode === "signup" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
-            <label style={{ display: "flex", gap: 10, alignItems: "flex-start", background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 6, padding: "10px 12px", cursor: "pointer" }}>
-              <input type="checkbox" id="sms_opt" checked={smsOptIn} onChange={(e) => setSmsOptIn(e.target.checked)} style={{ marginTop: 2, accentColor: "var(--or)", flexShrink: 0, width: 14, height: 14 }} />
-              <span style={{ fontSize: 10, color: "#e5e7eb", lineHeight: 1.7 }}>
-                I agree to receive SMS notifications from Oversize Escort Hub. Msg &amp; data rates may apply. Reply STOP to opt out, HELP for info.
-              </span>
-            </label>
-            <label style={{ display: "flex", gap: 10, alignItems: "flex-start", background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 6, padding: "10px 12px", cursor: "pointer" }}>
-              <input type="checkbox" id="terms_opt" checked={termsOptIn} onChange={(e) => setTermsOptIn(e.target.checked)} style={{ marginTop: 2, accentColor: "var(--or)", flexShrink: 0, width: 14, height: 14 }} />
-              <span style={{ fontSize: 10, color: "#e5e7eb", lineHeight: 1.7 }}>
-                I agree to the <a href="/privacy" style={{ color: "#60a5fa" }}>Privacy Policy</a> and <a href="/terms" style={{ color: "#60a5fa" }}>Terms of Service</a>.
-              </span>
+          <div style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 14, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6, padding: "10px 12px" }}>
+            <input type="checkbox" id="sms_opt" checked={smsOptIn} onChange={(e) => setSmsOptIn(e.target.checked)} style={{ marginTop: 2, accentColor: "var(--or)", flexShrink: 0, width: 14, height: 14 }} />
+            <label htmlFor="sms_opt" style={{ fontSize: 10, color: "#e5e7eb", lineHeight: 1.7, cursor: "pointer" }}>
+              I agree to receive SMS notifications from Oversize Escort Hub. Msg &amp; data rates may apply. Reply STOP to opt out, HELP for help.{" "}
+              <a href="/privacy" style={{ color: "var(--or)" }}>Privacy Policy</a> · <a href="/terms" style={{ color: "var(--or)" }}>Terms</a>
             </label>
           </div>
         )}
@@ -1731,6 +1704,159 @@ function SignInPage({ setPage, showToast }: { setPage: (p: Page) => void; showTo
 
 // ─── ROOT ─────────────────────────────────────────────────────────────────────
 
+
+// ─── COMING SOON STUB ─────────────────────────────────────────────────────────
+function Stub({ title, icon, desc, back, setPage }: { title: string; icon: string; desc: string; back: string; setPage: (p: any) => void }) {
+  return (
+    <div className="section">
+      <button className="btn btn-ghost btn-sm" onClick={() => setPage(back)} style={{ marginBottom: 20 }}>← Back</button>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
+        <span style={{ fontSize: 32 }}>{icon}</span>
+        <div>
+          <h1 className="bb" style={{ fontSize: 22 }}>{title}</h1>
+          <span style={{ background: "var(--or)", color: "#000", fontSize: 9, fontWeight: 700, padding: "2px 8px", borderRadius: 3, letterSpacing: ".1em" }}>COMING SOON</span>
+        </div>
+      </div>
+      <div className="card" style={{ padding: 40, textAlign: "center" }}>
+        <span style={{ fontSize: 48 }}>{icon}</span>
+        <p style={{ color: "var(--t2)", fontSize: 13, maxWidth: 420, margin: "16px auto 0", lineHeight: 1.7 }}>{desc}</p>
+        <div style={{ background: "rgba(249,115,22,0.08)", border: "1px solid rgba(249,115,22,0.2)", borderRadius: 8, padding: "14px 24px", marginTop: 24, display: "inline-block" }}>
+          <span className="mo" style={{ fontSize: 10, color: "var(--or)" }}>BUILDING NOW — AVAILABLE SOON</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── TOOLS HUB ────────────────────────────────────────────────────────────────
+function ToolsPage({ setPage, profile }: { setPage: (p: any) => void; profile: any }) {
+  const tools = [
+    { page: "invoice", icon: "🧾", title: "Invoice Generator", desc: "Create and send professional invoices to carriers", badge: "MEMBER" },
+    { page: "expenses", icon: "📊", title: "Expense Tracker", desc: "Log jobs and expenses, export CSV/PDF for taxes", badge: "MEMBER" },
+    { page: "job-history", icon: "📋", title: "Job History", desc: "View completed loads and earnings history", badge: "MEMBER" },
+    { page: "permits", icon: "📄", title: "Permit Hub", desc: "Upload and receive permits day of load instantly", badge: "ALL" },
+    { page: "deadhead", icon: "🚗", title: "Stop Driving Home Empty", desc: "Find return loads and recover ~$4,800/yr", badge: "PRO" },
+    { page: "dot-lookup", icon: "🔍", title: "DOT Carrier Lookup", desc: "Verify carrier safety rating via FMCSA free API", badge: "MEMBER" },
+    { page: "state-reqs", icon: "🗺️", title: "State Escort Requirements", desc: "Escort requirements by state and load dimensions", badge: "MEMBER" },
+    { page: "weather", icon: "⛅", title: "Weather Alerts", desc: "Weather conditions on your route via NWS free API", badge: "MEMBER" },
+    { page: "cb-radio", icon: "📻", title: "CB Radio Reference", desc: "Standard CB channels by state and highway", badge: "ALL" },
+    { page: "fuel-calc", icon: "⛽", title: "Fuel Cost Estimator", desc: "Current diesel prices and trip fuel cost estimate", badge: "MEMBER" },
+    { page: "per-diem", icon: "💰", title: "Per Diem Calculator", desc: "IRS standard rates for tax deductions", badge: "MEMBER" },
+    { page: "cert-tracker", icon: "🏅", title: "Cert Expiry Tracker", desc: "Track cert expiry with 30-day SMS alerts", badge: "ALL" },
+    { page: "factoring", icon: "💳", title: "Invoice Factoring", desc: "Get paid fast via partner factoring network", badge: "SOON" },
+  ];
+  const badgeColor: Record<string, string> = { MEMBER: "var(--gr)", PRO: "var(--or)", ALL: "var(--am)", SOON: "var(--t3)" };
+  return (
+    <div className="section">
+      <div style={{ marginBottom: 24 }}>
+        <h1 className="bb" style={{ fontSize: 24, marginBottom: 6 }}>Business Tools</h1>
+        <p className="mo" style={{ fontSize: 11, color: "var(--t2)" }}>Everything you need to run your oversize escort business in one place.</p>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 16 }}>
+        {tools.map(t => (
+          <div key={t.page} onClick={() => t.badge !== "SOON" && setPage(t.page as any)}
+            style={{ background: "var(--p1)", border: "1px solid var(--l1)", borderRadius: 8, padding: 20, cursor: t.badge !== "SOON" ? "pointer" : "default", opacity: t.badge === "SOON" ? 0.5 : 1 }}>
+            <div style={{ fontSize: 28, marginBottom: 10 }}>{t.icon}</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+              <span className="bb" style={{ fontSize: 13 }}>{t.title}</span>
+              <span style={{ fontSize: 8, fontWeight: 700, color: badgeColor[t.badge], background: badgeColor[t.badge] + "20", padding: "2px 6px", borderRadius: 3 }}>{t.badge}</span>
+            </div>
+            <p style={{ fontSize: 12, color: "var(--t2)", lineHeight: 1.6, margin: 0 }}>{t.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── ALL OTHER TOOL PAGES ──────────────────────────────────────────────────────
+function InvoicePage({ setPage, user, profile }: any) { return <Stub title="Invoice Generator" icon="🧾" desc="Create professional invoices, track payment status, and send directly to carriers. Export to PDF for your records." back="tools" setPage={setPage} />; }
+function ExpensesPage({ setPage, user, profile }: any) { return <Stub title="Expense & Job Tracker" icon="📊" desc="Log jobs and expenses. Track fuel, lodging, equipment. Export CSV or PDF at tax time." back="tools" setPage={setPage} />; }
+function JobHistoryPage({ setPage }: any) { return <Stub title="Job History" icon="📋" desc="View all completed loads, earnings per job, and carrier history. Syncs automatically from OEH load board." back="tools" setPage={setPage} />; }
+function PermitHubPage({ setPage, user, profile }: any) { return <Stub title="Permit Hub" icon="📄" desc="Carriers upload permits to your load. You get an instant SMS the moment they upload — even if it happens 6am day of load." back="tools" setPage={setPage} />; }
+function DeadheadPage({ setPage, profile }: any) { return <Stub title="Stop Driving Home Empty" icon="🚗" desc="Find return loads going your home direction. The average escort recovers $4,800/yr with this feature. Pro members only." back="tools" setPage={setPage} />; }
+function DotLookupPage({ setPage }: any) { return <Stub title="FMCSA DOT Carrier Lookup" icon="🔍" desc="Look up any carrier by DOT number. See safety rating, insurance status, inspection history, and out-of-service rate." back="tools" setPage={setPage} />; }
+function StateReqsPage({ setPage }: any) { return <Stub title="State Escort Requirements" icon="🗺️" desc="Enter load dimensions and route to see escort requirements per state — number of escorts, cert requirements, travel restrictions." back="tools" setPage={setPage} />; }
+function WeatherPage({ setPage }: any) { return <Stub title="Weather Alerts" icon="⛅" desc="Check weather and alerts along your route. Critical for wide loads — wind advisories, winter storms, visibility warnings." back="tools" setPage={setPage} />; }
+function FuelCalcPage({ setPage }: any) { return <Stub title="Fuel Cost Estimator" icon="⛽" desc="Estimate trip fuel cost with current diesel prices. Enter miles and MPG to see what the job really costs." back="tools" setPage={setPage} />; }
+function PerDiemPage({ setPage }: any) { return <Stub title="Per Diem Calculator" icon="💰" desc="IRS standard per diem rate for transportation workers is $69/day (80% deductible). Calculate your annual tax deduction." back="tools" setPage={setPage} />; }
+function CertTrackerPage({ setPage, profile }: any) { return <Stub title="Cert Expiry Tracker" icon="🏅" desc="Track all your cert expiry dates. Get a 30-day SMS reminder before any cert lapses. Never lose a job because of an expired cert." back="tools" setPage={setPage} />; }
+function FactoringPage({ setPage }: any) { return <Stub title="Invoice Factoring" icon="💳" desc="Get paid within 24 hours. We are finalizing partnerships with RTS Financial, Triumph Business Capital, and OTR Solutions." back="tools" setPage={setPage} />; }
+
+// ─── CB RADIO (has real content) ──────────────────────────────────────────────
+function CbRadioPage({ setPage }: any) {
+  const ch = [
+    { n: "19", d: "Highway primary — national truckers channel" },
+    { n: "9", d: "Emergency — national emergency channel" },
+    { n: "17", d: "Highway alternate — west of Mississippi" },
+    { n: "14", d: "Oversize convoy coordination (common)" },
+    { n: "21", d: "Some states DOT communications" },
+    { n: "1", d: "Convoy lead-rear communication (common)" },
+  ];
+  return (
+    <div className="section">
+      <button className="btn btn-ghost btn-sm" onClick={() => setPage("tools")} style={{ marginBottom: 20 }}>← Back to Tools</button>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
+        <span style={{ fontSize: 32 }}>📻</span>
+        <div><h1 className="bb" style={{ fontSize: 22 }}>CB Radio Reference</h1><p className="mo" style={{ fontSize: 10, color: "var(--t2)" }}>STANDARD CHANNELS · OVERSIZE CONVOY GUIDE</p></div>
+      </div>
+      <div className="card">
+        {ch.map((x, i) => (
+          <div key={x.n} style={{ display: "flex", alignItems: "center", gap: 16, padding: "14px 0", borderBottom: i < ch.length - 1 ? "1px solid var(--l1)" : "none" }}>
+            <div style={{ background: "var(--or)", color: "#000", fontWeight: 900, fontSize: 18, width: 46, height: 46, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{x.n}</div>
+            <span style={{ fontSize: 13 }}>{x.d}</span>
+          </div>
+        ))}
+      </div>
+      <p className="mo" style={{ fontSize: 9, color: "var(--t3)", marginTop: 12 }}>More channels and state-specific references coming soon. Verify local channel usage with your carrier before each load.</p>
+    </div>
+  );
+}
+
+// ─── ADMIN PANEL ──────────────────────────────────────────────────────────────
+function AdminPage({ setPage, user }: any) {
+  if (!user || user.email !== "bahmed3170@gmail.com") {
+    return (
+      <div className="section" style={{ textAlign: "center", paddingTop: 80 }}>
+        <span style={{ fontSize: 48 }}>🔒</span>
+        <h2 className="bb" style={{ fontSize: 20, marginTop: 16 }}>Admin Access Only</h2>
+        <p style={{ color: "var(--t2)", marginTop: 8 }}>This area is restricted to platform administrators.</p>
+        <button className="btn btn-ghost" style={{ marginTop: 20 }} onClick={() => setPage("home")}>← Go Home</button>
+      </div>
+    );
+  }
+  return (
+    <div className="section">
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
+        <span style={{ fontSize: 28 }}>⚙️</span>
+        <div><h1 className="bb" style={{ fontSize: 22 }}>Admin Panel</h1><p className="mo" style={{ fontSize: 10, color: "var(--or)" }}>BRIAN AHMED · PLATFORM ADMINISTRATOR</p></div>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14, marginBottom: 24 }}>
+        {[["👥","Total Users","0","var(--am)"],["✅","Members","0","var(--gr)"],["⭐","Pro Members","0","var(--or)"],["💰","MRR","$0","var(--am)"],["🔍","BGC Pending","0","var(--or)"],["📋","Certs Pending","0","var(--or)"]].map(([icon,label,val,color]) => (
+          <div key={label as string} className="card" style={{ padding: 18, textAlign: "center" }}>
+            <div style={{ fontSize: 22 }}>{icon}</div>
+            <div className="bb" style={{ fontSize: 22, color: color as string, marginTop: 6 }}>{val}</div>
+            <div className="mo" style={{ fontSize: 9, color: "var(--t2)" }}>{label}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
+        {["Users","BGC Queue","Certs Queue","Revenue","Refunds","Loads","SMS Blast","Settings"].map(t => (
+          <button key={t} className="btn btn-ghost btn-sm" style={{ fontSize: 11 }}>{t}</button>
+        ))}
+      </div>
+      <div className="card" style={{ padding: 32, textAlign: "center" }}>
+        <p style={{ color: "var(--t2)", fontSize: 13 }}>Full admin functionality — user management, BGC approvals, cert verification, refunds, revenue dashboard — building now.</p>
+        <div style={{ background: "rgba(249,115,22,0.08)", border: "1px solid rgba(249,115,22,0.2)", borderRadius: 8, padding: "14px 24px", marginTop: 20, display: "inline-block" }}>
+          <span className="mo" style={{ fontSize: 10, color: "var(--or)" }}>BUILDING NOW — AVAILABLE SOON</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// ─── COMING SOON STUB ─────────────────────────────────────────────────────────
 export default function OEHPlatform() {
   const [page, setPage] = useState<Page>("home");
   const [user, setUser] = useState<User | null>(null);
@@ -1794,6 +1920,21 @@ export default function OEHPlatform() {
       {page === "pricing" && <PricingPage setPage={setPage} />}
       {page === "verification" && <VerificationPage />}
       {page === "signin" && <SignInPage setPage={setPage} showToast={showToast} />}
+      {page === "tools" && <ToolsPage setPage={setPage} profile={profile} />}
+      {page === "invoice" && <InvoicePage setPage={setPage} user={user} profile={profile} />}
+      {page === "expenses" && <ExpensesPage setPage={setPage} user={user} profile={profile} />}
+      {page === "job-history" && <JobHistoryPage setPage={setPage} />}
+      {page === "permits" && <PermitHubPage setPage={setPage} user={user} profile={profile} />}
+      {page === "deadhead" && <DeadheadPage setPage={setPage} profile={profile} />}
+      {page === "admin" && <AdminPage setPage={setPage} user={user} />}
+      {page === "dot-lookup" && <DotLookupPage setPage={setPage} />}
+      {page === "state-reqs" && <StateReqsPage setPage={setPage} />}
+      {page === "weather" && <WeatherPage setPage={setPage} />}
+      {page === "cb-radio" && <CbRadioPage setPage={setPage} />}
+      {page === "fuel-calc" && <FuelCalcPage setPage={setPage} />}
+      {page === "per-diem" && <PerDiemPage setPage={setPage} />}
+      {page === "cert-tracker" && <CertTrackerPage setPage={setPage} profile={profile} />}
+      {page === "factoring" && <FactoringPage setPage={setPage} />}
       <Footer setPage={setPage} />
       {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
     </>
