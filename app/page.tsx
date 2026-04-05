@@ -1617,6 +1617,13 @@ function SignInPage({ setPage, showToast }: { setPage: (p: Page) => void; showTo
   const [smsOptIn, setSmsOptIn] = useState(false);
   const [termsOptIn, setTermsOptIn] = useState(false);
 
+  async function handleForgotPassword() {
+    if (!email) { showToast("Enter your email address first", "rd"); return; }
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + "/auth/callback" });
+    if (error) showToast(error.message, "rd");
+    else showToast("Password reset email sent! Check your inbox.", "gr");
+  }
+
   async function handleSubmit() {
     setLoading(true);
     if (mode === "signup") {
@@ -1700,6 +1707,9 @@ function SignInPage({ setPage, showToast }: { setPage: (p: Page) => void; showTo
           <button onClick={() => setMode(mode === "signup" ? "signin" : "signup")} style={{ background: "none", border: "none", color: "var(--or)", fontFamily: "'DM Mono',monospace", fontSize: 10, cursor: "pointer" }}>
             {mode === "signup" ? "Sign In" : "Start Free Trial"}
           </button>
+          {mode === "signin" && (
+            <button onClick={() => handleForgotPassword()} style={{ background: "none", border: "none", color: "var(--t3)", fontFamily: "'DM Mono',monospace", fontSize: 9, cursor: "pointer", marginTop: 8, display: "block", width: "100%", textAlign: "center" }}>Forgot Password?</button>
+          )}
         </div>
         <div className="mo" style={{ fontSize: 9, color: "var(--t3)", textAlign: "center", marginTop: 20, lineHeight: 1.6 }}>
           30-day free trial · No credit card required<br />
