@@ -1704,7 +1704,7 @@ function SignInPage({ setPage, showToast }: { setPage: (p: Page) => void; showTo
           <label style={{ display: "flex", gap: 10, alignItems: "flex-start", background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 6, padding: "10px 12px", cursor: "pointer" }}>
             <input type="checkbox" style={{ marginTop: 2, accentColor: "var(--or)", flexShrink: 0, width: 14, height: 14 }} />
             <span style={{ fontSize: 10, color: "#e5e7eb", lineHeight: 1.7 }}>
-              I agree to receive SMS notifications from Oversize Escort Hub about oversize load escort services. Mobile information will not be shared with third parties/affiliates for marketing/promotional purposes. Text messaging originator opt-in data and consent will not be shared with any third parties. Message frequency varies. Message and data rates may apply. Reply HELP for more information. Reply STOP to opt out.{" "}
+              I agree to receive texts from (214) 949-4213 about oversize load escort services. Mobile information will not be shared with third parties/affiliates for marketing/promotional purposes. Text messaging originator opt-in data and consent will not be shared with any third parties. Message frequency varies. Message and data rates apply. Reply HELP for more information. Reply STOP to opt out. Privacy Policy can be found{" "}
               <a href="/privacy" style={{ color: "#60a5fa" }}>Privacy Policy</a> &amp;{" "}
               <a href="/terms" style={{ color: "#60a5fa" }}>Terms &amp; Conditions</a>.
             </span>
