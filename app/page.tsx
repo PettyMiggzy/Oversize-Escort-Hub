@@ -1683,9 +1683,9 @@ function SignInPage({ setPage, showToast }: { setPage: (p: Page) => void; showTo
             <input type="text" placeholder="Your company name" value={company} onChange={(e) => setCompany(e.target.value)} />
           </div>
         )}
-        {mode === "signup" && (
+        {mode === "signup" && (<>
 
-        <button className="btn btn-or" style={{ width: "100%", justifyContent: "center", marginBottom: 12 }} onClick={handleSubmit} disabled={loading || !email || !password}>>
+        <button className="btn btn-or" style={{ width: "100%", justifyContent: "center", marginBottom: 12 }} onClick={handleSubmit} disabled={loading || !email || !password}>
           {loading ? "Please wait..." : mode === "signup" ? "Create Free Account →" : "Sign In →"}
         </button>
         <div style={{ textAlign: "center" }}>
@@ -1693,10 +1693,12 @@ function SignInPage({ setPage, showToast }: { setPage: (p: Page) => void; showTo
           <button onClick={() => setMode(mode === "signup" ? "signin" : "signup")} style={{ background: "none", border: "none", color: "var(--or)", fontFamily: "'DM Mono',monospace", fontSize: 10, cursor: "pointer" }}>
             {mode === "signup" ? "Sign In" : "Start Free Trial"}
           </button>
+        </div>
+        </>
+        )}
           {mode === "signin" && (
             <button onClick={() => handleForgotPassword()} style={{ background: "none", border: "none", color: "var(--t3)", fontFamily: "'DM Mono',monospace", fontSize: 9, cursor: "pointer", marginTop: 8, display: "block", width: "100%", textAlign: "center" }}>Forgot Password?</button>
           )}
-        </div>
         {mode === "signup" && (
         <div style={{ borderTop: "1px solid var(--l1)", marginTop: 20, paddingTop: 16 }}>
           <label style={{ display: "flex", gap: 10, alignItems: "flex-start", background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 6, padding: "10px 12px", cursor: "pointer" }}>
@@ -1964,9 +1966,3 @@ export default function OEHPlatform() {
     </>
   );
 }
-python3 -c "
-lines = open('app/page.tsx').readlines()
-for i in range(1660, 1720):
-    print(f'{i+1:4d}: {lines[i]}', end='')
-    "
-    "
