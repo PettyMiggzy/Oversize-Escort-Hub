@@ -1685,7 +1685,7 @@ function SignInPage({ setPage, showToast }: { setPage: (p: Page) => void; showTo
         )}
         {mode === "signup" && (
 
-        <button className="btn btn-or" style={{ width: "100%", justifyContent: "center", marginBottom: 12 }} onClick={handleSubmit} disabled={loading || !email || !password}>
+        <button className="btn btn-or" style={{ width: "100%", justifyContent: "center", marginBottom: 12 }} onClick={handleSubmit} disabled={loading || !email || !password}>>
           {loading ? "Please wait..." : mode === "signup" ? "Create Free Account →" : "Sign In →"}
         </button>
         <div style={{ textAlign: "center" }}>
@@ -1964,3 +1964,9 @@ export default function OEHPlatform() {
     </>
   );
 }
+python3 -c "
+lines = open('app/page.tsx').readlines()
+for i in range(1660, 1720):
+    print(f'{i+1:4d}: {lines[i]}', end='')
+    "
+    "
