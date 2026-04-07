@@ -1719,7 +1719,7 @@ function SignInPage({ setPage, showToast }: { setPage: (p: Page) => void; showTo
           </label>
         </div>
         )}
-        <div className="mo" style={{ fontSize: 9, color: "var(--t3)", textAlign: "center", marginTop: 12, lineHeight: 1.6 }}>
+        <div className="mo" style={{ fontSize: 9, color: "var(--t2)", textAlign: "center", marginTop: 12, lineHeight: 1.6 }}>
           30-day free trial · No credit card required<br />
           $2.00/mi standard · $100 overnight · $250 no-go
         </div>
