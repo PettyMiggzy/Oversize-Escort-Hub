@@ -1711,7 +1711,25 @@ function SignInPage({ setPage, showToast }: { setPage: (p: Page) => void; showTo
             <button onClick={() => handleForgotPassword()} style={{ background: "none", border: "none", color: "var(--t3)", fontFamily: "'DM Mono',monospace", fontSize: 9, cursor: "pointer", marginTop: 8, display: "block", width: "100%", textAlign: "center" }}>Forgot Password?</button>
           )}
         </div>
-        <div className="mo" style={{ fontSize: 9, color: "var(--t3)", textAlign: "center", marginTop: 20, lineHeight: 1.6 }}>
+        <div style={{ borderTop: "1px solid var(--l1)", marginTop: 20, paddingTop: 16 }}>
+          <label style={{ display: "flex", alignItems: "flex-start", gap: 8, cursor: "pointer", marginBottom: 12 }}>
+            <input type="checkbox" style={{ width: "auto", padding: 0, marginTop: 2, flexShrink: 0 }} />
+            <span className="mo" style={{ fontSize: 9, color: "var(--t3)", lineHeight: 1.7 }}>
+              I agree to receive SMS notifications from Oversize Escort Hub about oversize load escort services. Mobile information will not be shared with third parties/affiliates for marketing/promotional purposes. Text messaging originator opt-in data and consent will not be shared with any third parties. Message frequency varies. Message and data rates may apply. Reply HELP for more information. Reply STOP to opt out.{" "}
+              <a href="/privacy" style={{ color: "#60a5fa", textDecoration: "underline" }}>Privacy Policy</a> &amp;{" "}
+              <a href="/terms" style={{ color: "#60a5fa", textDecoration: "underline" }}>Terms &amp; Conditions</a>.
+            </span>
+          </label>
+          <label style={{ display: "flex", alignItems: "flex-start", gap: 8, cursor: "pointer" }}>
+            <input type="checkbox" style={{ width: "auto", padding: 0, marginTop: 2, flexShrink: 0 }} />
+            <span className="mo" style={{ fontSize: 9, color: "var(--t3)", lineHeight: 1.7 }}>
+              I agree to the{" "}
+              <a href="/privacy" style={{ color: "#60a5fa", textDecoration: "underline" }}>Privacy Policy</a> and{" "}
+              <a href="/terms" style={{ color: "#60a5fa", textDecoration: "underline" }}>Terms of Service</a>.
+            </span>
+          </label>
+        </div>
+        <div className="mo" style={{ fontSize: 9, color: "var(--t3)", textAlign: "center", marginTop: 12, lineHeight: 1.6 }}>
           30-day free trial · No credit card required<br />
           $2.00/mi standard · $100 overnight · $250 no-go
         </div>
