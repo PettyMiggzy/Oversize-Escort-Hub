@@ -1684,21 +1684,7 @@ function SignInPage({ setPage, showToast }: { setPage: (p: Page) => void; showTo
           </div>
         )}
         {mode === "signup" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
-            <label style={{ display: "flex", gap: 10, alignItems: "flex-start", background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 6, padding: "10px 12px", cursor: "pointer" }}>
-              <input type="checkbox" id="sms_opt" checked={smsOptIn} onChange={(e) => setSmsOptIn(e.target.checked)} style={{ marginTop: 2, accentColor: "var(--or)", flexShrink: 0, width: 14, height: 14 }} />
-              <span style={{ fontSize: 10, color: "#e5e7eb", lineHeight: 1.7 }}>
-                I agree to receive SMS notifications from Oversize Escort Hub about oversize load escort services. Mobile information will not be shared with third parties/affiliates for marketing/promotional purposes. Text messaging originator opt-in data and consent will not be shared with any third parties. Message frequency varies. Message and data rates may apply. Reply HELP for more information. Reply STOP to opt out.
-              </span>
-            </label>
-            <label style={{ display: "flex", gap: 10, alignItems: "flex-start", background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 6, padding: "10px 12px", cursor: "pointer" }}>
-              <input type="checkbox" id="terms_opt" checked={termsOptIn} onChange={(e) => setTermsOptIn(e.target.checked)} style={{ marginTop: 2, accentColor: "var(--or)", flexShrink: 0, width: 14, height: 14 }} />
-              <span style={{ fontSize: 10, color: "#e5e7eb", lineHeight: 1.7 }}>
-                I agree to the <a href="/privacy" style={{ color: "#60a5fa" }}>Privacy Policy</a> and <a href="/terms" style={{ color: "#60a5fa" }}>Terms of Service</a>.
-              </span>
-            </label>
-          </div>
-        )}
+
         <button className="btn btn-or" style={{ width: "100%", justifyContent: "center", marginBottom: 12 }} onClick={handleSubmit} disabled={loading || !email || !password || (mode === "signup" && (!smsOptIn || !termsOptIn))}>
           {loading ? "Please wait..." : mode === "signup" ? "Create Free Account →" : "Sign In →"}
         </button>
@@ -1712,20 +1698,20 @@ function SignInPage({ setPage, showToast }: { setPage: (p: Page) => void; showTo
           )}
         </div>
         <div style={{ borderTop: "1px solid var(--l1)", marginTop: 20, paddingTop: 16 }}>
-          <label style={{ display: "flex", alignItems: "flex-start", gap: 8, cursor: "pointer", marginBottom: 12 }}>
-            <input type="checkbox" style={{ width: "auto", padding: 0, marginTop: 2, flexShrink: 0 }} />
-            <span className="mo" style={{ fontSize: 9, color: "var(--t3)", lineHeight: 1.7 }}>
+          <label style={{ display: "flex", gap: 10, alignItems: "flex-start", background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 6, padding: "10px 12px", cursor: "pointer" }}>
+            <input type="checkbox" style={{ marginTop: 2, accentColor: "var(--or)", flexShrink: 0, width: 14, height: 14 }} />
+            <span style={{ fontSize: 10, color: "#e5e7eb", lineHeight: 1.7 }}>
               I agree to receive SMS notifications from Oversize Escort Hub about oversize load escort services. Mobile information will not be shared with third parties/affiliates for marketing/promotional purposes. Text messaging originator opt-in data and consent will not be shared with any third parties. Message frequency varies. Message and data rates may apply. Reply HELP for more information. Reply STOP to opt out.{" "}
-              <a href="/privacy" style={{ color: "#60a5fa", textDecoration: "underline" }}>Privacy Policy</a> &amp;{" "}
-              <a href="/terms" style={{ color: "#60a5fa", textDecoration: "underline" }}>Terms &amp; Conditions</a>.
+              <a href="/privacy" style={{ color: "#60a5fa" }}>Privacy Policy</a> &amp;{" "}
+              <a href="/terms" style={{ color: "#60a5fa" }}>Terms &amp; Conditions</a>.
             </span>
           </label>
-          <label style={{ display: "flex", alignItems: "flex-start", gap: 8, cursor: "pointer" }}>
-            <input type="checkbox" style={{ width: "auto", padding: 0, marginTop: 2, flexShrink: 0 }} />
-            <span className="mo" style={{ fontSize: 9, color: "var(--t3)", lineHeight: 1.7 }}>
+          <label style={{ display: "flex", gap: 10, alignItems: "flex-start", background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 6, padding: "10px 12px", cursor: "pointer", marginTop: 8 }}>
+            <input type="checkbox" style={{ marginTop: 2, accentColor: "var(--or)", flexShrink: 0, width: 14, height: 14 }} />
+            <span style={{ fontSize: 10, color: "#e5e7eb", lineHeight: 1.7 }}>
               I agree to the{" "}
-              <a href="/privacy" style={{ color: "#60a5fa", textDecoration: "underline" }}>Privacy Policy</a> and{" "}
-              <a href="/terms" style={{ color: "#60a5fa", textDecoration: "underline" }}>Terms of Service</a>.
+              <a href="/privacy" style={{ color: "#60a5fa" }}>Privacy Policy</a> and{" "}
+              <a href="/terms" style={{ color: "#60a5fa" }}>Terms of Service</a>.
             </span>
           </label>
         </div>
