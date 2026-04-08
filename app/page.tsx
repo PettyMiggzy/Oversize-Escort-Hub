@@ -5,14 +5,14 @@ import type { User } from "@supabase/supabase-js";
 
 // ─── TYPES ───────────────────────────────────────────────────────────────────
 
-type Role = "carrier" | "escort" | "broker" | null;
+type Role = "carrier" | "escort" | "broker" | "admin" | null;
 type Page = "home" | "flatboard" | "openboard" | "bidboard" | "escorts" | "escprofile" | "dashboard-e" | "dashboard-c" | "dashboard-b" | "postload" | "pricing" | "verification" | "signin" | "invoice" | "expenses" | "job-history" | "permits" | "deadhead" | "admin" | "dot-lookup" | "state-reqs" | "weather" | "cb-radio" | "fuel-calc" | "per-diem" | "cert-tracker" | "factoring" | "tools";
 
 type Profile = {
   id: string;
   full_name: string | null;
   company_name: string | null;
-  role: "escort" | "carrier";
+  role: "escort" | "carrier" | "admin";
   tier: "free" | "member" | "pro" | "carrier_member";
   email: string | null;
   phone: string | null;
@@ -342,6 +342,9 @@ function Nav({ page, setPage, user, profile, onSignOut }: {
             <span style={{ color: "var(--or)", fontSize: 8 }}>{profile.tier?.toUpperCase()}</span>{" "}
             <button className="nav-signout" onClick={onSignOut}>SIGN OUT</button>
             <button className="nav-signout" style={{ marginLeft: 4 }} onClick={() => setPage(profile.role === "carrier" ? "dashboard-c" : "dashboard-e")}>DASHBOARD →</button>
+                  {profile?.role === 'admin' && (
+                    <button className="nav-signout" style={{ marginLeft: 4 }} onClick={() => setPage('admin')}>Admin</button>
+                  )}
           </span>
         ) : (
           <button className="nav-get-started btn btn-or btn-sm" onClick={() => setPage("signin")}>GET STARTED</button>
@@ -368,6 +371,9 @@ function Nav({ page, setPage, user, profile, onSignOut }: {
                   <div className="mo" style={{ fontSize: 9, color: "var(--t2)", marginBottom: 4 }}>Signed in as <strong style={{ color: "var(--t1)" }}>{profile.full_name}</strong></div>
                   <div className="mo" style={{ fontSize: 8, color: "var(--or)", marginBottom: 10 }}>{profile.tier?.toUpperCase()} · {profile.role?.toUpperCase()}</div>
                   <button className="drawer-link" onClick={() => { setPage(profile.role === "carrier" ? "dashboard-c" : "dashboard-e"); closeDrawer(); }}>→ Dashboard</button>
+                  {profile?.role === 'admin' && (
+                    <button className="drawer-link" onClick={() => { setPage('admin'); closeDrawer(); }}>Admin</button>
+                  )}
                   <button className="drawer-signout" onClick={() => { onSignOut(); closeDrawer(); }}>SIGN OUT</button>
                 </>
               ) : (
