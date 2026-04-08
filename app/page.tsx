@@ -1340,3 +1340,5 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
         </div>
 	);
 }
+
+export default HomePage;
