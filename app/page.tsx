@@ -1142,7 +1142,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
   const [boardType, setBoardType] = useState<"flat" | "bid" | "open">("flat");
   const [form, setForm] = useState({
     puCity: "", puState: "", dlCity: "", dlState: "",
-    rate: "2.00", positions: ["Lead"], payTerm: "FastPay", payTermCustom: "",
+    miles: "", rate: "2.00", dayRate: "500", positions: ["Lead"], payTerm: "FastPay", payTermCustom: "",
     notes: "", startDate: "", permitFile: null as File | null,
 				certTypes: [] as string[], certOther: "",
   });
@@ -1184,8 +1184,9 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
         dl_state: form.dlState.toUpperCase(),
         position: pos,
   				pay_term: form.payTerm === "Custom" ? (form.payTermCustom || "Custom") : form.payTerm,
-        per_mile_rate: parseFloat(form.rate) || 2.00,
-        day_rate: 500,
+        miles: parseInt(form.miles) || null,
+          per_mile_rate: parseFloat(form.rate) || 2.00,
+        day_rate: parseFloat(form.dayRate) || 500,
         overnight_fee: 100,
         no_go_fee: 250,
   				cert_types: form.certTypes,
@@ -1299,6 +1300,36 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
                 </label>
               </div>
             </div>
+            <div className="form-field">
+              <label className="form-label">Pickup Location</label>
+              <div style={{ display: "flex", gap: 8 }}>
+                <input type="text" placeholder="City" value={form.puCity} onChange={(e) => setForm(f => ({ ...f, puCity: e.target.value }))} style={{ flex: 2, width: "100%" }} />
+                <input type="text" placeholder="ST" value={form.puState} onChange={(e) => setForm(f => ({ ...f, puState: e.target.value.toUpperCase().slice(0,2) }))} style={{ flex: 1, width: "100%", maxWidth: 56 }} maxLength={2} />
+              </div>
+            </div>
+            <div className="form-field">
+              <label className="form-label">Delivery Location</label>
+              <div style={{ display: "flex", gap: 8 }}>
+                <input type="text" placeholder="City" value={form.dlCity} onChange={(e) => setForm(f => ({ ...f, dlCity: e.target.value }))} style={{ flex: 2, width: "100%" }} />
+                <input type="text" placeholder="ST" value={form.dlState} onChange={(e) => setForm(f => ({ ...f, dlState: e.target.value.toUpperCase().slice(0,2) }))} style={{ flex: 1, width: "100%", maxWidth: 56 }} maxLength={2} />
+              </div>
+            </div>
+            <div className="form-field">
+              <label className="form-label">Approx Miles</label>
+              <input type="number" placeholder="e.g. 350" value={form.miles} onChange={(e) => setForm(f => ({ ...f, miles: e.target.value }))} style={{ width: "100%" }} min="1" />
+            </div>
+            {boardType !== "bid" && (
+              <>
+                <div className="form-field">
+                  <label className="form-label">Rate Per Mile ($/mi)</label>
+                  <input type="number" placeholder="e.g. 2.00" step="0.25" value={form.rate} onChange={(e) => setForm(f => ({ ...f, rate: e.target.value }))} style={{ width: "100%" }} min="0" />
+                </div>
+                <div className="form-field">
+                  <label className="form-label">Day Rate ($/day) <span className="mo" style={{ fontSize: 10, color: "var(--t2)", fontWeight: 400 }}>for day-rate jobs</span></label>
+                  <input type="number" placeholder="e.g. 500" step="50" value={form.dayRate} onChange={(e) => setForm(f => ({ ...f, dayRate: e.target.value }))} style={{ width: "100%" }} min="0" />
+                </div>
+              </>
+            )}
             <div className="form-field">
                 <label className="form-label">Pay Terms</label>
                 <select value={form.payTerm} onChange={(e) => setForm(f => ({ ...f, payTerm: e.target.value }))} style={{ width: "100%" }}>
