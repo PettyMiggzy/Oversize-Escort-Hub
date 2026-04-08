@@ -824,240 +824,447 @@ function EscortCard({ e, setPage }: { e: typeof SEED_ESCORTS[0]; setPage: (p: Pa
 
 // ─── FLAT BOARD PAGE ──────────────────────────────────────────────────────────
 
-function FlatBoardPage({ setPage }: { setPage: (p: Page) => void }) {
-  const [loads, setLoads] = useState<Load[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [stateFilter, setStateFilter] = useState("ALL");
-  const [posFilter, setPosFilter] = useState("ALL");
+// ——— FLAT RATE BOARD ————————————————————————————————————
+function FlatBoardPage({ setPage, user, profile, showToast }: { setPage: (p: Page) => void; user: User | null; profile: Profile | null; showToast: (msg: string, type: 'gr' | 'rd' | 'am') => void }) {
+  const [loads, setLoads] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [filterState, setFilterState] = useState('')
+  const [filterCert, setFilterCert] = useState('')
+  const [filterDate, setFilterDate] = useState('')
+  const [matchModal, setMatchModal] = useState<any>(null)
+  const [matchLoading, setMatchLoading] = useState(false)
 
-  useEffect(() => {
-    async function fetchLoads() {
-      const { data } = await supabase
-        .from("loads")
-        .select("*")
-        .eq("board_type", "flat")
-        .order("created_at", { ascending: false });
-      if (data && data.length > 0) {
-        setLoads(data);
-      } else {
-        setLoads(SEED_LOADS);
-      }
-      setLoading(false);
+  useEffect(() => { fetchLoads() }, [filterState, filterCert, filterDate])
+
+  async function fetchLoads() {
+    setLoading(true)
+    let q = supabase.from('loads').select('*').eq('board_type', 'flat').eq('status', 'active').order('created_at', { ascending: false })
+    if (filterState) q = q.eq('pu_state', filterState)
+    if (filterCert) q = q.contains('certs_required', [filterCert])
+    if (filterDate) q = q.gte('start_date', filterDate)
+    // Filter pro window
+    const now = new Date().toISOString()
+    if (!profile || profile.tier !== 'pro') {
+      q = q.or(`pro_window_expires_at.is.null,pro_window_expires_at.lte.${now}`)
     }
-    fetchLoads();
-  }, []);
+    const { data } = await q.limit(50)
+    setLoads(data || [])
+    setLoading(false)
+  }
 
-  const filtered = loads.filter(l => {
-    if (stateFilter !== "ALL" && l.pu_state !== stateFilter && l.dl_state !== stateFilter) return false;
-    if (posFilter !== "ALL" && l.position !== posFilter) return false;
-    return true;
-  });
+  async function handleRequestLoad(load: any) {
+    if (!user) { showToast('Sign in to request loads', 'rd'); return }
+    setMatchLoading(true)
+    const { error: matchErr } = await supabase.from('load_matches').insert({
+      load_id: load.id, escort_id: user.id, carrier_id: load.posted_by, status: 'pending'
+    })
+    if (matchErr) { showToast('Error submitting request: ' + matchErr.message, 'rd'); setMatchLoading(false); return }
+    await supabase.from('loads').update({ status: 'pending_match' }).eq('id', load.id)
+    showToast('Load request submitted! Carrier will review.', 'gr')
+    setMatchModal(null)
+    setMatchLoading(false)
+    fetchLoads()
+  }
 
-  const hasSamples = loads.some(l => l.isSample);
+  const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY']
+  const CERTS = ['Lead','Chase','3rd Car','4th Car','High Pole','Rear Steer','Lineman','Route Survey','Flagger','NY Cert','NITPAC','TWIC']
 
-  return (
-    <div className="section">
-      <div className="section-header">
-        <div>
-          <div className="eyebrow" style={{ color: "var(--gr)" }}>Live Board</div>
-          <div className="section-title">FLAT RATE LOAD BOARD</div>
-        </div>
-        <button className="btn btn-or btn-sm" onClick={() => setPage("postload")}>+ Post a Load</button>
-      </div>
-      {hasSamples && <EarlyBanner role="escort" />}
-      <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" as const }}>
-        <select value={stateFilter} onChange={(e) => setStateFilter(e.target.value)}>
-          <option value="ALL">All States</option>
-          {["TX", "FL", "CA", "TN", "OH", "AZ", "GA", "IL", "OK", "LA", "NV", "AL", "NM"].map(s => <option key={s} value={s}>{s}</option>)}
-        </select>
-        <select value={posFilter} onChange={(e) => setPosFilter(e.target.value)}>
-          <option value="ALL">All Positions</option>
-          <option value="Lead">Lead</option><option value="Rear">Rear</option><option value="Lead+Rear">Lead+Rear</option>
-        </select>
-        <select><option>All Pay Terms</option><option>FastPay Only</option><option>7-Day</option><option>10-Day</option></select>
-      </div>
-      {loading ? (
-        <div className="mo" style={{ fontSize: 10, color: "var(--t2)", padding: "20px 0" }}>Loading loads...</div>
-      ) : (
-        <div className="data-table">
-          <table>
-            <thead>
-              <tr><th>Load ID</th><th>Route</th><th>Miles</th><th>Rate</th><th>Est. Pay</th><th>Position</th><th>Certs</th><th>Pay Terms</th><th>Pay Score</th><th>Contact</th><th>Status</th></tr>
-            </thead>
-            <tbody>
-              {filtered.map((l) => (
-                <tr key={l.id} style={{ opacity: l.status === "filled" ? 0.42 : 1 }}>
-                  <td className="mo" style={{ color: "var(--t2)", fontSize: 9 }}>
-                    {l.isSample ? `SAMPLE` : l.id.slice(0, 8).toUpperCase()}
-                    {l.isSample && <SampleBadge />}
-                  </td>
-                  <td style={{ fontWeight: 500, fontSize: 12 }}>{l.pu_city}, {l.pu_state} → {l.dl_city}, {l.dl_state}</td>
-                  <td className="mo">{l.miles}</td>
-                  <td className="mo" style={{ color: "var(--gr)", fontWeight: 600 }}>${l.per_mile_rate.toFixed(2)}/mi</td>
-                  <td className="mo" style={{ color: "var(--gr)" }}>${((l.miles || 0) * l.per_mile_rate).toFixed(0)}</td>
-                  <td style={{ fontSize: 10 }}>{l.position}</td>
-                  <td>
-                    {l.requires_p_evo && <span className="chip ch-dim" style={{ marginRight: 3 }}>P/EVO</span>}
-                    {l.requires_witpac && <span className="chip ch-dim" style={{ marginRight: 3 }}>Witpac</span>}
-                    {l.requires_twic && <span className="chip ch-dim" style={{ marginRight: 3 }}>TWIC</span>}
-                    {l.requires_ny_cert && <span className="chip ch-dim" style={{ marginRight: 3 }}>NY</span>}
-                  </td>
-                  <td>{l.pay_type === "FastPay" ? <span className="chip ch-gr">⚡ FastPay</span> : <span className="mo" style={{ fontSize: 10, color: "var(--t2)" }}>{l.pay_type || "7-Day"}</span>}</td>
-                  <td><PayScore score={l.poster_rating || 4.5} /></td>
-                  <td>
-                    <div className="mo" style={{ fontSize: 11, color: "var(--t3)" }}>📞 (XXX) XXX-XXXX</div>
-                    <div className="mo" style={{ fontSize: 9, color: "var(--t3)" }}>🔒 Member only</div>
-                  </td>
-                  <td>{l.status === "filled" ? <span className="chip ch-dim">FILLED</span> : <span className="chip ch-gr">OPEN</span>}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-      <LockBar setPage={setPage} />
-    </div>
-  );
-}
-
-// ─── BID BOARD PAGE ───────────────────────────────────────────────────────────
-
-function BidBoardPage({ setPage }: { setPage: (p: Page) => void }) {
-  const [timers, setTimers] = useState<Record<string, number>>(
-    Object.fromEntries(SEED_BID_LOADS.map((l) => [l.id, l.timer]))
-  );
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTimers((prev) => {
-        const next = { ...prev };
-        Object.keys(next).forEach((k) => { if (next[k] > 0) next[k]--; });
-        return next;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  function fmtTimer(s: number) {
-    if (s <= 0) return "0:00";
-    const m = Math.floor(s / 60), sec = s % 60;
-    return `${m}:${sec.toString().padStart(2, "0")}`;
+  function timeAgo(dt: string) {
+    const diff = Date.now() - new Date(dt).getTime()
+    const m = Math.floor(diff / 60000)
+    if (m < 60) return `${m}m ago`
+    const h = Math.floor(m / 60)
+    if (h < 24) return `${h}h ago`
+    return `${Math.floor(h / 24)}d ago`
   }
 
   return (
     <div className="section">
-      <div style={{ background: "var(--p2)", border: "1px solid var(--l1)", borderLeft: "3px solid var(--am)", borderRadius: 4, padding: "16px 20px", marginBottom: 20, display: "flex", alignItems: "center", gap: 16 }}>
-        <img src="/bid.png" alt="Bid Board" style={{ width: 52, height: 52, objectFit: "contain", flexShrink: 0 }} />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <div>
-          <div className="bb" style={{ fontSize: 22, color: "var(--am)", marginBottom: 6 }}>5-MINUTE BID BOARD</div>
-          <p className="mo" style={{ fontSize: 10, color: "var(--t2)", lineHeight: 1.75 }}>
-            Closes when: <span style={{ color: "var(--am)" }}>① Timer hits zero</span> · <span style={{ color: "var(--gr)" }}>② Carrier fills it</span> · <span style={{ color: "var(--t2)" }}>③ Carrier cancels</span><br />
-            <span style={{ color: "var(--am)" }}>Pro:</span> SMS instant · <span style={{ color: "var(--bl)" }}>Member:</span> 60s delay · <span style={{ color: "var(--t2)" }}>Free:</span> View only
-          </p>
+          <div className="bb" style={{ fontSize: 28 }}>FLAT RATE BOARD</div>
+          <div className="mo" style={{ fontSize: 11, color: 'var(--t2)', marginTop: 4 }}>Fixed-rate loads · Direct hire · No bidding</div>
         </div>
+        <button className="btn btn-am btn-sm" onClick={() => setPage('postload')}>+ POST A LOAD</button>
       </div>
-      <EarlyBanner role="escort" />
-      <div style={{ display: "grid", gap: 12 }}>
-        {SEED_BID_LOADS.map((l) => {
-          const t = timers[l.id] ?? 0;
-          const isLive = l.status === "live" && t > 0;
-          const timerCls = t > 60 ? "timer-am" : "timer-red";
-          return (
-            <div key={l.id} className="card" style={{ borderColor: isLive ? "var(--am)" : "var(--l1)" }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 20, alignItems: "center" }}>
-                <div style={{ display: "flex", gap: 24, alignItems: "center", flexWrap: "wrap" as const }}>
-                  <div>
-                    <div className="mo" style={{ fontSize: 9, color: "var(--t2)", marginBottom: 2 }}>
-                      {l.id} {l.isSample && <SampleBadge />}
-                    </div>
-                    <div style={{ fontWeight: 600, fontSize: 14 }}>{l.from} → {l.to}</div>
-                    <div className="mo" style={{ fontSize: 10, color: "var(--t2)" }}>{l.mi} mi · {l.pos}</div>
-                  </div>
-                  <div>
-                    <div className="bb" style={{ fontSize: 26, color: "var(--gr)", lineHeight: 1 }}>${l.rate.toFixed(2)}/mi</div>
-                    <div className="mo" style={{ fontSize: 9, color: "var(--t2)" }}>Ceiling rate</div>
-                  </div>
-                  <div>
-                    <PayScore score={l.score} />
-                    <div className="mo" style={{ fontSize: 9, color: "var(--t2)", marginTop: 3 }}>Carrier Pay Score</div>
-                  </div>
-                  <div>
-                    <div className="mo" style={{ fontSize: 10, color: "var(--t2)" }}>{l.bids} bids placed</div>
-                    <div>{l.certs.map((c) => <span key={c} className="chip ch-dim" style={{ marginRight: 3 }}>{c}</span>)}</div>
+
+      {/* FILTERS */}
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', padding: '14px 16px', background: 'rgba(255,255,255,.03)', border: '1px solid var(--l1)', borderRadius: 6, marginBottom: 20 }}>
+        <select value={filterState} onChange={e => setFilterState(e.target.value)} className="input-field" style={{ minWidth: 140, fontSize: 11 }}>
+          <option value="">All States</option>
+          {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <select value={filterCert} onChange={e => setFilterCert(e.target.value)} className="input-field" style={{ minWidth: 140, fontSize: 11 }}>
+          <option value="">All Cert Types</option>
+          {CERTS.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+        <input type="date" value={filterDate} onChange={e => setFilterDate(e.target.value)} className="input-field" style={{ fontSize: 11 }} />
+        {(filterState || filterCert || filterDate) && (
+          <button className="btn btn-sm" style={{ fontSize: 10 }} onClick={() => { setFilterState(''); setFilterCert(''); setFilterDate('') }}>✕ CLEAR</button>
+        )}
+      </div>
+
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: 40 }}><div className="mo" style={{ color: 'var(--t2)' }}>Loading loads...</div></div>
+      ) : loads.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '80px 20px' }}>
+          <div style={{ fontSize: 40, marginBottom: 16 }}>📋</div>
+          <div className="bb" style={{ fontSize: 20, marginBottom: 8 }}>No loads posted yet</div>
+          <div className="mo" style={{ color: 'var(--t2)', marginBottom: 24 }}>No loads posted yet — check back soon.</div>
+          <button className="btn btn-am" onClick={() => setPage('postload')}>POST THE FIRST LOAD →</button>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {loads.map((l) => (
+            <div key={l.id} className="load-card" style={{ cursor: 'pointer' }} onClick={() => setMatchModal(l)}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>{l.pu_city}, {l.pu_state} → {l.dl_city}, {l.dl_state}</div>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+                    <span className="chip ch-dim" style={{ fontSize: 9 }}>{l.position}</span>
+                    {(l.certs_required || []).slice(0, 4).map((c: string) => (
+                      <span key={c} className="chip ch-dim" style={{ fontSize: 9 }}>{c}</span>
+                    ))}
+                    {(l.certs_required || []).length > 4 && <span className="chip ch-dim" style={{ fontSize: 9 }}>+{(l.certs_required || []).length - 4}</span>}
                   </div>
                 </div>
-                <div style={{ textAlign: "center", minWidth: 120 }}>
-                  {isLive && (
-                    <>
-                      <div className={`bid-timer ${timerCls}`}>{fmtTimer(t)}</div>hh
-                      <div className="mo" style={{ fontSize: 8, color: "var(--t2)", letterSpacing: ".1em", textTransform: "uppercase", marginBottom: 8 }}>Time Remaining</div>
-                      <button className="btn btn-am btn-sm" style={{ width: "100%" }} onClick={() => setPage("pricing")}>🔒 BID (MEMBER)</button>
-                    </>
-                  )}
-                  {!isLive && <span className="chip ch-dim" style={{ fontSize: 11, padding: "6px 14px" }}>EXPIRED</span>}
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--gr)' }}>
+                    {l.per_mile_rate ? `$${l.per_mile_rate}/mi` : l.day_rate ? `$${l.day_rate}/day` : 'Negotiable'}
+                  </div>
+                  <div className="mo" style={{ fontSize: 9, color: 'var(--t2)' }}>{timeAgo(l.created_at)}</div>
                 </div>
               </div>
+              <div style={{ display: 'flex', gap: 16, fontSize: 11, color: 'var(--t2)' }}>
+                {l.miles && <span>~{l.miles} mi</span>}
+                {l.start_date && <span>📅 {new Date(l.start_date).toLocaleDateString()}</span>}
+                <span className="mo">{l.pay_type}</span>
+              </div>
             </div>
-          );
-        })}
-      </div>
-      <div style={{ marginTop: 16 }}><LockBar setPage={setPage} /></div>
+          ))}
+        </div>
+      )}
+
+      {/* MATCH MODAL */}
+      {matchModal && (
+        <div className="modal-overlay" onClick={() => setMatchModal(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 480 }}>
+            <div className="bb" style={{ fontSize: 18, marginBottom: 12 }}>REQUEST THIS LOAD</div>
+            <div style={{ background: 'rgba(255,255,255,.04)', borderRadius: 6, padding: 14, marginBottom: 16 }}>
+              <div style={{ fontWeight: 600, marginBottom: 6 }}>{matchModal.pu_city}, {matchModal.pu_state} → {matchModal.dl_city}, {matchModal.dl_state}</div>
+              <div style={{ fontSize: 11, color: 'var(--t2)', display: 'flex', gap: 12 }}>
+                <span>{matchModal.position}</span>
+                {matchModal.start_date && <span>{new Date(matchModal.start_date).toLocaleDateString()}</span>}
+                <span style={{ color: 'var(--gr)', fontWeight: 600 }}>
+                  {matchModal.per_mile_rate ? `$${matchModal.per_mile_rate}/mi` : `$${matchModal.day_rate}/day`}
+                </span>
+              </div>
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--t2)', marginBottom: 20, lineHeight: 1.6 }}>
+              By requesting this load you confirm you hold all required certifications and meet all posted requirements.
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button className="btn btn-am" style={{ flex: 1 }} onClick={() => handleRequestLoad(matchModal)} disabled={matchLoading}>
+                {matchLoading ? 'SUBMITTING...' : 'CONFIRM REQUEST'}
+              </button>
+              <button className="btn" style={{ flex: 1 }} onClick={() => setMatchModal(null)}>CANCEL</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
-  );
+  )
 }
 
-// ─── OPEN BID PAGE ────────────────────────────────────────────────────────────
+// ——— BID BOARD PAGE ——————————————————————————————————————
+function BidBoardPage({ setPage, user, profile, showToast }: { setPage: (p: Page) => void; user: User | null; profile: Profile | null; showToast: (msg: string, type: 'gr' | 'rd' | 'am') => void }) {
+  const [loads, setLoads] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [filterState, setFilterState] = useState('')
+  const [filterCert, setFilterCert] = useState('')
+  const [filterDate, setFilterDate] = useState('')
+  const [timers, setTimers] = useState<Record<string, number>>({})
+  const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY']
+  const CERTS = ['Lead','Chase','3rd Car','4th Car','High Pole','Rear Steer','Lineman','Route Survey','Flagger','NY Cert','NITPAC','TWIC']
 
-function OpenBidPage({ setPage }: { setPage: (p: Page) => void }) {
-  const OPEN_BIDS = [
-    { id: "OB-331", from: "Houston, TX", to: "New Orleans, LA", mi: 349, rate: 2.00, pos: "Lead", certs: ["P/EVO"], score: 4.6, bids: 6, closes: "18h 22m", minPay: 1.75, maxPay: 2.00 },
-    { id: "OB-288", from: "Chicago, IL", to: "Detroit, MI", mi: 281, rate: 2.00, pos: "Lead+Rear", certs: ["P/EVO", "TWIC"], score: 4.8, bids: 9, closes: "22h 05m", minPay: 1.70, maxPay: 2.00 },
-    { id: "OB-299", from: "Atlanta, GA", to: "Charlotte, NC", mi: 244, rate: 2.00, pos: "Rear", certs: ["P/EVO"], score: 4.4, bids: 4, closes: "41h 10m", minPay: 1.80, maxPay: 2.00 },
-  ];
+  useEffect(() => { fetchLoads() }, [filterState, filterCert, filterDate])
+  useEffect(() => {
+    const iv = setInterval(() => {
+      setTimers(prev => {
+        const next = { ...prev }
+        Object.keys(next).forEach(k => { if (next[k] > 0) next[k] -= 1 })
+        return next
+      })
+    }, 1000)
+    return () => clearInterval(iv)
+  }, [])
+
+  async function fetchLoads() {
+    setLoading(true)
+    const now = new Date().toISOString()
+    let q = supabase.from('loads').select('*').eq('board_type', 'bid5min').eq('status', 'active').gt('expires_at', now).order('created_at', { ascending: false })
+    if (filterState) q = q.eq('pu_state', filterState)
+    if (filterCert) q = q.contains('certs_required', [filterCert])
+    if (filterDate) q = q.gte('start_date', filterDate)
+    const { data } = await q.limit(50)
+    const d = data || []
+    setLoads(d)
+    const t: Record<string, number> = {}
+    d.forEach((l: any) => {
+      if (l.expires_at) t[l.id] = Math.max(0, Math.floor((new Date(l.expires_at).getTime() - Date.now()) / 1000))
+    })
+    setTimers(t)
+    setLoading(false)
+  }
+
+  function fmtTimer(s: number) {
+    const m = Math.floor(s / 60), sec = s % 60
+    return `${m}:${sec.toString().padStart(2, '0')}`
+  }
+
+  function timeAgo(dt: string) {
+    const diff = Date.now() - new Date(dt).getTime()
+    const m = Math.floor(diff / 60000)
+    if (m < 60) return `${m}m ago`
+    const h = Math.floor(m / 60)
+    return h < 24 ? `${h}h ago` : `${Math.floor(h / 24)}d ago`
+  }
+
   return (
     <div className="section">
-      <div className="section-header">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <div>
-          <div className="eyebrow" style={{ color: "var(--bl)" }}>24-72 Hour Window</div>
-          <div className="section-title">OPEN BID BOARD</div>
+          <div className="bb" style={{ fontSize: 28 }}>5-MIN BID BOARD</div>
+          <div className="mo" style={{ fontSize: 11, color: 'var(--t2)', marginTop: 4 }}>Act fast · Carrier picks best fit · Clock is ticking</div>
         </div>
-        <button className="btn btn-or btn-sm" onClick={() => setPage("postload")}>+ Post a Load</button>
+        <button className="btn btn-am btn-sm" onClick={() => setPage('postload')}>+ POST A LOAD</button>
       </div>
-      <EarlyBanner role="escort" />
-      <div className="ob-grid">
-        {OPEN_BIDS.map((l) => (
-          <div key={l.id} className="card">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-              <div>
-                <div className="mo" style={{ fontSize: 9, color: "var(--t2)", marginBottom: 3 }}>{l.id} <SampleBadge /></div>
-                <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 2 }}>{l.from}</div>
-                <div style={{ fontWeight: 600, fontSize: 14, color: "var(--t2)" }}>→ {l.to}</div>
-              </div>
-              <span className="chip ch-bl">OPEN BID</span>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 14 }}>
-              {[["Miles", `${l.mi} mi`], ["Ceiling", `$${l.rate.toFixed(2)}/mi`], ["Position", l.pos], ["Bids In", `${l.bids} bids`], ["Bid Range", `$${l.minPay}–$${l.maxPay}/mi`], ["Closes", l.closes]].map(([lbl, val]) => (
-                <div key={lbl}>
-                  <div className="mo" style={{ fontSize: 8, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--t2)", marginBottom: 2 }}>{lbl}</div>
-                  <div className="mo" style={{ fontSize: 11, color: "var(--t1)", fontWeight: 500 }}>{val}</div>
+
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', padding: '14px 16px', background: 'rgba(255,255,255,.03)', border: '1px solid var(--l1)', borderRadius: 6, marginBottom: 20 }}>
+        <select value={filterState} onChange={e => setFilterState(e.target.value)} className="input-field" style={{ minWidth: 140, fontSize: 11 }}>
+          <option value="">All States</option>
+          {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <select value={filterCert} onChange={e => setFilterCert(e.target.value)} className="input-field" style={{ minWidth: 140, fontSize: 11 }}>
+          <option value="">All Cert Types</option>
+          {CERTS.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+        <input type="date" value={filterDate} onChange={e => setFilterDate(e.target.value)} className="input-field" style={{ fontSize: 11 }} />
+        {(filterState || filterCert || filterDate) && (
+          <button className="btn btn-sm" style={{ fontSize: 10 }} onClick={() => { setFilterState(''); setFilterCert(''); setFilterDate('') }}>✕ CLEAR</button>
+        )}
+      </div>
+
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: 40 }}><div className="mo" style={{ color: 'var(--t2)' }}>Loading...</div></div>
+      ) : loads.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '80px 20px' }}>
+          <div style={{ fontSize: 40, marginBottom: 16 }}>⏱</div>
+          <div className="bb" style={{ fontSize: 20, marginBottom: 8 }}>No active bid loads</div>
+          <div className="mo" style={{ color: 'var(--t2)' }}>No loads posted yet — check back soon.</div>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {loads.map((l) => (
+            <div key={l.id} className="load-card">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>{l.pu_city}, {l.pu_state} → {l.dl_city}, {l.dl_state}</div>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+                    <span className="chip ch-dim" style={{ fontSize: 9 }}>{l.position}</span>
+                    {(l.certs_required || []).slice(0, 3).map((c: string) => (
+                      <span key={c} className="chip ch-dim" style={{ fontSize: 9 }}>{c}</span>
+                    ))}
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--t2)', display: 'flex', gap: 12 }}>
+                    {l.miles && <span>~{l.miles} mi</span>}
+                    {l.start_date && <span>📅 {new Date(l.start_date).toLocaleDateString()}</span>}
+                    <span className="mo">{l.pay_type}</span>
+                    <span className="mo">{timeAgo(l.created_at)}</span>
+                  </div>
                 </div>
-              ))}
+                <div style={{ textAlign: 'right' }}>
+                  {timers[l.id] !== undefined && timers[l.id] > 0 ? (
+                    <div style={{ fontSize: 20, fontWeight: 700, color: timers[l.id] < 60 ? 'var(--rd)' : 'var(--am)', fontFamily: 'monospace' }}>
+                      ⏱ {fmtTimer(timers[l.id])}
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: 11, color: 'var(--rd)' }}>EXPIRED</div>
+                  )}
+                  <div className="mo" style={{ fontSize: 9, color: 'var(--t2)', marginTop: 2 }}>remaining</div>
+                </div>
+              </div>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-              <PayScore score={l.score} />
-              <div>{l.certs.map((c) => <span key={c} className="chip ch-dim" style={{ marginLeft: 4 }}>{c}</span>)}</div>
-            </div>
-            <textarea placeholder="Add your bid note / pitch to carrier..." style={{ width: "100%", minHeight: 56, resize: "vertical", marginBottom: 8, fontSize: 11 }} />
-            <input placeholder="Your bid ($/mi) — max $2.00/mi" style={{ width: "100%", marginBottom: 8 }} />
-            <button className="btn btn-or btn-sm" style={{ width: "100%" }} onClick={() => setPage("pricing")}>🔒 SUBMIT BID (MEMBER)</button>
-          </div>
-        ))}
-      </div>
-      <LockBar setPage={setPage} />
+          ))}
+        </div>
+      )}
     </div>
-  );
+  )
 }
 
-// ─── ESCORTS PAGE ─────────────────────────────────────────────────────────────
+// ——— OPEN BID BOARD ——————————————————————————————————————
+function OpenBidPage({ setPage, user, profile, showToast }: { setPage: (p: Page) => void; user: User | null; profile: Profile | null; showToast: (msg: string, type: 'gr' | 'rd' | 'am') => void }) {
+  const [loads, setLoads] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [filterState, setFilterState] = useState('')
+  const [filterCert, setFilterCert] = useState('')
+  const [filterDate, setFilterDate] = useState('')
+  const [bidModal, setBidModal] = useState<any>(null)
+  const [bidAmount, setBidAmount] = useState('')
+  const [bidLoading, setBidLoading] = useState(false)
+  const [bidCounts, setBidCounts] = useState<Record<string, number>>({})
+
+  const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY']
+  const CERTS = ['Lead','Chase','3rd Car','4th Car','High Pole','Rear Steer','Lineman','Route Survey','Flagger','NY Cert','NITPAC','TWIC']
+
+  useEffect(() => { fetchLoads() }, [filterState, filterCert, filterDate])
+
+  async function fetchLoads() {
+    setLoading(true)
+    const now = new Date().toISOString()
+    let q = supabase.from('loads').select('*').eq('board_type', 'open_bid').eq('status', 'active').or(`expires_at.is.null,expires_at.gt.${now}`).order('created_at', { ascending: false })
+    if (filterState) q = q.eq('pu_state', filterState)
+    if (filterCert) q = q.contains('certs_required', [filterCert])
+    if (filterDate) q = q.gte('start_date', filterDate)
+    const { data } = await q.limit(50)
+    const d = data || []
+    setLoads(d)
+    // Fetch bid counts
+    if (d.length > 0) {
+      const ids = d.map((l: any) => l.id)
+      const { data: bids } = await supabase.from('bids').select('load_id').in('load_id', ids)
+      const counts: Record<string, number> = {}
+      ;(bids || []).forEach((b: any) => { counts[b.load_id] = (counts[b.load_id] || 0) + 1 })
+      setBidCounts(counts)
+    }
+    setLoading(false)
+  }
+
+  async function handlePlaceBid() {
+    if (!user) { showToast('Sign in to place bids', 'rd'); return }
+    if (!bidAmount || isNaN(parseFloat(bidAmount))) { showToast('Enter a valid day rate', 'rd'); return }
+    setBidLoading(true)
+    const { error } = await supabase.from('bids').insert({
+      load_id: bidModal.id, escort_id: user.id, amount: parseFloat(bidAmount)
+    })
+    if (error) { showToast('Error placing bid: ' + error.message, 'rd'); setBidLoading(false); return }
+    showToast('Bid placed! Carrier will review all bids.', 'gr')
+    setBidModal(null)
+    setBidAmount('')
+    setBidLoading(false)
+    fetchLoads()
+  }
+
+  function timeAgo(dt: string) {
+    const diff = Date.now() - new Date(dt).getTime()
+    const m = Math.floor(diff / 60000)
+    if (m < 60) return `${m}m ago`
+    const h = Math.floor(m / 60)
+    return h < 24 ? `${h}h ago` : `${Math.floor(h / 24)}d ago`
+  }
+
+  return (
+    <div className="section">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <div>
+          <div className="bb" style={{ fontSize: 28 }}>OPEN BID BOARD</div>
+          <div className="mo" style={{ fontSize: 11, color: 'var(--t2)', marginTop: 4 }}>24-72hr window · Post your pitch · Carrier picks best fit</div>
+        </div>
+        <button className="btn btn-am btn-sm" onClick={() => setPage('postload')}>+ POST A LOAD</button>
+      </div>
+
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', padding: '14px 16px', background: 'rgba(255,255,255,.03)', border: '1px solid var(--l1)', borderRadius: 6, marginBottom: 20 }}>
+        <select value={filterState} onChange={e => setFilterState(e.target.value)} className="input-field" style={{ minWidth: 140, fontSize: 11 }}>
+          <option value="">All States</option>
+          {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <select value={filterCert} onChange={e => setFilterCert(e.target.value)} className="input-field" style={{ minWidth: 140, fontSize: 11 }}>
+          <option value="">All Cert Types</option>
+          {CERTS.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+        <input type="date" value={filterDate} onChange={e => setFilterDate(e.target.value)} className="input-field" style={{ fontSize: 11 }} />
+        {(filterState || filterCert || filterDate) && (
+          <button className="btn btn-sm" style={{ fontSize: 10 }} onClick={() => { setFilterState(''); setFilterCert(''); setFilterDate('') }}>✕ CLEAR</button>
+        )}
+      </div>
+
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: 40 }}><div className="mo" style={{ color: 'var(--t2)' }}>Loading...</div></div>
+      ) : loads.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '80px 20px' }}>
+          <div style={{ fontSize: 40, marginBottom: 16 }}>📬</div>
+          <div className="bb" style={{ fontSize: 20, marginBottom: 8 }}>No open bids right now</div>
+          <div className="mo" style={{ color: 'var(--t2)' }}>No loads posted yet — check back soon.</div>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {loads.map((l) => (
+            <div key={l.id} className="load-card">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>{l.pu_city}, {l.pu_state} → {l.dl_city}, {l.dl_state}</div>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+                    <span className="chip ch-dim" style={{ fontSize: 9 }}>{l.position}</span>
+                    {(l.certs_required || []).slice(0, 3).map((c: string) => (
+                      <span key={c} className="chip ch-dim" style={{ fontSize: 9 }}>{c}</span>
+                    ))}
+                    <span className="chip ch-am" style={{ fontSize: 9 }}>OPEN BID</span>
+                    {bidCounts[l.id] > 0 && (
+                      <span className="chip ch-dim" style={{ fontSize: 9 }}>{bidCounts[l.id]} bid{bidCounts[l.id] !== 1 ? 's' : ''}</span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--t2)', display: 'flex', gap: 12 }}>
+                    {l.miles && <span>~{l.miles} mi</span>}
+                    {l.start_date && <span>📅 {new Date(l.start_date).toLocaleDateString()}</span>}
+                    <span className="mo">{l.pay_type}</span>
+                    <span className="mo">{timeAgo(l.created_at)}</span>
+                  </div>
+                </div>
+                <div>
+                  <button className="btn btn-am btn-sm" onClick={() => { setBidModal(l); setBidAmount('') }} style={{ fontSize: 10 }}>
+                    PLACE BID
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* BID MODAL */}
+      {bidModal && (
+        <div className="modal-overlay" onClick={() => setBidModal(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 420 }}>
+            <div className="bb" style={{ fontSize: 18, marginBottom: 12 }}>PLACE YOUR BID</div>
+            <div style={{ background: 'rgba(255,255,255,.04)', borderRadius: 6, padding: 14, marginBottom: 16 }}>
+              <div style={{ fontWeight: 600, marginBottom: 4 }}>{bidModal.pu_city}, {bidModal.pu_state} → {bidModal.dl_city}, {bidModal.dl_state}</div>
+              <div style={{ fontSize: 11, color: 'var(--t2)' }}>{bidModal.position} · {bidModal.pay_type}</div>
+            </div>
+            <div style={{ marginBottom: 16 }}>
+              <label className="mo" style={{ fontSize: 10, display: 'block', marginBottom: 6 }}>YOUR DAY RATE ($)</label>
+              <input
+                type="number"
+                className="input-field"
+                placeholder="e.g. 450"
+                value={bidAmount}
+                onChange={e => setBidAmount(e.target.value)}
+                style={{ width: '100%', fontSize: 16, fontWeight: 600 }}
+                min="0"
+              />
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button className="btn btn-am" style={{ flex: 1 }} onClick={handlePlaceBid} disabled={bidLoading}>
+                {bidLoading ? 'SUBMITTING...' : 'SUBMIT BID'}
+              </button>
+              <button className="btn" style={{ flex: 1 }} onClick={() => setBidModal(null)}>CANCEL</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 
 function EscortsPage({ setPage }: { setPage: (p: Page) => void }) {
   return (
@@ -2072,9 +2279,9 @@ export default function OEHPlatform() {
       <Ticker />
       <Nav page={page} setPage={setPage} user={user} profile={profile} onSignOut={handleSignOut} />
       {page === "home" && <HomePage setPage={setPage} user={user} profile={profile} />}
-      {page === "flatboard" && <FlatBoardPage setPage={setPage} />}
-      {page === "bidboard" && <BidBoardPage setPage={setPage} />}
-      {page === "openboard" && <OpenBidPage setPage={setPage} />}
+      {page === "flatboard" && <FlatBoardPage setPage={setPage} user={user} profile={profile} showToast={showToast} />}
+      {page === "bidboard" && <BidBoardPage setPage={setPage} user={user} profile={profile} showToast={showToast} />}
+      {page === "openboard" && <OpenBidPage setPage={setPage} user={user} profile={profile} showToast={showToast} />}
       {page === "escorts" && <EscortsPage setPage={setPage} />}
       {page === "escprofile" && <EscProfilePage setPage={setPage} />}
       {page === "postload" && <PostLoadPage setPage={setPage} user={user} profile={profile} showToast={showToast} />}
