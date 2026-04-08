@@ -8,8 +8,8 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env
 const PRICE_TO_TIER: Record<string, string> = {
   'price_1TF00LLmfugPCRbAl6sF0Oup': 'member',
   'price_1TF021LmfugPCRbA7CGgLhC0': 'pro',
-  'price_1TF0DiLmfugPCRbAPWsN2K5x': 'pro',
   'price_1TF0D4LmfugPCRbAd4hMO22R': 'member',
+  'price_1TF0DiLmfugPCRbAPWsN2K5x': 'pro',
 }
 
 export async function POST(req: NextRequest) {
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     if (!userId || !priceId) return NextResponse.json({ received: true })
 
     if (priceId === 'price_1TF0EILmfugPCRbAvM6Q5rhW') {
-      await supabase.from('profiles').update({ bgc_verified: true }).eq('id', userId)
+      await supabase.from('profiles').update({ bgc_pending: true }).eq('id', userId)
     } else {
       await supabase.from('profiles').update({
         tier: PRICE_TO_TIER[priceId] ?? 'member',
