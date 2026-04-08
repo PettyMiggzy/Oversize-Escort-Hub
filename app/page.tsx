@@ -982,7 +982,7 @@ function BidBoardPage({ setPage }: { setPage: (p: Page) => void }) {
                 <div style={{ textAlign: "center", minWidth: 120 }}>
                   {isLive && (
                     <>
-                      <div className={`bid-timer ${timerCls}`}>{fmtTimer(t)}</div>
+                      <div className={`bid-timer ${timerCls}`}>{fmtTimer(t)}</div>hh
                       <div className="mo" style={{ fontSize: 8, color: "var(--t2)", letterSpacing: ".1em", textTransform: "uppercase", marginBottom: 8 }}>Time Remaining</div>
                       <button className="btn btn-am btn-sm" style={{ width: "100%" }} onClick={() => setPage("pricing")}>🔒 BID (MEMBER)</button>
                     </>
@@ -1683,18 +1683,16 @@ function SignInPage({ setPage, showToast }: { setPage: (p: Page) => void; showTo
             <input type="text" placeholder="Your company name" value={company} onChange={(e) => setCompany(e.target.value)} />
           </div>
         )}
-        {mode === "signup" && (<>
-
         <button className="btn btn-or" style={{ width: "100%", justifyContent: "center", marginBottom: 12 }} onClick={handleSubmit} disabled={loading || !email || !password}>
           {loading ? "Please wait..." : mode === "signup" ? "Create Free Account →" : "Sign In →"}
         </button>
+        {mode === "signup" && (
         <div style={{ textAlign: "center" }}>
           <span className="mo" style={{ fontSize: 10, color: "var(--t2)" }}>{mode === "signup" ? "Already have an account? " : "Don't have an account? "}</span>
           <button onClick={() => setMode(mode === "signup" ? "signin" : "signup")} style={{ background: "none", border: "none", color: "var(--or)", fontFamily: "'DM Mono',monospace", fontSize: 10, cursor: "pointer" }}>
             {mode === "signup" ? "Sign In" : "Start Free Trial"}
           </button>
         </div>
-        </>
         )}
           {mode === "signin" && (
             <button onClick={() => handleForgotPassword()} style={{ background: "none", border: "none", color: "var(--t3)", fontFamily: "'DM Mono',monospace", fontSize: 9, cursor: "pointer", marginTop: 8, display: "block", width: "100%", textAlign: "center" }}>Forgot Password?</button>
