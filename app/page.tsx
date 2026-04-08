@@ -1492,90 +1492,103 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
   );
 }
 
-function CarrierDashPage({ setPage, user, profile }: { setPage: (p: Page) => void; user: User | null; profile: Profile | null }) {
-  const [tab, setTab] = useState("overview");
-  const [myLoads, setMyLoads] = useState<Load[]>([]);
+function CarrierDashPage({ setPage, user, profile, showToast }: { setPage: (p: Page) => void; user: User | null; profile: Profile | null; showToast: (msg: string, type: 'gr' | 'rd' | 'am') => void }) {
+  const [tab, setTab] = useState<'active'|'requests'|'history'>('active')
+  const [activeLoads, setActiveLoads] = useState<any[]>([])
+  const [matchRequests, setMatchRequests] = useState<any[]>([])
+  const [historyLoads, setHistoryLoads] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  
 
   useEffect(() => {
-    if (!user) return;
-    async function fetchMyLoads() {
-      const { data } = await supabase.from("loads").select("*").eq("carrier_id", user!.id).order("created_at", { ascending: false });
-      if (data) setMyLoads(data);
+    if (!user) return
+    loadData()
+  }, [user, tab])
+
+  async function loadData() {
+    if (!user) return
+    setLoading(true)
+    if (tab === 'active') {
+      const { data } = await supabase.from('loads').select('*').eq('posted_by', user.id).eq('status', 'active').order('created_at', { ascending: false })
+      setActiveLoads(data || [])
+    } else if (tab === 'requests') {
+      const { data } = await supabase.from('load_matches').select('*, loads(*), profiles!load_matches_escort_id_fkey(full_name, tier, bgc_verified, certs)').eq('status', 'pending').order('created_at', { ascending: false })
+      const mine = (data || []).filter((m: any) => m.loads?.posted_by === user.id)
+      setMatchRequests(mine)
+    } else if (tab === 'history') {
+      const { data } = await supabase.from('loads').select('*').eq('posted_by', user.id).in('status', ['filled', 'expired', 'cancelled']).order('created_at', { ascending: false })
+      setHistoryLoads(data || [])
     }
-    fetchMyLoads();
-  }, [user]);
+    setLoading(false)
+  }
+
+  async function handleAccept(matchId: string, loadId: string, escortId: string) {
+    await supabase.from('load_matches').update({ status: 'confirmed' }).eq('id', matchId)
+    await supabase.from('loads').update({ status: 'filled' }).eq('id', loadId)
+    showToast('Match confirmed! Both parties will receive contact info.', 'gr')
+    loadData()
+  }
+
+  async function handleDecline(matchId: string, loadId: string) {
+    await supabase.from('load_matches').update({ status: 'declined' }).eq('id', matchId)
+    await supabase.from('loads').update({ status: 'active' }).eq('id', loadId)
+    showToast('Request declined. Load is back on the board.', 'am')
+    loadData()
+  }
+
+  if (!user) return <div style={{ padding: 40, textAlign: 'center' }}>Please sign in to access your Carrier Hub.</div>
 
   const tabs = [
-    { id: "overview", label: "Overview" }, { id: "myloads", label: "My Loads" },
-    { id: "escorts", label: "Find Escorts" }, { id: "permits", label: "Permit Hub" },
-    { id: "dispute", label: "Dispute Center" },
-  ];
+    { id: 'active', label: 'My Active Loads' },
+    { id: 'requests', label: `Match Requests${matchRequests.length > 0 ? ` (${matchRequests.length})` : ''}` },
+    { id: 'history', label: 'Load History' },
+  ]
 
   return (
     <div className="dash-grid">
       <div className="dash-nav">
-        <div className="mo" style={{ fontSize: 9, letterSpacing: ".14em", textTransform: "uppercase", color: "var(--t3)", padding: "0 20px", marginBottom: 12 }}>Carrier Dashboard</div>
+        <div className="mo" style={{ fontSize: 9, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--t3)', padding: '0 20px', marginBottom: 12 }}>Carrier Hub</div>
         {tabs.map((t) => (
-          <div key={t.id} className={`dash-nav-item${tab === t.id ? " active" : ""}`} onClick={() => setTab(t.id)}>{t.label}</div>
+          <div key={t.id} className={`dash-nav-item${tab === t.id ? ' active' : ''}`} onClick={() => setTab(t.id as any)}>{t.label}</div>
         ))}
-        <div style={{ padding: "20px 20px 0", marginTop: 20, borderTop: "1px solid var(--l1)" }}>
-          <div className={`chip ${profile?.tier === "carrier_member" ? "ch-or" : "ch-dim"}`} style={{ fontSize: 8, marginBottom: 8 }}>
-            {(profile?.tier || "free").toUpperCase()}
+        <div style={{ padding: '20px 20px 0' }}>
+          <button className="btn btn-am" style={{ width: '100%' }} onClick={() => setPage('postload')}>+ POST A LOAD</button>
+        </div>
+        <div style={{ marginTop: 20, padding: '0 20px' }}>
+          <div className={`chip ${profile?.tier === 'carrier_member' ? 'ch-or' : 'ch-dim'}`} style={{ fontSize: 8, marginBottom: 8 }}>
+            {(profile?.tier || 'free').toUpperCase()}
           </div>
-          <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 2 }}>{profile?.company_name || profile?.full_name || "Your Company"}</div>
-          <div className="mo" style={{ fontSize: 9, color: "var(--t2)" }}>Pay Score: New</div>
-          {profile?.tier === "free" && (
-            <button className="btn btn-or btn-sm" style={{ marginTop: 12, width: "100%", fontSize: 8 }} onClick={() => setPage("pricing")}>Upgrade →</button>
-          )}
+          <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 2 }}>{profile?.company_name || profile?.full_name || 'Your Company'}</div>
+          <div className="mo" style={{ fontSize: 9, color: 'var(--t2)' }}>Carrier Account</div>
         </div>
       </div>
-      <div className="dash-content">
-        {tab === "overview" && (
+      <div style={{ padding: '20px 20px 0', marginTop: 20, borderTop: '1px solid var(--l1)' }}>
+        {tab === 'active' && (
           <>
-            <div className="bb" style={{ fontSize: 24, marginBottom: 20 }}>OVERVIEW</div>
-            <div className="metric-grid">
-              {[[myLoads.length.toString(), "Total Loads Posted", "var(--or)"], [myLoads.filter(l => l.status === "open").length.toString(), "Active Loads", "var(--gr)"], ["New", "Carrier Pay Score", "var(--gr)"], ["—", "Avg Fill Time", "var(--bl)"]].map(([n, l, c]) => (
-                <div key={l} className="metric">
-                  <div className="metric-n" style={{ color: c }}>{n}</div>
-                  <div className="metric-l">{l}</div>
-                </div>
-              ))}
-            </div>
-            <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
-              <button className="btn btn-or btn-sm" onClick={() => setPage("postload")}>+ Post New Load</button>
-              <button className="btn btn-ghost btn-sm" onClick={() => setPage("escorts")}>Find Escorts</button>
-            </div>
-            {myLoads.length === 0 && (
-              <div style={{ background: "rgba(255,98,0,.06)", border: "1px solid rgba(255,98,0,.15)", borderRadius: 4, padding: 24, textAlign: "center" }}>
-                <div className="bb" style={{ fontSize: 24, color: "var(--or)", marginBottom: 8 }}>POST YOUR FIRST LOAD</div>
-                <p className="mo" style={{ fontSize: 10, color: "var(--t2)", marginBottom: 16 }}>Be the first carrier in your region. Verified escorts are waiting.</p>
-                <button className="btn btn-or" onClick={() => setPage("postload")}>Post a Load Free →</button>
-              </div>
-            )}
-          </>
-        )}
-        {tab === "myloads" && (
-          <>
-            <div className="bb" style={{ fontSize: 24, marginBottom: 20 }}>MY LOADS</div>
-            {myLoads.length === 0 ? (
-              <div style={{ textAlign: "center", padding: 40 }}>
-                <div className="mo" style={{ fontSize: 11, color: "var(--t2)", marginBottom: 16 }}>No loads posted yet</div>
-                <button className="btn btn-or btn-sm" onClick={() => setPage("postload")}>+ Post a Load</button>
+            <div className="bb" style={{ fontSize: 20, marginBottom: 16 }}>MY ACTIVE LOADS</div>
+            {loading ? <div className="mo" style={{ color: 'var(--t2)' }}>Loading...</div> : activeLoads.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+                <div style={{ fontSize: 32, marginBottom: 12 }}>📋</div>
+                <div className="bb" style={{ fontSize: 16, marginBottom: 8 }}>No active loads posted</div>
+                <div className="mo" style={{ fontSize: 11, color: 'var(--t2)', marginBottom: 20 }}>Post a load to start finding escorts</div>
+                <button className="btn btn-am" onClick={() => setPage('postload')}>POST YOUR FIRST LOAD →</button>
               </div>
             ) : (
               <div className="data-table">
                 <table>
-                  <thead><tr><th>Load ID</th><th>Route</th><th>Miles</th><th>Rate</th><th>Position</th><th>Board</th><th>Status</th></tr></thead>
+                  <thead><tr>
+                    <th>Route</th><th>Date</th><th>Position</th><th>Certs</th><th>Pay Terms</th><th>Rate</th><th>Status</th>
+                  </tr></thead>
                   <tbody>
-                    {myLoads.map((l) => (
+                    {activeLoads.map((l) => (
                       <tr key={l.id}>
-                        <td className="mo" style={{ fontSize: 9, color: "var(--t2)" }}>{l.id.slice(0, 8).toUpperCase()}</td>
-                        <td style={{ fontWeight: 500, fontSize: 12 }}>{l.pu_city}, {l.pu_state} → {l.dl_city}, {l.dl_state}</td>
-                        <td className="mo">{l.miles || "—"}</td>
-                        <td className="mo" style={{ color: "var(--gr)" }}>${l.per_mile_rate.toFixed(2)}/mi</td>
-                        <td style={{ fontSize: 10 }}>{l.position}</td>
-                        <td><span className={`chip ${l.board_type === "flat" ? "ch-gr" : l.board_type === "bid" ? "ch-am" : "ch-bl"}`}>{l.board_type.toUpperCase()}</span></td>
-                        <td>{l.status === "open" ? <span className="chip ch-gr">OPEN</span> : l.status === "filled" ? <span className="chip ch-dim">FILLED</span> : <span className="chip ch-rd">CANCELLED</span>}</td>
+                        <td style={{ fontWeight: 500 }}>{l.pu_city}, {l.pu_state} → {l.dl_city}, {l.dl_state}</td>
+                        <td className="mo" style={{ fontSize: 10 }}>{l.start_date ? new Date(l.start_date).toLocaleDateString() : '—'}</td>
+                        <td>{l.position}</td>
+                        <td style={{ fontSize: 10 }}>{(l.certs_required || []).slice(0, 3).join(', ')}{(l.certs_required || []).length > 3 ? '...' : ''}</td>
+                        <td className="mo" style={{ fontSize: 10 }}>{l.pay_type}</td>
+                        <td style={{ color: 'var(--gr)', fontWeight: 600 }}>{l.per_mile_rate ? `$${l.per_mile_rate}/mi` : l.day_rate ? `$${l.day_rate}/day` : '—'}</td>
+                        <td><span className="chip ch-gr" style={{ fontSize: 8 }}>ACTIVE</span></td>
                       </tr>
                     ))}
                   </tbody>
@@ -1584,32 +1597,82 @@ function CarrierDashPage({ setPage, user, profile }: { setPage: (p: Page) => voi
             )}
           </>
         )}
-        {tab === "escorts" && (
+        {tab === 'requests' && (
           <>
-            <div className="bb" style={{ fontSize: 24, marginBottom: 20 }}>FIND ESCORTS</div>
-            <EarlyBanner role="carrier" />
-            <div className="esc-grid">
-              {SEED_ESCORTS.map((e) => <EscortCard key={e.id} e={e} setPage={setPage} />)}
-            </div>
+            <div className="bb" style={{ fontSize: 20, marginBottom: 16 }}>MATCH REQUESTS</div>
+            {loading ? <div className="mo" style={{ color: 'var(--t2)' }}>Loading...</div> : matchRequests.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+                <div style={{ fontSize: 32, marginBottom: 12 }}>🤝</div>
+                <div className="bb" style={{ fontSize: 16, marginBottom: 8 }}>No pending match requests</div>
+                <div className="mo" style={{ fontSize: 11, color: 'var(--t2)' }}>When escorts request your loads, they'll appear here</div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {matchRequests.map((m: any) => (
+                  <div key={m.id} style={{ background: 'rgba(245,162,0,.05)', border: '1px solid rgba(245,162,0,.15)', borderRadius: 8, padding: 16 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                      <div>
+                        <div style={{ fontWeight: 600, marginBottom: 4 }}>{m.profiles?.full_name || 'Unknown Escort'}</div>
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                          <span className={`chip ${m.profiles?.tier === 'pro' ? 'ch-am' : 'ch-dim'}`} style={{ fontSize: 8 }}>{(m.profiles?.tier || 'member').toUpperCase()}</span>
+                          {m.profiles?.bgc_verified && <span className="chip ch-gr" style={{ fontSize: 8 }}>✓ BGC</span>}
+                          {(m.profiles?.certs || []).slice(0, 3).map((c: string) => (
+                            <span key={c} className="chip ch-dim" style={{ fontSize: 8 }}>{c}</span>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="mo" style={{ fontSize: 9, color: 'var(--t2)' }}>{new Date(m.created_at).toLocaleDateString()}</div>
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--t2)', marginBottom: 12 }}>
+                      Load: {m.loads?.pu_city}, {m.loads?.pu_state} → {m.loads?.dl_city}, {m.loads?.dl_state} | {m.loads?.position}
+                    </div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button className="btn btn-am btn-sm" onClick={() => handleAccept(m.id, m.load_id, m.escort_id)} style={{ flex: 1 }}>✓ ACCEPT</button>
+                      <button className="btn btn-sm" style={{ flex: 1, background: 'rgba(255,53,53,.1)', color: 'var(--rd)', border: '1px solid rgba(255,53,53,.2)' }} onClick={() => handleDecline(m.id, m.load_id)}>✗ DECLINE</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </>
         )}
-        {tab === "permits" && (
+        {tab === 'history' && (
           <>
-            <div className="bb" style={{ fontSize: 24, marginBottom: 20 }}>PERMIT MANAGEMENT HUB</div>
-            <div className="mo" style={{ fontSize: 10, color: "var(--t2)" }}>No permits tracked yet. Post a load and permits will appear here.</div>
-          </>
-        )}
-        {tab === "dispute" && (
-          <>
-            <div className="bb" style={{ fontSize: 24, marginBottom: 20 }}>DISPUTE CENTER</div>
-            <div className="mo" style={{ fontSize: 10, color: "var(--t2)", marginBottom: 16 }}>No open disputes.</div>
-            <button className="btn btn-or btn-sm">+ File New Dispute</button>
+            <div className="bb" style={{ fontSize: 20, marginBottom: 16 }}>LOAD HISTORY</div>
+            {loading ? <div className="mo" style={{ color: 'var(--t2)' }}>Loading...</div> : historyLoads.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+                <div style={{ fontSize: 32, marginBottom: 12 }}>📁</div>
+                <div className="bb" style={{ fontSize: 16, marginBottom: 8 }}>No load history yet</div>
+                <div className="mo" style={{ fontSize: 11, color: 'var(--t2)' }}>Completed and expired loads will appear here</div>
+              </div>
+            ) : (
+              <div className="data-table">
+                <table>
+                  <thead><tr>
+                    <th>Route</th><th>Date</th><th>Position</th><th>Pay Terms</th><th>Rate</th><th>Status</th>
+                  </tr></thead>
+                  <tbody>
+                    {historyLoads.map((l) => (
+                      <tr key={l.id}>
+                        <td style={{ fontWeight: 500 }}>{l.pu_city}, {l.pu_state} → {l.dl_city}, {l.dl_state}</td>
+                        <td className="mo" style={{ fontSize: 10 }}>{l.start_date ? new Date(l.start_date).toLocaleDateString() : '—'}</td>
+                        <td>{l.position}</td>
+                        <td className="mo" style={{ fontSize: 10 }}>{l.pay_type}</td>
+                        <td>{l.per_mile_rate ? `$${l.per_mile_rate}/mi` : l.day_rate ? `$${l.day_rate}/day` : '—'}</td>
+                        <td><span className={`chip ${l.status === 'filled' ? 'ch-gr' : 'ch-dim'}`} style={{ fontSize: 8 }}>{l.status?.toUpperCase()}</span></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </>
         )}
       </div>
     </div>
-  );
+  )
 }
+
 
 // ─── PRICING PAGE ─────────────────────────────────────────────────────────────
 
@@ -2015,6 +2078,7 @@ export default function OEHPlatform() {
       {page === "escorts" && <EscortsPage setPage={setPage} />}
       {page === "escprofile" && <EscProfilePage setPage={setPage} />}
       {page === "postload" && <PostLoadPage setPage={setPage} user={user} profile={profile} showToast={showToast} />}
+        {page === "dashboard-c" && <CarrierDashPage setPage={setPage} user={user} profile={profile} showToast={showToast} />}
         {page === "dashboard-e" && <EscortDashPage setPage={setPage} profile={profile} />}
         {page === "admin" && <AdminPage setPage={setPage} user={user} profile={profile} />}
       <Footer setPage={setPage} />
