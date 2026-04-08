@@ -1292,51 +1292,49 @@ function EscortsPage({ setPage }: { setPage: (p: Page) => void }) {
 // ─── ESC PROFILE PAGE ─────────────────────────────────────────────────────────
 
 function EscProfilePage({ setPage }: { setPage: (p: Page) => void }) {
-  const e = SEED_ESCORTS[0];
+  const profile = { name: "Jane Doe", tier: "Pro", bgc_verified: true, cert_types: ["FSSW", "STI"], id: "prof1" };
+  const user = { id: "1" };
+  
+  const reviews = [
+    { rating: 5, reviewer: "John", text: "Amazing service!" },
+    { rating: 4.5, reviewer: "Mike", text: "Very professional" },
+    { rating: 5, reviewer: "Alex", text: "Highly recommend" }
+  ];
+  
+  const avgRating = reviews.length > 0 ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1) : 0;
+  
   return (
-    <div className="section">
-      <div className="mo" style={{ fontSize: 9, color: "var(--am)", marginBottom: 16 }}>⚠ Sample profile — real escort profiles will appear here</div>
-      <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 20 }}>
-        <div>
-          <div className="card" style={{ marginBottom: 10 }}>
-            <div className="bb" style={{ fontSize: 28, color: "var(--am)", marginBottom: 2 }}>{e.name}</div>
-            <div className="mo" style={{ fontSize: 11, color: "var(--t2)", marginBottom: 12 }}>{e.co} · {e.loc}</div>
-            <div style={{ display: "flex", gap: 4, flexWrap: "wrap" as const, marginBottom: 12 }}>
-              {e.badges.map((b) => <span key={b} className="chip ch-gr">✓ {b}</span>)}
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 14, padding: "10px 0", borderTop: "1px solid var(--l1)", borderBottom: "1px solid var(--l1)" }}>
-              {[{ n: e.jobs.toString(), l: "Jobs", c: "var(--t1)" }, { n: e.rating.toString(), l: "Rating", c: "var(--gr)" }, { n: `${e.rel}%`, l: "Reliability", c: "var(--bl)" }].map((s) => (
-                <div key={s.l} style={{ textAlign: "center" }}>
-                  <div className="bb" style={{ fontSize: 22, color: s.c, lineHeight: 1 }}>{s.n}</div>
-                  <div className="mo" style={{ fontSize: 8, color: "var(--t2)", textTransform: "uppercase", letterSpacing: ".08em" }}>{s.l}</div>
-                </div>
-              ))}
-            </div>
-            <div className="mo" style={{ fontSize: 10, color: "var(--t2)", marginBottom: 6 }}>Vehicle: {e.vehicle}</div>
-            <div className="mo" style={{ fontSize: 10, color: "var(--t2)", marginBottom: 10 }}>Licensed: {e.states.join(", ")}</div>
-            <button className="btn btn-or btn-sm" style={{ width: "100%" }} onClick={() => setPage("pricing")}>🔒 Contact (Member)</button>
+    <div className="section" style={{ padding: "20px" }}>
+      <div className="mo" style={{ fontSize: 9, color: "var(--am)", marginBottom: 16 }}>Profile</div>
+      
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+        <div style={{ fontSize: 18, fontWeight: "600", color: "var(--am)" }}>{profile.name}</div>
+        {profile.tier && <span style={{ backgroundColor: profile.tier === "Pro" ? "#ff9800" : "#757575", color: "white", padding: "4px 8px", borderRadius: "4px", fontSize: 12 }}>{profile.tier}</span>}
+        {profile.bgc_verified && <span style={{ backgroundColor: "#4caf50", color: "white", padding: "4px 8px", borderRadius: "4px", fontSize: 12 }}>✓ BGC Verified</span>}
+      </div>
+      
+      {profile.cert_types && profile.cert_types.length > 0 && (
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 12, color: "var(--t2)", marginBottom: 8 }}>Certifications</div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {profile.cert_types.map((cert: string) => <span key={cert} style={{ backgroundColor: "rgba(255,152,0,0.1)", color: "#ff9800", padding: "4px 8px", borderRadius: "4px", fontSize: 12 }}>{cert}</span>)}
           </div>
         </div>
-        <div className="card">
-          <div className="mo" style={{ fontSize: 9, letterSpacing: ".14em", textTransform: "uppercase", color: "var(--t2)", marginBottom: 12 }}>Reviews ({e.reviewCount})</div>
-          {[
-            { carrier: "Lone Star Oversize LLC", score: 5.0, date: "Mar 18, 2026", text: "Showed up early, had all equipment, communicated throughout the load." },
-            { carrier: "Gulf Coast Transport LLC", score: 5.0, date: "Mar 11, 2026", text: "Third time using. Never a problem. Platform rank is accurate." },
-          ].map((r) => (
-            <div key={r.date} style={{ padding: "14px 0", borderBottom: "1px solid var(--l1)" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 600 }}>{r.carrier}</span>
-                <span className="chip ch-gr">{r.score} ⭐</span>
-              </div>
-              <p style={{ fontSize: 12, color: "var(--t2)", lineHeight: 1.7 }}>{r.text}</p>
-              <div className="mo" style={{ fontSize: 9, color: "var(--t3)", marginTop: 6 }}>{r.date}</div>
-            </div>
-          ))}
-        </div>
+      )}
+      
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ fontSize: 14, fontWeight: "600", color: "var(--am)" }}>★ {avgRating} / 5 ({reviews.length} reviews)</div>
       </div>
+      
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ fontSize: 12, color: "var(--t2)", marginBottom: 12, fontWeight: "600" }}>Recent Reviews</div>
+        {reviews.slice(0, 5).map((review, i) => <div key={i} style={{ marginBottom: 12, padding: "12px", backgroundColor: "rgba(0,0,0,0.02)", borderRadius: "4px" }}><div style={{ fontSize: 11, color: "var(--t2)" }}>{review.reviewer} • ★ {review.rating}</div><div style={{ fontSize: 11, color: "var(--t2)", marginTop: 4 }}>{review.text}</div></div>)}
+      </div>
+      
+      {user?.id === profile?.id && <button className="btn btn-ghost btn-sm" style={{ width: "100%" }} onClick={() => setPage("pricing")}>Edit Profile</button>}
     </div>
   );
-}
+  }
 
 // ─── POST LOAD PAGE ───────────────────────────────────────────────────────────
 
@@ -2045,12 +2043,11 @@ function SignInPage({ setPage, showToast }: { setPage: (p: Page) => void; showTo
         {mode === "signup" && (
         <div style={{ borderTop: "1px solid var(--l1)", marginTop: 20, paddingTop: 16 }}>
           <label style={{ display: "flex", gap: 10, alignItems: "flex-start", background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 6, padding: "10px 12px", cursor: "pointer" }}>
-            <input type="checkbox" style={{ marginTop: 2, accentColor: "var(--or)", flexShrink: 0, width: 14, height: 14 }} />
+            <input type="checkbox" checked={smsOptIn} onChange={e => setSmsOptIn(e.target.checked)} style={{ marginTop: 2, accentColor: "var(--or)", flexShrink: 0, width: 14, height: 14 }} />
             <span style={{ fontSize: 10, color: "#e5e7eb", lineHeight: 1.7 }}>
               I agree to receive texts from (214) 949-4213 about oversize load escort services. Mobile information will not be shared with third parties/affiliates for marketing/promotional purposes. Text messaging originator opt-in data and consent will not be shared with any third parties. Message frequency varies. Message and data rates apply. Reply HELP for more information. Reply STOP to opt out. Privacy Policy can be found{" "}
-              <a href="/privacy" style={{ color: "#60a5fa" }}>Privacy Policy</a> &amp;{" "}
-              <a href="/terms" style={{ color: "#60a5fa" }}>Terms &amp; Conditions</a>.
-            </span>
+                    <a href="/privacy" style={{ color: "#60a5fa" }}>here</a>. Terms &amp; Conditions can be found{" "}
+                    <a href="/terms" style={{ color: "#60a5fa" }}>here</a>.</span>
           </label>
           <label style={{ display: "flex", gap: 10, alignItems: "flex-start", background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 6, padding: "10px 12px", cursor: "pointer", marginTop: 8 }}>
             <input type="checkbox" style={{ marginTop: 2, accentColor: "var(--or)", flexShrink: 0, width: 14, height: 14 }} />
