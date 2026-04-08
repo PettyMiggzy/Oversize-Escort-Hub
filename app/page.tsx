@@ -1627,7 +1627,7 @@ function SignInPage({ setPage, showToast }: { setPage: (p: Page) => void; showTo
     if (!email) { showToast("Enter your email address first", "rd"); return; }
     const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + "/auth/callback" });
     if (error) showToast(error.message, "rd");
-    else showToast("Password reset email sent! Check your inbox.", "gr");
+    else showToast("Password reset email sent! Check your inbox and spam/junk folder.", "gr");
   }
 
   async function handleSubmit() {
