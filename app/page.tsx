@@ -1229,11 +1229,8 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
         {([["flat", "var(--gr)", "First to respond wins"], ["bid", "var(--am)", "5-min price competition"], ["open", "var(--bl)", "You pick the escort"]] as const).map(([type, c, desc]) => (
           <div key={type} className="card" style={{ flex: 1, borderTop: `2px solid ${c}`, cursor: "pointer", opacity: boardType === type ? 1 : 0.5 }} onClick={() => setBoardType(type)}>
             <div className="bb" style={{ fontSize: 16, color: c, marginBottom: 4 }}>{type === "flat" ? "Flat Rate" : type === "bid" ? "5-Min Bid" : "Open Bid"}</div>
-          <div key={k} className="form-field">
-            <label className="form-label">{label}</label>
-            <input type={type} placeholder={label} value={form[k] as string} onChange={(e) => set(k, e.target.value)} style={{ width: "100%" }} />
-          </div>
-        ))}
+				</div>
+				))}
         <div className="form-field">
           <label className="form-label">Position Required</label>
           <select style={{ width: "100%" }} value={form.position} onChange={(e) => set("position", e.target.value)}>
@@ -1341,6 +1338,5 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
                 <button className="btn btn-ghost" onClick={() => setPage("home")}>Cancel</button>
             </div>
         </div>
-    </div>
 	);
 }
