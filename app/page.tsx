@@ -1142,7 +1142,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
   const [boardType, setBoardType] = useState<"flat" | "bid" | "open">("flat");
   const [form, setForm] = useState({
     puCity: "", puState: "", dlCity: "", dlState: "",
-    rate: "2.00", position: "Lead", payTerm: "FastPay", payTermCustom: "",
+    rate: "2.00", positions: ["Lead"], payTerm: "FastPay", payTermCustom: "",
     notes: "", startDate: "", permitFile: null as File | null,
 				certTypes: [] as string[], certOther: "",
   });
@@ -1156,6 +1156,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
   async function handleSubmit() {
     if (!user || !profile) { setPage("signin"); return; }
     if (!form.puCity || !form.puState || !form.dlCity || !form.dlState) {
+        if (form.positions.length === 0) { showToast("Please select at least one escort position", "rd"); return; }
       showToast("Please fill in origin and destination", "rd"); return;
     }
     setSaving(true);
@@ -1171,28 +1172,34 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
 				const { data: urlData } = supabase.storage.from("permits").getPublicUrl(upData.path);
 				permit_url = urlData.publicUrl;
 			}
-    const { error } = await supabase.from("loads").insert({
-      carrier_id: user.id,
-      board_type: boardType,
-      pu_city: form.puCity,
-      pu_state: form.puState.toUpperCase(),
-      dl_city: form.dlCity,
-      dl_state: form.dlState.toUpperCase(),
-      position: form.position,
-				pay_term: form.payTerm === "Custom" ? (form.payTermCustom || "Custom") : form.payTerm,
-      per_mile_rate: parseFloat(form.rate) || 2.00,
-      day_rate: 500,
-      overnight_fee: 100,
-      no_go_fee: 250,
-				cert_types: form.certTypes,
-      notes: form.notes || null,
-				permit_url: permit_url,
-      start_date: form.startDate || null,
-      status: "open",
-      poster_company: profile.company_name,
-      poster_rating: profile.rating || null,
-      poster_jobs: profile.total_jobs || null,
-    });
+        // Insert one load card per selected escort position
+        let firstError = null;
+        for (const pos of form.positions) {
+          const { error: posErr } = await supabase.from("loads").insert({
+        carrier_id: user.id,
+        board_type: boardType,
+        pu_city: form.puCity,
+        pu_state: form.puState.toUpperCase(),
+        dl_city: form.dlCity,
+        dl_state: form.dlState.toUpperCase(),
+        position: pos,
+  				pay_term: form.payTerm === "Custom" ? (form.payTermCustom || "Custom") : form.payTerm,
+        per_mile_rate: parseFloat(form.rate) || 2.00,
+        day_rate: 500,
+        overnight_fee: 100,
+        no_go_fee: 250,
+  				cert_types: form.certTypes,
+        notes: form.notes || null,
+  				permit_url: permit_url,
+        start_date: form.startDate || null,
+        status: "open",
+        poster_company: profile.company_name,
+        poster_rating: profile.rating || null,
+        poster_jobs: profile.total_jobs || null,
+          });
+          if (posErr && !firstError) firstError = posErr;
+        }
+        const error = firstError;
     setSaving(false);
     if (error) {
       showToast("Error posting load: " + error.message, "rd");
@@ -1231,12 +1238,67 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
             <div className="bb" style={{ fontSize: 16, color: c, marginBottom: 4 }}>{type === "flat" ? "Flat Rate" : type === "bid" ? "5-Min Bid" : "Open Bid"}</div>
 				</div>
 				))}
-        <div className="form-field">
-          <label className="form-label">Position Required</label>
-          <select style={{ width: "100%" }} value={form.position} onChange={(e) => set("position", e.target.value)}>
-            <option>Lead</option><option>Rear</option><option value="Lead+Rear">Lead + Rear</option><option value="Lead+Rear+HighPole">Lead + Rear + High Pole</option>
-          </select>
-        </div>
+            <div className="form-field">
+              <label className="form-label">Escort Positions Required <span className="mo" style={{ fontSize: 10, color: "var(--t2)", fontWeight: 400 }}>(select all that apply)</span></label>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", padding: "4px 6px", borderRadius: 4, background: form.positions.includes("Lead") ? "rgba(245,162,0,0.10)" : "rgba(255,255,255,0.03)", border: `1px solid ${form.positions.includes("Lead") ? "rgba(245,162,0,0.45)" : "rgba(255,255,255,0.07)"}`, transition: "all 0.15s" }}>
+                  <input type="checkbox" checked={form.positions.includes("Lead")} onChange={(e) => {
+                    const next = e.target.checked ? [...form.positions, "Lead"] : form.positions.filter((x: string) => x !== "Lead");
+                    setForm(f => ({ ...f, positions: next }))
+                  }} style={{ accentColor: "var(--or)" }} />
+                  <span className="mo" style={{ fontSize: 10, color: form.positions.includes("Lead") ? "var(--or)" : "var(--t2)", letterSpacing: ".02em" }}>Lead</span>
+                </label>
+                <label style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", padding: "4px 6px", borderRadius: 4, background: form.positions.includes("Rear") ? "rgba(245,162,0,0.10)" : "rgba(255,255,255,0.03)", border: `1px solid ${form.positions.includes("Rear") ? "rgba(245,162,0,0.45)" : "rgba(255,255,255,0.07)"}`, transition: "all 0.15s" }}>
+                  <input type="checkbox" checked={form.positions.includes("Rear")} onChange={(e) => {
+                    const next = e.target.checked ? [...form.positions, "Rear"] : form.positions.filter((x: string) => x !== "Rear");
+                    setForm(f => ({ ...f, positions: next }))
+                  }} style={{ accentColor: "var(--or)" }} />
+                  <span className="mo" style={{ fontSize: 10, color: form.positions.includes("Rear") ? "var(--or)" : "var(--t2)", letterSpacing: ".02em" }}>Rear</span>
+                </label>
+                <label style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", padding: "4px 6px", borderRadius: 4, background: form.positions.includes("Chase") ? "rgba(245,162,0,0.10)" : "rgba(255,255,255,0.03)", border: `1px solid ${form.positions.includes("Chase") ? "rgba(245,162,0,0.45)" : "rgba(255,255,255,0.07)"}`, transition: "all 0.15s" }}>
+                  <input type="checkbox" checked={form.positions.includes("Chase")} onChange={(e) => {
+                    const next = e.target.checked ? [...form.positions, "Chase"] : form.positions.filter((x: string) => x !== "Chase");
+                    setForm(f => ({ ...f, positions: next }))
+                  }} style={{ accentColor: "var(--or)" }} />
+                  <span className="mo" style={{ fontSize: 10, color: form.positions.includes("Chase") ? "var(--or)" : "var(--t2)", letterSpacing: ".02em" }}>Chase</span>
+                </label>
+                <label style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", padding: "4px 6px", borderRadius: 4, background: form.positions.includes("High Pole") ? "rgba(245,162,0,0.10)" : "rgba(255,255,255,0.03)", border: `1px solid ${form.positions.includes("High Pole") ? "rgba(245,162,0,0.45)" : "rgba(255,255,255,0.07)"}`, transition: "all 0.15s" }}>
+                  <input type="checkbox" checked={form.positions.includes("High Pole")} onChange={(e) => {
+                    const next = e.target.checked ? [...form.positions, "High Pole"] : form.positions.filter((x: string) => x !== "High Pole");
+                    setForm(f => ({ ...f, positions: next }))
+                  }} style={{ accentColor: "var(--or)" }} />
+                  <span className="mo" style={{ fontSize: 10, color: form.positions.includes("High Pole") ? "var(--or)" : "var(--t2)", letterSpacing: ".02em" }}>High Pole</span>
+                </label>
+                <label style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", padding: "4px 6px", borderRadius: 4, background: form.positions.includes("Rear Steer") ? "rgba(245,162,0,0.10)" : "rgba(255,255,255,0.03)", border: `1px solid ${form.positions.includes("Rear Steer") ? "rgba(245,162,0,0.45)" : "rgba(255,255,255,0.07)"}`, transition: "all 0.15s" }}>
+                  <input type="checkbox" checked={form.positions.includes("Rear Steer")} onChange={(e) => {
+                    const next = e.target.checked ? [...form.positions, "Rear Steer"] : form.positions.filter((x: string) => x !== "Rear Steer");
+                    setForm(f => ({ ...f, positions: next }))
+                  }} style={{ accentColor: "var(--or)" }} />
+                  <span className="mo" style={{ fontSize: 10, color: form.positions.includes("Rear Steer") ? "var(--or)" : "var(--t2)", letterSpacing: ".02em" }}>Rear Steer</span>
+                </label>
+                <label style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", padding: "4px 6px", borderRadius: 4, background: form.positions.includes("Lineman") ? "rgba(245,162,0,0.10)" : "rgba(255,255,255,0.03)", border: `1px solid ${form.positions.includes("Lineman") ? "rgba(245,162,0,0.45)" : "rgba(255,255,255,0.07)"}`, transition: "all 0.15s" }}>
+                  <input type="checkbox" checked={form.positions.includes("Lineman")} onChange={(e) => {
+                    const next = e.target.checked ? [...form.positions, "Lineman"] : form.positions.filter((x: string) => x !== "Lineman");
+                    setForm(f => ({ ...f, positions: next }))
+                  }} style={{ accentColor: "var(--or)" }} />
+                  <span className="mo" style={{ fontSize: 10, color: form.positions.includes("Lineman") ? "var(--or)" : "var(--t2)", letterSpacing: ".02em" }}>Lineman</span>
+                </label>
+                <label style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", padding: "4px 6px", borderRadius: 4, background: form.positions.includes("Route Survey") ? "rgba(245,162,0,0.10)" : "rgba(255,255,255,0.03)", border: `1px solid ${form.positions.includes("Route Survey") ? "rgba(245,162,0,0.45)" : "rgba(255,255,255,0.07)"}`, transition: "all 0.15s" }}>
+                  <input type="checkbox" checked={form.positions.includes("Route Survey")} onChange={(e) => {
+                    const next = e.target.checked ? [...form.positions, "Route Survey"] : form.positions.filter((x: string) => x !== "Route Survey");
+                    setForm(f => ({ ...f, positions: next }))
+                  }} style={{ accentColor: "var(--or)" }} />
+                  <span className="mo" style={{ fontSize: 10, color: form.positions.includes("Route Survey") ? "var(--or)" : "var(--t2)", letterSpacing: ".02em" }}>Route Survey</span>
+                </label>
+                <label style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", padding: "4px 6px", borderRadius: 4, background: form.positions.includes("Flagger") ? "rgba(245,162,0,0.10)" : "rgba(255,255,255,0.03)", border: `1px solid ${form.positions.includes("Flagger") ? "rgba(245,162,0,0.45)" : "rgba(255,255,255,0.07)"}`, transition: "all 0.15s" }}>
+                  <input type="checkbox" checked={form.positions.includes("Flagger")} onChange={(e) => {
+                    const next = e.target.checked ? [...form.positions, "Flagger"] : form.positions.filter((x: string) => x !== "Flagger");
+                    setForm(f => ({ ...f, positions: next }))
+                  }} style={{ accentColor: "var(--or)" }} />
+                  <span className="mo" style={{ fontSize: 10, color: form.positions.includes("Flagger") ? "var(--or)" : "var(--t2)", letterSpacing: ".02em" }}>Flagger</span>
+                </label>
+              </div>
+            </div>
             <div className="form-field">
                 <label className="form-label">Pay Terms</label>
                 <select value={form.payTerm} onChange={(e) => setForm(f => ({ ...f, payTerm: e.target.value }))} style={{ width: "100%" }}>
