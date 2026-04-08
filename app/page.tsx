@@ -1341,4 +1341,66 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
 	);
 }
 
-export default HomePage;
+export default function OEHPlatform() {
+  const [page, setPage] = useState<Page>("home");
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [toast, setToast] = useState<{ msg: string; type: "gr" | "rd" | "am" } | null>(null);
+  const [loadingAuth, setLoadingAuth] = useState(true);
+
+  function showToast(msg: string, type: "gr" | "rd" | "am") {
+    setToast({ msg, type });
+  }
+
+  async function loadProfile(userId: string) {
+    const { data } = await supabase.from("profiles").select("*").eq("id", userId).single();
+    if (data) setProfile(data as Profile);
+  }
+
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      if (session?.user) loadProfile(session.user.id);
+      setLoadingAuth(false);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        loadProfile(session.user.id);
+      } else {
+        setProfile(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  async function handleSignOut() {
+    await supabase.auth.signOut();
+    setUser(null);
+    setProfile(null);
+    setPage("home");
+    showToast("Signed out successfully", "gr");
+  }
+
+
+  return (
+    <>
+      <style>{CSS}</style>
+      <Ticker />
+      <Nav page={page} setPage={setPage} user={user} profile={profile} onSignOut={handleSignOut} />
+      {page === "home" && <HomePage setPage={setPage} user={user} profile={profile} />}
+      {page === "flatboard" && <FlatBoardPage setPage={setPage} />}
+      {page === "bidboard" && <BidBoardPage setPage={setPage} />}
+      {page === "openboard" && <OpenBidPage setPage={setPage} />}
+      {page === "escorts" && <EscortsPage setPage={setPage} />}
+      {page === "escprofile" && <EscProfilePage setPage={setPage} />}
+      {page === "postload" && <PostLoadPage setPage={setPage} user={user} profile={profile} showToast={showToast} />}
+      <Footer setPage={setPage} />
+      {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+    </>
+  );
+}
