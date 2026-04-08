@@ -2276,6 +2276,9 @@ export default function OEHPlatform() {
       <Ticker />
       <Nav page={page} setPage={setPage} user={user} profile={profile} onSignOut={handleSignOut} />
       {page === "home" && <HomePage setPage={setPage} user={user} profile={profile} />}
+      {page === "signin" && <SignInPage setPage={setPage} showToast={showToast} />}
+      {page === "pricing" && <PricingPage setPage={setPage} />}
+      {page === "verification" && <VerificationPage />}
       {page === "flatboard" && <FlatBoardPage setPage={setPage} user={user} profile={profile} showToast={showToast} />}
       {page === "bidboard" && <BidBoardPage setPage={setPage} user={user} profile={profile} showToast={showToast} />}
       {page === "openboard" && <OpenBidPage setPage={setPage} user={user} profile={profile} showToast={showToast} />}
