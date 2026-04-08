@@ -1144,7 +1144,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
     puCity: "", puState: "", dlCity: "", dlState: "",
     miles: "", rate: "2.00", position: "Lead", payType: "FastPay",
     width: "", height: "", weight: "", notes: "", startDate: "",
-    reqPevo: true, reqWitpac: false, reqNy: false, reqTwic: false,
+				certTypes: [] as string[], certOther: "",
   });
   const [saving, setSaving] = useState(false);
 
@@ -1172,10 +1172,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
       day_rate: 500,
       overnight_fee: 100,
       no_go_fee: 250,
-      requires_p_evo: form.reqPevo,
-      requires_witpac: form.reqWitpac,
-      requires_ny_cert: form.reqNy,
-      requires_twic: form.reqTwic,
+				cert_types: form.certTypes,
       load_width: parseFloat(form.width) || null,
       load_height: parseFloat(form.height) || null,
       load_weight: parseFloat(form.weight) || null,
@@ -1242,16 +1239,49 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
         </div>
       </div>
       <div className="form-field" style={{ marginTop: 4 }}>
-        <label className="form-label">Certifications Required</label>
-        <div style={{ display: "flex", gap: 16, flexWrap: "wrap" as const, marginTop: 6 }}>
-          {([ ["reqPevo", "P/EVO"], ["reqWitpac", "Witpac"], ["reqNy", "NY Cert"], ["reqTwic", "TWIC"]] as [keyof typeof form, string][]).map(([k, label]) => (
-            <label key={k} style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
-              <input type="checkbox" checked={form[k] as boolean} onChange={(e) => set(k, e.target.checked)} style={{ width: "auto", padding: 0 }} />
-              <span className="mo" style={{ fontSize: 10, color: "var(--t2)" }}>{label}</span>
-            </label>
-          ))}
-        </div>
-      </div>
+					<label className="form-label">Certifications / Escort Types Required</label>
+					<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 16px", marginTop: 8 }}>
+						{["Lead","Chase","3rd Car","4th Car","High Pole","Rear Steer","Lineman","Route Survey","Flapper","Flagger","NY Cert","CSE (Ontario MTO)","WITPAC","TWIC"].map((opt) => (
+							<label key={opt} style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", padding: "4px 6px", borderRadius: 4, background: form.certTypes.includes(opt) ? "rgba(249,115,22,0.10)" : "rgba(255,255,255,0.03)", border: `1px solid ${form.certTypes.includes(opt) ? "rgba(249,115,22,0.45)" : "rgba(255,255,255,0.07)"}`, transition: "all 0.15s" }}>
+								<input
+									type="checkbox"
+									checked={form.certTypes.includes(opt)}
+									onChange={(e) => {
+										const next = e.target.checked
+											? [...form.certTypes, opt]
+											: form.certTypes.filter((x: string) => x !== opt);
+										setForm(f => ({ ...f, certTypes: next }));
+									}}
+									style={{ width: "auto", padding: 0, accentColor: "var(--or)" }}
+								/>
+								<span className="mo" style={{ fontSize: 10, color: form.certTypes.includes(opt) ? "var(--or)" : "var(--t2)", letterSpacing: ".02em" }}>{opt}</span>
+							</label>
+						))}
+						<label style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", padding: "4px 6px", borderRadius: 4, background: form.certTypes.includes("Other") ? "rgba(249,115,22,0.10)" : "rgba(255,255,255,0.03)", border: `1px solid ${form.certTypes.includes("Other") ? "rgba(249,115,22,0.45)" : "rgba(255,255,255,0.07)"}`, transition: "all 0.15s" }}>
+							<input
+								type="checkbox"
+								checked={form.certTypes.includes("Other")}
+								onChange={(e) => {
+									const next = e.target.checked
+										? [...form.certTypes, "Other"]
+										: form.certTypes.filter((x: string) => x !== "Other");
+									setForm(f => ({ ...f, certTypes: next, certOther: e.target.checked ? f.certOther : "" }));
+								}}
+								style={{ width: "auto", padding: 0, accentColor: "var(--or)" }}
+							/>
+							<span className="mo" style={{ fontSize: 10, color: form.certTypes.includes("Other") ? "var(--or)" : "var(--t2)", letterSpacing: ".02em" }}>Other</span>
+						</label>
+					</div>
+					{form.certTypes.includes("Other") && (
+						<input
+							type="text"
+							placeholder="Describe other cert/escort type..."
+							value={form.certOther}
+							onChange={(e) => setForm(f => ({ ...f, certOther: e.target.value }))}
+							style={{ marginTop: 8, width: "100%", fontSize: 12 }}
+						/>
+					)}
+				</div>
       <div className="form-field">
         <label className="form-label">Special Instructions / Notes</label>
         <textarea placeholder="Route details, access notes, timing requirements..." style={{ width: "100%", minHeight: 80 }} value={form.notes} onChange={(e) => set("notes", e.target.value)} />
