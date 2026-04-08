@@ -1,4 +1,5 @@
 "use client";
+import PushInit from './components/PushInit'
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
@@ -1421,6 +1422,11 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
             fetch('/api/sms', { method: 'POST', headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ loadId: (await supabase.from('loads').select('id').eq('posted_by', user?.id).order('created_at', { ascending: false }).limit(1).single()).data?.id, pickup: form.puCity + ', ' + form.puState, destination: form.dlCity + ', ' + form.dlState, date: form.startDate, certs: form.certTypes, rate: form.rate || '' }) })
           } catch {}
+          // PUSH_MEMBER_BROADCAST: notify Member escorts after Pro window expires
+          try {
+            const broadcastPayload = { pickupState: form.puState, pickup: form.puCity + ', ' + form.puState, destination: form.dlCity + ', ' + form.dlState, date: form.startDate, certs: form.certTypes, rate: form.rate || '' }
+            setTimeout(() => { fetch('/api/push/broadcast', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(broadcastPayload) }).catch(() => {}) }, 5 * 60 * 1000)
+          } catch {}
           showToast("Load posted successfully!", "gr");
       setPage("flatboard");
     }
@@ -1754,6 +1760,8 @@ function CarrierDashPage({ setPage, user, profile, showToast }: { setPage: (p: P
   async function handleAccept(matchId: string, loadId: string, escortId: string) {
     await supabase.from('load_matches').update({ status: 'confirmed' }).eq('id', matchId)
     await supabase.from('loads').update({ status: 'filled' }).eq('id', loadId)
+    // PUSH_ESCORT_ACCEPT
+    try { fetch('/api/push/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: escortId, title: 'Match Confirmed!', body: 'A carrier has accepted your request. Login to view contact info.', url: '/' }) }) } catch {}
     showToast('Match confirmed! Both parties will receive contact info.', 'gr')
     loadData()
   }
@@ -2351,6 +2359,7 @@ export default function OEHPlatform() {
     <>
       <style>{CSS}</style>
       <Ticker />
+      <PushInit userId={user?.id} />
       <Nav page={page} setPage={setPage} user={user} profile={profile} onSignOut={handleSignOut} />
       {page === "home" && <HomePage setPage={setPage} user={user} profile={profile} />}
       {page === "signin" && <SignInPage setPage={setPage} showToast={showToast} />}
