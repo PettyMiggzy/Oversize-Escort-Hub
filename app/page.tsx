@@ -1210,229 +1210,131 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
     }
   }
 
-	if (profile?.role === "escort") {
-		return (
-			<div style={{ textAlign: "center", padding: 60 }}>
-				<div className="bb" style={{ fontSize: 18, marginBottom: 8 }}>Carriers and Brokers Only</div>
-				<p className="mo" style={{ fontSize: 11, color: "var(--t2)", marginBottom: 20 }}>Only verified carriers and brokers can post loads. P/EVO escorts find and bid on loads.</p>
-				<button className="btn btn-or btn-sm" onClick={() => setPage("flatboard")}>Browse Available Loads</button>
-			</div>
-		);
-	}
+  if (profile?.role === "escort") {
+    return (
+      <div style={{ textAlign: "center", padding: 60 }}>
+        <div className="bb" style={{ fontSize: 18, marginBottom: 8 }}>Carriers and Brokers Only</div>
+        <p className="mo" style={{ fontSize: 11, color: "var(--t2)", marginBottom: 20 }}>Only verified carriers and brokers can post loads. P/EVO escorts find and bid on loads.</p>
+        <button className="btn btn-or btn-sm" onClick={() => setPage("flatboard")}>Browse Available Loads</button>
+      </div>
+    );
+  }
+
   return (
     <div className="postload-wrap">
       <div className="bb" style={{ fontSize: 28, marginBottom: 4 }}>POST A LOAD</div>
       <p className="mo" style={{ fontSize: 10, color: "var(--t2)", marginBottom: 16 }}>Free for all carriers. Choose your board type.</p>
       <div style={{ background: "rgba(0,204,122,.07)", border: "1px solid rgba(0,204,122,.2)", borderRadius: 3, padding: "10px 16px", marginBottom: 24 }} className="mo">
-        <span style={{ fontSize: 10, color: "var(--gr)" }}>📋 Standard Rates: </span>
-        <span style={{ fontSize: 10, color: "var(--t2)" }}>$2.00/mi or $500/day · $100 overnight · $250 no-go (auto-applied)</span>
+        <span style={{ fontSize: 10, color: "var(--gr)" }}>Standard Rates: </span>
+        <span style={{ fontSize: 10, color: "var(--t2)" }}>$2.00/mi or $500/day &middot; $100 overnight &middot; $250 no-go (auto-applied)</span>
       </div>
       {!user && (
         <div style={{ background: "rgba(255,98,0,.08)", border: "1px solid rgba(255,98,0,.2)", borderRadius: 3, padding: "12px 16px", marginBottom: 20 }}>
           <span className="mo" style={{ fontSize: 10, color: "var(--or)" }}>You need an account to post loads. </span>
-          <button className="mo" style={{ background: "none", border: "none", color: "var(--or)", fontSize: 10, cursor: "pointer", textDecoration: "underline" }} onClick={() => setPage("signin")}>Sign up free →</button>
+          <button className="mo" style={{ background: "none", border: "none", color: "var(--or)", fontSize: 10, cursor: "pointer", textDecoration: "underline" }} onClick={() => setPage("signin")}>Sign up free</button>
         </div>
       )}
-      <div style={{ display: "flex", gap: 10, marginBottom: 24 }}>
-        {([["flat", "var(--gr)", "First to respond wins"], ["bid", "var(--am)", "5-min price competition"], ["open", "var(--bl)", "You pick the escort"]] as const).map(([type, c, desc]) => (
-          <div key={type} className="card" style={{ flex: 1, borderTop: `2px solid ${c}`, cursor: "pointer", opacity: boardType === type ? 1 : 0.5 }} onClick={() => setBoardType(type)}>
-            <div className="bb" style={{ fontSize: 16, color: c, marginBottom: 4 }}>{type === "flat" ? "Flat Rate" : type === "bid" ? "5-Min Bid" : "Open Bid"}</div>
-				</div>
-				))}
-            <div className="form-field">
-              <label className="form-label">Escort Positions Required <span className="mo" style={{ fontSize: 10, color: "var(--t2)", fontWeight: 400 }}>(select all that apply)</span></label>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
-                <label style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", padding: "4px 6px", borderRadius: 4, background: form.positions.includes("Lead") ? "rgba(245,162,0,0.10)" : "rgba(255,255,255,0.03)", border: `1px solid ${form.positions.includes("Lead") ? "rgba(245,162,0,0.45)" : "rgba(255,255,255,0.07)"}`, transition: "all 0.15s" }}>
-                  <input type="checkbox" checked={form.positions.includes("Lead")} onChange={(e) => {
-                    const next = e.target.checked ? [...form.positions, "Lead"] : form.positions.filter((x: string) => x !== "Lead");
-                    setForm(f => ({ ...f, positions: next }))
-                  }} style={{ accentColor: "var(--or)" }} />
-                  <span className="mo" style={{ fontSize: 10, color: form.positions.includes("Lead") ? "var(--or)" : "var(--t2)", letterSpacing: ".02em" }}>Lead</span>
-                </label>
-                <label style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", padding: "4px 6px", borderRadius: 4, background: form.positions.includes("Rear") ? "rgba(245,162,0,0.10)" : "rgba(255,255,255,0.03)", border: `1px solid ${form.positions.includes("Rear") ? "rgba(245,162,0,0.45)" : "rgba(255,255,255,0.07)"}`, transition: "all 0.15s" }}>
-                  <input type="checkbox" checked={form.positions.includes("Rear")} onChange={(e) => {
-                    const next = e.target.checked ? [...form.positions, "Rear"] : form.positions.filter((x: string) => x !== "Rear");
-                    setForm(f => ({ ...f, positions: next }))
-                  }} style={{ accentColor: "var(--or)" }} />
-                  <span className="mo" style={{ fontSize: 10, color: form.positions.includes("Rear") ? "var(--or)" : "var(--t2)", letterSpacing: ".02em" }}>Rear</span>
-                </label>
-                <label style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", padding: "4px 6px", borderRadius: 4, background: form.positions.includes("Chase") ? "rgba(245,162,0,0.10)" : "rgba(255,255,255,0.03)", border: `1px solid ${form.positions.includes("Chase") ? "rgba(245,162,0,0.45)" : "rgba(255,255,255,0.07)"}`, transition: "all 0.15s" }}>
-                  <input type="checkbox" checked={form.positions.includes("Chase")} onChange={(e) => {
-                    const next = e.target.checked ? [...form.positions, "Chase"] : form.positions.filter((x: string) => x !== "Chase");
-                    setForm(f => ({ ...f, positions: next }))
-                  }} style={{ accentColor: "var(--or)" }} />
-                  <span className="mo" style={{ fontSize: 10, color: form.positions.includes("Chase") ? "var(--or)" : "var(--t2)", letterSpacing: ".02em" }}>Chase</span>
-                </label>
-                <label style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", padding: "4px 6px", borderRadius: 4, background: form.positions.includes("High Pole") ? "rgba(245,162,0,0.10)" : "rgba(255,255,255,0.03)", border: `1px solid ${form.positions.includes("High Pole") ? "rgba(245,162,0,0.45)" : "rgba(255,255,255,0.07)"}`, transition: "all 0.15s" }}>
-                  <input type="checkbox" checked={form.positions.includes("High Pole")} onChange={(e) => {
-                    const next = e.target.checked ? [...form.positions, "High Pole"] : form.positions.filter((x: string) => x !== "High Pole");
-                    setForm(f => ({ ...f, positions: next }))
-                  }} style={{ accentColor: "var(--or)" }} />
-                  <span className="mo" style={{ fontSize: 10, color: form.positions.includes("High Pole") ? "var(--or)" : "var(--t2)", letterSpacing: ".02em" }}>High Pole</span>
-                </label>
-                <label style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", padding: "4px 6px", borderRadius: 4, background: form.positions.includes("Rear Steer") ? "rgba(245,162,0,0.10)" : "rgba(255,255,255,0.03)", border: `1px solid ${form.positions.includes("Rear Steer") ? "rgba(245,162,0,0.45)" : "rgba(255,255,255,0.07)"}`, transition: "all 0.15s" }}>
-                  <input type="checkbox" checked={form.positions.includes("Rear Steer")} onChange={(e) => {
-                    const next = e.target.checked ? [...form.positions, "Rear Steer"] : form.positions.filter((x: string) => x !== "Rear Steer");
-                    setForm(f => ({ ...f, positions: next }))
-                  }} style={{ accentColor: "var(--or)" }} />
-                  <span className="mo" style={{ fontSize: 10, color: form.positions.includes("Rear Steer") ? "var(--or)" : "var(--t2)", letterSpacing: ".02em" }}>Rear Steer</span>
-                </label>
-                <label style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", padding: "4px 6px", borderRadius: 4, background: form.positions.includes("Lineman") ? "rgba(245,162,0,0.10)" : "rgba(255,255,255,0.03)", border: `1px solid ${form.positions.includes("Lineman") ? "rgba(245,162,0,0.45)" : "rgba(255,255,255,0.07)"}`, transition: "all 0.15s" }}>
-                  <input type="checkbox" checked={form.positions.includes("Lineman")} onChange={(e) => {
-                    const next = e.target.checked ? [...form.positions, "Lineman"] : form.positions.filter((x: string) => x !== "Lineman");
-                    setForm(f => ({ ...f, positions: next }))
-                  }} style={{ accentColor: "var(--or)" }} />
-                  <span className="mo" style={{ fontSize: 10, color: form.positions.includes("Lineman") ? "var(--or)" : "var(--t2)", letterSpacing: ".02em" }}>Lineman</span>
-                </label>
-                <label style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", padding: "4px 6px", borderRadius: 4, background: form.positions.includes("Route Survey") ? "rgba(245,162,0,0.10)" : "rgba(255,255,255,0.03)", border: `1px solid ${form.positions.includes("Route Survey") ? "rgba(245,162,0,0.45)" : "rgba(255,255,255,0.07)"}`, transition: "all 0.15s" }}>
-                  <input type="checkbox" checked={form.positions.includes("Route Survey")} onChange={(e) => {
-                    const next = e.target.checked ? [...form.positions, "Route Survey"] : form.positions.filter((x: string) => x !== "Route Survey");
-                    setForm(f => ({ ...f, positions: next }))
-                  }} style={{ accentColor: "var(--or)" }} />
-                  <span className="mo" style={{ fontSize: 10, color: form.positions.includes("Route Survey") ? "var(--or)" : "var(--t2)", letterSpacing: ".02em" }}>Route Survey</span>
-                </label>
-                <label style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", padding: "4px 6px", borderRadius: 4, background: form.positions.includes("Flagger") ? "rgba(245,162,0,0.10)" : "rgba(255,255,255,0.03)", border: `1px solid ${form.positions.includes("Flagger") ? "rgba(245,162,0,0.45)" : "rgba(255,255,255,0.07)"}`, transition: "all 0.15s" }}>
-                  <input type="checkbox" checked={form.positions.includes("Flagger")} onChange={(e) => {
-                    const next = e.target.checked ? [...form.positions, "Flagger"] : form.positions.filter((x: string) => x !== "Flagger");
-                    setForm(f => ({ ...f, positions: next }))
-                  }} style={{ accentColor: "var(--or)" }} />
-                  <span className="mo" style={{ fontSize: 10, color: form.positions.includes("Flagger") ? "var(--or)" : "var(--t2)", letterSpacing: ".02em" }}>Flagger</span>
-                </label>
-              </div>
-            </div>
-            <div className="form-field">
-              <label className="form-label">Pickup Location</label>
-              <div style={{ display: "flex", gap: 8 }}>
-                <input type="text" placeholder="City" value={form.puCity} onChange={(e) => setForm(f => ({ ...f, puCity: e.target.value }))} style={{ flex: 2, width: "100%" }} />
-                <input type="text" placeholder="ST" value={form.puState} onChange={(e) => setForm(f => ({ ...f, puState: e.target.value.toUpperCase().slice(0,2) }))} style={{ flex: 1, width: "100%", maxWidth: 56 }} maxLength={2} />
-              </div>
-            </div>
-            <div className="form-field">
-              <label className="form-label">Delivery Location</label>
-              <div style={{ display: "flex", gap: 8 }}>
-                <input type="text" placeholder="City" value={form.dlCity} onChange={(e) => setForm(f => ({ ...f, dlCity: e.target.value }))} style={{ flex: 2, width: "100%" }} />
-                <input type="text" placeholder="ST" value={form.dlState} onChange={(e) => setForm(f => ({ ...f, dlState: e.target.value.toUpperCase().slice(0,2) }))} style={{ flex: 1, width: "100%", maxWidth: 56 }} maxLength={2} />
-              </div>
-            </div>
-            <div className="form-field">
-              <label className="form-label">Approx Miles</label>
-              <input type="number" placeholder="e.g. 350" value={form.miles} onChange={(e) => setForm(f => ({ ...f, miles: e.target.value }))} style={{ width: "100%" }} min="1" />
-            </div>
-            {boardType !== "bid" && (
-              <>
-                <div className="form-field">
-                  <label className="form-label">Rate Per Mile ($/mi)</label>
-                  <input type="number" placeholder="e.g. 2.00" step="0.25" value={form.rate} onChange={(e) => setForm(f => ({ ...f, rate: e.target.value }))} style={{ width: "100%" }} min="0" />
-                </div>
-                <div className="form-field">
-                  <label className="form-label">Day Rate ($/day) <span className="mo" style={{ fontSize: 10, color: "var(--t2)", fontWeight: 400 }}>for day-rate jobs</span></label>
-                  <input type="number" placeholder="e.g. 500" step="50" value={form.dayRate} onChange={(e) => setForm(f => ({ ...f, dayRate: e.target.value }))} style={{ width: "100%" }} min="0" />
-                </div>
-              </>
-            )}
-            <div className="form-field">
-                <label className="form-label">Pay Terms</label>
-                <select value={form.payTerm} onChange={(e) => setForm(f => ({ ...f, payTerm: e.target.value }))} style={{ width: "100%" }}>
-                    <option value="FastPay">Fast Pay (same day / next day)</option>
-                    <option value="SameDay">Same Day</option>
-                    <option value="Net7">Net 7 Days</option>
-                    <option value="Net14">Net 14 Days</option>
-                    <option value="Net30">Net 30 Days</option>
-                    <option value="Custom">Custom...</option>
-                </select>
-                {form.payTerm === "Custom" && (
-                    <input type="text" placeholder="e.g. Net 45, COD, upon delivery..." value={form.payTermCustom} onChange={(e) => setForm(f => ({ ...f, payTermCustom: e.target.value }))} style={{ marginTop: 8, width: "100%" }} />
-                )}
-            </div>
+      <div style={{ display: "flex", gap: 10, marginBottom: 28 }}>
+        {([["flat", "var(--gr)", "Flat Rate", "First to respond wins"], ["bid", "var(--am)", "5-Min Bid", "5-min price competition"], ["open", "var(--bl)", "Open Bid", "You pick the escort"]] as const).map(([type, c, label, desc]) => (
+          <div key={type} className="card" style={{ flex: 1, borderTop: "2px solid " + c, cursor: "pointer", opacity: boardType === type ? 1 : 0.5 }} onClick={() => setBoardType(type)}>
+            <div className="bb" style={{ fontSize: 14, color: c, marginBottom: 4 }}>{label}</div>
+            <div className="mo" style={{ fontSize: 9, color: "var(--t2)" }}>{desc}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ maxWidth: 560 }}>
+        <div className="form-field">
+          <label className="form-label">Pickup Location</label>
+          <div style={{ display: "flex", gap: 8 }}>
+            <input type="text" placeholder="City" value={form.puCity} onChange={(e) => setForm(f => ({ ...f, puCity: e.target.value }))} style={{ flex: 2, width: "100%" }} />
+            <input type="text" placeholder="ST" value={form.puState} onChange={(e) => setForm(f => ({ ...f, puState: e.target.value.toUpperCase().slice(0,2) }))} style={{ flex: 1, width: "100%", maxWidth: 56 }} maxLength={2} />
+          </div>
+        </div>
+        <div className="form-field">
+          <label className="form-label">Delivery Location</label>
+          <div style={{ display: "flex", gap: 8 }}>
+            <input type="text" placeholder="City" value={form.dlCity} onChange={(e) => setForm(f => ({ ...f, dlCity: e.target.value }))} style={{ flex: 2, width: "100%" }} />
+            <input type="text" placeholder="ST" value={form.dlState} onChange={(e) => setForm(f => ({ ...f, dlState: e.target.value.toUpperCase().slice(0,2) }))} style={{ flex: 1, width: "100%", maxWidth: 56 }} maxLength={2} />
+          </div>
+        </div>
+        <div className="form-field">
+          <label className="form-label">Approx Miles</label>
+          <input type="number" placeholder="e.g. 350" value={form.miles} onChange={(e) => setForm(f => ({ ...f, miles: e.target.value }))} style={{ width: "100%" }} min="1" />
+        </div>
+        {boardType !== "bid" && (<>
+          <div className="form-field">
+            <label className="form-label">Rate Per Mile <span className="mo" style={{ fontSize: 10, color: "var(--t2)", fontWeight: 400 }}>($/mi)</span></label>
+            <input type="number" placeholder="2.00" step="0.25" value={form.rate} onChange={(e) => setForm(f => ({ ...f, rate: e.target.value }))} style={{ width: "100%" }} min="0" />
+          </div>
+          <div className="form-field">
+            <label className="form-label">Day Rate <span className="mo" style={{ fontSize: 10, color: "var(--t2)", fontWeight: 400 }}>($/day)</span></label>
+            <input type="number" placeholder="500" step="50" value={form.dayRate} onChange={(e) => setForm(f => ({ ...f, dayRate: e.target.value }))} style={{ width: "100%" }} min="0" />
+          </div>
+        </>)}
+        <div className="form-field">
+          <label className="form-label">Escort Positions Required <span className="mo" style={{ fontSize: 10, color: "var(--t2)", fontWeight: 400 }}>(select all that apply)</span></label>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
+            {(["Lead","Rear","Chase","High Pole","Rear Steer","Lineman","Route Survey","Flagger"] as string[]).map((pos) => (
+              <label key={pos} style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", padding: "4px 8px", borderRadius: 4, background: form.positions.includes(pos) ? "rgba(245,162,0,0.10)" : "rgba(255,255,255,0.03)", border: "1px solid " + (form.positions.includes(pos) ? "rgba(245,162,0,0.45)" : "rgba(255,255,255,0.07)"), transition: "all 0.15s" }}>
+                <input type="checkbox" checked={form.positions.includes(pos)} onChange={(e) => { const next = e.target.checked ? [...form.positions, pos] : form.positions.filter((x: string) => x !== pos); setForm(f => ({ ...f, positions: next })); }} style={{ accentColor: "var(--or)" }} />
+                <span className="mo" style={{ fontSize: 10, color: form.positions.includes(pos) ? "var(--or)" : "var(--t2)", letterSpacing: ".02em" }}>{pos}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+        <div className="form-field" style={{ marginTop: 4 }}>
+          <label className="form-label">Certifications / Escort Types Required</label>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 16px", marginTop: 8 }}>
+            {(["Lead","Chase","3rd Car","4th Car","High Pole","Rear Steer","Lineman","Route Survey","Flagger","NY Cert","CSE (Ontario MTO)","WITPAC","TWIC","Other"] as string[]).map((opt) => (
+              <label key={opt} style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", padding: "4px 6px", borderRadius: 4, background: form.certTypes.includes(opt) ? "rgba(249,115,22,0.10)" : "rgba(255,255,255,0.03)", border: "1px solid " + (form.certTypes.includes(opt) ? "rgba(249,115,22,0.45)" : "rgba(255,255,255,0.07)"), transition: "all 0.15s" }}>
+                <input type="checkbox" checked={form.certTypes.includes(opt)} onChange={(e) => { const next = e.target.checked ? [...form.certTypes, opt] : form.certTypes.filter((x: string) => x !== opt); setForm(f => ({ ...f, certTypes: next, certOther: e.target.checked ? f.certOther : "" })); }} style={{ accentColor: "var(--or)" }} />
+                <span className="mo" style={{ fontSize: 10, color: form.certTypes.includes(opt) ? "var(--or)" : "var(--t2)", letterSpacing: ".02em" }}>{opt}</span>
+              </label>
+            ))}
+          </div>
+          {form.certTypes.includes("Other") && (
+            <input type="text" placeholder="Describe other cert/escort type..." value={form.certOther} onChange={(e) => setForm(f => ({ ...f, certOther: e.target.value }))} style={{ marginTop: 8, width: "100%" }} />
+          )}
+        </div>
+        <div className="form-field">
+          <label className="form-label">Pay Terms</label>
+          <select value={form.payTerm} onChange={(e) => setForm(f => ({ ...f, payTerm: e.target.value }))} style={{ width: "100%" }}>
+            <option value="FastPay">Fast Pay (same day / next day)</option>
+            <option value="SameDay">Same Day</option>
+            <option value="Net7">Net 7 Days</option>
+            <option value="Net14">Net 14 Days</option>
+            <option value="Net30">Net 30 Days</option>
+            <option value="Custom">Custom...</option>
+          </select>
+          {form.payTerm === "Custom" && (
+            <input type="text" placeholder="e.g. Net 45, COD, upon delivery..." value={form.payTermCustom} onChange={(e) => setForm(f => ({ ...f, payTermCustom: e.target.value }))} style={{ marginTop: 8, width: "100%" }} />
+          )}
+        </div>
         <div className="form-field">
           <label className="form-label">Preferred Start Date</label>
           <input type="date" style={{ width: "100%" }} value={form.startDate} onChange={(e) => set("startDate", e.target.value)} />
         </div>
-      </div>
-      <div className="form-field" style={{ marginTop: 4 }}>
-					<label className="form-label">Certifications / Escort Types Required</label>
-					<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 16px", marginTop: 8 }}>
-						{["Lead","Chase","3rd Car","4th Car","High Pole","Rear Steer","Lineman","Route Survey","Flagger","NY Cert","CSE (Ontario MTO)","WITPAC","TWIC"].map((opt) => (
-							<label key={opt} style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", padding: "4px 6px", borderRadius: 4, background: form.certTypes.includes(opt) ? "rgba(249,115,22,0.10)" : "rgba(255,255,255,0.03)", border: `1px solid ${form.certTypes.includes(opt) ? "rgba(249,115,22,0.45)" : "rgba(255,255,255,0.07)"}`, transition: "all 0.15s" }}>
-								<input
-									type="checkbox"
-									checked={form.certTypes.includes(opt)}
-									onChange={(e) => {
-										const next = e.target.checked
-											? [...form.certTypes, opt]
-											: form.certTypes.filter((x: string) => x !== opt);
-										setForm(f => ({ ...f, certTypes: next }));
-									}}
-									style={{ width: "auto", padding: 0, accentColor: "var(--or)" }}
-								/>
-								<span className="mo" style={{ fontSize: 10, color: form.certTypes.includes(opt) ? "var(--or)" : "var(--t2)", letterSpacing: ".02em" }}>{opt}</span>
-							</label>
-						))}
-						<label style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", padding: "4px 6px", borderRadius: 4, background: form.certTypes.includes("Other") ? "rgba(249,115,22,0.10)" : "rgba(255,255,255,0.03)", border: `1px solid ${form.certTypes.includes("Other") ? "rgba(249,115,22,0.45)" : "rgba(255,255,255,0.07)"}`, transition: "all 0.15s" }}>
-							<input
-								type="checkbox"
-								checked={form.certTypes.includes("Other")}
-								onChange={(e) => {
-									const next = e.target.checked
-										? [...form.certTypes, "Other"]
-										: form.certTypes.filter((x: string) => x !== "Other");
-									setForm(f => ({ ...f, certTypes: next, certOther: e.target.checked ? f.certOther : "" }));
-								}}
-								style={{ width: "auto", padding: 0, accentColor: "var(--or)" }}
-							/>
-							<span className="mo" style={{ fontSize: 10, color: form.certTypes.includes("Other") ? "var(--or)" : "var(--t2)", letterSpacing: ".02em" }}>Other</span>
-						</label>
-					</div>
-					{form.certTypes.includes("Other") && (
-						<input
-							type="text"
-							placeholder="Describe other cert/escort type..."
-							value={form.certOther}
-							onChange={(e) => setForm(f => ({ ...f, certOther: e.target.value }))}
-							style={{ marginTop: 8, width: "100%", fontSize: 12 }}
-						/>
-					)}
-				</div>
-
-            <div className="form-field">
-                <label className="form-label">Pay Terms</label>
-                <select value={form.payTerm} onChange={(e) => setForm(f => ({ ...f, payTerm: e.target.value }))} style={{ width: "100%" }}>
-                    <option value="FastPay">Fast Pay (same day / next day)</option>
-                    <option value="SameDay">Same Day</option>
-                    <option value="Net7">Net 7 Days</option>
-                    <option value="Net14">Net 14 Days</option>
-                    <option value="Net30">Net 30 Days</option>
-                    <option value="Custom">Custom...</option>
-                </select>
-                {form.payTerm === "Custom" && (
-                    <input type="text" placeholder="e.g. Net 45, COD, upon delivery..." value={form.payTermCustom} onChange={(e) => setForm(f => ({ ...f, payTermCustom: e.target.value }))} style={{ marginTop: 8, width: "100%" }} />
-                )}
-            </div>
-            <div className="form-field">
-                <label className="form-label">Preferred Start Date</label>
-                <input type="date" style={{ width: "100%" }} value={form.startDate} onChange={(e) => set("startDate", e.target.value)} />
-            </div>
-            <div className="form-field">
-                <label className="form-label">Permit Upload <span className="mo" style={{ color: "var(--t2)", fontWeight: 400 }}>(optional)</span></label>
-                <input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp"
-                    onChange={(e) => setForm(f => ({ ...f, permitFile: e.target.files?.[0] ?? null }))}
-                    style={{ width: "100%", fontSize: 12, color: "var(--t2)" }} />
-                {form.permitFile && <span className="mo" style={{ fontSize: 10, color: "var(--gr)", marginTop: 4, display: "block" }}>Permit: {form.permitFile.name}</span>}
-                {permitUploading && <span className="mo" style={{ fontSize: 10, color: "var(--or)" }}>Uploading permit...</span>}
-            </div>
-            <div className="form-field">
-                <label className="form-label">Special Instructions / Notes</label>
-                <textarea placeholder="Route details, access notes, timing requirements..." style={{ width: "100%", minHeight: 80 }} value={form.notes} onChange={(e) => set("notes", e.target.value)} />
-            </div>
-            <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
-                <button className="btn btn-or" onClick={handleSubmit} disabled={saving}>
-                    {saving ? "Posting..." : "Post Load Free →"}
-                </button>
-                <button className="btn btn-ghost" onClick={() => setPage("home")}>Cancel</button>
-            </div>
+        <div className="form-field">
+          <label className="form-label">Permit Upload <span className="mo" style={{ color: "var(--t2)", fontWeight: 400 }}>(optional)</span></label>
+          <input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" onChange={(e) => setForm(f => ({ ...f, permitFile: e.target.files?.[0] ?? null }))} style={{ width: "100%", fontSize: 12, color: "var(--t2)" }} />
+          {form.permitFile && <span className="mo" style={{ fontSize: 10, color: "var(--gr)", marginTop: 4, display: "block" }}>Permit: {form.permitFile.name}</span>}
+          {permitUploading && <span className="mo" style={{ fontSize: 10, color: "var(--or)" }}>Uploading permit...</span>}
         </div>
-	);
+        <div className="form-field">
+          <label className="form-label">Special Instructions / Notes</label>
+          <textarea placeholder="Route details, access notes, timing requirements..." style={{ width: "100%", minHeight: 80 }} value={form.notes} onChange={(e) => set("notes", e.target.value)} />
+        </div>
+        <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
+          <button className="btn btn-or" onClick={handleSubmit} disabled={saving}>
+            {saving ? "Posting..." : "Post Load Free"}
+          </button>
+          <button className="btn btn-ghost" onClick={() => setPage("home")}>Cancel</button>
+        </div>
+      </div>
+    </div>
+  );
 }
+
 
 
 function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; profile: Profile | null }) {
