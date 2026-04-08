@@ -26,6 +26,10 @@ type Profile = {
   is_available: boolean;
   vehicle: string | null;
   states_licensed: string[] | null;
+  availability_states: string[] | null;
+  bgc_pending: boolean | null;
+  bgc_document_url: string | null;
+  pro_window_expires_at: string | null;
 };
 
 type Load = {
@@ -860,7 +864,9 @@ function FlatBoardPage({ setPage, user, profile, showToast }: { setPage: (p: Pag
     })
     if (matchErr) { showToast('Error submitting request: ' + matchErr.message, 'rd'); setMatchLoading(false); return }
     await supabase.from('loads').update({ status: 'pending_match' }).eq('id', load.id)
-    showToast('Load request submitted! Carrier will review.', 'gr')
+    // PUSH_MATCH_HOOK
+          try { fetch('/api/push/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: load.posted_by, title: 'New Escort Request', body: 'An escort has requested your load. Login to review.', url: '/' }) }) } catch {}
+          showToast('Load request submitted! Carrier will review.', 'gr')
     setMatchModal(null)
     setMatchLoading(false)
     fetchLoads()
@@ -1410,7 +1416,12 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
     if (error) {
       showToast("Error posting load: " + error.message, "rd");
     } else {
-      showToast("Load posted successfully!", "gr");
+      // SMS_BLAST_HOOK
+          try {
+            fetch('/api/sms', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ loadId: (await supabase.from('loads').select('id').eq('posted_by', user?.id).order('created_at', { ascending: false }).limit(1).single()).data?.id, pickup: form.puCity + ', ' + form.puState, destination: form.dlCity + ', ' + form.dlState, date: form.startDate, certs: form.certTypes, rate: form.rate || '' }) })
+          } catch {}
+          showToast("Load posted successfully!", "gr");
       setPage("flatboard");
     }
   }
@@ -1555,10 +1566,23 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
     fetchLoads();
   }, []);
 
+  // ZONES_HOOK
+  const [availStates, setAvailStates] = useState<string[]>(profile?.availability_states || [])
+  const [zonesSaving, setZonesSaving] = useState(false)
+  const [zonesMsg, setZonesMsg] = useState('')
+  const US_STATES_ALL = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY']
+  async function saveZones() {
+    setZonesSaving(true)
+    const { data: { user: u } } = await supabase.auth.getUser()
+    if (u) await supabase.from('profiles').update({ availability_states: availStates }).eq('id', u.id)
+    setZonesMsg('Saved!'); setZonesSaving(false)
+    setTimeout(() => setZonesMsg(''), 3000)
+  }
   const tabs = [
     { id: "overview", label: "Overview" }, { id: "loads", label: "Available Loads" },
     { id: "dh", label: "Deadhead Minimizer" }, { id: "jobs", label: "My Jobs" },
     { id: "certs", label: "Certifications" }, { id: "dispute", label: "Dispute Center" },
+    { id: "zones", label: "Avail. Zones" },
   ];
 
   return (
@@ -1916,6 +1940,26 @@ function PricingPage({ setPage }: { setPage: (p: Page) => void }) {
 // ─── VERIFICATION PAGE ────────────────────────────────────────────────────────
 
 function VerificationPage() {
+  // BGC_UPLOAD_HOOK
+  const [bgcFile, setBgcFile] = useState<File | null>(null)
+  const [bgcUploading, setBgcUploading] = useState(false)
+  const [bgcMsg, setBgcMsg] = useState('')
+  async function handleBgcUpload() {
+    if (!bgcFile) return
+    if (bgcFile.size > 10 * 1024 * 1024) { setBgcMsg('File exceeds 10 MB limit.'); return }
+    setBgcUploading(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setBgcMsg('Please sign in first.'); setBgcUploading(false); return }
+    const fd = new FormData()
+    fd.append('file', bgcFile)
+    fd.append('userId', user.id)
+    const res = await fetch('/api/bgc', { method: 'POST', body: fd })
+    const json = await res.json()
+    if (!res.ok) { setBgcMsg('Upload failed: ' + (json.error || 'unknown')); setBgcUploading(false); return }
+    setBgcMsg('Submitted! Review takes 1-3 business days.')
+    setBgcUploading(false)
+  }
+
   return (
     <div className="section">
       <div className="section-header">
@@ -2181,6 +2225,23 @@ function CbRadioPage({ setPage }: any) {
 
 // ─── ADMIN PANEL ──────────────────────────────────────────────────────────────
 function AdminPage({ setPage, user, profile }: any) {
+  // BGC_ADMIN_HOOK
+  const [bgcQueue, setBgcQueue] = useState<any[]>([])
+  const [bgcTab, setBgcTab] = useState(false)
+  async function fetchBgcQueue() {
+    const { data } = await supabase.from('profiles').select('*').eq('bgc_pending', true)
+    setBgcQueue(data || [])
+  }
+  async function approveBgc(id: string) {
+    await supabase.from('profiles').update({ bgc_verified: true, bgc_pending: false }).eq('id', id)
+    fetchBgcQueue()
+  }
+  async function denyBgc(id: string) {
+    await supabase.from('profiles').update({ bgc_pending: false }).eq('id', id)
+    fetchBgcQueue()
+  }
+  useEffect(() => { fetchBgcQueue() }, [])
+
   if (!user || profile?.role !== "admin") {
     return (
       <div className="section" style={{ textAlign: "center", paddingTop: 80 }}>
@@ -2215,6 +2276,22 @@ function AdminPage({ setPage, user, profile }: any) {
         <p style={{ color: "var(--t2)", fontSize: 13 }}>Full admin functionality — user management, BGC approvals, cert verification, refunds, revenue dashboard — building now.</p>
         <div style={{ background: "rgba(249,115,22,0.08)", border: "1px solid rgba(249,115,22,0.2)", borderRadius: 8, padding: "14px 24px", marginTop: 20, display: "inline-block" }}>
           <span className="mo" style={{ fontSize: 10, color: "var(--or)" }}>BUILDING NOW — AVAILABLE SOON</span>
+        {/* BGC QUEUE */}
+        <div style={{ marginTop: 24 }}>
+        <div className="bb" style={{ fontSize: 15, marginBottom: 12, cursor: 'pointer' }} onClick={() => { setBgcTab(!bgcTab); fetchBgcQueue() }}>📋 BGC Submissions {bgcTab ? '▲' : '▼'}</div>
+        {bgcTab && (bgcQueue.length === 0 ? (
+        <p className="mo" style={{ fontSize: 11, color: 'var(--t2)' }}>No pending BGC submissions.</p>
+        ) : bgcQueue.map(p => (
+        <div key={p.id} className="card" style={{ padding: 16, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+        <div style={{ flex: 1 }}>
+        <div className="mo" style={{ fontSize: 12, fontWeight: 600 }}>{p.full_name || p.email}</div>
+        <a href={p.bgc_document_url} target="_blank" className="mo" style={{ fontSize: 10, color: 'var(--bl)' }}>View Document ↗</a>
+        </div>
+        <button className="btn btn-am btn-sm" onClick={() => approveBgc(p.id)}>✓ Approve</button>
+        <button className="btn btn-sm" style={{ background: 'var(--rd)', color: '#fff' }} onClick={() => denyBgc(p.id)}>✕ Deny</button>
+        </div>
+        )))}
+        </div>
         </div>
       </div>
     </div>
