@@ -1844,8 +1844,8 @@ function CbRadioPage({ setPage }: any) {
 }
 
 // ─── ADMIN PANEL ──────────────────────────────────────────────────────────────
-function AdminPage({ setPage, user }: any) {
-  if (!user || user.email !== "bahmed3170@gmail.com") {
+function AdminPage({ setPage, user, profile }: any) {
+  if (!user || profile?.role !== "admin") {
     return (
       <div className="section" style={{ textAlign: "center", paddingTop: 80 }}>
         <span style={{ fontSize: 48 }}>🔒</span>
@@ -1956,7 +1956,7 @@ export default function OEHPlatform() {
       {page === "job-history" && <JobHistoryPage setPage={setPage} />}
       {page === "permits" && <PermitHubPage setPage={setPage} user={user} profile={profile} />}
       {page === "deadhead" && <DeadheadPage setPage={setPage} profile={profile} />}
-      {page === "admin" && <AdminPage setPage={setPage} user={user} />}
+      {page === "admin" && <AdminPage setPage={setPage} user={user} profile={profile} />}
       {page === "dot-lookup" && <DotLookupPage setPage={setPage} />}
       {page === "state-reqs" && <StateReqsPage setPage={setPage} />}
       {page === "weather" && <WeatherPage setPage={setPage} />}
