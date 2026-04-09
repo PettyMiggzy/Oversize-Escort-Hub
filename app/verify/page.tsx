@@ -1,249 +1,232 @@
-"use client";
-import { useEffect, useRef, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+"use client"
+import { useState } from "react"
+import Header from "@/components/SiteHeader"
+import Footer from "@/components/SiteFooter"
+import Link from "next/link"
 
-const createClientComponentClient = () => createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-import Header from "@/components/SiteHeader";
-import Footer from "@/components/SiteFooter";
+const TIERS = [
+  {
+    id: "free",
+    name: "Free Tier",
+    badge: "FREE",
+    badgeColor: "#6b7280",
+    price: null,
+    description: "Create your profile and appear in search results. Basic visibility with no verification badge.",
+    features: ["Profile listing", "Appear in Find Escorts", "Contact form", "Basic bio & photos"],
+    cta: "Get Started Free",
+    ctaHref: "/signin",
+  },
+  {
+    id: "member",
+    name: "Member Verified",
+    badge: "MEMBER",
+    badgeColor: "#3b82f6",
+    price: null,
+    description: "Identity verified by OEH staff. Member badge on your profile. Required before BGC upgrade.",
+    features: ["Everything in Free", "OEH Member badge", "Priority in search", "Verified identity on profile"],
+    cta: "Start Verification",
+    ctaHref: "/signin",
+  },
+  {
+    id: "bgc",
+    name: "BGC Verified",
+    badge: "BGC",
+    badgeColor: "#f59e0b",
+    price: "$9.99",
+    description: "Full background check through our trusted partner. Gold BGC badge signals to carriers you are trustworthy.",
+    features: ["Everything in Member", "Gold BGC badge", "Background check certificate", "Highest trust ranking"],
+    cta: "Start BGC — $9.99",
+    ctaHref: "/pricing",
+    highlight: true,
+  },
+  {
+    id: "pro",
+    name: "Pro Verified",
+    badge: "PRO",
+    badgeColor: "#ff6600",
+    price: null,
+    description: "For top escorts who have completed BGC and have demonstrated excellence on the platform.",
+    features: ["Everything in BGC", "Orange PRO badge", "Featured in top results", "Pro escort directory"],
+    cta: "Upgrade to Pro",
+    ctaHref: "/pricing",
+  },
+]
 
-const S: any = {
-  page: { minHeight: "100vh", background: "#060608", color: "#f0f0f0", fontFamily: "'Inter', sans-serif" },
-  hero: { background: "linear-gradient(135deg,#0a0a0f 0%,#0e1a2e 100%)", padding: "56px 24px 40px", borderBottom: "1px solid rgba(255,255,255,0.06)" },
-  heroInner: { maxWidth: 860, margin: "0 auto", textAlign: "center" as const },
-  h1: { fontSize: 32, fontWeight: 700, color: "#fff", marginBottom: 10 },
-  sub: { fontSize: 15, color: "#9ca3af", maxWidth: 560, margin: "0 auto" },
-  section: { maxWidth: 860, margin: "0 auto", padding: "48px 24px" },
-  grid: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 20, marginBottom: 40 },
-  card: { background: "#0e1018", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: 28 },
-  cardTitle: { fontSize: 15, fontWeight: 700, color: "#fff", marginBottom: 6, display: "flex", alignItems: "center", gap: 8 },
-  cardSub: { fontSize: 13, color: "#9ca3af", lineHeight: 1.6, marginBottom: 20 },
-  btn: { width: "100%", padding: "12px 16px", borderRadius: 10, cursor: "pointer", fontSize: 14, fontWeight: 600, border: "none", minHeight: 48, transition: "opacity 0.2s" },
-  btnPrime: { background: "#00a8e8", color: "#fff" },
-  btnGold: { background: "#f59e0b", color: "#000" },
-  btnGhost: { background: "rgba(255,255,255,0.06)", color: "#e0e0e0", border: "1px solid rgba(255,255,255,0.12)" },
-  btnSuccess: { background: "#22c55e22", color: "#22c55e", border: "1px solid #22c55e40", cursor: "default" },
-  statusBadge: (ok: boolean) => ({
-    display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 10px",
-    borderRadius: 99, fontSize: 12, fontWeight: 600,
-    background: ok ? "#22c55e22" : "rgba(255,255,255,0.05)",
-    color: ok ? "#22c55e" : "#9ca3af",
-  }),
-  fileInput: { display: "none" },
-  uploadArea: { border: "2px dashed rgba(255,255,255,0.15)", borderRadius: 10, padding: "24px 16px", textAlign: "center" as const, cursor: "pointer", marginBottom: 12, fontSize: 13, color: "#9ca3af" },
-  toast: { position: "fixed" as const, bottom: 24, right: 24, background: "#0e1018", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, padding: "14px 20px", fontSize: 13, color: "#e0e0e0", zIndex: 999, boxShadow: "0 8px 32px rgba(0,0,0,0.5)" },
-};
-
-export default function VerifyPage() {
-  const supabase = createClientComponentClient();
-  const dd214Ref = useRef<HTMLInputElement>(null);
-  const [session, setSession] = useState<any>(null);
-  const [profile, setProfile] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [bgcLoading, setBgcLoading] = useState(false);
-  const [dd214Loading, setDd214Loading] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
-
-  const showToast = (msg: string) => {
-    setToast(msg);
-    setTimeout(() => setToast(null), 4000);
-  };
-
-  useEffect(() => {
-    (async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { window.location.href = "/signin"; return; }
-      setSession(session);
-      const { data: p } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
-      setProfile(p);
-      setLoading(false);
-
-      // Check for BGC return
-      const params = new URLSearchParams(window.location.search);
-      if (params.get("bgc") === "success") showToast("✓ Background check payment received. Processing…");
-      if (params.get("bgc") === "cancel") showToast("Background check payment cancelled.");
-    })();
-  }, []);
-
-  const handleBGC = async () => {
-    if (!session) return;
-    setBgcLoading(true);
-    try {
-      const res = await fetch("/api/bgc-checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: session.user.id, email: session.user.email }),
-      });
-      const { url } = await res.json();
-      if (url) window.location.href = url;
-    } catch (e) {
-      showToast("Error starting checkout. Try again.");
-    }
-    setBgcLoading(false);
-  };
-
-  const handleDD214 = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !session) return;
-    setDd214Loading(true);
-    const fd = new FormData();
-    fd.append("file", file);
-    fd.append("user_id", session.user.id);
-    fd.append("email", session.user.email ?? "");
-    try {
-      const res = await fetch("/api/dd214", { method: "POST", body: fd });
-      const data = await res.json();
-      if (data.ok) {
-        showToast("✓ DD-214 submitted. We'll review and verify within 24 hours.");
-        setProfile((p: any) => ({ ...p, dd214_pending: true }));
-      } else {
-        showToast("Upload failed: " + (data.error ?? "Unknown error"));
-      }
-    } catch (err) {
-      showToast("Upload error. Check your connection and try again.");
-    }
-    setDd214Loading(false);
-  };
-
-  const handleCDL = () => showToast("CDL verification: upload a photo of your CDL to verify@oversize-escort-hub.com with subject: CDL - " + (session?.user?.id ?? ""));
-  const handleInsurance = () => showToast("Insurance verification: email proof to verify@oversize-escort-hub.com with subject: Insurance - " + (session?.user?.id ?? ""));
-  const handlePilotCert = () => showToast("Pilot cert: email a copy to verify@oversize-escort-hub.com with subject: PilotCert - " + (session?.user?.id ?? ""));
-
-  if (loading) return <div style={S.page}><Header /><div style={{ textAlign: "center", padding: 80, color: "#9ca3af" }}>Loading…</div><Footer /></div>;
-
-  const isVerified = (field: string) => !!profile?.[field];
-
-  const cards = [
-    {
-      title: "Background Check",
-      icon: "🔒",
-      desc: "Get the BGC badge displayed on your profile. One-time $9.99 fee. Processed within 2-3 business days.",
-      price: "$9.99",
-      action: handleBGC,
-      loading: bgcLoading,
-      done: isVerified("bgc_verified"),
-      doneLabel: "BGC Verified ✓",
-      btnLabel: bgcLoading ? "Redirecting…" : "Get Background Check",
-      btnStyle: "btnGold",
-    },
-    {
-      title: "DD-214 Veteran Verification",
-      icon: "🇺🇸",
-      desc: "Upload your DD-214 to receive the Veteran badge on your profile. Reviewed within 24 hours.",
-      action: () => dd214Ref.current?.click(),
-      loading: dd214Loading,
-      done: isVerified("dd214_verified"),
-      doneLabel: profile?.dd214_pending ? "DD-214 Pending Review" : "DD-214 Verified ✓",
-      btnLabel: dd214Loading ? "Uploading…" : "Upload DD-214",
-      btnStyle: "btnGhost",
-      isUpload: true,
-    },
-    {
-      title: "CDL Verification",
-      icon: "🚗",
-      desc: "Verify your Commercial Driver License to unlock CDL-required loads.",
-      action: handleCDL,
-      done: isVerified("cdl_verified"),
-      doneLabel: "CDL Verified ✓",
-      btnLabel: "Verify CDL",
-      btnStyle: "btnGhost",
-    },
-    {
-      title: "Insurance Verification",
-      icon: "📋",
-      desc: "Submit proof of insurance to display the Insured badge on your profile.",
-      action: handleInsurance,
-      done: isVerified("insurance_verified"),
-      doneLabel: "Insurance Verified ✓",
-      btnLabel: "Submit Insurance",
-      btnStyle: "btnGhost",
-    },
-    {
-      title: "Pilot Car Certification",
-      icon: "🚩",
-      desc: "Upload your pilot car operator certification to unlock certified loads.",
-      action: handlePilotCert,
-      done: isVerified("pilot_cert_verified"),
-      doneLabel: "Cert Verified ✓",
-      btnLabel: "Submit Certification",
-      btnStyle: "btnGhost",
-    },
-    {
-      title: "Pro Membership",
-      icon: "⭐",
-      desc: "Upgrade to Pro for exclusive early access to loads and priority matching.",
-      action: () => window.location.href = "/pricing",
-      done: profile?.tier === "pro",
-      doneLabel: "Pro Member ✓",
-      btnLabel: "Upgrade to Pro →",
-      btnStyle: "btnPrime",
-    },
-  ];
+export default function VerificationPage() {
+  const [ddForm, setDdForm] = useState({ name: "", email: "", branch: "", years: "", file: null as File | null })
+  const [ddSubmitted, setDdSubmitted] = useState(false)
 
   return (
-    <div style={S.page}>
+    <div style={{ minHeight: "100vh", background: "var(--bg,#0d0d0d)", color: "#eee", fontFamily: "var(--font,sans-serif)" }}>
       <Header />
 
-      <div style={S.hero}>
-        <div style={S.heroInner}>
-          <h1 style={S.h1}>Verification Center</h1>
-          <p style={S.sub}>Build trust and unlock more loads by verifying your credentials. Each badge appears on your public profile.</p>
+      {/* Hero */}
+      <div style={{ background: "linear-gradient(135deg,#1a1a1a 0%,#111 100%)", borderBottom: "1px solid rgba(255,102,0,0.2)", padding: "60px 20px 48px" }}>
+        <div style={{ maxWidth: 800, margin: "0 auto", textAlign: "center" }}>
+          <div style={{ display: "inline-block", padding: "4px 14px", background: "rgba(255,102,0,0.12)", border: "1px solid rgba(255,102,0,0.3)", borderRadius: 20, fontSize: 11, fontWeight: 700, color: "#ff6600", letterSpacing: 1, marginBottom: 16, textTransform: "uppercase" }}>
+            Trust & Safety
+          </div>
+          <h1 style={{ fontSize: 36, fontWeight: 800, color: "#fff", marginBottom: 16, lineHeight: 1.2 }}>
+            OEH Verification Program
+          </h1>
+          <p style={{ fontSize: 16, color: "#9ca3af", maxWidth: 560, margin: "0 auto", lineHeight: 1.7 }}>
+            Carriers trust verified escorts. Build credibility, earn more loads, and stand out from the crowd with an OEH verification badge.
+          </p>
         </div>
       </div>
 
-      <div style={S.section}>
-        <div style={S.grid}>
-          {cards.map(card => (
-            <div key={card.title} style={S.card}>
-              <div style={S.cardTitle}>
-                <span>{card.icon}</span>
-                <span>{card.title}</span>
-                {card.done && <span style={S.statusBadge(true)}>✓</span>}
+      {/* Tier Cards */}
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "56px 20px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 24 }}>
+          {TIERS.map(tier => (
+            <div key={tier.id} style={{
+              background: "var(--card,#111)",
+              border: tier.highlight ? "1px solid rgba(255,102,0,0.4)" : "1px solid rgba(255,255,255,0.07)",
+              borderLeft: `4px solid ${tier.badgeColor}`,
+              borderRadius: 14,
+              padding: 28,
+              display: "flex",
+              flexDirection: "column",
+              position: "relative",
+              boxShadow: tier.highlight ? "0 0 32px rgba(255,102,0,0.08)" : "none",
+            }}>
+              {tier.highlight && (
+                <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", background: "#ff6600", color: "#000", fontSize: 10, fontWeight: 800, padding: "3px 14px", borderRadius: 20, letterSpacing: 1, textTransform: "uppercase" }}>
+                  Most Popular
+                </div>
+              )}
+              {/* Badge */}
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+                <div style={{ background: tier.badgeColor + "22", border: `1px solid ${tier.badgeColor}44`, borderRadius: 8, padding: "6px 14px", fontSize: 12, fontWeight: 800, color: tier.badgeColor, letterSpacing: 1 }}>
+                  {tier.badge}
+                </div>
+                {tier.price && (
+                  <div style={{ marginLeft: "auto", fontSize: 20, fontWeight: 800, color: "#fff" }}>
+                    {tier.price}
+                  </div>
+                )}
               </div>
-              <div style={S.cardSub}>{card.desc}</div>
-              {card.price && !card.done && (
-                <div style={{ fontSize: 20, fontWeight: 700, color: "#f59e0b", marginBottom: 14 }}>{card.price}</div>
-              )}
-              {card.done ? (
-                <button style={{ ...S.btn, ...S.btnSuccess }}>{card.doneLabel}</button>
-              ) : (
-                <button
-                  style={{ ...S.btn, ...S[card.btnStyle], opacity: card.loading ? 0.6 : 1 }}
-                  onClick={card.action}
-                  disabled={card.loading}
-                >
-                  {card.btnLabel}
+
+              <h2 style={{ fontSize: 20, fontWeight: 700, color: "#fff", marginBottom: 10 }}>{tier.name}</h2>
+              <p style={{ fontSize: 13, color: "#9ca3af", lineHeight: 1.6, marginBottom: 20, flexGrow: 1 }}>{tier.description}</p>
+
+              {/* Features */}
+              <ul style={{ listStyle: "none", padding: 0, margin: "0 0 24px 0" }}>
+                {tier.features.map((f, i) => (
+                  <li key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#d1d5db", marginBottom: 8 }}>
+                    <span style={{ color: tier.badgeColor, fontSize: 14, fontWeight: 700 }}>✓</span>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+
+              <Link href={tier.ctaHref}>
+                <button style={{
+                  width: "100%",
+                  padding: "12px 0",
+                  background: tier.highlight ? "#ff6600" : "transparent",
+                  color: tier.highlight ? "#000" : "#ff6600",
+                  border: `1px solid ${tier.highlight ? "#ff6600" : "rgba(255,102,0,0.4)"}`,
+                  borderRadius: 8,
+                  fontSize: 14,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  transition: "all 0.2s",
+                }}>
+                  {tier.cta}
                 </button>
-              )}
+              </Link>
             </div>
           ))}
         </div>
+      </div>
 
-        {/* Hidden DD-214 file input */}
-        <input
-          ref={dd214Ref}
-          type="file"
-          accept=".pdf,.jpg,.jpeg,.png"
-          style={S.fileInput}
-          onChange={handleDD214}
-        />
-
-        {/* Info box */}
-        <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: "20px 24px" }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: "#fff", marginBottom: 8 }}>About the OEH Trust System</div>
-          <div style={{ fontSize: 13, color: "#9ca3af", lineHeight: 1.7 }}>
-            OEH uses a private trust scoring system. Each verification badge improves your match priority and visibility.
-            Repeated cancellations or no-shows reduce your ranking. Verified members see better load opportunities and
-            appear higher in carrier searches. All documents are reviewed by the OEH team and are never publicly shared.
+      {/* How It Works */}
+      <div style={{ background: "rgba(255,255,255,0.02)", borderTop: "1px solid rgba(255,255,255,0.06)", borderBottom: "1px solid rgba(255,255,255,0.06)", padding: "56px 20px" }}>
+        <div style={{ maxWidth: 900, margin: "0 auto" }}>
+          <h2 style={{ fontSize: 26, fontWeight: 700, color: "#fff", textAlign: "center", marginBottom: 40 }}>
+            How Verification Works
+          </h2>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 32 }}>
+            {[
+              { step: "1", title: "Create Account", body: "Sign up as an escort on OEH. Your profile is automatically created at the Free tier." },
+              { step: "2", title: "Submit Documents", body: "Upload your ID and state certification documents through the secure verification portal." },
+              { step: "3", title: "Staff Review", body: "OEH staff manually reviews your submission. Most verifications complete within 48 hours." },
+              { step: "4", title: "Badge Applied", body: "Once approved, your badge appears on your profile and in all escort search listings." },
+            ].map(item => (
+              <div key={item.step} style={{ textAlign: "center" }}>
+                <div style={{ width: 48, height: 48, borderRadius: "50%", background: "rgba(255,102,0,0.15)", border: "2px solid rgba(255,102,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 800, color: "#ff6600", margin: "0 auto 16px" }}>
+                  {item.step}
+                </div>
+                <h3 style={{ fontSize: 16, fontWeight: 600, color: "#fff", marginBottom: 8 }}>{item.title}</h3>
+                <p style={{ fontSize: 13, color: "#9ca3af", lineHeight: 1.6 }}>{item.body}</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>
 
-      <Footer />
+      {/* DD-214 Veteran Discount */}
+      <div style={{ maxWidth: 700, margin: "0 auto", padding: "56px 20px" }}>
+        <div style={{
+          background: "var(--card,#111)",
+          border: "1px solid rgba(255,255,255,0.08)",
+          borderLeft: "4px solid #ff6600",
+          borderRadius: 14,
+          padding: 32,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+            <span style={{ fontSize: 28 }}>🎖️</span>
+            <h2 style={{ fontSize: 22, fontWeight: 700, color: "#fff" }}>Veteran Discount — DD-214</h2>
+          </div>
+          <p style={{ fontSize: 14, color: "#9ca3af", marginBottom: 24, lineHeight: 1.7 }}>
+            Thank you for your service. Veterans with a valid DD-214 receive a <strong style={{ color: "#ff6600" }}>free BGC upgrade</strong>. Submit your DD-214 below and our team will apply the discount to your account within 24 hours.
+          </p>
 
-      {toast && <div style={S.toast}>{toast}</div>}
+          {ddSubmitted ? (
+            <div style={{ background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.3)", borderRadius: 8, padding: "16px 20px", color: "#22c55e", fontWeight: 600, textAlign: "center" }}>
+              ✓ Your DD-214 discount request has been submitted. We will review and apply within 24 hours.
+            </div>
+          ) : (
+            <form onSubmit={(e) => { e.preventDefault(); setDdSubmitted(true) }} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div>
+                  <label style={{ fontSize: 12, color: "#9ca3af", display: "block", marginBottom: 6 }}>Full Name</label>
+                  <input type="text" required value={ddForm.name} onChange={e => setDdForm(f => ({ ...f, name: e.target.value }))}
+                    placeholder="Your full name" style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "10px 14px", color: "#fff", fontSize: 13, boxSizing: "border-box" as const }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, color: "#9ca3af", display: "block", marginBottom: 6 }}>Account Email</label>
+                  <input type="email" required value={ddForm.email} onChange={e => setDdForm(f => ({ ...f, email: e.target.value }))}
+                    placeholder="your@email.com" style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "10px 14px", color: "#fff", fontSize: 13, boxSizing: "border-box" as const }} />
+                </div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div>
+                  <label style={{ fontSize: 12, color: "#9ca3af", display: "block", marginBottom: 6 }}>Branch of Service</label>
+                  <input type="text" value={ddForm.branch} onChange={e => setDdForm(f => ({ ...f, branch: e.target.value }))}
+                    placeholder="e.g. Army, Navy" style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "10px 14px", color: "#fff", fontSize: 13, boxSizing: "border-box" as const }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, color: "#9ca3af", display: "block", marginBottom: 6 }}>Years of Service</label>
+                  <input type="text" value={ddForm.years} onChange={e => setDdForm(f => ({ ...f, years: e.target.value }))}
+                    placeholder="e.g. 2010-2018" style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "10px 14px", color: "#fff", fontSize: 13, boxSizing: "border-box" as const }} />
+                </div>
+              </div>
+              <div>
+                <label style={{ fontSize: 12, color: "#9ca3af", display: "block", marginBottom: 6 }}>DD-214 Document (PDF or image)</label>
+                <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => setDdForm(f => ({ ...f, file: e.target.files?.[0] || null }))}
+                  style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "10px 14px", color: "#9ca3af", fontSize: 13 }} />
+              </div>
+              <button type="submit" style={{ padding: "12px", background: "#ff6600", color: "#000", border: "none", borderRadius: 8, fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+                Submit DD-214 for Free BGC
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
+
+      <Footer />
     </div>
-  );
+  )
 }
