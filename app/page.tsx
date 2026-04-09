@@ -106,7 +106,7 @@ table{width:100%;border-collapse:collapse}
 
 .ticker{color:#ffffff;height:28px;background:#030507;border-bottom:1px solid var(--l1);overflow:hidden;display:flex;align-items:center}
 .ticker-track{display:flex;animation:scrolltick 90s linear infinite;white-space:nowrap}
-.tick-item{display:inline-flex;align-items:center;gap:8px;padding:0 28px;border-right:1px solid var(--l1);height:28px;font-family:'DM Mono',monospace;font-size:10px;color:var(--t2);letter-spacing:.05em}
+.tick-item{display:inline-flex;align-items:center;gap:8px;padding:0 28px;border-right:1px solid var(--l1);height:28px;font-family:'DM Mono',monospace;font-size:10px;color:#ffffff;letter-spacing:.05em}
 .tick-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
 .dot-gr{background:var(--gr);box-shadow:0 0 5px var(--gr)}
 .dot-am{background:var(--am);box-shadow:0 0 5px var(--am)}
@@ -515,6 +515,14 @@ function Footer({ setPage }: { setPage: (p: Page) => void }) {
       <div className="footer-bottom">
         <span>© 2026 Oversize Escort Hub. All rights reserved.</span>
         <span style={{ color: "var(--or)", letterSpacing: ".1em" }}>NO COMMISSIONS · NO JOB FEES · EVER</span>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 8, marginTop: 8 }}>
+          <span title="American Flag" style={{ fontSize: 20 }}>🇺🇸</span>
+          <span title="Thin Blue Line Flag" style={{ display: "inline-flex", flexDirection: "column", width: 28, height: 20, overflow: "hidden", borderRadius: 2 }}>
+            <span style={{ flex: 2, background: "#000" }} />
+            <span style={{ height: 5, background: "#1d4ed8" }} />
+            <span style={{ flex: 2, background: "#000" }} />
+          </span>
+        </span>
       </div>
     </footer>
   );
@@ -577,33 +585,30 @@ function HomePage({ setPage, user, profile }: { setPage: (p: Page) => void; user
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, width: "100%", maxWidth: 720 }}>
           <div className="role-card" style={{ border: "2px solid var(--or)" }} onClick={() => setRole("carrier")}>
             <div className="bb" style={{ fontSize: 34, color: "var(--or)", marginBottom: 10 }}>OVERSIZE CARRIER</div>
-            <p style={{ fontSize: 13, color: "var(--t2)", lineHeight: 1.8, marginBottom: 20 }}>Owner operators &amp; carriers who need verified P/EVO escorts for oversize loads.</p>
+            <p style={{ fontSize: 11, color: "var(--t2)", lineHeight: 1.5, marginBottom: 16 }}>Carriers hauling oversize/overweight loads who need permits, escorts, and load boards.</p>
             <div className="mo" style={{ fontSize: 10, color: "var(--or)", letterSpacing: ".1em" }}>POST LOADS · BID BOARD · FIND ESCORTS →</div>
           </div>
           <div className="role-card" style={{ border: "2px solid var(--am)" }} onClick={() => setRole("escort")}>
             <div className="bb" style={{ fontSize: 34, color: "var(--am)", marginBottom: 10 }}>PILOT CAR / P/EVO</div>
-            <p style={{ fontSize: 13, color: "var(--t2)", lineHeight: 1.8, marginBottom: 20 }}>Licensed pilot car escorts &amp; P/EVO operators looking for oversize loads to run.</p>
+            <p style={{ fontSize: 11, color: "var(--t2)", lineHeight: 1.5, marginBottom: 16 }}>Pilot car operators and P/EVO escorts looking for loads, routes, and work opportunities.</p>
             <div className="mo" style={{ fontSize: 10, color: "var(--am)", letterSpacing: ".1em" }}>FIND LOADS · DEADHEAD MINIMIZER · BID →</div>
           </div>
-        </div>
-        <button className="mo" style={{ marginTop: 28, background: "none", border: "none", color: "var(--t3)", fontSize: 10, letterSpacing: ".1em", cursor: "pointer" }} onClick={() => setRole("carrier")}>
-          <div className="role-card" style={{ border: "2px solid var(--t2)", marginTop: 12 }} onClick={() => setRole("broker")}>
+          <div className="role-card" style={{ border: "2px solid var(--t2)" }} onClick={() => setRole("broker")}>
             <div className="bb" style={{ fontSize: 34, color: "var(--t2)", marginBottom: 10 }}>FREIGHT BROKER</div>
             <p style={{ fontSize: 11, color: "var(--t2)", lineHeight: 1.5, marginBottom: 16 }}>Licensed freight brokers who need verified P/EVO escorts for oversize shipments.</p>
             <div className="mo" style={{ fontSize: 9, color: "var(--t2)", letterSpacing: ".1em" }}>POST LOADS · FIND ESCORTS · MANAGE SHIPMENTS →</div>
+          </div>
+          <div className="role-card" style={{ border: "2px solid #3b82f6" }} onClick={() => setRole("fleet_manager")}>
+            <div className="bb" style={{ fontSize: 34, color: "#3b82f6", marginBottom: 10 }}>FLEET MANAGER</div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+              <span style={{ background: "rgba(59,130,246,0.18)", color: "#3b82f6", fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, letterSpacing: 1 }}>PRO REQUIRED</span>
+            </div>
+            <p className="hero-sub" style={{ lineHeight: 1.5, marginBottom: 16 }}>Manage multiple P/EVO escorts across loads. Find work for your fleet, track jobs, and maximize every mile.</p>
+            <div className="mo" style={{ fontSize: 11, color: "var(--t2)", marginBottom: 20, letterSpacing: ".06em", lineHeight: 1.8 }}>FIND LOADS · FLEET DEADHEAD · MANAGE ESCORTS →</div>
+            <a href="/signin?role=fleet_manager" className="mo" style={{ display: "inline-block", padding: "11px 18px", background: "#3b82f6", color: "#fff", borderRadius: 4, fontWeight: 700, fontSize: 10, letterSpacing: ".1em", textDecoration: "none" }}>GET STARTED →</a>
+          </div>
         </div>
-<div className="role-card" style={{ border: "2px solid #3b82f6", marginTop: 12 }}>
-          <div className="bb" style={{ fontSize: 34, color: "#3b82f6", marginBottom: 10 }}>FLEET MANAGER</div>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-            <span style={{ background: "rgba(59,130,246,0.18)", color: "#3b82f6", fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, letterSpacing: 1 }}>PRO REQUIRED</span>
-          </div>
-          <p className="hero-sub" style={{ lineHeight: 1.5, marginBottom: 16 }}>Manage multiple P/EVO escorts across loads. Find work for your fleet, track jobs, and maximize every mile.</p>
-          <div className="mo" style={{ fontSize: 11, color: "var(--t2)", marginBottom: 20, letterSpacing: ".06em", lineHeight: 1.8 }}>
-            { "FIND LOADS · FLEET DEADHEAD · MANAGE ESCORTS →" }
-          </div>
-          <a href="/signin?role=fleet_manager" className="mo" style={{ display: "inline-block", padding: "11px 18px", background: "#3b82f6", color: "#fff", borderRadius: 4, fontWeight: 700, fontSize: 10, letterSpacing: ".1em", textDecoration: "none" }}>GET STARTED →</a>
-        </div>
-          </div>
+        <button className="mo" style={{ marginTop: 28, background: "none", border: "none", color: "var(--t3)", fontSize: 10, letterSpacing: ".1em", cursor: "pointer" }} onClick={() => setRole("carrier")}>
           Browse as guest →
         </button>
     );
