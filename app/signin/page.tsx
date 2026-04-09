@@ -18,13 +18,13 @@ button{cursor:pointer;font-family:'Inter',system-ui,sans-serif}
 .label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--t2);display:block;margin-bottom:6px}
 .field{margin-bottom:18px}
 .btn{display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;padding:13px 22px;border:none;width:100%;margin-bottom:12px;cursor:pointer}
-.btn-or{background:var(--or);color:#000}
+.btn-or{background:var(--or);color:#000}.btn-am{background:var(--am);color:#000}.btn-fleet{background:var(--bl);color:#fff}
 .btn-am{background:var(--am);color:#000}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 .role-toggle{display:flex;border:1px solid var(--l1);border-radius:3px;overflow:hidden;margin-bottom:20px}
 .role-btn{flex:1;padding:10px;background:transparent;border:none;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--t2);cursor:pointer}
 .role-btn.active-escort{background:var(--am);color:#000}
-.role-btn.active-carrier{background:var(--or);color:#000}
+.role-btn.active-carrier{background:var(--or);color:#000}.role-btn.active-fleet{background:var(--bl);color:#fff}
 .error{background:rgba(255,53,53,.1);border:1px solid rgba(255,53,53,.2);color:var(--rd);font-family:'DM Mono',monospace;font-size:10px;padding:10px 14px;border-radius:3px;margin-bottom:16px}
 .success{background:rgba(0,204,122,.1);border:1px solid rgba(0,204,122,.2);color:var(--gr);font-family:'DM Mono',monospace;font-size:10px;padding:10px 14px;border-radius:3px;margin-bottom:16px}
 .switch{text-align:center;margin-top:4px}
@@ -35,7 +35,7 @@ button{cursor:pointer;font-family:'Inter',system-ui,sans-serif}
 export default function SignInPage() {
   const router = useRouter();
   const [mode, setMode] = useState<"signup" | "signin">("signup");
-  const [role, setRole] = useState<"escort" | "carrier">("escort");
+  const [role, setRole] = useState<"escort" | "carrier" | "fleet_manager">("escort");
   const [fullName, setFullName] = useState("");
   const [company, setCompany] = useState("");
   const [email, setEmail] = useState("");
@@ -139,7 +139,7 @@ export default function SignInPage() {
           )}
 
           <button
-            className={`btn ${role === "carrier" ? "btn-or" : "btn-am"}`}
+            className={`btn ${role === "carrier" ? "btn-or" : role === "fleet_manager" ? "btn btn-fleet" : "btn-am"}`}
             onClick={handleSubmit}
             disabled={loading || !email || !password}
           >
