@@ -11,18 +11,37 @@ const supabase = createClient(
 export async function GET(req: NextRequest) {
   const board = req.nextUrl.searchParams.get('board')
   try {
+    // Query regular loads
     let query = supabase
       .from('loads')
       .select('*')
       .neq('status', 'filled')
       .order('created_at', { ascending: false })
     if (board) {
-      // boards is an array column — filter loads containing this board
       query = query.contains('boards', [board])
     }
-    const { data, error } = await query
+    const { data: regularLoads, error } = await query
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-    return NextResponse.json({ loads: data ?? [] })
+
+    // Query external loads (scraped from Loads Covered) — only for open_loads board
+    let externalLoads: any[] = []
+    if (!board || board === 'open_loads') {
+      const now = new Date().toISOString()
+      const { data: extData } = await supabase
+        .from('external_loads')
+        .select('*')
+        .eq('status', 'open')
+        .gt('expires_at', now)
+        .order('posted_at', { ascending: false })
+      // Tag external loads so UI can badge them
+      externalLoads = (extData ?? []).map(l => ({ ...l, is_external: true, boards: ['open_loads'] }))
+    }
+
+    // Merge and sort by date
+    const allLoads = [...(regularLoads ?? []), ...externalLoads]
+      .sort((a, b) => new Date(b.created_at ?? b.posted_at).getTime() - new Date(a.created_at ?? a.posted_at).getTime())
+
+    return NextResponse.json({ loads: allLoads })
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 })
   }
