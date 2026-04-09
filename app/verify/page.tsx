@@ -1,232 +1,249 @@
-// FILE: app/verify/page.tsx
-// ACTION: Replace ENTIRE file
+"use client";
+import { useEffect, useRef, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
+
+const createClientComponentClient = () => createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+import Header from "@/components/SiteHeader";
+import Footer from "@/components/SiteFooter";
+
+const S: any = {
+  page: { minHeight: "100vh", background: "#060608", color: "#f0f0f0", fontFamily: "'Inter', sans-serif" },
+  hero: { background: "linear-gradient(135deg,#0a0a0f 0%,#0e1a2e 100%)", padding: "56px 24px 40px", borderBottom: "1px solid rgba(255,255,255,0.06)" },
+  heroInner: { maxWidth: 860, margin: "0 auto", textAlign: "center" as const },
+  h1: { fontSize: 32, fontWeight: 700, color: "#fff", marginBottom: 10 },
+  sub: { fontSize: 15, color: "#9ca3af", maxWidth: 560, margin: "0 auto" },
+  section: { maxWidth: 860, margin: "0 auto", padding: "48px 24px" },
+  grid: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 20, marginBottom: 40 },
+  card: { background: "#0e1018", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: 28 },
+  cardTitle: { fontSize: 15, fontWeight: 700, color: "#fff", marginBottom: 6, display: "flex", alignItems: "center", gap: 8 },
+  cardSub: { fontSize: 13, color: "#9ca3af", lineHeight: 1.6, marginBottom: 20 },
+  btn: { width: "100%", padding: "12px 16px", borderRadius: 10, cursor: "pointer", fontSize: 14, fontWeight: 600, border: "none", minHeight: 48, transition: "opacity 0.2s" },
+  btnPrime: { background: "#00a8e8", color: "#fff" },
+  btnGold: { background: "#f59e0b", color: "#000" },
+  btnGhost: { background: "rgba(255,255,255,0.06)", color: "#e0e0e0", border: "1px solid rgba(255,255,255,0.12)" },
+  btnSuccess: { background: "#22c55e22", color: "#22c55e", border: "1px solid #22c55e40", cursor: "default" },
+  statusBadge: (ok: boolean) => ({
+    display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 10px",
+    borderRadius: 99, fontSize: 12, fontWeight: 600,
+    background: ok ? "#22c55e22" : "rgba(255,255,255,0.05)",
+    color: ok ? "#22c55e" : "#9ca3af",
+  }),
+  fileInput: { display: "none" },
+  uploadArea: { border: "2px dashed rgba(255,255,255,0.15)", borderRadius: 10, padding: "24px 16px", textAlign: "center" as const, cursor: "pointer", marginBottom: 12, fontSize: 13, color: "#9ca3af" },
+  toast: { position: "fixed" as const, bottom: 24, right: 24, background: "#0e1018", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, padding: "14px 20px", fontSize: 13, color: "#e0e0e0", zIndex: 999, boxShadow: "0 8px 32px rgba(0,0,0,0.5)" },
+};
 
 export default function VerifyPage() {
+  const supabase = createClientComponentClient();
+  const dd214Ref = useRef<HTMLInputElement>(null);
+  const [session, setSession] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [bgcLoading, setBgcLoading] = useState(false);
+  const [dd214Loading, setDd214Loading] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  useEffect(() => {
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { window.location.href = "/signin"; return; }
+      setSession(session);
+      const { data: p } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
+      setProfile(p);
+      setLoading(false);
+
+      // Check for BGC return
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("bgc") === "success") showToast("✓ Background check payment received. Processing…");
+      if (params.get("bgc") === "cancel") showToast("Background check payment cancelled.");
+    })();
+  }, []);
+
+  const handleBGC = async () => {
+    if (!session) return;
+    setBgcLoading(true);
+    try {
+      const res = await fetch("/api/bgc-checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: session.user.id, email: session.user.email }),
+      });
+      const { url } = await res.json();
+      if (url) window.location.href = url;
+    } catch (e) {
+      showToast("Error starting checkout. Try again.");
+    }
+    setBgcLoading(false);
+  };
+
+  const handleDD214 = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !session) return;
+    setDd214Loading(true);
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("user_id", session.user.id);
+    fd.append("email", session.user.email ?? "");
+    try {
+      const res = await fetch("/api/dd214", { method: "POST", body: fd });
+      const data = await res.json();
+      if (data.ok) {
+        showToast("✓ DD-214 submitted. We'll review and verify within 24 hours.");
+        setProfile((p: any) => ({ ...p, dd214_pending: true }));
+      } else {
+        showToast("Upload failed: " + (data.error ?? "Unknown error"));
+      }
+    } catch (err) {
+      showToast("Upload error. Check your connection and try again.");
+    }
+    setDd214Loading(false);
+  };
+
+  const handleCDL = () => showToast("CDL verification: upload a photo of your CDL to verify@oversize-escort-hub.com with subject: CDL - " + (session?.user?.id ?? ""));
+  const handleInsurance = () => showToast("Insurance verification: email proof to verify@oversize-escort-hub.com with subject: Insurance - " + (session?.user?.id ?? ""));
+  const handlePilotCert = () => showToast("Pilot cert: email a copy to verify@oversize-escort-hub.com with subject: PilotCert - " + (session?.user?.id ?? ""));
+
+  if (loading) return <div style={S.page}><Header /><div style={{ textAlign: "center", padding: 80, color: "#9ca3af" }}>Loading…</div><Footer /></div>;
+
+  const isVerified = (field: string) => !!profile?.[field];
+
+  const cards = [
+    {
+      title: "Background Check",
+      icon: "🔒",
+      desc: "Get the BGC badge displayed on your profile. One-time $9.99 fee. Processed within 2-3 business days.",
+      price: "$9.99",
+      action: handleBGC,
+      loading: bgcLoading,
+      done: isVerified("bgc_verified"),
+      doneLabel: "BGC Verified ✓",
+      btnLabel: bgcLoading ? "Redirecting…" : "Get Background Check",
+      btnStyle: "btnGold",
+    },
+    {
+      title: "DD-214 Veteran Verification",
+      icon: "🇺🇸",
+      desc: "Upload your DD-214 to receive the Veteran badge on your profile. Reviewed within 24 hours.",
+      action: () => dd214Ref.current?.click(),
+      loading: dd214Loading,
+      done: isVerified("dd214_verified"),
+      doneLabel: profile?.dd214_pending ? "DD-214 Pending Review" : "DD-214 Verified ✓",
+      btnLabel: dd214Loading ? "Uploading…" : "Upload DD-214",
+      btnStyle: "btnGhost",
+      isUpload: true,
+    },
+    {
+      title: "CDL Verification",
+      icon: "🚗",
+      desc: "Verify your Commercial Driver License to unlock CDL-required loads.",
+      action: handleCDL,
+      done: isVerified("cdl_verified"),
+      doneLabel: "CDL Verified ✓",
+      btnLabel: "Verify CDL",
+      btnStyle: "btnGhost",
+    },
+    {
+      title: "Insurance Verification",
+      icon: "📋",
+      desc: "Submit proof of insurance to display the Insured badge on your profile.",
+      action: handleInsurance,
+      done: isVerified("insurance_verified"),
+      doneLabel: "Insurance Verified ✓",
+      btnLabel: "Submit Insurance",
+      btnStyle: "btnGhost",
+    },
+    {
+      title: "Pilot Car Certification",
+      icon: "🚩",
+      desc: "Upload your pilot car operator certification to unlock certified loads.",
+      action: handlePilotCert,
+      done: isVerified("pilot_cert_verified"),
+      doneLabel: "Cert Verified ✓",
+      btnLabel: "Submit Certification",
+      btnStyle: "btnGhost",
+    },
+    {
+      title: "Pro Membership",
+      icon: "⭐",
+      desc: "Upgrade to Pro for exclusive early access to loads and priority matching.",
+      action: () => window.location.href = "/pricing",
+      done: profile?.tier === "pro",
+      doneLabel: "Pro Member ✓",
+      btnLabel: "Upgrade to Pro →",
+      btnStyle: "btnPrime",
+    },
+  ];
+
   return (
-    <main style={S.main}>
+    <div style={S.page}>
       <Header />
 
-      <section style={S.wrap}>
-        <h1 style={S.h1}>Verification & Trust Layer</h1>
-        <p style={S.sub}>
-          Verification increases trust, win rate, and platform standing.  
-          Optional — but strongly recommended.
-        </p>
-
-        {/* ===== BADGES ===== */}
-        <div style={S.grid4}>
-          <Badge
-            title="TRIAL"
-            desc="Viewing access during trial period"
-          />
-          <Badge
-            title="MEMBER"
-            desc="Active escort with bidding access"
-          />
-          <Badge
-            title="PRO"
-            desc="Priority access & SMS alerts"
-          />
-          <Badge
-            title="✔ VERIFIED"
-            desc="Certifications reviewed & confirmed"
-            glow
-          />
-        </div>
-
-        {/* ===== VERIFICATION OPTIONS ===== */}
-        <div style={S.panel}>
-          <h2 style={S.h2}>Certification Verification</h2>
-          <p style={S.text}>
-            Where possible, certifications are verified with issuing entities
-            and randomly re-checked for compliance.
-          </p>
-
-          <ul style={S.list}>
-            <li>• Initial certification verification: <strong>$9.99</strong></li>
-            <li>• Additional certificates: <strong>$3.99 each</strong></li>
-            <li>• Pro members receive discounted rates</li>
-            <li>• Money-back guarantee if verification cannot be completed</li>
-          </ul>
-
-          <a href="/signin" style={S.primaryBtn}>
-            REQUEST VERIFICATION
-          </a>
-        </div>
-
-        {/* ===== INSURANCE ===== */}
-        <div style={S.panel}>
-          <h2 style={S.h2}>Insurance Awareness</h2>
-          <p style={S.text}>
-            Escorts are responsible for maintaining proper insurance.  
-            Oversize Escort Hub does not provide insurance — but highlights
-            recommended coverage to posting parties.
-          </p>
-
-          <ul style={S.list}>
-            <li>• Commercial Automotive Insurance</li>
-            <li>• General Liability Insurance</li>
-            <li>• Professional E&O (Errors & Omissions)</li>
-          </ul>
-
-          <div style={S.notice}>
-            Insurance verification may or may not be possible depending on
-            provider access. Visibility is provided where available.
-          </div>
-        </div>
-
-        {/* ===== REVIEWS ===== */}
-        <div style={S.panel}>
-          <h2 style={S.h2}>Reviews & Ranking</h2>
-          <p style={S.text}>
-            Escorts and posting parties review each other after completed work.
-            Reviews contribute to an internal ranking system used for tie-breaks.
-          </p>
-
-          <ul style={S.list}>
-            <li>• One bad review does NOT drop tier</li>
-            <li>• Ranking uses a private point system</li>
-            <li>• Repeated no-shows or cancellations reduce access</li>
-            <li>• Transparency without public shaming</li>
-          </ul>
-        </div>
-      </section>
-
-      <Footer />
-    </main>
-  );
-}
-
-/* ================= COMPONENTS ================= */
-
-function Header() {
-  return (
-    <header style={S.header}>
-      <a href="/" style={S.brand}>OVERSIZE ESCORT HUB</a>
-      <nav style={S.nav}>
-        <a style={S.navLink} href="/loads">Load Boards</a>
-        <a style={S.navLink} href="/post-load">Post Load</a>
-        <a style={S.navLink} href="/pricing">Membership</a>
-        <a style={S.navLink} href="/signin">Sign In</a>
-      </nav>
-    </header>
-  );
-}
-
-function Footer() {
-  return (
-    <footer style={S.footer}>
-      <div style={S.footerInner}>
-        <div>
-          <strong>OVERSIZE ESCORT HUB</strong>
-          <div style={S.footerMuted}>
-            verification@oversize-escort-hub.com
-          </div>
-        </div>
-        <div style={S.footerLinks}>
-          <a style={S.footerLink} href="/terms">Terms</a>
-          <a style={S.footerLink} href="/privacy">Privacy</a>
+      <div style={S.hero}>
+        <div style={S.heroInner}>
+          <h1 style={S.h1}>Verification Center</h1>
+          <p style={S.sub}>Build trust and unlock more loads by verifying your credentials. Each badge appears on your public profile.</p>
         </div>
       </div>
-    </footer>
-  );
-}
 
-function Badge({ title, desc, glow }: any) {
-  return (
-    <div
-      style={{
-        ...S.badgeCard,
-        boxShadow: glow ? "0 0 30px rgba(0,168,232,0.35)" : "none",
-        borderColor: glow ? "rgba(0,168,232,0.6)" : S.badgeCard.border,
-      }}
-    >
-      <div style={S.badgeTitle}>{title}</div>
-      <div style={S.badgeDesc}>{desc}</div>
+      <div style={S.section}>
+        <div style={S.grid}>
+          {cards.map(card => (
+            <div key={card.title} style={S.card}>
+              <div style={S.cardTitle}>
+                <span>{card.icon}</span>
+                <span>{card.title}</span>
+                {card.done && <span style={S.statusBadge(true)}>✓</span>}
+              </div>
+              <div style={S.cardSub}>{card.desc}</div>
+              {card.price && !card.done && (
+                <div style={{ fontSize: 20, fontWeight: 700, color: "#f59e0b", marginBottom: 14 }}>{card.price}</div>
+              )}
+              {card.done ? (
+                <button style={{ ...S.btn, ...S.btnSuccess }}>{card.doneLabel}</button>
+              ) : (
+                <button
+                  style={{ ...S.btn, ...S[card.btnStyle], opacity: card.loading ? 0.6 : 1 }}
+                  onClick={card.action}
+                  disabled={card.loading}
+                >
+                  {card.btnLabel}
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Hidden DD-214 file input */}
+        <input
+          ref={dd214Ref}
+          type="file"
+          accept=".pdf,.jpg,.jpeg,.png"
+          style={S.fileInput}
+          onChange={handleDD214}
+        />
+
+        {/* Info box */}
+        <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: "20px 24px" }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: "#fff", marginBottom: 8 }}>About the OEH Trust System</div>
+          <div style={{ fontSize: 13, color: "#9ca3af", lineHeight: 1.7 }}>
+            OEH uses a private trust scoring system. Each verification badge improves your match priority and visibility.
+            Repeated cancellations or no-shows reduce your ranking. Verified members see better load opportunities and
+            appear higher in carrier searches. All documents are reviewed by the OEH team and are never publicly shared.
+          </div>
+        </div>
+      </div>
+
+      <Footer />
+
+      {toast && <div style={S.toast}>{toast}</div>}
     </div>
   );
 }
-
-/* ================= STYLES ================= */
-
-const S: any = {
-  main: { minHeight: "100vh", background: "#060b16", color: "#e5e7eb" },
-
-  header: {
-    padding: "18px 56px",
-    borderBottom: "1px solid rgba(255,255,255,0.1)",
-    display: "flex",
-    justifyContent: "space-between",
-  },
-  brand: {
-    fontWeight: 900,
-    color: "#00a8e8",
-    textDecoration: "none",
-  },
-  nav: { display: "flex", gap: 16 },
-  navLink: { color: "#cbd5e1", textDecoration: "none", fontWeight: 700 },
-
-  wrap: { padding: "44px 56px" },
-  h1: { margin: 0, fontSize: 40, fontWeight: 900 },
-  h2: { margin: "0 0 6px", fontSize: 28, fontWeight: 900 },
-  sub: { marginTop: 8, color: "#9ca3af", maxWidth: 760 },
-
-  grid4: {
-    marginTop: 26,
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))",
-    gap: 16,
-  },
-
-  badgeCard: {
-    background: "rgba(255,255,255,0.045)",
-    border: "1px solid rgba(255,255,255,0.14)",
-    borderRadius: 22,
-    padding: 22,
-    backdropFilter: "blur(14px)",
-    textAlign: "center",
-  },
-  badgeTitle: { fontWeight: 950, fontSize: 18, color: "#00a8e8" },
-  badgeDesc: { marginTop: 6, fontSize: 14, color: "#9ca3af" },
-
-  panel: {
-    marginTop: 36,
-    background: "rgba(255,255,255,0.03)",
-    border: "1px solid rgba(255,255,255,0.12)",
-    borderRadius: 22,
-    padding: 22,
-  },
-
-  text: { marginTop: 6, fontSize: 15, color: "#cbd5e1", maxWidth: 860 },
-  list: { marginTop: 12, lineHeight: 1.8 },
-
-  notice: {
-    marginTop: 14,
-    fontSize: 12,
-    color: "#9ca3af",
-    borderLeft: "3px solid #00a8e8",
-    paddingLeft: 10,
-  },
-
-  primaryBtn: {
-    display: "inline-block",
-    marginTop: 16,
-    padding: "14px 20px",
-    borderRadius: 16,
-    background: "linear-gradient(135deg,#00a8e8,#1fb6ff)",
-    fontWeight: 900,
-    color: "#001018",
-    textDecoration: "none",
-    boxShadow: "0 14px 30px rgba(0,168,232,0.25)",
-  },
-
-  footer: {
-    padding: "30px 56px",
-    borderTop: "1px solid rgba(255,255,255,0.1)",
-    marginTop: 50,
-  },
-  footerInner: { display: "flex", justifyContent: "space-between" },
-  footerMuted: { fontSize: 13, color: "#9ca3af" },
-  footerLinks: { display: "flex", gap: 16 },
-  footerLink: { color: "#cbd5e1", textDecoration: "none", fontWeight: 700 },
-};

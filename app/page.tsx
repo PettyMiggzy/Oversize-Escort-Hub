@@ -411,7 +411,7 @@ function Nav({ page, setPage, user, profile, onSignOut }: {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const navLinks: [Page, string][] = [
     ["flatboard", "Flat Rate"],
-    ["openboard", "Open Bids"],
+    ["openboard", "Open Loads"],
     ["escorts", "Find Escorts"],
     ["postload", "Post a Load"],
     ["pricing", "Pricing"],
