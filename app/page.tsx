@@ -183,6 +183,97 @@ table{width:100%;border-collapse:collapse}
 .data-table tbody td{padding:11px 12px;border-bottom:1px solid rgba(28,34,41,.7);vertical-align:middle}
 .data-table tbody tr:last-child td{border-bottom:none}
 .data-table tbody tr:hover td{background:rgba(255,255,255,.015)}
+/* ============================================
+   MOBILE RESPONSIVE — 390px (iPhone 14)
+   No desktop layout changes
+   ============================================ */
+
+/* Hero "Who Are You?" cards: stack vertically on mobile */
+@media (max-width: 767px) {
+  /* Hero cards: full width, vertical stack */
+  .hero {
+    padding: 40px 16px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  /* Section padding on mobile */
+  .section {
+    padding: 32px 16px;
+  }
+  
+  /* Hero headline text size on mobile */
+  .hero-hl {
+    font-size: 40px;
+    line-height: 1;
+  }
+  
+  .hero-sub {
+    font-size: 14px;
+    max-width: 100%;
+  }
+  
+  /* Buttons: min 48px tap target */
+  .btn {
+    min-height: 48px;
+    padding: 14px 22px;
+  }
+  
+  /* No horizontal scroll */
+  body { overflow-x: hidden; }
+  
+  /* Section padding */
+  .section-header { 
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  /* Load cards / bid cards: full width */
+  .card {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  /* Stat rows stack */
+  .stat-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  /* Lock bar */
+  .lock-bar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  /* Bid strip */
+  .bid-strip {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  /* Bid cta button */
+  .bid-cta {
+    min-height: 48px;
+    padding: 14px 20px;
+  }
+  
+  /* Data table: horizontal scroll allowed within container */
+  .data-table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Dashboard grid: single column */
+  .dash-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    min-height: auto;
+  }
+}
+
 
 .ps{display:inline-flex;align-items:center;gap:4px;font-family:'DM Mono',monospace;font-size:9px;padding:2px 7px;border-radius:2px}
 .ps-hi{background:rgba(0,204,122,.1);color:var(--gr);border:1px solid rgba(0,204,122,.2)}

@@ -85,3 +85,128 @@ h1, h2, h3 {
 .muted {
   color: var(--text-muted);
 }
+
+
+/* =========================================
+   MOBILE RESPONSIVE — 390px (iPhone 14)
+   ========================================= */
+
+/* No horizontal scroll globally */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* All buttons: min 48px tap target on mobile */
+@media (max-width: 767px) {
+  .btn, button, [role="button"] {
+    min-height: 48px;
+    font-size: 15px;
+  }
+
+  /* Global padding on mobile */
+  .mobile-px {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+
+/* =========================================
+   ADDITIONAL MOBILE RESPONSIVE
+   Overrides for inline-styled components
+   ========================================= */
+@media (max-width: 767px) {
+  /* Post-a-Load page: full width inputs */
+  input[type="text"],
+  input[type="email"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="date"],
+  textarea,
+  select {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    font-size: 16px !important; /* Prevents iOS zoom */
+    min-height: 44px;
+  }
+
+  /* Pricing page: stack pricing cards */
+  /* Load board / bid board: full-width cards */
+  /* These are handled by inline styles so we use class overrides */
+  
+  /* General container padding */
+  main, [class*="container"], [class*="wrapper"] {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    box-sizing: border-box;
+  }
+  
+  /* Prevent tables from causing horizontal scroll */
+  table {
+    display: block;
+    overflow-x: auto;
+    width: 100%;
+  }
+  
+  /* Any fixed-width containers */
+  [style*="width: 320px"],
+  [style*="width:320px"],
+  [style*="maxWidth: 320px"],
+  [style*="minWidth: 320px"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: unset !important;
+  }
+}
+
+/* =========================================
+   CRITICAL MOBILE OVERRIDES
+   Must override inline styles where needed
+   ========================================= */
+
+/* Viewport meta tag is set in layout - these ensure no overflow */
+@media (max-width: 767px) {
+  /* Ensure no horizontal overflow from any element */
+  * {
+    max-width: 100%;
+  }
+  
+  /* Fix layout containers */
+  body {
+    overflow-x: hidden;
+  }
+  
+  /* Load board & bid board - make table rows wrap */
+  [style*="display: grid"][style*="gridTemplateColumns"],
+  [style*="display:grid"][style*="gridTemplateColumns"] {
+    overflow-x: auto;
+  }
+  
+  /* Ensure cards don't overflow */
+  [style*="background"][style*="border-radius"][style*="padding"] {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  /* Make load card list items stack vertically */
+  [class="card"],
+  .card {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Post-a-load: inputs full width */
+  input, textarea, select {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    font-size: 16px !important;
+  }
+  
+  /* Prevent marquee overflow */
+  .animate-marquee {
+    white-space: nowrap;
+  }
+}

@@ -5,6 +5,13 @@ import PushInit from './components/PushInit'
 
 const inter = Inter({ subsets: ["latin"] });
 
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.oversize-escort-hub.com"),
   title: {
