@@ -30,6 +30,7 @@ type Profile = {
   availability_states: string[] | null;
   bgc_pending: boolean | null;
   bgc_document_url: string | null;
+  avatar_url: string | null;
   pro_window_expires_at: string | null;
 };
 
@@ -272,6 +273,8 @@ table{width:100%;border-collapse:collapse}
     gap: 12px;
     min-height: auto;
   }
+  /* WHO ARE YOU grid: stack on mobile */
+  .role-grid { grid-template-columns: 1fr !important; }
 }
 
 
@@ -432,6 +435,13 @@ function Nav({ page, setPage, user, profile, onSignOut }: {
       {/* Desktop right */}
       <div className="nav-right" style={{ display: "flex", alignItems: "center", gap: 10, marginLeft: "auto" }}>
         {user && profile ? (
+          {(() => {
+            const nm = profile.full_name || "?";
+            const ini = nm.split(" ").map((w: string) => w[0] || "").join("").toUpperCase().slice(0,2) || "?";
+            return profile.avatar_url
+              ? <img src={profile.avatar_url} alt="avatar" style={{ width:26,height:26,borderRadius:"50%",objectFit:"cover",border:"2px solid var(--or)",marginRight:6,verticalAlign:"middle" }} />
+              : <span style={{ display:"inline-flex",alignItems:"center",justifyContent:"center",width:26,height:26,borderRadius:"50%",background:"var(--or)",color:"#000",fontSize:10,fontWeight:700,marginRight:6,letterSpacing:".05em",flexShrink:0,fontFamily:"sans-serif" }}>{ini}</span>;
+          })()}
           <span className="nav-user">
             {profile.full_name || "there"}{" · "}
             <span style={{ color: "var(--or)", fontSize: 8 }}>{profile.tier?.toUpperCase()}</span>{" "}
@@ -572,6 +582,9 @@ function EarlyBanner({ role }: { role: "carrier" | "escort" }) {
 function HomePage({ setPage, user, profile }: { setPage: (p: Page) => void; user: User | null; profile: Profile | null }) {
   const [role, setRole] = useState<Role>(null);
 
+  // Scroll to top on initial load
+  useEffect(() => { window.scrollTo(0, 0); }, []);
+
   // If logged in, skip role picker and use their actual role
   useEffect(() => {
     if (profile) setRole(profile.role);
@@ -582,7 +595,7 @@ function HomePage({ setPage, user, profile }: { setPage: (p: Page) => void; user
       <div className="role-picker">
         <div className="bb" style={{ fontSize: 52, textAlign: "center", marginBottom: 6 }}>WHO ARE YOU?</div>
         <p className="mo" style={{ fontSize: 11, color: "var(--t2)", marginBottom: 48, letterSpacing: ".12em", textTransform: "uppercase" }}>Select your role to get started</p>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, width: "100%", maxWidth: 720 }}>
+        <div className="role-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, width: "100%", maxWidth: 720 }}>
           <div className="role-card" style={{ border: "2px solid var(--or)" }} onClick={() => setRole("carrier")}>
             <div className="bb" style={{ fontSize: 34, color: "var(--or)", marginBottom: 10 }}>OVERSIZE CARRIER</div>
             <p style={{ fontSize: 11, color: "var(--t2)", lineHeight: 1.5, marginBottom: 16 }}>Carriers hauling oversize/overweight loads who need permits, escorts, and load boards.</p>
@@ -2090,57 +2103,135 @@ function PricingPage({ setPage }: { setPage: (p: Page) => void }) {
 
 // ─── VERIFICATION PAGE ────────────────────────────────────────────────────────
 
+
 function VerificationPage() {
-  // BGC_UPLOAD_HOOK
-  const [bgcFile, setBgcFile] = useState<File | null>(null)
-  const [bgcUploading, setBgcUploading] = useState(false)
-  const [bgcMsg, setBgcMsg] = useState('')
-  async function handleBgcUpload() {
-    if (!bgcFile) return
-    if (bgcFile.size > 10 * 1024 * 1024) { setBgcMsg('File exceeds 10 MB limit.'); return }
-    setBgcUploading(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setBgcMsg('Please sign in first.'); setBgcUploading(false); return }
-    const fd = new FormData()
-    fd.append('file', bgcFile)
-    fd.append('userId', user.id)
-    const res = await fetch('/api/bgc', { method: 'POST', body: fd })
-    const json = await res.json()
-    if (!res.ok) { setBgcMsg('Upload failed: ' + (json.error || 'unknown')); setBgcUploading(false); return }
-    setBgcMsg('Submitted! Review takes 1-3 business days.')
-    setBgcUploading(false)
+  const [uploading, setUploading] = React.useState<string | null>(null);
+  const [msgs, setMsgs] = React.useState<Record<string, string>>({});
+  const [fileInputs, setFileInputs] = React.useState<Record<string, File | null>>({});
+
+  async function handleUpload(tier: string, bucket: string) {
+    const file = fileInputs[tier];
+    if (!file) { setMsgs(m => ({ ...m, [tier]: 'Please select a file first.' })); return; }
+    if (file.size > 10 * 1024 * 1024) { setMsgs(m => ({ ...m, [tier]: 'File exceeds 10 MB.' })); return; }
+    setUploading(tier);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setMsgs(m => ({ ...m, [tier]: 'Please sign in first.' })); setUploading(null); return; }
+    const fd = new FormData();
+    fd.append('file', file); fd.append('userId', user.id);
+    fd.append('tier', tier); fd.append('bucket', bucket);
+    const res = await fetch('/api/verify-upload', { method: 'POST', body: fd });
+    const json = await res.json();
+    if (!res.ok) setMsgs(m => ({ ...m, [tier]: 'Upload failed: ' + (json.error || 'unknown') }));
+    else setMsgs(m => ({ ...m, [tier]: 'Submitted! Admin review takes 1-3 business days.' }));
+    setUploading(null);
   }
+
+  async function handleStripeCheckout() {
+    setUploading('tier3');
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { setMsgs(m => ({ ...m, tier3: 'Please sign in first.' })); setUploading(null); return; }
+    const res = await fetch('/api/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + session.access_token },
+      body: JSON.stringify({ priceId: 'price_1TF0EILmfugPCRbAvM6Q5rhW' })
+    });
+    const json = await res.json();
+    if (json.url) window['location']['href'] = json.url;
+    else setMsgs(m => ({ ...m, tier3: 'Checkout error: ' + (json.error || 'unknown') }));
+    setUploading(null);
+  }
+
+  const tierStyle = (c: string) => ({ className: "verify-tier", style: { borderLeftColor: c } });
+  const btnStyle = (bg: string, col: string) => ({ className: "btn btn-sm", style: { background: bg, color: col, flexShrink: 0 as const } });
 
   return (
     <div className="section">
-      <div className="section-header">
-        <div>
-          <div className="eyebrow" style={{ color: "var(--gr)" }}>Trust &amp; Safety</div>
-          <div className="section-title">VERIFICATION SYSTEM</div>
-        </div>
-      </div>
+      <div className="section-header"><div>
+        <div className="bb" style={{ fontSize: 28 }}>VERIFICATION</div>
+        <div className="section-title">VERIFICATION SYSTEM</div>
+      </div></div>
       <div style={{ background: "var(--p2)", border: "1px solid var(--l1)", borderRadius: 3, padding: "14px 18px", marginBottom: 24 }} className="mo">
-        <span style={{ fontSize: 10, color: "var(--t2)" }}>4-tier trust ladder. All opt-in. All standards published publicly. Fraudulent listings cannot exist here.</span>
+        <span style={{ fontSize: 10, color: "var(--t2)" }}>4-tier trust ladder. All opt-in. Standards published publicly.</span>
       </div>
-      {[
-        { tier: "Tier 1", name: "P/EVO Verified", c: "var(--gr)", img: "/verified.png", desc: "Upload your current state P/EVO or EVO certification. Admin reviews and marks your profile. Expired certs are flagged." },
-        { tier: "Tier 2", name: "Vehicle Verified", c: "var(--bl)", img: "/pending.png", desc: "Submit vehicle registration, insurance card (min $1M liability), and photo of your escort setup." },
-        { tier: "Tier 3", name: "Background Checked", c: "var(--am)", img: "/pending.png", desc: "Run your own check through Checkr, Sterling, or First Advantage (under 90 days). Upload PDF. $14.99 Member / $9.99 Pro." },
-        { tier: "Tier 4", name: "Admin Verified", c: "var(--or)", img: "/verified.png", desc: "Highest trust level. Requires all 3 previous tiers. Admin-verified escorts appear first in carrier searches." },
-      ].map((v) => (
-        <div key={v.tier} className="verify-tier" style={{ borderLeftColor: v.c }}>
-          <div style={{ minWidth: 100, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-            <img src={v.img} alt={v.name} style={{ width: 48, height: 48, objectFit: "contain" }} />
-            <div className="mo" style={{ fontSize: 9, color: "var(--t2)" }}>{v.tier}</div>
-            <div className="chip" style={{ background: "transparent", color: v.c, border: `1px solid ${v.c}`, fontSize: 9 }}>✓ {v.name}</div>
-          </div>
-          <p style={{ fontSize: 12, color: "var(--t2)", lineHeight: 1.75 }}>{v.desc}</p>
-          <button className="btn btn-ghost btn-sm" style={{ flexShrink: 0 }}>Start Verification</button>
+
+      {/* Tier 1 */}
+      <div className="verify-tier" style={{ borderLeftColor: "var(--gr)" }}>
+        <div style={{ minWidth: 100, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+          <img src="/verified.png" alt="Tier 1" style={{ width: 48, height: 48, objectFit: "contain" }} />
+          <div className="mo" style={{ fontSize: 9, color: "var(--t2)" }}>Tier 1</div>
+          <div className="chip" style={{ background: "transparent", color: "var(--gr)", border: "1px solid var(--gr)", fontSize: 9 }}>P/EVO Verified</div>
         </div>
-      ))}
+        <div style={{ flex: 1 }}>
+          <p style={{ fontSize: 12, color: "var(--t2)", lineHeight: 1.75, marginBottom: 10 }}>Upload your current state P/EVO or EVO certification. Admin reviews and marks your profile.</p>
+          {msgs.tier1 && <div style={{ fontSize: 11, color: msgs.tier1.includes('failed') ? "var(--rd)" : "var(--gr)", marginBottom: 8 }}>{msgs.tier1}</div>}
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" as const }}>
+            <input type="file" accept=".pdf,.jpg,.jpeg,.png" style={{ fontSize: 11, color: "var(--t2)" }}
+              onChange={e => setFileInputs(f => ({ ...f, tier1: e.target.files?.[0] ?? null }))} />
+            <button className="btn btn-sm" style={{ background: "var(--gr)", color: "#000", flexShrink: 0 }}
+              onClick={() => handleUpload('tier1', 'pevo-certs')} disabled={uploading === 'tier1'}>
+              {uploading === 'tier1' ? 'Uploading...' : 'Submit Cert'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Tier 2 */}
+      <div className="verify-tier" style={{ borderLeftColor: "var(--bl)" }}>
+        <div style={{ minWidth: 100, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+          <img src="/pending.png" alt="Tier 2" style={{ width: 48, height: 48, objectFit: "contain" }} />
+          <div className="mo" style={{ fontSize: 9, color: "var(--t2)" }}>Tier 2</div>
+          <div className="chip" style={{ background: "transparent", color: "var(--bl)", border: "1px solid var(--bl)", fontSize: 9 }}>Vehicle Verified</div>
+        </div>
+        <div style={{ flex: 1 }}>
+          <p style={{ fontSize: 12, color: "var(--t2)", lineHeight: 1.75, marginBottom: 10 }}>Submit vehicle registration, insurance card (min $1M liability), and escort setup photo.</p>
+          {msgs.tier2 && <div style={{ fontSize: 11, color: msgs.tier2.includes('failed') ? "var(--rd)" : "var(--gr)", marginBottom: 8 }}>{msgs.tier2}</div>}
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" as const }}>
+            <input type="file" accept=".pdf,.jpg,.jpeg,.png" style={{ fontSize: 11, color: "var(--t2)" }}
+              onChange={e => setFileInputs(f => ({ ...f, tier2: e.target.files?.[0] ?? null }))} />
+            <button className="btn btn-sm" style={{ background: "var(--bl)", color: "#fff", flexShrink: 0 }}
+              onClick={() => handleUpload('tier2', 'vehicle-docs')} disabled={uploading === 'tier2'}>
+              {uploading === 'tier2' ? 'Uploading...' : 'Submit Docs'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Tier 3 */}
+      <div className="verify-tier" style={{ borderLeftColor: "var(--am)" }}>
+        <div style={{ minWidth: 100, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+          <img src="/pending.png" alt="Tier 3" style={{ width: 48, height: 48, objectFit: "contain" }} />
+          <div className="mo" style={{ fontSize: 9, color: "var(--t2)" }}>Tier 3</div>
+          <div className="chip" style={{ background: "transparent", color: "var(--am)", border: "1px solid var(--am)", fontSize: 9 }}>Background Checked</div>
+        </div>
+        <div style={{ flex: 1 }}>
+          <p style={{ fontSize: 12, color: "var(--t2)", lineHeight: 1.75, marginBottom: 10 }}>Background check via Checkr, Sterling, or First Advantage (under 90 days). Upload PDF. $9.99 one-time.</p>
+          {msgs.tier3 && <div style={{ fontSize: 11, color: msgs.tier3.includes('error') || msgs.tier3.includes('failed') ? "var(--rd)" : "var(--gr)", marginBottom: 8 }}>{msgs.tier3}</div>}
+          <button className="btn btn-sm" style={{ background: "var(--am)", color: "#000" }}
+            onClick={handleStripeCheckout} disabled={uploading === 'tier3'}>
+            {uploading === 'tier3' ? 'Redirecting...' : 'Start Verification — $9.99'}
+          </button>
+        </div>
+      </div>
+
+      {/* Tier 4 — locked */}
+      <div className="verify-tier" style={{ borderLeftColor: "var(--or)", opacity: 0.6 }}>
+        <div style={{ minWidth: 100, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+          <img src="/verified.png" alt="Tier 4" style={{ width: 48, height: 48, objectFit: "contain" }} />
+          <div className="mo" style={{ fontSize: 9, color: "var(--t2)" }}>Tier 4</div>
+          <div className="chip" style={{ background: "transparent", color: "var(--or)", border: "1px solid var(--or)", fontSize: 9 }}>Admin Verified</div>
+        </div>
+        <div style={{ flex: 1 }}>
+          <p style={{ fontSize: 12, color: "var(--t2)", lineHeight: 1.75, marginBottom: 10 }}>Highest trust. Requires all 3 previous tiers. Admin-verified escorts appear first in searches.</p>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 14px", background: "var(--p2)", border: "1px solid var(--l1)", borderRadius: 3 }}>
+            <span style={{ fontSize: 14 }}>🔒</span>
+            <span className="mo" style={{ fontSize: 10, color: "var(--t2)" }}>Complete Tiers 1-3 first</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
+
 
 // ─── SIGN IN PAGE ─────────────────────────────────────────────────────────────
 
