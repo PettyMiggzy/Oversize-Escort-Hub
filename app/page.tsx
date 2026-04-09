@@ -85,9 +85,7 @@ const SEED_ESCORTS = [
 const TIERS = [
   { id: "trial", name: "Free Trial", price: 0, sub: "30 days · one per device", color: "#6e7a88", features: ["View load board (no contact info)", "Search escorts directory", "30-day limit", "No bidding · no alerts"], daily: null, popular: false, carrierPro: null },
   { id: "member", name: "Member", price: 19.99, sub: "per month", color: "#3d8ef8", features: ["Full bidding on all boards", "Email alerts on new loads", "60s after Pro on bid board", "In-platform messaging", "Multi-state load filters"], daily: 1.99, popular: false, carrierPro: null },
-  { id: "pro", name: "Pro", price: 29.99, sub: "per month", color: "#f5a200", features: ["SMS instant on bid loads (60s head start)", "Deadhead Minimizer + return load feed", "I'm Available broadcast", "Deadhead calculator + savings dashboard", "Invoice generator", "First cert verification free"], daily: 4.99, popular: true, carrierPro: null },
-  { id: "carrier", name: "Carrier Member", price: 9.99, sub: "per month", color: "#00cc7a", features: ["Post unlimited loads free", "Permit Management Hub", "True Cost Per Load Tracker", "Preferred Escort Network", "Quick Rebook (3+ jobs same escort)"], daily: null, popular: false, carrierPro: 19.99 },
-];
+  { id: "pro", name: "Pro", price: 29.99, sub: "per month", color: "#f5a200", features: ["SMS instant on bid loads (60s head start)", "Deadhead Minimizer + return load feed", "I'm Available broadcast", "Deadhead calculator + savings dashboard", "Invoice generator", "First cert verification free"], daily: 4.99, popular: true, carrierPro: null },];
 
 // ─── STYLES ──────────────────────────────────────────────────────────────────
 
