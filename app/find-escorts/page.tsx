@@ -41,7 +41,8 @@ export default function FindEscortsPage() {
   const supabase = createClientComponentClient();
   const [escorts, setEscorts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all");
+  const [filter, setFilter] = useState("all")
+  const [certFilter, setCertFilter] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -76,6 +77,31 @@ export default function FindEscortsPage() {
             <button key={key} style={S.filterBtn(filter === key)} onClick={() => setFilter(key)}>{label}</button>
           ))}
         </div>
+          <div style={{marginTop:12}}>
+            <select
+              value={certFilter}
+              onChange={e => setCertFilter(e.target.value)}
+              style={{background:"#1a1a1a",color:"#fff",border:"1px solid #333",borderRadius:6,padding:"6px 12px",fontSize:14,cursor:"pointer"}}
+            >
+              <option value="">All Certifications</option>
+              <option value="Lead">Lead</option>
+              <option value="Chase">Chase</option>
+              <option value="High Pole">High Pole</option>
+              <option value="Lineman">Lineman</option>
+              <option value="Rear Steer">Rear Steer</option>
+              <option value="Survey">Survey</option>
+              <option value="Flagger">Flagger</option>
+              <option value="NY Cert">NY Cert</option>
+              <option value="CSE (Ontario MTO)">CSE (Ontario MTO)</option>
+              <option value="BC Pilot Car">BC Pilot Car</option>
+              <option value="WITPAC">WITPAC</option>
+              <option value="TWIC">TWIC</option>
+              <option value="AZ Cert">AZ Cert</option>
+              <option value="CTTS BC/AB">CTTS BC/AB</option>
+              <option value="OAPC Ontario">OAPC Ontario</option>
+              <option value="Saskatchewan">Saskatchewan</option>
+            </select>
+          </div>
         {loading ? (
           <div style={{ color: "#9ca3af", textAlign: "center", padding: 60 }}>Loading escorts…</div>
         ) : filtered.length === 0 ? (

@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server"
 // NWS Weather API — no key required
 // Docs: https://www.weather.gov/documentation/services-web-api
 
+
+export const dynamic = 'force-dynamic'
 export async function GET(req: NextRequest) {
   const lat = req.nextUrl.searchParams.get("lat")
   const lon = req.nextUrl.searchParams.get("lon")

@@ -4,6 +4,8 @@ import { NextRequest, NextResponse } from "next/server"
 // Register at: https://ai.fmcsa.dot.gov/SMS/tools/webservices.aspx
 // Add FMCSA_API_KEY to .env.local
 
+
+export const dynamic = 'force-dynamic'
 export async function GET(req: NextRequest) {
   const dot = req.nextUrl.searchParams.get("dot")
   const mc  = req.nextUrl.searchParams.get("mc")

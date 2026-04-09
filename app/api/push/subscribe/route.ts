@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
+
+export const dynamic = 'force-dynamic'
 export async function POST(req: NextRequest) {
   const { subscription, userId } = await req.json()
   if (!subscription || !userId) return NextResponse.json({ error: 'missing params' }, { status: 400 })

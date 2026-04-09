@@ -4,6 +4,8 @@ import { NextRequest, NextResponse } from "next/server"
 // Docs: https://nominatim.openstreetmap.org/ui/about.html
 // Rate limit: 1 req/sec — cache results in Supabase for production
 
+
+export const dynamic = 'force-dynamic'
 export async function GET(req: NextRequest) {
   const city = req.nextUrl.searchParams.get("city")
   const state = req.nextUrl.searchParams.get("state")

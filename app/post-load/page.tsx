@@ -1,4 +1,42 @@
+"use client"
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { supabase } from "@/lib/supabase"
+
 export default function PostLoadPage() {
+  const router = useRouter()
+  const [loading, setLoading] = useState(true)
+  const [allowed, setAllowed] = useState(false)
+  const [roleMsg, setRoleMsg] = useState("")
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) {
+        router.replace("/signin?msg=You+must+be+signed+in+as+a+carrier+or+freight+broker+to+post+a+load.")
+        return
+      }
+      supabase.from("profiles").select("role").eq("id", data.session.user.id).single().then(({ data: profile }) => {
+        if (profile?.role === "escort") {
+          setRoleMsg("Load posting is for carriers and freight brokers only.")
+          setAllowed(false)
+        } else {
+          setAllowed(true)
+        }
+        setLoading(false)
+      })
+    })
+  }, [])
+
+  if (loading) return <main style={S.main}><p style={{color:"#fff",padding:"40px",textAlign:"center"}}>Loading...</p></main>
+  if (!allowed && roleMsg) return (
+    <main style={S.main}>
+      <div style={{maxWidth:600,margin:"80px auto",padding:"40px",background:"#1a1a1a",borderRadius:12,border:"1px solid #ff6600",textAlign:"center"}}>
+        <p style={{color:"#ff6600",fontSize:20,fontWeight:700,marginBottom:16}}>⚠️ Access Restricted</p>
+        <p style={{color:"#fff",fontSize:16}}>{roleMsg}</p>
+      </div>
+    </main>
+  )
+
   return (
     <main style={S.main}>
       <Header />
@@ -6,7 +44,7 @@ export default function PostLoadPage() {
       <section style={S.wrap}>
         <h1 style={S.h1}>Post a Load (FREE)</h1>
         <p style={S.sub}>
-          Brokers, carriers, and drivers can post unlimited loads at no cost.
+          Carriers and freight brokers post loads free. Always.
           Escorts will only bid on complete, clear postings.
         </p>
 
@@ -65,8 +103,22 @@ export default function PostLoadPage() {
             {/* SPECIAL REQUIREMENTS */}
             <Section title="Special Requirements (Optional)" />
             <Grid>
-              <Check label="WITPAC / NY Certified" />
-              <Check label="Passport Required (Canada)" />
+              <Check label="Lead" />
+              <Check label="Chase" />
+              <Check label="High Pole" />
+              <Check label="Lineman" />
+              <Check label="Rear Steer" />
+              <Check label="Survey" />
+              <Check label="Flagger" />
+              <Check label="NY Cert" />
+              <Check label="CSE (Ontario MTO)" />
+              <Check label="BC Pilot Car" />
+              <Check label="WITPAC" />
+              <Check label="TWIC" />
+              <Check label="AZ Cert" />
+              <Check label="CTTS BC/AB" />
+              <Check label="OAPC Ontario" />
+              <Check label="Saskatchewan" />
               <Check label="Quick Pay Preferred" />
             </Grid>
 
@@ -76,6 +128,11 @@ export default function PostLoadPage() {
               <Input label="Company / Contact Name" required />
               <Input label="Phone Number" required />
               <Input label="Email Address" required />
+              <Input label="MC Number" required />
+              <Input label="DOT Number" required />
+              <p style={{fontSize:12,color:"#999",gridColumn:"1 / -1",marginTop:4}}>
+                Your MC/DOT number is verified against FMCSA public records. Fraudulent postings will result in permanent ban.
+              </p>
             </Grid>
 
             <div style={S.notice}>

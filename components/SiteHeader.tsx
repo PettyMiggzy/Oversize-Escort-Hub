@@ -1,6 +1,9 @@
-"use client";
-import { useState } from "react";
-import Link from "next/link";
+"use client"
+import { useEffect, useState } from "react"
+import Link from "next/link"
+import { supabase } from "@/lib/supabase"
+import { UserAvatar } from "./UserAvatar"
+
 
 const NAV = [
   { label: "Flat Rate",    href: "/" },
@@ -14,6 +17,18 @@ const NAV = [
 
 export default function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const [userProfile, setUserProfile] = useState<{ name?: string; avatar?: string | null } | null>(null)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) return
+      const u = data.session.user
+      supabase.from("profiles").select("full_name, avatar_url").eq("id", u.id).single()
+        .then(({ data: p }) => {
+          if (p) setUserProfile({ name: p.full_name, avatar: p.avatar_url })
+        })
+    })
+  }, [])
   return (
     <header className="sticky top-0 z-50 bg-black border-b border-white/10">
       <div className="mx-auto max-w-7xl px-4 md:px-6 h-16 flex items-center justify-between">
