@@ -149,6 +149,50 @@ export default function PrivacyPolicy() {
           <p style={{ ...s.p }}>We may update this Privacy Policy from time to time to reflect changes in our practices or applicable law. We will notify registered users of material changes via email or Platform notification. The "Last Updated" date at the top of this page reflects when it was last revised. Continued use of the Platform after any changes constitutes acceptance of the updated Policy.</p>
         </div>
 
+                <div style={{ ...s.section }}>
+          <h2 style={{ ...s.h2 }}>15. Matching Engine &amp; Load Request Data</h2>
+          <p style={{ ...s.p }}>When you use the load request / matching feature, OEH records your request, match status, acceptance or decline decisions, and timestamp. This data is used to operate the matching system, enforce the 1-hour hold, and send relevant notifications. Match history may be retained for dispute resolution and platform analytics.</p>
+        </div>
+        <div style={{ ...s.section }}>
+          <h2 style={{ ...s.h2 }}>16. Reviews &amp; Ratings Data</h2>
+          <p style={{ ...s.p }}>Reviews and star ratings you submit are associated with your account and are visible to other Platform users. We store review text, rating scores, and the date of submission. You may not submit reviews anonymously. OEH may use aggregated rating data for search ranking and analytics.</p>
+        </div>
+        <div style={{ ...s.section }}>
+          <h2 style={{ ...s.h2 }}>17. Referral Program Data</h2>
+          <p style={{ ...s.p }}>If you participate in our referral program, we collect and store your referral code, the identity of users referred by you, and the status of referral rewards. We use this data solely to administer the referral program. Referral data is not shared with third parties except as required to fulfill rewards.</p>
+        </div>
+        <div style={{ ...s.section }}>
+          <h2 style={{ ...s.h2 }}>18. Fleet Manager Data</h2>
+          <p style={{ ...s.p }}>Fleet Manager Tools allow Pro subscribers to enter information about third-party escorts (name, phone number, city, state, and availability) into the Platform. By entering this data, you represent that you have obtained appropriate consent from each escort to process their information. OEH stores fleet search data and logs to enforce rate limits and flag anomalous activity. Fleet escort data entered by a fleet manager is not used for any purpose beyond facilitating the fleet search and is not shared or sold.</p>
+        </div>
+        <div style={{ ...s.section }}>
+          <h2 style={{ ...s.h2 }}>19. Multi-Board Load Posting Data</h2>
+          <p style={{ ...s.p }}>When you post a load to multiple boards, OEH stores a single load record with a boards field indicating which boards the load appears on. Status changes (pending, filled, open) are applied atomically to the single record and reflected across all boards simultaneously. Load records, status history, and board selections are stored for operational, audit, and dispute resolution purposes.</p>
+        </div>
+        <div style={{ ...s.section }}>
+          <h2 style={{ ...s.h2 }}>20. FMCSA DOT Number &amp; Verification Data</h2>
+          <p style={{ ...s.p }}>When you provide a USDOT number, OEH queries the FMCSA QCMobile public API using that number. The API response, including carrier legal name and operating status, is stored alongside your load record. This data originates from the publicly available FMCSA government database. We do not sell FMCSA data. Verification results are displayed to other Platform users as part of the load card to promote safety and transparency.</p>
+        </div>
+        <div style={{ ...s.section }}>
+          <h2 style={{ ...s.h2 }}>21. Weather Data</h2>
+          <p style={{ ...s.p }}>OEH displays weather information from the National Weather Service (NWS) API and uses the Nominatim geocoding service (OpenStreetMap) to convert city/state inputs to geographic coordinates. We do not store weather data permanently; it is fetched in real time or cached briefly for performance. We do not share location inputs used for weather lookups with third parties beyond the NWS and Nominatim services.</p>
+        </div>
+        <div style={{ ...s.section }}>
+          <h2 style={{ ...s.h2 }}>22. Profile Pictures</h2>
+          <p style={{ ...s.p }}>Profile pictures you upload are stored securely in our cloud storage (Supabase Storage). Your profile picture is visible to other authenticated Platform users. You may update or remove your profile picture at any time from your account settings. We do not use profile pictures for facial recognition or share them with third parties.</p>
+        </div>
+        <div style={{ ...s.section }}>
+          <h2 style={{ ...s.h2 }}>23. Upside Affiliate Partnership</h2>
+          <p style={{ ...s.p }}>OEH participates in the Upside affiliate program. If you click an Upside referral link and sign up or make a purchase, Upside may share limited transaction data with OEH for affiliate commission purposes. We do not receive or store your Upside account credentials or payment information. Your use of Upside is governed by Upside&apos;s own privacy policy.</p>
+        </div>
+        <div style={{ ...s.section }}>
+          <h2 style={{ ...s.h2 }}>24. External Loads</h2>
+          <p style={{ ...s.p }}>External loads displayed on the Open Loads board are sourced from publicly available third-party data. OEH does not collect personal data from external load sources. External load listings are displayed as-is and automatically expire after 24 hours. If you interact with an External Load, that interaction is logged in the same manner as any other Platform load interaction.</p>
+        </div>
+        <div style={{ ...s.section }}>
+          <h2 style={{ ...s.h2 }}>25. MC/DOT Numbers for Fraud Prevention</h2>
+          <p style={{ ...s.p }}>MC (Motor Carrier) and DOT numbers collected from carrier accounts are used for identity verification and fraud prevention. This data is cross-referenced with FMCSA public records. MC/DOT data is stored securely, is not sold, and is only shared with law enforcement or regulatory authorities when required by law or to investigate fraud on the Platform.</p>
+        </div>
         <div style={{ ...s.section }}>
           <h2 style={{ ...s.h2 }}>14. Contact Us</h2>
           <p style={{ ...s.p }}>If you have any questions, concerns, or requests regarding this Privacy Policy or how we handle your personal information, please contact us:</p>

@@ -390,6 +390,7 @@ function Ticker() {
     { dot: "dot-am", text: "Deadhead Minimizer · Return loads near your drop · Stop driving home empty" },
     { dot: "dot-gr", text: "No commissions · No job fees · Ever · Flat subscription only" },
     { dot: "dot-or", text: "Carriers: Post loads free · Escorts: Find loads · Both: No middleman" },
+    { dot: "dot-am", text: "• Fleet Manager Tools — Pro only · Manage up to 5 escorts · Find loads for your fleet" },
   ];
   return (
     <div className="ticker">
@@ -2312,7 +2313,206 @@ function InvoicePage({ setPage, user, profile }: any) { return <Stub title="Invo
 function ExpensesPage({ setPage, user, profile }: any) { return <Stub title="Expense & Job Tracker" icon="📊" desc="Log jobs and expenses. Track fuel, lodging, equipment. Export CSV or PDF at tax time." back="tools" setPage={setPage} />; }
 function JobHistoryPage({ setPage }: any) { return <Stub title="Job History" icon="📋" desc="View all completed loads, earnings per job, and carrier history. Syncs automatically from OEH load board." back="tools" setPage={setPage} />; }
 function PermitHubPage({ setPage, user, profile }: any) { return <Stub title="Permit Hub" icon="📄" desc="Carriers upload permits to your load. You get an instant SMS the moment they upload — even if it happens 6am day of load." back="tools" setPage={setPage} />; }
-function DeadheadPage({ setPage, profile }: any) { return <Stub title="Stop Driving Home Empty" icon="🚗" desc="Find return loads going your home direction. The average escort recovers $4,800/yr with this feature. Pro members only." back="tools" setPage={setPage} />; }
+function DeadheadPage({ setPage, profile }: any) {
+  const isPro = profile?.subscription_tier === "pro"
+  const [mode, setMode] = useState<"single" | "fleet">("single")
+  const [location, setLocation] = useState("")
+  const [searching, setSearching] = useState(false)
+  const [results, setResults] = useState<any[]>([])
+  const [error, setError] = useState("")
+  // Fleet Manager fields
+  const defaultEscort = { name: "", phone: "", city: "", state: "", available: true }
+  const [escorts, setEscorts] = useState([{ ...defaultEscort }])
+  const [fleetResults, setFleetResults] = useState<any[]>([])
+  const [rateLimitMsg, setRateLimitMsg] = useState("")
+
+  function updateEscort(i: number, field: string, val: any) {
+    setEscorts(prev => prev.map((e, idx) => idx === i ? { ...e, [field]: val } : e))
+  }
+  function addEscort() {
+    if (escorts.length < 5) setEscorts(prev => [...prev, { ...defaultEscort }])
+  }
+  function removeEscort(i: number) {
+    setEscorts(prev => prev.filter((_, idx) => idx !== i))
+  }
+
+  async function runSingleSearch() {
+    if (!location.trim()) return
+    setSearching(true); setError(""); setResults([])
+    try {
+      // Geocode with Nominatim then fetch nearby loads
+      const [city, state] = location.split(",").map(s => s.trim())
+      const res = await fetch(`/api/loads?board=flat_rate`)
+      const data = await res.json()
+      const nearby = (data.loads ?? []).filter((l: any) =>
+        l.pickup_state?.toLowerCase() === (state || city)?.toLowerCase()
+      ).slice(0, 10)
+      setResults(nearby)
+      if (!nearby.length) setError("No return loads found near your location. Check back soon.")
+    } catch (e: any) {
+      setError("Search failed. Please try again.")
+    } finally {
+      setSearching(false)
+    }
+  }
+
+  async function runFleetSearch() {
+    if (!profile?.id) { setError("You must be signed in."); return }
+    setSearching(true); setError(""); setFleetResults([]); setRateLimitMsg("")
+    try {
+      const res = await fetch("/api/fleet-search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: profile.id, escorts }),
+      })
+      const data = await res.json()
+      if (res.status === 429) { setRateLimitMsg(data.error); return }
+      if (!res.ok) { setError(data.error || "Fleet search failed."); return }
+      setFleetResults(data.results ?? [])
+    } catch (e: any) {
+      setError("Fleet search failed. Please try again.")
+    } finally {
+      setSearching(false)
+    }
+  }
+
+  const S = {
+    page: { background: "#0a0a0a", minHeight: "100vh", color: "#fff", paddingBottom: 60 },
+    header: { background: "#111", borderBottom: "1px solid #1a1a1a", padding: "16px 20px", display: "flex", alignItems: "center", gap: 12 },
+    back: { background: "none", border: "none", color: "#888", cursor: "pointer", fontSize: 14, padding: "4px 8px" },
+    body: { maxWidth: 760, margin: "0 auto", padding: "24px 16px" },
+    toggle: { display: "flex", gap: 0, marginBottom: 28, borderRadius: 8, overflow: "hidden", border: "1px solid #333" },
+    tab: (active: boolean) => ({ flex: 1, padding: "10px 0", textAlign: "center" as const, background: active ? "#ff6600" : "#1a1a1a", color: active ? "#fff" : "#888", border: "none", cursor: "pointer", fontSize: 14, fontWeight: active ? 700 : 400, transition: "all 0.2s" }),
+    upgradeCard: { background: "#1a1a1a", border: "1px solid #ff6600", borderRadius: 12, padding: "28px 24px", textAlign: "center" as const, marginTop: 20 },
+    input: { width: "100%", background: "#1a1a1a", border: "1px solid #333", borderRadius: 8, padding: "12px 14px", color: "#fff", fontSize: 15, boxSizing: "border-box" as const, marginBottom: 12 },
+    btn: { background: "#ff6600", border: "none", borderRadius: 8, padding: "12px 28px", color: "#fff", fontWeight: 700, cursor: "pointer", fontSize: 15 },
+    slotCard: { background: "#161616", border: "1px solid #2a2a2a", borderRadius: 10, padding: "16px", marginBottom: 12 },
+    resultCard: { background: "#161616", border: "1px solid #2a2a2a", borderRadius: 10, padding: "16px", marginBottom: 10 },
+    shareBtn: { background: "none", border: "1px solid #555", borderRadius: 6, padding: "6px 12px", color: "#aaa", cursor: "pointer", fontSize: 12, marginTop: 8 },
+  }
+
+  return (
+    <div style={S.page}>
+      <div style={S.header}>
+        <button style={S.back} onClick={() => setPage("tools")}>← Tools</button>
+        <span style={{ fontSize: 20 }}>🚛</span>
+        <h1 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Deadhead Minimizer</h1>
+        {isPro && <span style={{ marginLeft: "auto", fontSize: 11, background: "#ff6600", color: "#fff", borderRadius: 4, padding: "2px 7px", fontWeight: 700 }}>PRO</span>}
+      </div>
+
+      <div style={S.body}>
+        {!isPro ? (
+          <div style={S.upgradeCard}>
+            <p style={{ fontSize: 24, marginBottom: 8 }}>🚛</p>
+            <h2 style={{ color: "#ff6600", marginBottom: 8 }}>Pro Feature</h2>
+            <p style={{ color: "#aaa", marginBottom: 20, maxWidth: 400, margin: "0 auto 20px" }}>
+              The Deadhead Minimizer and Fleet Manager Tools are available on Pro. The average escort recovers <strong style={{ color: "#fff" }}>$4,800/year</strong> with this feature.
+            </p>
+            <button style={{ ...S.btn, fontSize: 16 }} onClick={() => setPage("pricing")}>Upgrade to Pro — $29.99/mo</button>
+          </div>
+        ) : (
+          <>
+            {/* Mode toggle */}
+            <div style={S.toggle}>
+              <button style={S.tab(mode === "single")} onClick={() => setMode("single")}>Single Escort</button>
+              <button style={S.tab(mode === "fleet")} onClick={() => setMode("fleet")}>Fleet Manager</button>
+            </div>
+
+            {mode === "single" && (
+              <div>
+                <p style={{ color: "#aaa", marginBottom: 16, fontSize: 14 }}>Enter your current location to find return loads heading your way.</p>
+                <input
+                  style={S.input}
+                  placeholder="City, State (e.g. Dallas, TX)"
+                  value={location}
+                  onChange={e => setLocation(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && runSingleSearch()}
+                />
+                <button style={S.btn} onClick={runSingleSearch} disabled={searching}>
+                  {searching ? "Searching..." : "Find Return Loads"}
+                </button>
+                {error && <p style={{ color: "#ff6600", marginTop: 12, fontSize: 14 }}>{error}</p>}
+                {results.length > 0 && (
+                  <div style={{ marginTop: 20 }}>
+                    <p style={{ color: "#888", fontSize: 13, marginBottom: 12 }}>{results.length} loads found near your location</p>
+                    {results.map((load: any, i: number) => (
+                      <div key={i} style={S.resultCard}>
+                        <p style={{ margin: 0, fontWeight: 700 }}>{load.pickup_city}, {load.pickup_state} → {load.delivery_city}, {load.delivery_state}</p>
+                        {load.rate_per_mile && <p style={{ color: "#00a8e8", margin: "4px 0 0", fontSize: 13 }}>${load.rate_per_mile}/mi</p>}
+                        {load.boards?.length > 1 && <p style={{ color: "#666", fontSize: 11, marginTop: 4 }}>Also on: {load.boards.filter((b: string) => b !== "flat_rate").join(" · ")}</p>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {mode === "fleet" && (
+              <div>
+                <p style={{ color: "#aaa", marginBottom: 4, fontSize: 14 }}>Add up to 5 escort slots. Results show matching loads near each escort's location separately.</p>
+                <p style={{ color: "#666", fontSize: 12, marginBottom: 16 }}>⚠️ Fleet Manager can share load links with escorts but cannot auto-match on their behalf. Escorts must confirm from their own account. Rate limit: 3 searches/hr.</p>
+                {escorts.map((escort, i) => (
+                  <div key={i} style={S.slotCard}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                      <span style={{ fontWeight: 700, fontSize: 14 }}>Escort {i + 1}</span>
+                      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                        <label style={{ fontSize: 13, color: "#aaa", display: "flex", gap: 6, alignItems: "center", cursor: "pointer" }}>
+                          <input type="checkbox" checked={escort.available} onChange={e => updateEscort(i, "available", e.target.checked)} />
+                          Available
+                        </label>
+                        {escorts.length > 1 && (
+                          <button style={{ ...S.shareBtn, border: "none", color: "#ff4444" }} onClick={() => removeEscort(i)}>Remove</button>
+                        )}
+                      </div>
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                      <input style={S.input} placeholder="Name" value={escort.name} onChange={e => updateEscort(i, "name", e.target.value)} />
+                      <input style={S.input} placeholder="Phone" value={escort.phone} onChange={e => updateEscort(i, "phone", e.target.value)} />
+                      <input style={S.input} placeholder="City" value={escort.city} onChange={e => updateEscort(i, "city", e.target.value)} />
+                      <input style={S.input} placeholder="State" value={escort.state} onChange={e => updateEscort(i, "state", e.target.value)} />
+                    </div>
+                  </div>
+                ))}
+                <div style={{ display: "flex", gap: 12, marginBottom: 20 }}>
+                  {escorts.length < 5 && (
+                    <button style={{ ...S.shareBtn, padding: "8px 16px" }} onClick={addEscort}>+ Add Escort Slot</button>
+                  )}
+                  <button style={S.btn} onClick={runFleetSearch} disabled={searching}>
+                    {searching ? "Searching..." : "Run Fleet Search"}
+                  </button>
+                </div>
+                {rateLimitMsg && <p style={{ color: "#ff6600", marginBottom: 12, fontSize: 14 }}>⏳ {rateLimitMsg}</p>}
+                {error && <p style={{ color: "#ff4444", marginBottom: 12, fontSize: 14 }}>{error}</p>}
+                {fleetResults.map((group: any, i: number) => (
+                  <div key={i} style={{ marginBottom: 20 }}>
+                    <h3 style={{ color: "#ff6600", fontSize: 15, marginBottom: 10 }}>
+                      {group.escort.name || `Escort ${i + 1}`} — {group.escort.city}, {group.escort.state}
+                    </h3>
+                    {group.loads.length === 0 ? (
+                      <p style={{ color: "#666", fontSize: 13 }}>No loads found near this location.</p>
+                    ) : (
+                      group.loads.map((load: any, j: number) => (
+                        <div key={j} style={S.resultCard}>
+                          <p style={{ margin: 0, fontWeight: 700, fontSize: 14 }}>{load.pickup_city}, {load.pickup_state} → {load.delivery_city}, {load.delivery_state}</p>
+                          {load.rate_per_mile && <p style={{ color: "#00a8e8", margin: "4px 0 0", fontSize: 13 }}>${load.rate_per_mile}/mi</p>}
+                          <button style={S.shareBtn} onClick={() => {
+                            const link = `${window.location.origin}/loads/${load.id}`
+                            navigator.clipboard?.writeText(link).then(() => alert("Load link copied! Share with " + (group.escort.name || "escort") + " so they can confirm from their account."))
+                          }}>📋 Copy Load Link to Share</button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function DotLookupPage({ setPage }: any) { return <Stub title="FMCSA DOT Carrier Lookup" icon="🔍" desc="Look up any carrier by DOT number. See safety rating, insurance status, inspection history, and out-of-service rate." back="tools" setPage={setPage} />; }
 function StateReqsPage({ setPage }: any) { return <Stub title="State Escort Requirements" icon="🗺️" desc="Enter load dimensions and route to see escort requirements per state — number of escorts, cert requirements, travel restrictions." back="tools" setPage={setPage} />; }
 function WeatherPage({ setPage }: any) { return <Stub title="Weather Alerts" icon="⛅" desc="Check weather and alerts along your route. Critical for wide loads — wind advisories, winter storms, visibility warnings." back="tools" setPage={setPage} />; }

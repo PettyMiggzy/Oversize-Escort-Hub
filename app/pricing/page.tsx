@@ -63,8 +63,8 @@ export default function PricingPage() {
             points={["Everything in Trial","See carrier contact info","Bid on open loads","Priority listing visibility"]}
             cta="Get Member" onCTA={() => startCheckout(PRICES.member, setLoading)} loading={loading === PRICES.member} highlight />
           <Tier badge="PRO" title="Pro" price="$29.99/mo" desc="Stop Driving Home Empty. The deadhead minimizer alone pays for this."
-            points={["Everything in Member","Stop Driving Home Empty","~$4,800/yr recovered","Priority in search"]}
-            cta="Go Pro" onCTA={() => startCheckout(PRICES.pro, setLoading)} loading={loading === PRICES.pro} />
+            cta="Go Pro" onCTA={() => startCheckout(PRICES.pro, setLoading)} loading={loading === PRICES.pro}
+          points={["Deadhead Minimizer (save $4,800/yr avg)", "Real-time SMS load alerts", "Bid board access — Pro gets instant alerts", "Priority search placement", "Pro badge on profile", "Fleet Manager Tools — manage up to 5 escorts", "NWS weather alerts on load cards"]} />
         </div>
         <div style={{ marginTop: 48, background: "#111", border: "1px solid #1f2937", borderRadius: 12, padding: "32px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
           <div>
