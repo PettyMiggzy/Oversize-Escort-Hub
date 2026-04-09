@@ -611,6 +611,7 @@ function HomePage({ setPage, user, profile }: { setPage: (p: Page) => void; user
         <button className="mo" style={{ marginTop: 28, background: "none", border: "none", color: "var(--t3)", fontSize: 10, letterSpacing: ".1em", cursor: "pointer" }} onClick={() => setRole("carrier")}>
           Browse as guest
         </button>
+      </div>
     );
   }
 
