@@ -413,11 +413,11 @@ function Nav({ page, setPage, user, profile, onSignOut }: {
   const navLinks: [Page, string][] = [
     ["flatboard", "Flat Rate"],
     ["openboard", "Open Loads"],
+    ["bidboard", "Bid Board"],
     ["escorts", "Find Escorts"],
     ["postload", "Post a Load"],
     ["pricing", "Pricing"],
     ["verification", "Verification"],
-    ["bidboard", "Bid Board"],
   ];
   const closeDrawer = () => setDrawerOpen(false);
   return (
