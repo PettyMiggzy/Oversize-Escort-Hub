@@ -3,8 +3,8 @@ import { useState } from "react";
 import Link from "next/link";
 
 const NAV = [
-  { label: "Flat Rate",    href: "/loads" },
-  { label: "Open Loads",   href: "/loads" },
+  { label: "Flat Rate",    href: "/" },
+  { label: "Open Loads",   href: "/?board=openboard" },
   { label: "Bid Board",    href: "/bid-board" },
   { label: "Find Escorts", href: "/find-escorts" },
   { label: "Post a Load",  href: "/post-load" },

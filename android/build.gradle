@@ -1,3 +1,9 @@
+
+# Check current SiteHeader NAV array
+print("\n=== SiteHeader NAV ===")
+print(header[:600])
+
+MAINEOF
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {

@@ -1449,7 +1449,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
       </div>
     );
   }
-  if ((profile as any)?.role === "escort") {
+  if (profile?.role === "escort" || profile?.role === "pilot" || profile?.role === "evo") {
     return (
       <div style={{ padding: "40px 24px", textAlign: "center" }}>
         <p style={{ color: "var(--t2)", marginBottom: 8 }}>Load posting is for carriers and freight brokers only.</p>
@@ -1463,7 +1463,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
     puCity: "", puState: "", dlCity: "", dlState: "",
     miles: "", rate: "2.00", dayRate: "500", positions: ["Lead"], payTerm: "FastPay", payTermCustom: "",
     notes: "", startDate: "", permitFile: null as File | null,
-				certTypes: [] as string[], certOther: "", mc_number: "", dot_number: "",
+				certTypes: [] as string[], certOther: "",
   });
   const [saving, setSaving] = useState(false);
 	const [permitUploading, setPermitUploading] = useState(false);
@@ -1539,7 +1539,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
     }
   }
 
-  if ((profile as any)?.role === "escort") {
+  if (profile?.role === "escort") {
     return (
       <div style={{ textAlign: "center", padding: 60 }}>
         <div className="bb" style={{ fontSize: 18, marginBottom: 8 }}>Carriers and Brokers Only</div>
@@ -1828,6 +1828,8 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
             </div>
           </div>
         )}
+      </div>
+    </div>
               {/* ⛽ Upside Fuel Cash Back Card */}
               <div style={{ background: "var(--card,#111)", border: "1px solid var(--l1,#222)", borderLeft: "3px solid var(--or,#f60)", borderRadius: 8, padding: 20, marginTop: 16 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
@@ -1842,8 +1844,6 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
                   Activate Fuel Savings →
                 </a>
               </div>
-      </div>
-    </div>
   );
 }
 
