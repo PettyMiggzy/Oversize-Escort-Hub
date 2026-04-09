@@ -24,6 +24,7 @@ type BidLoad = {
   status: "LIVE" | "AWARDING" | "AWARDED" | "NO_BIDS";
   proWindowSecsLeft?: number; // Pro-only first 60 seconds
   flags?: Array<"QuickPay" | "TextOnly" | "PassportReq" | "WitpacReq" | "NYReq">;
+  permit_miles_agreement?: boolean;
 };
 
 // ===== MOCK DATA (swap for backend later) =====
@@ -40,6 +41,7 @@ const MOCK_BIDS: BidLoad[] = [
     auctionEndsAt: Date.now() + 4 * 60_000 + 12_000, // ~4:12
     status: "LIVE",
     flags: ["QuickPay"],
+    permit_miles_agreement: true,
   },
   {
     id: "BB-4821",
@@ -756,6 +758,7 @@ const B: any = {
     background: "rgba(0,0,0,0.18)",
   },
 
+  permitBadge: { display: "inline-flex", alignItems: "center", padding: "4px 10px", borderRadius: 999, background: "rgba(0,230,118,0.12)", border: "1px solid rgba(0,230,118,0.35)", color: "#00e676", fontSize: 11, fontWeight: 900, cursor: "help" },
   bidBtn: {
     padding: "10px 12px",
     borderRadius: 12,
