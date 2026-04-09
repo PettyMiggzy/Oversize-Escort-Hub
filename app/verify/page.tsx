@@ -1,187 +1,170 @@
 "use client"
-import Link from "next/link"
+import { useRef, useState } from "react"
+import { supabase } from "@/lib/supabase"
 
 const TIERS = [
   {
-    name: "Free",
-    badge: "FREE",
-    badgeColor: "#555",
-    description: "Create your profile and get listed in the Find Escorts directory. Carriers can view your profile and contact you.",
-    features: ["Listed in Find Escorts", "Basic profile", "Contact form visible"],
-    price: null,
-    action: "Get Started Free",
-    href: "/join",
+    tier: 1, name: "P/EVO State Cert", badge: "TIER 1", badgeColor: "#22c55e",
+    description: "Upload your state P/EVO certification document. Our team reviews within 24 hours and adds a verified badge to your profile.",
+    features: ["State cert badge on profile", "Priority search listing", "Verified checkmark"],
+    price: null, docLabel: "Upload Cert PDF", accept: ".pdf,.jpg,.jpeg,.png",
+    apiPath: "/api/verify-doc", tier_key: "tier1",
   },
   {
-    name: "BGC Verified",
-    badge: "BGC ✓",
-    badgeColor: "#22c55e",
-    description: "Background check verification adds a trust badge to your profile, making carriers 3x more likely to hire you.",
-    features: ["BGC badge on profile", "Priority listing", "Verified checkmark"],
-    price: "$9.99",
-    priceNote: "one-time fee",
-    action: "Start Verification",
-    href: "/verify/bgc",
+    tier: 2, name: "Vehicle & Insurance", badge: "TIER 2", badgeColor: "#3b82f6",
+    description: "Upload your vehicle registration and proof of insurance. Unlocks full carrier trust and premium load access.",
+    features: ["Vehicle verified badge", "Insurance verified badge", "Higher carrier trust score"],
+    price: null, docLabel: "Upload Vehicle/Insurance Docs", accept: ".pdf,.jpg,.jpeg,.png",
+    apiPath: "/api/verify-doc", tier_key: "tier2",
   },
   {
-    name: "Pro Member",
-    badge: "PRO",
-    badgeColor: "#f59e0b",
-    description: "Unlock bid alerts, unlimited load applications, SMS notifications, and priority placement in search results.",
-    features: ["All BGC features", "Bid board access", "SMS load alerts", "Priority search placement", "Pro badge"],
-    price: "$19/mo",
-    priceNote: "or $149/yr",
-    action: "Go Pro",
-    href: "/pricing",
+    tier: 3, name: "Background Check", badge: "TIER 3", badgeColor: "#f59e0b",
+    description: "Complete a background check for the highest trust level. One-time $9.99 fee.",
+    features: ["BGC badge on profile", "Top search placement", "Pro badge + SMS alerts"],
+    price: "$9.99", priceNote: "one-time fee",
+    stripePrice: "price_1TF0EILmfugPCRbAvM6Q5rhW", tier_key: "tier3",
   },
   {
-    name: "Carrier Member",
-    badge: "CARRIER",
-    badgeColor: "#ff6600",
-    description: "Post unlimited loads, access the full escort directory, and manage your fleet operations from one dashboard.",
-    features: ["Post unlimited loads", "Full escort directory", "Carrier dashboard", "Match notifications", "Load analytics"],
-    price: "$29/mo",
-    priceNote: "or $249/yr",
-    action: "Become a Carrier",
-    href: "/pricing",
+    tier: 4, name: "Admin Verified", badge: "TIER 4", badgeColor: "#ff6600",
+    description: "Full admin verification — unlocks after completing Tiers 1, 2, and 3.",
+    features: ["Admin verified badge", "Featured in directory", "Priority load matching", "Dedicated support"],
+    price: null, locked: true, tier_key: "tier4",
   },
 ]
+
+function TierFeatures({ features, color }: { features: string[]; color: string }) {
+  return (
+    <ul style={{ listStyle: "none", padding: 0, margin: "0 0 20px", display: "flex", flexDirection: "column", gap: 6 }}>
+      {features.map((f) => (
+        <li key={f} style={{ fontSize: 13, color: "#d1d5db", display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ color, fontSize: 14 }}>✓</span> {f}
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+function UploadTierCard({ t }: { t: typeof TIERS[0] }) {
+  const ref = useRef<HTMLInputElement>(null)
+  const [status, setStatus] = useState<"idle" | "uploading" | "done" | "error">("idle")
+  const [msg, setMsg] = useState("")
+
+  async function handleSubmit() {
+    const file = ref.current?.files?.[0]
+    if (!file) { setMsg("Please select a file first."); return }
+    setStatus("uploading"); setMsg("")
+    const { data: { session } } = await supabase.auth.getSession()
+    const userId = session?.user?.id ?? "anonymous"
+    const fd = new FormData()
+    fd.append("file", file)
+    fd.append("userId", userId)
+    fd.append("tier", t.tier_key!)
+    try {
+      const res = await fetch(t.apiPath!, { method: "POST", body: fd })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || "Upload failed")
+      setStatus("done"); setMsg("\u2705 Submitted! Our team will review within 24 hours.")
+    } catch (e: any) {
+      setStatus("error"); setMsg("\u274c " + (e.message || "Something went wrong"))
+    }
+  }
+
+  return (
+    <div style={{ background: "#111", border: "1px solid #222", borderLeft: `4px solid ${t.badgeColor}`, borderRadius: 12, padding: "28px 24px", display: "flex", flexDirection: "column" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+        <span style={{ background: t.badgeColor, color: "#fff", fontSize: 11, fontWeight: 800, letterSpacing: 1, padding: "3px 8px", borderRadius: 4 }}>{t.badge}</span>
+        <span style={{ fontSize: 18, fontWeight: 700 }}>{t.name}</span>
+      </div>
+      <p style={{ color: "#9ca3af", fontSize: 14, lineHeight: 1.6, marginBottom: 20, flex: 1 }}>{t.description}</p>
+      <TierFeatures features={t.features} color={t.badgeColor} />
+      {status !== "done" ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <label style={{ display: "block", background: "#1a1a1a", border: "1px dashed #444", color: "#9ca3af", padding: "10px 14px", borderRadius: 6, fontSize: 13, cursor: "pointer", textAlign: "center" }}>
+            {t.docLabel}
+            <input ref={ref} type="file" accept={t.accept} style={{ display: "none" }} />
+          </label>
+          <button onClick={handleSubmit} disabled={status === "uploading"} style={{ background: status === "uploading" ? "#555" : t.badgeColor, color: "#fff", border: "none", padding: "12px", borderRadius: 8, fontWeight: 700, fontSize: 14, cursor: status === "uploading" ? "not-allowed" : "pointer" }}>
+            {status === "uploading" ? "Uploading\u2026" : "Start Verification"}
+          </button>
+        </div>
+      ) : null}
+      {msg && <p style={{ fontSize: 13, color: status === "done" ? "#22c55e" : "#ef4444", marginTop: 10 }}>{msg}</p>}
+    </div>
+  )
+}
+
+function StripeTierCard({ t }: { t: typeof TIERS[2] }) {
+  const [loading, setLoading] = useState(false)
+
+  async function handleCheckout() {
+    setLoading(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch("/api/bgc-checkout", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: session?.user?.id ?? "", email: session?.user?.email ?? "" }),
+      })
+      const json = await res.json()
+      if (json.url) window.location.href = json.url
+    } catch { setLoading(false) }
+  }
+
+  return (
+    <div style={{ background: "#111", border: "1px solid #222", borderLeft: `4px solid ${t.badgeColor}`, borderRadius: 12, padding: "28px 24px", display: "flex", flexDirection: "column" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+        <span style={{ background: t.badgeColor, color: "#fff", fontSize: 11, fontWeight: 800, letterSpacing: 1, padding: "3px 8px", borderRadius: 4 }}>{t.badge}</span>
+        <span style={{ fontSize: 18, fontWeight: 700 }}>{t.name}</span>
+      </div>
+      <p style={{ color: "#9ca3af", fontSize: 14, lineHeight: 1.6, marginBottom: 20, flex: 1 }}>{t.description}</p>
+      <TierFeatures features={t.features} color={t.badgeColor} />
+      <div style={{ marginBottom: 16 }}>
+        <span style={{ fontSize: 28, fontWeight: 800, color: "#ff6600" }}>{t.price}</span>
+        <span style={{ fontSize: 13, color: "#9ca3af", marginLeft: 6 }}>{t.priceNote}</span>
+      </div>
+      <button onClick={handleCheckout} disabled={loading} style={{ background: loading ? "#555" : t.badgeColor, color: "#fff", border: "none", padding: "12px", borderRadius: 8, fontWeight: 700, fontSize: 14, cursor: loading ? "not-allowed" : "pointer" }}>
+        {loading ? "Redirecting\u2026" : "Start Verification"}
+      </button>
+    </div>
+  )
+}
+
+function LockedTierCard({ t }: { t: typeof TIERS[3] }) {
+  return (
+    <div style={{ background: "#111", border: "1px solid #222", borderLeft: `4px solid ${t.badgeColor}`, borderRadius: 12, padding: "28px 24px", display: "flex", flexDirection: "column", opacity: 0.6 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+        <span style={{ background: t.badgeColor, color: "#fff", fontSize: 11, fontWeight: 800, letterSpacing: 1, padding: "3px 8px", borderRadius: 4 }}>{t.badge}</span>
+        <span style={{ fontSize: 18, fontWeight: 700 }}>{t.name}</span>
+        <span style={{ fontSize: 18 }}>\uD83D\uDD12</span>
+      </div>
+      <p style={{ color: "#9ca3af", fontSize: 14, lineHeight: 1.6, marginBottom: 20, flex: 1 }}>{t.description}</p>
+      <TierFeatures features={t.features} color={t.badgeColor} />
+      <div style={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: 8, padding: "12px 16px", textAlign: "center", color: "#9ca3af", fontSize: 13 }}>
+        Complete Tiers 1-3 first
+      </div>
+    </div>
+  )
+}
 
 export default function VerifyPage() {
   return (
     <main style={{ minHeight: "100vh", background: "#0d0d0d", color: "#fff", fontFamily: "sans-serif" }}>
-      {/* Hero */}
-      <div style={{ background: "linear-gradient(135deg, #111 0%, #1a0a00 100%)", padding: "60px 24px 48px", textAlign: "center", borderBottom: "1px solid #ff6600/20" }}>
+      <div style={{ background: "linear-gradient(135deg, #111 0%, #1a0a00 100%)", padding: "60px 24px 48px", textAlign: "center", borderBottom: "1px solid rgba(255,102,0,0.2)" }}>
         <div style={{ maxWidth: 700, margin: "0 auto" }}>
           <p style={{ color: "#ff6600", fontSize: 13, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", marginBottom: 12 }}>OEH VERIFICATION</p>
           <h1 style={{ fontSize: "clamp(28px,5vw,48px)", fontWeight: 800, marginBottom: 16, lineHeight: 1.2 }}>
-            Build Trust.<br />
-            <span style={{ color: "#ff6600" }}>Get More Loads.</span>
+            Build Trust.<br /><span style={{ color: "#ff6600" }}>Get More Loads.</span>
           </h1>
           <p style={{ color: "#9ca3af", fontSize: 17, maxWidth: 500, margin: "0 auto" }}>
-            Verified escorts earn more. Carriers trust verified profiles. Start with free, upgrade when you are ready.
+            Verified escorts earn more. Complete each tier to unlock the next.
           </p>
         </div>
       </div>
-
-      {/* Tier Cards */}
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "56px 24px" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 24 }}>
-          {TIERS.map((tier) => (
-            <div
-              key={tier.name}
-              style={{
-                background: "#111",
-                border: "1px solid #222",
-                borderLeft: `4px solid ${tier.badgeColor}`,
-                borderRadius: 12,
-                padding: "28px 24px",
-                display: "flex",
-                flexDirection: "column",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-                <span style={{
-                  background: tier.badgeColor,
-                  color: "#fff",
-                  fontSize: 11,
-                  fontWeight: 800,
-                  letterSpacing: 1,
-                  padding: "3px 8px",
-                  borderRadius: 4,
-                }}>
-                  {tier.badge}
-                </span>
-                <span style={{ fontSize: 18, fontWeight: 700 }}>{tier.name}</span>
-              </div>
-              <p style={{ color: "#9ca3af", fontSize: 14, lineHeight: 1.6, marginBottom: 20, flex: 1 }}>
-                {tier.description}
-              </p>
-              <ul style={{ listStyle: "none", padding: 0, margin: "0 0 20px", display: "flex", flexDirection: "column", gap: 6 }}>
-                {tier.features.map((f) => (
-                  <li key={f} style={{ fontSize: 13, color: "#d1d5db", display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ color: tier.badgeColor, fontSize: 14 }}>✓</span> {f}
-                  </li>
-                ))}
-              </ul>
-              {tier.price && (
-                <div style={{ marginBottom: 16 }}>
-                  <span style={{ fontSize: 28, fontWeight: 800, color: "#ff6600" }}>{tier.price}</span>
-                  {tier.priceNote && <span style={{ fontSize: 13, color: "#9ca3af", marginLeft: 6 }}>{tier.priceNote}</span>}
-                </div>
-              )}
-              <Link
-                href={tier.href}
-                style={{
-                  display: "block",
-                  background: "#ff6600",
-                  color: "#fff",
-                  textAlign: "center",
-                  padding: "12px",
-                  borderRadius: 8,
-                  fontWeight: 700,
-                  fontSize: 14,
-                  textDecoration: "none",
-                  transition: "background 0.2s",
-                }}
-              >
-                {tier.action}
-              </Link>
-            </div>
-          ))}
-        </div>
-
-        {/* DD-214 Veteran Discount */}
-        <div style={{
-          marginTop: 56,
-          background: "#111",
-          border: "1px solid #1e3a5f",
-          borderLeft: "4px solid #3b82f6",
-          borderRadius: 12,
-          padding: "32px",
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-            <span style={{ fontSize: 28 }}>🎖️</span>
-            <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>Veteran Discount — DD-214 Submission</h2>
-          </div>
-          <p style={{ color: "#9ca3af", marginBottom: 20, lineHeight: 1.6 }}>
-            We honor those who have served. Veterans with a valid DD-214 receive 50% off any paid plan. Upload your DD-214 below and our team will verify and apply your discount within 24 hours.
-          </p>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center" }}>
-            <input
-              type="email"
-              placeholder="Your email address"
-              style={{ background: "#1a1a1a", border: "1px solid #333", color: "#fff", padding: "10px 14px", borderRadius: 6, fontSize: 14, flex: 1, minWidth: 200 }}
-            />
-            <label style={{
-              display: "inline-block",
-              background: "#3b82f6",
-              color: "#fff",
-              padding: "10px 20px",
-              borderRadius: 6,
-              fontWeight: 600,
-              fontSize: 14,
-              cursor: "pointer",
-            }}>
-              📎 Upload DD-214
-              <input type="file" accept=".pdf,.jpg,.jpeg,.png" style={{ display: "none" }} />
-            </label>
-            <button style={{
-              background: "#ff6600",
-              color: "#fff",
-              border: "none",
-              padding: "10px 20px",
-              borderRadius: 6,
-              fontWeight: 600,
-              fontSize: 14,
-              cursor: "pointer",
-            }}>
-              Submit for Review
-            </button>
-          </div>
-          <p style={{ fontSize: 12, color: "#6b7280", marginTop: 12 }}>
-            Your document is kept confidential and deleted after verification. We accept PDF, JPG, or PNG.
-          </p>
+          <UploadTierCard t={TIERS[0] as any} />
+          <UploadTierCard t={TIERS[1] as any} />
+          <StripeTierCard t={TIERS[2] as any} />
+          <LockedTierCard t={TIERS[3] as any} />
         </div>
       </div>
     </main>
