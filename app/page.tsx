@@ -591,7 +591,8 @@ function HomePage({ setPage, user, profile }: { setPage: (p: Page) => void; user
             <div className="bb" style={{ fontSize: 34, color: "var(--t2)", marginBottom: 10 }}>FREIGHT BROKER</div>
             <p style={{ fontSize: 11, color: "var(--t2)", lineHeight: 1.5, marginBottom: 16 }}>Licensed freight brokers who need verified P/EVO escorts for oversize shipments.</p>
             <div className="mo" style={{ fontSize: 9, color: "var(--t2)", letterSpacing: ".1em" }}>POST LOADS · FIND ESCORTS · MANAGE SHIPMENTS →</div>
-        <div className="role-card" style={{ border: "2px solid #3b82f6", marginTop: 12 }}>
+        </div>
+<div className="role-card" style={{ border: "2px solid #3b82f6", marginTop: 12 }}>
           <div className="bb" style={{ fontSize: 34, color: "#3b82f6", marginBottom: 10 }}>FLEET MANAGER</div>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
             <span style={{ background: "rgba(59,130,246,0.18)", color: "#3b82f6", fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, letterSpacing: 1 }}>PRO REQUIRED</span>
@@ -605,7 +606,6 @@ function HomePage({ setPage, user, profile }: { setPage: (p: Page) => void; user
           </div>
           Browse as guest →
         </button>
-      </div>
     );
   }
 
