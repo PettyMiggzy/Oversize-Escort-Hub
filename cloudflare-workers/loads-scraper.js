@@ -20,6 +20,33 @@ export default {
 
     try {
       const body = await request.json();
+      // -- Expire action (MacroDroid fires when Loads Covered dismissed) --
+      if (body.action === "expire" && body.title) {
+        const expireRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/external_loads?raw_title=eq.${encodeURIComponent(body.title)}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              "apikey": SUPABASE_KEY,
+              "Authorization": `Bearer ${SUPABASE_KEY}`,
+              "Prefer": "return=minimal"
+            },
+            body: JSON.stringify({ status: "expired" })
+          }
+        );
+        if (!expireRes.ok) {
+          const errText = await expireRes.text();
+          return new Response(JSON.stringify({ error: errText }), {
+            status: expireRes.status,
+            headers: { "Content-Type": "application/json" }
+          });
+        }
+        return new Response(JSON.stringify({ success: true, action: "expired", title: body.title }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" }
+        });
+      }
       const { title, text, date, time } = body;
 
       // Parse the load from notification text
