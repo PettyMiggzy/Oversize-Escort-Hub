@@ -591,6 +591,17 @@ function HomePage({ setPage, user, profile }: { setPage: (p: Page) => void; user
             <div className="bb" style={{ fontSize: 34, color: "var(--t2)", marginBottom: 10 }}>FREIGHT BROKER</div>
             <p style={{ fontSize: 11, color: "var(--t2)", lineHeight: 1.5, marginBottom: 16 }}>Licensed freight brokers who need verified P/EVO escorts for oversize shipments.</p>
             <div className="mo" style={{ fontSize: 9, color: "var(--t2)", letterSpacing: ".1em" }}>POST LOADS · FIND ESCORTS · MANAGE SHIPMENTS →</div>
+        <div className="role-card" style={{ border: "2px solid #3b82f6", marginTop: 12 }}>
+          <div className="bb" style={{ fontSize: 34, color: "#3b82f6", marginBottom: 10 }}>FLEET MANAGER</div>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+            <span style={{ background: "rgba(59,130,246,0.18)", color: "#3b82f6", fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, letterSpacing: 1 }}>PRO REQUIRED</span>
+          </div>
+          <p className="hero-sub" style={{ lineHeight: 1.5, marginBottom: 16 }}>Manage multiple P/EVO escorts across loads. Find work for your fleet, track jobs, and maximize every mile.</p>
+          <div className="mo" style={{ fontSize: 11, color: "var(--t2)", marginBottom: 20, letterSpacing: ".06em", lineHeight: 1.8 }}>
+            { "FIND LOADS · FLEET DEADHEAD · MANAGE ESCORTS →" }
+          </div>
+          <a href="/signin?role=fleet_manager" className="mo" style={{ display: "inline-block", padding: "11px 18px", background: "#3b82f6", color: "#fff", borderRadius: 4, fontWeight: 700, fontSize: 10, letterSpacing: ".1em", textDecoration: "none" }}>GET STARTED →</a>
+        </div>
           </div>
           Browse as guest →
         </button>
