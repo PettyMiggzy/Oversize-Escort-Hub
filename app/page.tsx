@@ -13,7 +13,7 @@ type Profile = {
   id: string;
   full_name: string | null;
   company_name: string | null;
-  role: "escort" | "carrier" | "admin";
+  role: "escort" | "carrier" | "admin" | "fleet_manager";
   tier: "free" | "member" | "pro" | "carrier_member";
   email: string | null;
   phone: string | null;
@@ -436,7 +436,7 @@ function Nav({ page, setPage, user, profile, onSignOut }: {
             {profile.full_name || "there"}{" · "}
             <span style={{ color: "var(--or)", fontSize: 8 }}>{profile.tier?.toUpperCase()}</span>{" "}
             <button className="nav-signout" onClick={onSignOut}>SIGN OUT</button>
-            <button className="nav-signout" style={{ marginLeft: 4 }} onClick={() => setPage(profile.role === "carrier" ? "dashboard-c" : "dashboard-e")}>DASHBOARD →</button>
+            <button className="nav-signout" style={{ marginLeft: 4 }} onClick={() => profile?.role === "fleet_manager" ? (window["location"]["href"] = "/fleet-dashboard") : setPage(profile.role === "carrier" ? "dashboard-c" : "dashboard-e")}>DASHBOARD →</button>
                   {profile?.role === 'admin' && (
                     <button className="nav-signout" style={{ marginLeft: 4 }} onClick={() => setPage('admin')}>Admin</button>
                   )}
@@ -465,7 +465,7 @@ function Nav({ page, setPage, user, profile, onSignOut }: {
                 <>
                   <div className="mo" style={{ fontSize: 9, color: "var(--t2)", marginBottom: 4 }}>Signed in as <strong style={{ color: "var(--t1)" }}>{profile.full_name}</strong></div>
                   <div className="mo" style={{ fontSize: 8, color: "var(--or)", marginBottom: 10 }}>{profile.tier?.toUpperCase()} · {profile.role?.toUpperCase()}</div>
-                  <button className="drawer-link" onClick={() => { setPage(profile.role === "carrier" ? "dashboard-c" : "dashboard-e"); closeDrawer(); }}>→ Dashboard</button>
+                  <button className="drawer-link" onClick={() => { profile?.role === "fleet_manager" ? (window["location"]["href"] = "/fleet-dashboard") : setPage(profile.role === "carrier" ? "dashboard-c" : "dashboard-e"); closeDrawer(); }}>→ Dashboard</button>
                   {profile?.role === 'admin' && (
                     <button className="drawer-link" onClick={() => { setPage('admin'); closeDrawer(); }}>Admin</button>
                   )}
@@ -624,7 +624,7 @@ function HomePage({ setPage, user, profile }: { setPage: (p: Page) => void; user
         <span className="mo" style={{ fontSize: 9, color: "var(--t2)", marginLeft: "auto" }}>
           Welcome back, <strong style={{ color: "var(--t1)" }}>{profile.full_name || "there"}</strong>
           {" · "}
-          <button className="mo" style={{ background: "none", border: "none", color: "var(--or)", fontSize: 9, cursor: "pointer" }} onClick={() => setPage(profile.role === "carrier" ? "dashboard-c" : "dashboard-e")}>
+          <button className="mo" style={{ background: "none", border: "none", color: "var(--or)", fontSize: 9, cursor: "pointer" }} onClick={() => profile?.role === "fleet_manager" ? (window["location"]["href"] = "/fleet-dashboard") : setPage(profile.role === "carrier" ? "dashboard-c" : "dashboard-e")}>
             Go to Dashboard →
           </button>
         </span>
