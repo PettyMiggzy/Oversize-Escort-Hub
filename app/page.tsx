@@ -32,6 +32,7 @@ type Profile = {
   bgc_document_url: string | null;
   avatar_url: string | null;
   pro_window_expires_at: string | null;
+  avatar_url: string | null;
 };
 
 type Load = {
@@ -435,13 +436,7 @@ function Nav({ page, setPage, user, profile, onSignOut }: {
       {/* Desktop right */}
       <div className="nav-right" style={{ display: "flex", alignItems: "center", gap: 10, marginLeft: "auto" }}>
         {user && profile ? (
-          {(() => {
-            const nm = profile.full_name || "?";
-            const ini = nm.split(" ").map((w: string) => w[0] || "").join("").toUpperCase().slice(0,2) || "?";
-            return profile.avatar_url
-              ? <img src={profile.avatar_url} alt="avatar" style={{ width:26,height:26,borderRadius:"50%",objectFit:"cover",border:"2px solid var(--or)",marginRight:6,verticalAlign:"middle" }} />
-              : <span style={{ display:"inline-flex",alignItems:"center",justifyContent:"center",width:26,height:26,borderRadius:"50%",background:"var(--or)",color:"#000",fontSize:10,fontWeight:700,marginRight:6,letterSpacing:".05em",flexShrink:0,fontFamily:"sans-serif" }}>{ini}</span>;
-          })()}
+          <span style={{ display:"inline-flex",alignItems:"center",justifyContent:"center",width:26,height:26,borderRadius:"50%",background:"var(--or)",color:"#fff",fontSize:10,fontWeight:700,marginRight:6,flexShrink:0 }}>{(profile.full_name||"?").split(" ").filter(Boolean).map(function(w){return w[0]}).join("").toUpperCase().slice(0,2)||"?"}</span>
           <span className="nav-user">
             {profile.full_name || "there"}{" · "}
             <span style={{ color: "var(--or)", fontSize: 8 }}>{profile.tier?.toUpperCase()}</span>{" "}
@@ -583,6 +578,8 @@ function HomePage({ setPage, user, profile }: { setPage: (p: Page) => void; user
   const [role, setRole] = useState<Role>(null);
 
   // Scroll to top on initial load
+  useEffect(() => { window.scrollTo(0, 0); }, []);
+
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
   // If logged in, skip role picker and use their actual role
@@ -2105,9 +2102,9 @@ function PricingPage({ setPage }: { setPage: (p: Page) => void }) {
 
 
 function VerificationPage() {
-  const [uploading, setUploading] = React.useState<string | null>(null);
-  const [msgs, setMsgs] = React.useState<Record<string, string>>({});
-  const [fileInputs, setFileInputs] = React.useState<Record<string, File | null>>({});
+  const [uploading, setUploading] = useState<string | null>(null);
+  const [msgs, setMsgs] = useState<Record<string, string>>({});
+  const [fileInputs, setFileInputs] = useState<Record<string, File | null>>({});
 
   async function handleUpload(tier: string, bucket: string) {
     const file = fileInputs[tier];
