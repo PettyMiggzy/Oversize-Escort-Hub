@@ -1035,6 +1035,11 @@ function FlatBoardPage({ setPage, user, profile, showToast }: { setPage: (p: Pag
                     ))}
                     {(l.certs_required || []).length > 4 && <span className="chip ch-dim" style={{ fontSize: 9 }}>+{(l.certs_required || []).length - 4}</span>}
                   </div>
+                {l.permit_miles_agreement && (
+                  <div style={{ display: 'inline-block', background: '#064e3b', color: '#6ee7b7', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4, marginBottom: 4 }} title="Carrier has agreed bid price applies to actual permitted miles">
+                    ✓ Permit Miles Protected
+                  </div>
+                )}
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--gr)' }}>
