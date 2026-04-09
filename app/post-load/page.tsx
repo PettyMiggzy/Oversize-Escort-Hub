@@ -1,7 +1,48 @@
 "use client"
 import { useEffect, useState } from "react"
+import Link from 'next/link';
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
+
+
+const STATE_ADJ: Record<string, string[]> = {
+  AL:['MS','TN','GA','FL'],AK:[],AZ:['CA','NV','UT','CO','NM'],AR:['MO','TN','MS','LA','TX','OK'],
+  CA:['OR','NV','AZ'],CO:['WY','NE','KS','OK','NM','AZ','UT'],CT:['NY','MA','RI'],DE:['MD','PA','NJ'],
+  FL:['GA','AL'],GA:['TN','NC','SC','FL','AL'],HI:[],ID:['MT','WY','UT','NV','OR','WA'],
+  IL:['WI','IN','KY','MO','IA'],IN:['MI','OH','KY','IL'],IA:['MN','WI','IL','MO','NE','SD'],
+  KS:['NE','MO','OK','CO'],KY:['OH','WV','VA','TN','MO','IL','IN'],LA:['TX','AR','MS'],
+  ME:['NH'],MD:['PA','DE','VA','WV'],MA:['NH','VT','NY','CT','RI'],MI:['OH','IN','WI'],
+  MN:['ND','SD','IA','WI'],MS:['TN','AL','LA','AR'],MO:['IA','IL','KY','TN','AR','OK','KS','NE'],
+  MT:['ND','SD','WY','ID'],NE:['SD','IA','MO','KS','CO','WY'],NV:['OR','ID','UT','AZ','CA'],
+  NH:['ME','VT','MA'],NJ:['NY','PA','DE'],NM:['CO','OK','TX','AZ'],NY:['PA','NJ','CT','MA','VT'],
+  NC:['VA','TN','SC','GA'],ND:['MT','SD','MN'],OH:['PA','WV','KY','IN','MI'],
+  OK:['KS','MO','AR','TX','NM','CO'],OR:['WA','ID','NV','CA'],PA:['NY','NJ','DE','MD','WV','OH'],
+  RI:['CT','MA'],SC:['NC','GA'],SD:['ND','MN','IA','NE','WY','MT'],
+  TN:['KY','VA','NC','GA','AL','MS','AR','MO'],TX:['NM','OK','AR','LA'],
+  UT:['ID','WY','CO','NM','AZ','NV'],VT:['NY','NH','MA'],VA:['MD','WV','KY','TN','NC'],
+  WA:['OR','ID'],WV:['OH','PA','MD','VA','KY'],WI:['MN','MI','IL','IA'],WY:['MT','SD','NE','CO','UT','ID'],
+};
+
+function getRouteStatesBFS(from: string, to: string): string[] {
+  if (!from || !to) return [];
+  if (from === to) return [from];
+  if (!STATE_ADJ[from] || !STATE_ADJ[to]) return [from, to];
+  const queue: string[][] = [[from]];
+  const visited = new Set<string>([from]);
+  while (queue.length > 0) {
+    const path = queue.shift()!;
+    const cur = path[path.length - 1];
+    for (const nb of STATE_ADJ[cur] || []) {
+      if (!visited.has(nb)) {
+        const np = [...path, nb];
+        if (nb === to) return np;
+        visited.add(nb);
+        queue.push(np);
+      }
+    }
+  }
+  return [from, to];
+}
 
 export default function PostLoadPage() {
   const router = useRouter()
@@ -12,14 +53,10 @@ export default function PostLoadPage() {
   const [pickupState, setPickupState] = useState("")
   const [destState, setDestState] = useState("")
   const [permitAgreement, setPermitAgreement] = useState(false)
+  const [showRouteStates, setShowRouteStates] = useState(false);
   const [estMiles, setEstMiles] = useState("")
 
-  const routeStates = pickupState && destState
-    ? pickupState === destState
-      ? pickupState
-      : pickupState + ", " + destState
-    : ""
-
+  const routeStates = getRouteStatesBFS(pickupState.trim().toUpperCase(), destState.trim().toUpperCase())
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       if (!data.session) {
@@ -88,6 +125,37 @@ export default function PostLoadPage() {
                 <input style={S.input} value={estMiles} onChange={e => setEstMiles(e.target.value.replace(/[^0-9]/g,""))} placeholder="e.g. 350" />
                 <span style={S.permitNote}>Actual permitted miles may differ. Escorts are paid on permitted miles.</span>
               </div>
+              {/* States on your route */}
+              {routeStates.length > 1 && (
+                <div style={{ background: 'rgba(59,130,246,0.07)', border: '1px solid rgba(59,130,246,0.3)', borderRadius: 10, padding: '14px 16px', marginBottom: 8 }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowRouteStates(s => !s)}
+                    style={{ background: 'none', border: 'none', color: '#60a5fa', fontWeight: 700, fontSize: 13, cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: 6, width: '100%', textAlign: 'left' }}
+                  >
+                    <span>{showRouteStates ? '▼' : '▶'}</span>
+                    <span>States on your route ({routeStates.length})</span>
+                    <Link href={'/tools/permits?from=' + (pickupState || '') + '&to=' + (destState || '')} style={{ marginLeft: 'auto', color: '#f97316', fontSize: 12, textDecoration: 'none' }} onClick={e => e.stopPropagation()}>
+                      View permit contacts →
+                    </Link>
+                  </button>
+                  {showRouteStates && (
+                    <div style={{ marginTop: 10 }}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+                        {routeStates.map((s, i) => (
+                          <span key={s} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            <span style={{ background: '#1e3a5f', color: '#93c5fd', fontSize: 12, fontWeight: 700, padding: '3px 9px', borderRadius: 16 }}>{s}</span>
+                            {i < routeStates.length - 1 && <span style={{ color: '#374151', fontSize: 11 }}>›</span>}
+                          </span>
+                        ))}
+                      </div>
+                      <p style={{ margin: 0, fontSize: 11, color: '#6b7280' }}>
+                        Each state requires a separate permit. <Link href="/tools/permits" style={{ color: '#f97316', textDecoration: 'none' }}>View full permit directory →</Link>
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
               <Input label="Load Date (MM/DD/YYYY)" required />
               <Select label="Escort Position Needed" options={["Lead","Escort","High Pole","Route Survey","Steer / Tiller"]} />
               <Select label="Board Type" options={["Regular Load Board","Bid Board (5-minute window)"]} />
