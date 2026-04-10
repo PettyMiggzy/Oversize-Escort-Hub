@@ -1434,10 +1434,10 @@ function EscortsPage({ setPage }: { setPage: (p: Page) => void }) {
   const CERT_TYPES = ['Lead','Chase','High Pole','Lineman','Rear Steer','Survey','Flagger','NY Cert','CSE (Ontario MTO)','BC Pilot Car','WITPAC','TWIC','AZ Cert','CTTS BC/AB','OAPC Ontario','Saskatchewan'];
   const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
   let escorts = [...SEED_ESCORTS];
-  if (filterState) escorts = escorts.filter(e => e.state === filterState);
-  if (filterCert) escorts = escorts.filter(e => e.cert_types?.includes(filterCert));
-  if (filterAvailNow) escorts = escorts.filter(e => e.is_available);
-  if (filterBGC) escorts = escorts.filter(e => e.bgc_verified);
+  if (filterState) escorts = escorts.filter(e => e.states?.includes(filterState));
+  if (filterCert) escorts = escorts.filter(e => (e.cert_types || e.badges || []).includes(filterCert));
+  if (filterAvailNow) escorts = escorts.filter(e => (e as any).is_available !== false);
+  if (filterBGC) escorts = escorts.filter(e => (e as any).bgc_verified);
   if (sortBy === 'rating') escorts.sort((a,b) => (b.rating||0) - (a.rating||0));
   else if (sortBy === 'jobs') escorts.sort((a,b) => (b.total_jobs||0) - (a.total_jobs||0));
   else if (sortBy === 'newest') escorts.reverse();
