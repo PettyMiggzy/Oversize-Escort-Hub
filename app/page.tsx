@@ -32,6 +32,7 @@ type Profile = {
   bgc_document_url: string | null;
   pro_window_expires_at: string | null;
   avatar_url: string | null;
+  cert_types: string[] | null;
 };
 
 type Load = {
@@ -1433,7 +1434,7 @@ function EscortsPage({ setPage }: { setPage: (p: Page) => void }) {
   const [sortBy, setSortBy] = useState('rating');
   const CERT_TYPES = ['Lead','Chase','High Pole','Lineman','Rear Steer','Survey','Flagger','NY Cert','CSE (Ontario MTO)','BC Pilot Car','WITPAC','TWIC','AZ Cert','CTTS BC/AB','OAPC Ontario','Saskatchewan'];
   const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
-  let escorts = [...SEED_ESCORTS];
+  let escorts: any[] = [...SEED_ESCORTS];
   if (filterState) escorts = escorts.filter(e => e.states?.includes(filterState));
   if (filterCert) escorts = escorts.filter(e => (e.cert_types || e.badges || []).includes(filterCert));
   if (filterAvailNow) escorts = escorts.filter(e => (e as any).is_available !== false);
