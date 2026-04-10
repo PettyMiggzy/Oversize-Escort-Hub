@@ -438,6 +438,7 @@ function Nav({ page, setPage, user, profile, onSignOut }: {
             <span style={{ display:"inline-flex",alignItems:"center",justifyContent:"center",width:26,height:26,borderRadius:"50%",background:profile.avatar_url?"transparent":"#ff6600",color:"#fff",fontSize:10,fontWeight:700,marginRight:6,flexShrink:0,overflow:"hidden" }}>{profile.avatar_url ? <img src={profile.avatar_url} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}} /> : (profile.full_name||"?").split(" ").filter(Boolean).map(function(w){return w[0]}).join("").toUpperCase().slice(0,2)||"?"}</span>
             {profile.full_name || "there"}{" · "}
             <span style={{ color: "var(--or)", fontSize: 8 }}>{profile.tier?.toUpperCase()}</span>{" "}
+            {profile?.role === "fleet_manager" && <button className="nav-signout" style={{ color:'#ff6600', borderColor:'#ff6600' }} onClick={() => { window.location.href = '/fleet-dashboard'; }}>FLEET DASHBOARD</button>}
             <button className="nav-signout" onClick={onSignOut}>SIGN OUT</button>
             <button className="nav-signout" style={{ marginLeft: 4 }} onClick={() => profile?.role === "fleet_manager" ? (window["location"]["href"] = "/fleet-dashboard") : setPage(profile.role === "carrier" ? "dashboard-c" : "dashboard-e")}>DASHBOARD →</button>
                   {profile?.role === 'admin' && (
@@ -1805,6 +1806,21 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
   const [zonesSaving, setZonesSaving] = useState(false)
   const [zonesMsg, setZonesMsg] = useState('')
   const US_STATES_ALL = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY']
+  const [avatarUploading, setAvatarUploading] = useState(false)
+  const avatarFileRef = useRef<HTMLInputElement>(null)
+  async function handleAvatarUpload() {
+    const file = avatarFileRef.current?.files?.[0]
+    if (!file) return
+    setAvatarUploading(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setAvatarUploading(false); return }
+    const ext = file.name.split('.').pop()
+    const path = `avatars/${user.id}.${ext}`
+    await supabase.storage.from('avatars').upload(path, file, { upsert: true })
+    const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
+    await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('id', user.id)
+    setAvatarUploading(false)
+  }
   async function saveZones() {
     setZonesSaving(true)
     const { data: { user: u } } = await supabase.auth.getUser()
@@ -1984,6 +2000,31 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
               </a>
             ))}
           </div>
+
+          {tab === "zones" && (
+            <div style={{ padding: 24 }}>
+              <div className="card" style={{ marginBottom: 24 }}>
+                <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Profile Photo</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 12 }}>
+                  <span style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', width:80, height:80, borderRadius:'50%', background: profile?.avatar_url ? 'transparent' : '#ff6600', color:'#fff', fontSize:28, fontWeight:700, overflow:'hidden', flexShrink:0 }}>{profile?.avatar_url ? <img src={profile.avatar_url} style={{ width:'100%', height:'100%', objectFit:'cover' }} alt="avatar" /> : (profile?.full_name?.split(' ').map((n: string) => n[0]).join('').slice(0,2).toUpperCase() || 'ME')}</span>
+                  <div><input ref={avatarFileRef} type="file" accept="image/*" style={{ display:'none' }} onChange={handleAvatarUpload} /><button className="btn btn-sm" onClick={() => avatarFileRef.current?.click()} disabled={avatarUploading}>{avatarUploading ? 'Uploading…' : 'Change Photo'}</button><div style={{ fontSize: 11, color: 'var(--t3)', marginTop: 6 }}>JPG or PNG shown on your profile card</div></div>
+                </div>
+              </div>
+              <div className="card" style={{ marginBottom: 24 }}>
+                <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>📍 Load Alert States</div>
+                <div style={{ fontSize: 12, color: 'var(--t2)', marginBottom: 12 }}>Select states you run. SMS alerts only for these states. Leave blank for ALL loads.</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>{US_STATES_ALL.map((st: string) => { const sel = ((profile?.notification_states as string[]) || []).includes(st); return (<button key={st} onClick={async () => { const { data: { user } } = await supabase.auth.getUser(); if (!user) return; const cur: string[] = ((profile?.notification_states as string[]) || []); const next = sel ? cur.filter((s: string) => s !== st) : [...cur, st]; await supabase.from('profiles').update({ notification_states: next }).eq('id', user.id); }} style={{ padding:'4px 10px', borderRadius:4, fontSize:11, fontWeight:600, border: sel ? '2px solid #ff6600' : '1px solid var(--l2)', background: sel ? '#ff6600' : 'var(--card)', color: sel ? '#fff' : 'var(--t1)', cursor:'pointer' }}>{st}</button>); })}</div>
+                <div style={{ fontSize:11, color:'var(--t3)' }}>{((profile?.notification_states as string[])?.length || 0) === 0 ? '📡 All states' : `📡 ${((profile?.notification_states as string[]) || []).join(', ')}`}</div>
+              </div>
+              <div className="card">
+                <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>🗺️ Availability Zones</div>
+                <div style={{ fontSize: 12, color: 'var(--t2)', marginBottom: 12 }}>States you are currently available to work in.</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>{US_STATES_ALL.map((st: string) => { const sel = availStates.includes(st); return (<button key={st} onClick={() => setAvailStates(sel ? availStates.filter((s: string) => s !== st) : [...availStates, st])} style={{ padding:'4px 10px', borderRadius:4, fontSize:11, fontWeight:600, border: sel ? '2px solid #ff6600' : '1px solid var(--l2)', background: sel ? '#ff6600' : 'var(--card)', color: sel ? '#fff' : 'var(--t1)', cursor:'pointer' }}>{st}</button>); })}</div>
+                <button className="btn btn-or btn-sm" onClick={saveZones} disabled={zonesSaving}>{zonesSaving ? 'Saving…' : 'Save Availability'}</button>
+                {zonesMsg && <div style={{ marginTop: 8, fontSize: 12, color: 'var(--am)' }}>{zonesMsg}</div>}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -2849,7 +2890,11 @@ export default function OEHPlatform() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [toast, setToast] = useState<{ msg: string; type: "gr" | "rd" | "am" } | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
-
+  const [reviewPrompt, setReviewPrompt] = useState<{loadId:string,targetName:string,targetId:string}|null>(null)
+  const [reviewRating, setReviewRating] = useState(5)
+  const [reviewText, setReviewText] = useState('')
+  const [reviewSubmitting, setReviewSubmitting] = useState(false)
+  
   function showToast(msg: string, type: "gr" | "rd" | "am") {
     setToast({ msg, type });
   }
@@ -2951,6 +2996,7 @@ export default function OEHPlatform() {
         {page === "dashboard-e" && <EscortDashPage setPage={setPage} profile={profile} />}
         {page === "admin" && <AdminPage setPage={setPage} user={user} profile={profile} />}
       <Footer setPage={setPage} />
+      {reviewPrompt && (<div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}><div className="card" style={{ maxWidth:440, width:'100%', padding:28 }}><div style={{ fontSize:18, fontWeight:700, marginBottom:8 }}>⭐ How was your experience?</div><div style={{ fontSize:13, color:'var(--t2)', marginBottom:16 }}>Leave a review for {reviewPrompt.targetName}</div><div style={{ display:'flex', gap:8, marginBottom:16 }}>{[1,2,3,4,5].map(n => (<button key={n} onClick={() => setReviewRating(n)} style={{ fontSize:24, background:'none', border:'none', cursor:'pointer', opacity: n <= reviewRating ? 1 : 0.3 }}>⭐</button>))}</div><textarea value={reviewText} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setReviewText(e.target.value)} placeholder="Optional written review (500 chars max)" maxLength={500} style={{ width:'100%', minHeight:80, padding:10, borderRadius:6, border:'1px solid var(--l2)', background:'var(--bg)', color:'var(--t1)', fontSize:13, resize:'vertical', marginBottom:16 }} /><div style={{ display:'flex', gap:10 }}><button className="btn btn-or" disabled={reviewSubmitting} onClick={async () => { setReviewSubmitting(true); await fetch('/api/reviews', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ load_id: reviewPrompt.loadId, target_id: reviewPrompt.targetId, rating: reviewRating, text: reviewText }) }); setReviewSubmitting(false); setReviewPrompt(null); setReviewRating(5); setReviewText(''); showToast('Thanks for your review!', 'gr') }}>{reviewSubmitting ? 'Submitting…' : 'Submit Review'}</button><button className="btn" onClick={() => setReviewPrompt(null)}>Skip</button></div></div></div>)}
       {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
     </>
   );
