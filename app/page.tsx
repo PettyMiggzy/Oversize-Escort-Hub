@@ -32,7 +32,7 @@ type Profile = {
   bgc_document_url: string | null;
   pro_window_expires_at: string | null;
   avatar_url: string | null;
-  cert_types: string[] | null;
+  cert_types: string[] | null;  notification_states: string[] | null;
 };
 
 type Load = {
@@ -2243,7 +2243,7 @@ function VerificationPage() {
   const fileRef2 = useRef<HTMLInputElement>(null)
   const fileRef3 = useRef<HTMLInputElement>(null)
 
-  async function handleUpload(tier: 1 | 2, fileRef: React.RefObject<HTMLInputElement>) {
+  async function handleUpload(tier: 1 | 2, fileRef: React.RefObject<HTMLInputElement | null>) {
     const file = fileRef.current?.files?.[0]
     if (!file) { setMsg('Please select a file first.'); return }
     if (file.size > 10 * 1024 * 1024) { setMsg('File exceeds 10 MB limit.'); return }
