@@ -16,6 +16,7 @@ type Profile = {
   role: "escort" | "carrier" | "admin" | "fleet_manager";
   tier: "free" | "member" | "pro" | "carrier_member";
   email: string | null;
+
   phone: string | null;
   state: string | null;
   p_evo_verified: boolean;
@@ -2909,11 +2910,6 @@ export default function OEHPlatform() {
   const [reviewRating, setReviewRating] = useState(5)
   const [reviewText, setReviewText] = useState('')
   const [reviewSubmitting, setReviewSubmitting] = useState(false)
-    const [reviewPrompt, setReviewPrompt] = useState<{loadId:string,targetName:string,targetId:string}|null>(null)
-  const [reviewRating, setReviewRating] = useState(5)
-  const [reviewText, setReviewText] = useState('')
-  const [reviewSubmitting, setReviewSubmitting] = useState(false)
-  
   function showToast(msg: string, type: "gr" | "rd" | "am") {
     setToast({ msg, type });
   }
