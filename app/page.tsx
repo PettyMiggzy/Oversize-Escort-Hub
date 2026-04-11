@@ -16,7 +16,6 @@ type Profile = {
   role: "escort" | "carrier" | "admin" | "fleet_manager";
   tier: "free" | "member" | "pro" | "carrier_member";
   email: string | null;
-
   phone: string | null;
   state: string | null;
   p_evo_verified: boolean;
@@ -1822,21 +1821,7 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
     await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('id', user.id)
     setAvatarUploading(false)
   }
-  const [avatarUploading, setAvatarUploading] = useState(false)
-  const avatarFileRef = useRef<HTMLInputElement>(null)
-  async function handleAvatarUpload() {
-    const file = avatarFileRef.current?.files?.[0]
-    if (!file) return
-    setAvatarUploading(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setAvatarUploading(false); return }
-    const ext = file.name.split('.').pop()
-    const path = `avatars/${user.id}.${ext}`
-    await supabase.storage.from('avatars').upload(path, file, { upsert: true })
-    const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
-    await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('id', user.id)
-    setAvatarUploading(false)
-  }
+  
   async function saveZones() {
     setZonesSaving(true)
     const { data: { user: u } } = await supabase.auth.getUser()
@@ -2910,6 +2895,11 @@ export default function OEHPlatform() {
   const [reviewRating, setReviewRating] = useState(5)
   const [reviewText, setReviewText] = useState('')
   const [reviewSubmitting, setReviewSubmitting] = useState(false)
+    const [reviewPrompt, setReviewPrompt] = useState<{loadId:string,targetName:string,targetId:string}|null>(null)
+  const [reviewRating, setReviewRating] = useState(5)
+  const [reviewText, setReviewText] = useState('')
+  const [reviewSubmitting, setReviewSubmitting] = useState(false)
+  
   function showToast(msg: string, type: "gr" | "rd" | "am") {
     setToast({ msg, type });
   }
