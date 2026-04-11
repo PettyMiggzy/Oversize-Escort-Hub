@@ -408,8 +408,8 @@ function Ticker() {
   );
 }
 
-function Nav({ page, setPage, user, profile, onSignOut }: {
-  page: Page; setPage: (p: Page) => void; user: User | null; profile: Profile | null; onSignOut: () => void
+function Nav({ page, setPage, user, profile, onSignOut, unreadCount = 0 }: {
+  page: Page; setPage: (p: Page) => void; user: User | null; profile: Profile | null; onSignOut: () => void; unreadCount?: number
 }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const navLinks: [Page, string][] = [
@@ -434,7 +434,7 @@ function Nav({ page, setPage, user, profile, onSignOut }: {
       {/* Desktop right */}
       <div className="nav-right" style={{ display: "flex", alignItems: "center", gap: 10, marginLeft: "auto" }}>
         {user && profile ? (
-          <span className="nav-user">
+          <button onClick={()=>setPage('dashboard')} style={{position:'relative',background:'none',border:'none',cursor:'pointer',padding:'4px',color:'var(--t1)',fontSize:20}} title="Notifications">🔔{unreadCount>0&&<span style={{position:'absolute',top:0,right:0,background:'#ff6600',color:'#fff',borderRadius:'50%',fontSize:9,width:16,height:16,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700}}>{unreadCount>9?'9+':unreadCount}</span>}</button><span className="nav-user">
             <span style={{ display:"inline-flex",alignItems:"center",justifyContent:"center",width:26,height:26,borderRadius:"50%",background:profile.avatar_url?"transparent":"#ff6600",color:"#fff",fontSize:10,fontWeight:700,marginRight:6,flexShrink:0,overflow:"hidden" }}>{profile.avatar_url ? <img src={profile.avatar_url} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}} /> : (profile.full_name||"?").split(" ").filter(Boolean).map(function(w){return w[0]}).join("").toUpperCase().slice(0,2)||"?"}</span>
             {profile.full_name || "there"}{" · "}
             <span style={{ color: "var(--or)", fontSize: 8 }}>{profile.tier?.toUpperCase()}</span>{" "}
@@ -2068,6 +2068,7 @@ function CarrierDashPage({ setPage, user, profile, showToast }: { setPage: (p: P
     // PUSH_ESCORT_ACCEPT
     try { fetch('/api/push/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: escortId, title: 'Match Confirmed!', body: 'A carrier has accepted your request. Login to view contact info.', url: '/' }) }) } catch {}
     showToast('Match confirmed! Both parties will receive contact info.', 'gr')
+    try{await fetch('/api/sms/match-confirm',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({matchId,escortId})})}catch(e){}
     loadData()
   }
 
@@ -2818,10 +2819,12 @@ function AdminPage({ setPage, user, profile }: any) {
   }
   async function approveBgc(id: string) {
     await supabase.from('profiles').update({ bgc_verified: true, bgc_pending: false }).eq('id', id)
+    try{await fetch('/api/sms/bgc-status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:id,status:'approved'})})}catch(e){}
     fetchBgcQueue()
   }
   async function denyBgc(id: string) {
     await supabase.from('profiles').update({ bgc_pending: false }).eq('id', id)
+    try{await fetch('/api/sms/bgc-status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:id,status:'denied'})})}catch(e){}
     fetchBgcQueue()
   }
   useEffect(() => { fetchBgcQueue() }, [])
@@ -2895,6 +2898,7 @@ export default function OEHPlatform() {
   const [reviewRating, setReviewRating] = useState(5)
   const [reviewText, setReviewText] = useState('')
   const [reviewSubmitting, setReviewSubmitting] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
     
   function showToast(msg: string, type: "gr" | "rd" | "am") {
     setToast({ msg, type });
@@ -2940,7 +2944,7 @@ export default function OEHPlatform() {
       <style>{CSS}</style>
       <Ticker />
       <PushInit userId={user?.id} />
-      <Nav page={page} setPage={setPage} user={user} profile={profile} onSignOut={handleSignOut} />
+      <Nav page={page} setPage={setPage} user={user} profile={profile} onSignOut={handleSignOut} unreadCount={unreadCount} />
       {page === "home" && <HomePage setPage={setPage} user={user} profile={profile} />}
       {page === "signin" && <SignInPage setPage={setPage} showToast={showToast} />}
       
