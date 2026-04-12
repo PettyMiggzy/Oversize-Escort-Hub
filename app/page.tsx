@@ -7,7 +7,7 @@ import type { User } from "@supabase/supabase-js";
 // ─── TYPES ───────────────────────────────────────────────────────────────────
 
 type Role = "carrier" | "escort" | "broker" | "admin" | "fleet_manager" | null;
-type Page = "home" | "flatboard" | "openboard" | "bidboard" | "escorts" | "escprofile" | "dashboard-e" | "dashboard-c" | "dashboard-b" | "postload" | "pricing" | "verification" | "signin" | "invoice" | "expenses" | "job-history" | "permits" | "deadhead" | "admin" | "dot-lookup" | "state-reqs" | "weather" | "cb-radio" | "fuel-calc" | "per-diem" | "cert-tracker" | "factoring" | "tools";
+type Page = "home" | "flatboard" | "openboard" | "bidboard" | "escorts" | "escprofile" | "dashboard-e" | "dashboard-c" | "dashboard-b" | "postload" | "pricing" | "verification" | "signin" | "invoice" | "expenses" | "job-history" | "permits" | "deadhead" | "admin" | "dot-lookup" | "state-reqs" | "weather" | "cb-radio" | "fuel-calc" | "per-diem" | "cert-tracker" | "factoring" | "tools" | "available";
 
 type Profile = {
   id: string;
@@ -944,6 +944,18 @@ function EscortCard({ e, setPage }: { e: typeof SEED_ESCORTS[0]; setPage: (p: Pa
   );
 }
 
+const CURFEW_STATES: Record<string, string> = {
+  NY: 'No oversize movement Fri 12pm-Mon 7am, holidays',
+  NJ: 'No oversize Fri 3pm-Mon 7am',
+  CT: 'No oversize Fri 12pm-Mon 7am',
+  MA: 'No oversize Fri noon-Mon 7am',
+  PA: 'No oversize Sunday, holidays',
+  CA: 'Various restrictions by route - verify with Caltrans',
+  IL: 'No oversize Sunday',
+  OH: 'No oversize Sunday',
+  IN: 'No oversize Sunday',
+  TX: 'No movement during peak hours on certain corridors',
+};
 // ─── FLAT BOARD PAGE ──────────────────────────────────────────────────────────
 
 // ——— FLAT RATE BOARD ————————————————————————————————————
@@ -1011,7 +1023,7 @@ function FlatBoardPage({ setPage, user, profile, showToast }: { setPage: (p: Pag
   }
 
   const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY']
-  const CERTS = ['Lead','Chase','High Pole','Lineman','Rear Steer','Survey','Flagger','NY Cert','CSE (Ontario MTO)','BC Pilot Car','WITPAC','TWIC','AZ Cert','CTTS BC/AB','OAPC Ontario','Saskatchewan']
+  const CERTS = ['Lead','Chase','High Pole','Bucket Truck','Rear Steer','Survey','Flagger','NY Cert','CSE (Ontario MTO)','BC Pilot Car','WITPAC','TWIC','AZ Cert','CTTS BC/AB','OAPC Ontario','Saskatchewan']
 
   function timeAgo(dt: string) {
     const diff = Date.now() - new Date(dt).getTime()
@@ -1071,7 +1083,14 @@ function FlatBoardPage({ setPage, user, profile, showToast }: { setPage: (p: Pag
                     ))}
                     {(l.certs_required || []).length > 4 && <span className="chip ch-dim" style={{ fontSize: 9 }}>+{(l.certs_required || []).length - 4}</span>}
                   </div>
-                {l.permit_miles_agreement && (
+                {(CURFEW_STATES[l.pu_state] || CURFEW_STATES[l.dl_state]) && (
+              <div style={{ fontSize: 10, color: '#f90', background: 'rgba(255,153,0,.1)', borderRadius: 4, padding: '3px 8px', marginBottom: 6 }}>
+                State restriction: {CURFEW_STATES[l.pu_state] || CURFEW_STATES[l.dl_state]}
+              </div>
+            )}
+                            {(l.escort_count > 1) && <span className="chip ch-dim" style={{ fontSize: 9 }}>{l.escort_count} Escorts</span>}
+                                            {l.police_escort_required && <span className="chip ch-dim" style={{ fontSize: 9, background: 'rgba(100,0,0,.15)', color: '#f44' }}>Police Escort</span>}
+            {l.permit_miles_agreement && (
                   <div style={{ display: 'inline-block', background: '#064e3b', color: '#6ee7b7', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4, marginBottom: 4 }} title="Carrier has agreed bid price applies to actual permitted miles">
                     ✓ Permit Miles Protected
                   </div>
@@ -1136,7 +1155,7 @@ function BidBoardPage({ setPage, user, profile, showToast }: { setPage: (p: Page
   const [filterDate, setFilterDate] = useState('')
   const [timers, setTimers] = useState<Record<string, number>>({})
   const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY']
-  const CERTS = ['Lead','Chase','3rd Car','4th Car','High Pole','Rear Steer','Lineman','Route Survey','Flagger','NY Cert','NITPAC','TWIC']
+  const CERTS = ['Lead','Chase','3rd Car','4th Car','High Pole','Rear Steer','Bucket Truck','Route Survey','Flagger','NY Cert','NITPAC','TWIC']
 
   useEffect(() => { fetchLoads() }, [filterState, filterCert, filterDate])
   useEffect(() => {
@@ -1267,7 +1286,7 @@ function OpenBidPage({ setPage, user, profile, showToast }: { setPage: (p: Page)
   const [externalLoads, setExternalLoads] = useState<any[]>([])
 
   const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY']
-  const CERTS = ['Lead','Chase','3rd Car','4th Car','High Pole','Rear Steer','Lineman','Route Survey','Flagger','NY Cert','NITPAC','TWIC']
+  const CERTS = ['Lead','Chase','3rd Car','4th Car','High Pole','Rear Steer','Bucket Truck','Route Survey','Flagger','NY Cert','NITPAC','TWIC']
 
   useEffect(() => { fetchLoads() }, [filterState, filterCert, filterDate])
 
@@ -1434,7 +1453,7 @@ function EscortsPage({ setPage }: { setPage: (p: Page) => void }) {
   const [filterAvailNow, setFilterAvailNow] = useState(false);
   const [filterBGC, setFilterBGC] = useState(false);
   const [sortBy, setSortBy] = useState('rating');
-  const CERT_TYPES = ['Lead','Chase','High Pole','Lineman','Rear Steer','Survey','Flagger','NY Cert','CSE (Ontario MTO)','BC Pilot Car','WITPAC','TWIC','AZ Cert','CTTS BC/AB','OAPC Ontario','Saskatchewan'];
+  const CERT_TYPES = ['Lead','Chase','High Pole','Bucket Truck','Rear Steer','Survey','Flagger','NY Cert','CSE (Ontario MTO)','BC Pilot Car','WITPAC','TWIC','AZ Cert','CTTS BC/AB','OAPC Ontario','Saskatchewan'];
   const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
   let escorts: any[] = [...SEED_ESCORTS];
   if (filterState) escorts = escorts.filter(e => e.states?.includes(filterState));
@@ -1571,6 +1590,9 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
 	const [permitUploading, setPermitUploading] = useState(false);
   const [noGoFee] = useState('250');
   const [overnightRate] = useState('100');
+    const [escortCount, setEscortCount] = useState(1);
+      const [policeEscort, setPoliceEscort] = useState(false);
+        const [showPreTrip, setShowPreTrip] = useState(false);
   // Auto-rate: >250mi = $2/mi, <=250mi = $500/day
   useEffect(() => {
     const m = parseFloat(form.miles);
@@ -1633,6 +1655,8 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
         poster_company: profile.company_name,
         poster_rating: profile.rating || null,
         poster_jobs: profile.total_jobs || null,
+                  escort_count: escortCount,
+                            police_escort_required: policeEscort,
           });
           if (posErr && !firstError) firstError = posErr;
         }
@@ -1651,7 +1675,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
             const broadcastPayload = { pickupState: form.puState, pickup: form.puCity + ', ' + form.puState, destination: form.dlCity + ', ' + form.dlState, date: form.startDate, certs: form.certTypes, rate: form.rate || '' }
             setTimeout(() => { fetch('/api/push/broadcast', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(broadcastPayload) }).catch(() => {}) }, 5 * 60 * 1000)
           } catch {}
-          showToast("Load posted successfully!", "gr");
+          showToast("Load posted successfully!", "gr"); setShowPreTrip(true); return;
       setPage("flatboard");
     }
   }
@@ -1667,7 +1691,9 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
   }
 
   return (
+      
     <div className="postload-wrap">
+          {showPreTrip && (<div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.75)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}><div className="card" style={{ maxWidth: 460, width: '100%', maxHeight: '80vh', overflowY: 'auto' }}><div className="bb" style={{ fontSize: 20, marginBottom: 12 }}>Pre-Trip Checklist</div><p className="mo" style={{ fontSize: 11, color: 'var(--t2)', marginBottom: 16 }}>Your load has been posted! Review these steps before your escort arrives.</p><ol style={{ paddingLeft: 20, fontSize: 12, lineHeight: '2', color: 'var(--t2)' }}><li>Confirm all permits are valid and on board</li><li>Verify load dimensions match your permit</li><li>Check route for closures or restrictions</li><li>Confirm your escort contact info is correct</li><li>Ensure vehicle lights and flags are ready</li><li>Review curfew windows for each state on route</li><li>Have emergency contact numbers available</li></ol><button className="btn btn-prime" style={{ width: '100%', marginTop: 16 }} onClick={() => { setShowPreTrip(false); setPage('flatboard'); }}>Got it - View My Loads</button></div></div>)}
       <div className="bb" style={{ fontSize: 28, marginBottom: 4 }}>POST A LOAD</div>
       <p className="mo" style={{ fontSize: 10, color: "var(--t2)", marginBottom: 16 }}>Free for all carriers. Choose your board type.</p>
       <div style={{ background: "rgba(0,204,122,.07)", border: "1px solid rgba(0,204,122,.2)", borderRadius: 3, padding: "10px 16px", marginBottom: 24 }} className="mo">
@@ -1730,7 +1756,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
         <div className="form-field" style={{ marginTop: 4 }}>
           <label className="form-label">Certifications / Escort Types Required</label>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 16px", marginTop: 8 }}>
-            {(["Lead","Chase","3rd Car","4th Car","High Pole","Rear Steer","Lineman","Route Survey","Flagger","NY Cert","CSE (Ontario MTO)","WITPAC","TWIC","Other"] as string[]).map((opt) => (
+            {(["Lead","Chase","3rd Car","4th Car","High Pole","Rear Steer","Bucket Truck","Route Survey","Flagger","NY Cert","CSE (Ontario MTO)","WITPAC","TWIC","Other"] as string[]).map((opt) => (
               <label key={opt} style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", padding: "4px 6px", borderRadius: 4, background: form.certTypes.includes(opt) ? "rgba(249,115,22,0.10)" : "rgba(255,255,255,0.03)", border: "1px solid " + (form.certTypes.includes(opt) ? "rgba(249,115,22,0.45)" : "rgba(255,255,255,0.07)"), transition: "all 0.15s" }}>
                 <input type="checkbox" checked={form.certTypes.includes(opt)} onChange={(e) => { const next = e.target.checked ? [...form.certTypes, opt] : form.certTypes.filter((x: string) => x !== opt); setForm(f => ({ ...f, certTypes: next, certOther: e.target.checked ? f.certOther : "" })); }} style={{ accentColor: "var(--or)" }} />
                 <span className="mo" style={{ fontSize: 10, color: form.certTypes.includes(opt) ? "var(--or)" : "var(--t2)", letterSpacing: ".02em" }}>{opt}</span>
@@ -1741,6 +1767,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
             <input type="text" placeholder="Describe other cert/escort type..." value={form.certOther} onChange={(e) => setForm(f => ({ ...f, certOther: e.target.value }))} style={{ marginTop: 8, width: "100%" }} />
           )}
         </div>
+        <div className="form-field"><label className="form-label">Number of Escorts Required</label><input type="number" min={1} max={10} value={escortCount} onChange={(e) => setEscortCount(Number(e.target.value))} style={{ width: '100px' }} /></div><div className="form-field" style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4 }}><input type="checkbox" id="policeEscort" checked={policeEscort} onChange={(e) => setPoliceEscort(e.target.checked)} /><label htmlFor="policeEscort" className="form-label" style={{ marginBottom: 0, cursor: 'pointer' }}>Police Escort Required</label></div>
         <div className="form-field">
           <label className="form-label">Pay Terms</label>
           <select value={form.payTerm} onChange={(e) => setForm(f => ({ ...f, payTerm: e.target.value }))} style={{ width: "100%" }}>
@@ -1793,6 +1820,12 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
   const [tab, setTab] = useState("overview");
   const [myLoads, setMyLoads] = useState<Load[]>([]);
   const [myJobs, setMyJobs] = useState<any[]>([]);
+  const [dhLoads, setDhLoads] = useState<any[]>([]);
+  const [disputes, setDisputes] = useState<any[]>([]);
+  const [disputeMsg, setDisputeMsg] = useState('');
+  const [disputeJobId, setDisputeJobId] = useState('');
+  const [disputeLoading, setDisputeLoading] = useState(false);
+    const [referralData, setReferralData] = useState<any[]>([]);
 
   useEffect(() => {
     async function fetchLoads() {
@@ -1808,7 +1841,43 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
     }
     fetchLoads();
     fetchJobs();
+    fetchDhLoads();
+    fetchDisputes();
+        fetchReferrals();
   }, []);
+
+  async function fetchDhLoads() {
+    const states = profile?.states_licensed || [];
+    if (states.length === 0) return;
+    const { data } = await supabase.from('loads').select('*').eq('board_type', 'flat').eq('status', 'active').in('pu_state', states).limit(20);
+    setDhLoads(data || []);
+  }
+
+  async function fetchDisputes() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase.from('disputes').select('*').eq('escort_id', user.id).order('created_at', { ascending: false });
+    setDisputes(data || []);
+  }
+
+  async function submitDispute() {
+    if (!disputeMsg.trim()) return;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    setDisputeLoading(true);
+    await supabase.from('disputes').insert({ escort_id: user.id, job_id: disputeJobId || null, message: disputeMsg, status: 'open' });
+    setDisputeMsg('');
+    setDisputeJobId('');
+    setDisputeLoading(false);
+    fetchDisputes();
+  }
+
+    async function fetchReferrals() {
+        const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+                const { data } = await supabase.from('referrals').select('*').eq('referred_by', user.id).order('created_at', { ascending: false });
+                    setReferralData(data || []);
+                      }
 
   // ZONES_HOOK
   const [availStates, setAvailStates] = useState<string[]>(profile?.availability_states || [])
@@ -1894,6 +1963,7 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
                 <button className="btn btn-sm" style={{ width: "100%", background: "rgba(255,53,53,.1)", color: "var(--rd)", border: "1px solid rgba(255,53,53,.2)" }}>🚨 ACTIVATE BREAKDOWN PROTOCOL</button>
               </div>
             </div>
+                        <div className="card" style={{ marginTop: 16 }}><div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Referral Rewards</div><p className="mo" style={{ fontSize: 11, color: 'var(--t2)', marginBottom: 10 }}>Earn 1 free month of Pro for every escort you refer who signs up and joins.</p>{referralData.length === 0 ? (<div style={{ fontSize: 11, color: 'var(--t2)' }}>No referrals yet. Share your link to start earning!</div>) : (<div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>{referralData.map((r: any) => (<div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, padding: '4px 0', borderBottom: '1px solid var(--t4)' }}><span>{r.referred_email || r.referred_id}</span><span className="chip ch-gr" style={{ fontSize: 9 }}>{r.referral_credit_months || 1} mo credit</span></div>))}</div>)}</div>
           </>
         )}
         {tab === "loads" && (
@@ -1931,10 +2001,23 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
                 <p className="mo" style={{ fontSize: 11, color: "var(--t2)", marginBottom: 16 }}>Return load feed, pre-arrival SMS alerts, deadhead savings dashboard</p>
                 <button className="btn btn-am" onClick={() => setPage("pricing")}>Upgrade to Pro — $29.99/mo →</button>
               </div>
+) : (
+          <div>
+            {dhLoads.length === 0 ? (
+              <div style={{ color: 'var(--t2)', fontSize: 12, padding: '20px 0' }}>No flat-rate loads found in your licensed states right now. Check back soon.</div>
             ) : (
-              <div className="mo" style={{ fontSize: 10, color: "var(--t2)" }}>Return load feed coming in Phase 2 — you&apos;re on the early access list.</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {dhLoads.map((l: any) => (
+                  <div key={l.id} className="load-card">
+                    <div style={{ fontWeight: 700, fontSize: 14 }}>{l.pu_city}, {l.pu_state} to {l.dl_city}, {l.dl_state}</div>
+                    <div style={{ fontSize: 11, color: 'var(--t2)', marginTop: 4 }}>{l.position} &middot; ${l.per_mile_rate?.toFixed(2)}/mi &middot; {l.miles} mi</div>
+                    {l.start_date && <div style={{ fontSize: 10, color: 'var(--t2)' }}>{new Date(l.start_date).toLocaleDateString()}</div>}
+                  </div>
+                ))}
+              </div>
             )}
-          </>
+          </div>
+        )}          </>
         )}
         {tab === "certs" && (
           <>
@@ -1959,16 +2042,38 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
                 </div>
               ))}
             </div>
+                    <div className="card" style={{ marginTop: 20 }}><div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Upload Certification Document</div><p className="mo" style={{ fontSize: 11, color: 'var(--t2)', marginBottom: 12 }}>Accepted: PDF, JPG, PNG. Max 10MB. Stored securely.</p><input type="file" accept=".pdf,.jpg,.jpeg,.png" style={{ marginBottom: 10 }} onChange={async (e) => { const file = e.target.files?.[0]; if (!file || !profile?.id) return; const ext = file.name.split('.').pop(); const path = `certs/${profile.id}/${Date.now()}.${ext}`; const { error: upErr } = await supabase.storage.from('pevo-certs').upload(path, file, { upsert: true }); if (upErr) { showToast('Upload failed: ' + upErr.message, 'rd'); return; } const { data: urlData } = supabase.storage.from('pevo-certs').getPublicUrl(path); await supabase.from('profiles').update({ bgc_document_url: urlData.publicUrl }).eq('id', profile.id); showToast('Certificate uploaded!', 'gr'); }} /></div>
           </>
         )}
-        {tab === "dispute" && (
-          <>
-            <div className="bb" style={{ fontSize: 24, marginBottom: 20 }}>DISPUTE CENTER</div>
-            <div className="mo" style={{ fontSize: 10, color: "var(--t2)", marginBottom: 16 }}>No open disputes.</div>
-            <button className="btn btn-or btn-sm">+ File New Dispute</button>
-          </>
-        )}
-        {tab === "jobs" && (
+{tab === "dispute" && (
+        <>
+          <div className="bb" style={{ fontSize: 24, marginBottom: 20 }}>DISPUTE CENTER</div>
+          <div className="card" style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>File a New Dispute</div>
+            <select className="input-field" style={{ width: '100%', marginBottom: 10 }} value={disputeJobId} onChange={e => setDisputeJobId(e.target.value)}>
+              <option value="">Select a job (optional)</option>
+              {myJobs.map((j: any) => <option key={j.id} value={j.id}>{j.loads?.pu_city} to {j.loads?.dl_city}</option>)}
+            </select>
+            <textarea className="input-field" style={{ width: '100%', minHeight: 80, marginBottom: 10 }} placeholder="Describe the issue..." value={disputeMsg} onChange={e => setDisputeMsg(e.target.value)} />
+            <button className="btn btn-or btn-sm" onClick={submitDispute} disabled={disputeLoading}>{disputeLoading ? 'Submitting...' : 'Submit Dispute'}</button>
+          </div>
+          {disputes.length === 0 ? (
+            <div style={{ color: 'var(--t2)', fontSize: 12 }}>No disputes filed yet.</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {disputes.map((d: any) => (
+                <div key={d.id} className="card">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                    <span className={`chip ${d.status === 'resolved' ? 'ch-gr' : d.status === 'open' ? 'ch-am' : 'ch-dim'}`}>{d.status}</span>
+                    <span style={{ fontSize: 10, color: 'var(--t2)' }}>{new Date(d.created_at).toLocaleDateString()}</span>
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--t2)' }}>{d.message}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}        {tab === "jobs" && (
         <div style={{ padding: "0 0 16px 0" }}>
           <div className="bb" style={{ fontSize: 18, marginBottom: 12 }}>My Jobs</div>
           {myJobs.length === 0 ? (
@@ -2249,6 +2354,7 @@ function CarrierDashPage({ setPage, user, profile, showToast }: { setPage: (p: P
               { icon: "📋", label: "Permit Directory", href: "/tools/permits" },
               { icon: "📤", label: "Post a Load", href: "#", action: () => setPage("postload") },
               { icon: "💰", label: "Upside Fuel Savings", href: "https://upside.app.link/OEH", ext: true },
+                            { icon: "🚛", label: "Available Escorts", href: "#", action: () => setPage("available") },
             ].map(tool => (
               <a key={tool.label} href={tool.href} target={tool.ext ? "_blank" : "_self"} rel="noopener noreferrer"
                 style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 4, background: "var(--p2,#1a1a1a)", border: "1px solid var(--l1,#222)", borderRadius: 8, padding: "12px 14px", textDecoration: "none", color: "var(--t1,#fff)" }}
@@ -2843,10 +2949,21 @@ function AdminPage({ setPage, user, profile }: any) {
   // BGC_ADMIN_HOOK
   const [bgcQueue, setBgcQueue] = useState<any[]>([])
   const [bgcTab, setBgcTab] = useState(false)
+    const [adminStats, setAdminStats] = useState<Record<string,number>>({});
   async function fetchBgcQueue() {
     const { data } = await supabase.from('profiles').select('*').eq('bgc_pending', true)
     setBgcQueue(data || [])
   }
+
+    async function fetchAdminStats() {
+        const [u, m, p, l] = await Promise.all([
+              supabase.from('profiles').select('id', { count: 'exact', head: true }),
+                    supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('tier', 'member'),
+                          supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('tier', 'pro'),
+                                supabase.from('loads').select('id', { count: 'exact', head: true }),
+                                    ]);
+                                        setAdminStats({ users: u.count || 0, members: m.count || 0, pro: p.count || 0, loads: l.count || 0 });
+                                          }
   async function approveBgc(id: string) {
     await supabase.from('profiles').update({ bgc_verified: true, bgc_pending: false }).eq('id', id)
     try{await fetch('/api/sms/bgc-status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:id,status:'approved'})})}catch(e){}
@@ -2857,7 +2974,7 @@ function AdminPage({ setPage, user, profile }: any) {
     try{await fetch('/api/sms/bgc-status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:id,status:'denied'})})}catch(e){}
     fetchBgcQueue()
   }
-  useEffect(() => { fetchBgcQueue() }, [])
+  useEffect(() => { fetchBgcQueue(); fetchAdminStats(); }, [])
 
   if (!user || profile?.role !== "admin") {
     return (
@@ -2876,7 +2993,7 @@ function AdminPage({ setPage, user, profile }: any) {
         <div><h1 className="bb" style={{ fontSize: 22 }}>Admin Panel</h1><p className="mo" style={{ fontSize: 10, color: "var(--or)" }}>BRIAN AHMED · PLATFORM ADMINISTRATOR</p></div>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14, marginBottom: 24 }}>
-        {[["👥","Total Users","0","var(--am)"],["✅","Members","0","var(--gr)"],["⭐","Pro Members","0","var(--or)"],["💰","MRR","$0","var(--am)"],["🔍","BGC Pending","0","var(--or)"],["📋","Certs Pending","0","var(--or)"]].map(([icon,label,val,color]) => (
+        {[["👥","Total Users",String(adminStats.users||0),"var(--am)"],["✅","Members",String(adminStats.members||0),"var(--gr)"],["⭐","Pro Members",String(adminStats.pro||0),"var(--or)"],["💰","MRR","$0","var(--am)"],["🔍","BGC Pending","0","var(--or)"],["📋","Certs Pending","0","var(--or)"]].map(([icon,label,val,color]) => (
           <div key={label as string} className="card" style={{ padding: 18, textAlign: "center" }}>
             <div style={{ fontSize: 22 }}>{icon}</div>
             <div className="bb" style={{ fontSize: 22, color: color as string, marginTop: 6 }}>{val}</div>
@@ -2918,6 +3035,53 @@ function AdminPage({ setPage, user, profile }: any) {
 
 // ─── COMING SOON STUB ─────────────────────────────────────────────────────────
 
+function AvailabilityBoard({ setPage, profile }: { setPage: (p: Page) => void; profile: Profile | null }) {
+  const [avails, setAvails] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    async function load() {
+      const { data } = await supabase.from('escort_availability').select('*, profiles(full_name, company_name, states_licensed, vehicle, rating, total_jobs, cert_types)').eq('is_available', true).order('updated_at', { ascending: false });
+      setAvails(data || []);
+      setLoading(false);
+    }
+    load();
+  }, []);
+  if (profile?.role !== 'carrier' && profile?.role !== 'fleet_manager' && profile?.role !== 'admin') {
+    return (<div style={{ padding: '40px 24px', textAlign: 'center' }}><div className="bb" style={{ fontSize: 20, marginBottom: 12 }}>Available Escorts</div><p className="mo" style={{ fontSize: 12, color: 'var(--t2)' }}>This board is for carriers and fleet managers.</p><button className="btn btn-am btn-sm" style={{ marginTop: 16 }} onClick={() => setPage('home')}>Go Home</button></div>);
+  }
+  return (
+    <div style={{ padding: '20px 16px', maxWidth: 700, margin: '0 auto' }}>
+      <div className="bb" style={{ fontSize: 24, marginBottom: 8 }}>Availability Board</div>
+      <p className="mo" style={{ fontSize: 11, color: 'var(--t2)', marginBottom: 20 }}>Escorts currently marked available in your area.</p>
+      {loading ? (<div style={{ textAlign: 'center', padding: 40, color: 'var(--t2)' }}>Loading...</div>) : avails.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: 40, color: 'var(--t2)' }}>No escorts currently available.</div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {avails.map((a: any) => (
+            <div key={a.id} className="card">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 14 }}>{a.profiles?.full_name || 'Escort'}</div>
+                  <div className="mo" style={{ fontSize: 10, color: 'var(--t2)' }}>{a.profiles?.company_name || ''}</div>
+                </div>
+                <span className="chip ch-gr" style={{ fontSize: 9 }}>Available</span>
+              </div>
+              <div style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {(a.profiles?.states_licensed || []).slice(0, 5).map((s: string) => (<span key={s} className="chip ch-dim" style={{ fontSize: 9 }}>{s}</span>))}
+                {(a.profiles?.cert_types || []).slice(0, 3).map((c: string) => (<span key={c} className="chip ch-dim" style={{ fontSize: 9 }}>{c}</span>))}
+              </div>
+              <div className="mo" style={{ fontSize: 10, color: 'var(--t2)', marginTop: 6 }}>
+                {a.profiles?.vehicle || 'Vehicle not specified'} - Rating: {(a.profiles?.rating || 0).toFixed(1)} - {a.profiles?.total_jobs || 0} jobs
+              </div>
+              {a.notes && <div className="mo" style={{ fontSize: 10, color: 'var(--t2)', marginTop: 4, fontStyle: 'italic' }}>{a.notes}</div>}
+            </div>
+          ))}
+        </div>
+      )}
+      <button className="btn btn-ghost btn-sm" style={{ marginTop: 20 }} onClick={() => setPage('home')}>Back</button>
+    </div>
+  );
+}
 export default function OEHPlatform() {
   const [page, setPage] = useState<Page>("home");
   const [user, setUser] = useState<User | null>(null);
@@ -3039,6 +3203,7 @@ export default function OEHPlatform() {
         {page === "dashboard-c" && <CarrierDashPage setPage={setPage} user={user} profile={profile} showToast={showToast} />}
         {page === "dashboard-e" && <EscortDashPage setPage={setPage} profile={profile} />}
         {page === "admin" && <AdminPage setPage={setPage} user={user} profile={profile} />}
+              {page === "available" && <AvailabilityBoard setPage={setPage} profile={profile} />}
       <Footer setPage={setPage} />
       {reviewPrompt && (<div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}><div className="card" style={{ maxWidth:440, width:'100%', padding:28 }}><div style={{ fontSize:18, fontWeight:700, marginBottom:8 }}>⭐ How was your experience?</div><div style={{ fontSize:13, color:'var(--t2)', marginBottom:16 }}>Leave a review for {reviewPrompt.targetName}</div><div style={{ display:'flex', gap:8, marginBottom:16 }}>{[1,2,3,4,5].map(n => (<button key={n} onClick={() => setReviewRating(n)} style={{ fontSize:24, background:'none', border:'none', cursor:'pointer', opacity: n <= reviewRating ? 1 : 0.3 }}>⭐</button>))}</div><textarea value={reviewText} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setReviewText(e.target.value)} placeholder="Optional written review (500 chars max)" maxLength={500} style={{ width:'100%', minHeight:80, padding:10, borderRadius:6, border:'1px solid var(--l2)', background:'var(--bg)', color:'var(--t1)', fontSize:13, resize:'vertical', marginBottom:16 }} /><div style={{ display:'flex', gap:10 }}><button className="btn btn-or" disabled={reviewSubmitting} onClick={async () => { setReviewSubmitting(true); await fetch('/api/reviews', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ load_id: reviewPrompt.loadId, target_id: reviewPrompt.targetId, rating: reviewRating, text: reviewText }) }); setReviewSubmitting(false); setReviewPrompt(null); setReviewRating(5); setReviewText(''); showToast('Thanks for your review!', 'gr') }}>{reviewSubmitting ? 'Submitting…' : 'Submit Review'}</button><button className="btn" onClick={() => setReviewPrompt(null)}>Skip</button></div></div></div>)}
       {reviewPrompt && (<div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}><div className="card" style={{ maxWidth:440, width:'100%', padding:28 }}><div style={{ fontSize:18, fontWeight:700, marginBottom:8 }}>How was your experience?</div><div style={{ fontSize:13, color:'var(--t2)', marginBottom:16 }}>Leave a review for {reviewPrompt.targetName}</div><div style={{ display:'flex', gap:8, marginBottom:16 }}>{[1,2,3,4,5].map(n => (<button key={n} onClick={() => setReviewRating(n)} style={{ fontSize:24, background:'none', border:'none', cursor:'pointer', opacity: n <= reviewRating ? 1 : 0.3 }}>*</button>))}</div><textarea value={reviewText} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setReviewText(e.target.value)} placeholder="Optional written review (500 chars max)" maxLength={500} style={{ width:'100%', minHeight:80, padding:10, borderRadius:6, border:'1px solid var(--l2)', background:'var(--bg)', color:'var(--t1)', fontSize:13, resize:'vertical', marginBottom:16 }} /><div style={{ display:'flex', gap:10 }}><button className="btn btn-or" disabled={reviewSubmitting} onClick={async () => { setReviewSubmitting(true); await fetch('/api/reviews', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ load_id: reviewPrompt.loadId, target_id: reviewPrompt.targetId, rating: reviewRating, text: reviewText }) }); setReviewSubmitting(false); setReviewPrompt(null); setReviewRating(5); setReviewText(''); showToast('Thanks for your review!', 'gr') }}>{reviewSubmitting ? 'Submitting...' : 'Submit Review'}</button><button className="btn" onClick={() => setReviewPrompt(null)}>Skip</button></div></div></div>)} {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
