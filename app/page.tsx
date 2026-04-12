@@ -948,29 +948,34 @@ function EscortCard({ e, setPage }: { e: typeof SEED_ESCORTS[0]; setPage: (p: Pa
 
 // ——— FLAT RATE BOARD ————————————————————————————————————
 function ExternalLoadCard({ el }: { el: any }) {
-  const [expanded, setExpanded] = useState(false);
   const isRaw = el.pickup_city === 'See details' || el.pickup_state === 'N/A';
+  const rawText = el.raw_text || '';
+  const companyMatch = rawText.match(/Load alert from ([^\n]+)/i);
+  const companyName = companyMatch ? companyMatch[1].trim() : (el.raw_title || 'External Load');
+  const description = isRaw ? rawText : `${el.pickup_city}, ${el.pickup_state} \u2192 ${el.destination_city}, ${el.destination_state}`;
   return (
     <div className="load-card" style={{ borderLeft: '3px solid #555' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
-          <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>{isRaw ? (el.raw_title || 'External Load') : `${el.pickup_city}, ${el.pickup_state} → ${el.destination_city}, ${el.destination_state}`}</div>
-          <span style={{ fontSize: 9, background: '#333', color: '#aaa', borderRadius: 3, padding: '2px 6px', fontWeight: 600 }}>EXTERNAL LOAD</span>
+          <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>{companyName}</div>
+          <span style={{ fontSize: 9, background: '#333', color: '#aaa', borderRadius: 3, padding: '2px 6px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.08em' }}>External Load</span>
         </div>
-        <button className="btn btn-ghost btn-sm" style={{ fontSize: 11 }} onClick={() => setExpanded(x => !x)}>{expanded ? 'Hide ▲' : 'View Details ▼'}</button>
+        <div style={{ fontSize: 11, color: 'var(--t2)', textAlign: 'right' }}>
+          <div className="mo" style={{ fontSize: 9 }}>via Loads Covered</div>
+        </div>
       </div>
-      {expanded && (
-        <div style={{ marginTop: 10, fontSize: 12, color: 'var(--t2)', lineHeight: 1.7, borderTop: '1px solid var(--l1)', paddingTop: 10 }}>
-          {isRaw && el.raw_text ? el.raw_text : `${el.pickup_city}, ${el.pickup_state} → ${el.destination_city}, ${el.destination_state}${el.rate ? ' · Rate: ' + el.rate : ''}${el.raw_text ? '\n' + el.raw_text : ''}`}
-        </div>
-      )}
+      <div style={{ marginTop: 10, fontSize: 12, color: 'var(--t2)', lineHeight: 1.7 }}>
+        {description}
+      </div>
+      <div style={{ marginTop: 8 }}>
+        <a href="https://www.loadscovered.com" target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: '#aaa', textDecoration: 'underline' }}>View on Loads Covered \u2192</a>
+      </div>
     </div>
   );
 }
 
 function FlatBoardPage({ setPage, user, profile, showToast }: { setPage: (p: Page) => void; user: User | null; profile: Profile | null; showToast: (msg: string, type: 'gr' | 'rd' | 'am') => void }) {
   const [loads, setLoads] = useState<any[]>([])
-  const [externalLoads, setExternalLoads] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [filterState, setFilterState] = useState('')
   const [filterCert, setFilterCert] = useState('')
@@ -994,9 +999,6 @@ function FlatBoardPage({ setPage, user, profile, showToast }: { setPage: (p: Pag
     const { data } = await q.limit(50)
     setLoads(data || [])
     setLoading(false)
-    // Fetch external loads
-    const { data: extData } = await supabase.from('external_loads').select('*').eq('status','open').order('created_at',{ascending:false}).limit(20)
-    setExternalLoads(extData || [])
   }
 
   async function handleRequestLoad(load: any) {
@@ -1098,12 +1100,7 @@ function FlatBoardPage({ setPage, user, profile, showToast }: { setPage: (p: Pag
           ))}
         </div>
       )}
-      {externalLoads.length > 0 && (
-        <div style={{ marginTop: 24 }}>
-          <div style={{ fontSize: 11, color: 'var(--t2)', letterSpacing: '.1em', marginBottom: 12 }}>EXTERNAL LOADS</div>
-          {externalLoads.map(el => <ExternalLoadCard key={el.id} el={el} />)}
-        </div>
-      )}
+      
 
 
       {/* MATCH MODAL */}
@@ -1274,6 +1271,7 @@ function OpenBidPage({ setPage, user, profile, showToast }: { setPage: (p: Page)
   const [bidAmount, setBidAmount] = useState('')
   const [bidLoading, setBidLoading] = useState(false)
   const [bidCounts, setBidCounts] = useState<Record<string, number>>({})
+  const [externalLoads, setExternalLoads] = useState<any[]>([])
 
   const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY']
   const CERTS = ['Lead','Chase','3rd Car','4th Car','High Pole','Rear Steer','Lineman','Route Survey','Flagger','NY Cert','NITPAC','TWIC']
@@ -1290,6 +1288,10 @@ function OpenBidPage({ setPage, user, profile, showToast }: { setPage: (p: Page)
     const { data } = await q.limit(50)
     const d = data || []
     setLoads(d)
+    // Fetch external loads for open board
+    const extNow = new Date().toISOString()
+    const { data: extData } = await supabase.from('external_loads').select('*').eq('status','open').gt('expires_at', extNow).order('posted_at', { ascending: false })
+    setExternalLoads(extData || [])
     // Fetch bid counts
     if (d.length > 0) {
       const ids = d.map((l: any) => l.id)
@@ -1392,7 +1394,13 @@ function OpenBidPage({ setPage, user, profile, showToast }: { setPage: (p: Page)
         </div>
       )}
 
-      {/* BID MODAL */}
+      {externalLoads.length > 0 && (
+          <div style={{ marginTop: 24 }}>
+            <div style={{ fontSize: 11, color: 'var(--t2)', letterSpacing: '.1em', marginBottom: 12 }}>EXTERNAL LOADS (via Loads Covered)</div>
+            {externalLoads.map(el => <ExternalLoadCard key={el.id} el={el} />)}
+          </div>
+        )}
+        {/* BID MODAL */}
       {bidModal && (
         <div className="modal-overlay" onClick={() => setBidModal(null)}>
           <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 420 }}>

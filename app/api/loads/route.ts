@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
 
     // Query external loads (scraped from Loads Covered) — only for open_loads board
     let externalLoads: any[] = []
-    if (!board || board === 'open_loads') {
+    if (board === 'open_loads') {
       const now = new Date().toISOString()
       const { data: extData } = await supabase
         .from('external_loads')
