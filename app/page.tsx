@@ -2911,8 +2911,11 @@ export default function OEHPlatform() {
   }
   async function loadUnreadCount(userId: string, role: string) {
     if (role === 'escort') {
-      const { count } = await supabase.from('load_matches').select('id', { count: 'exact', head: true }).eq('escort_id', userId).eq('status', 'pending');
+      const { count } = await supabase.from('load_matches').select('id', { count: 'exact', head: true }).eq('escort_id', userId).eq('status', 'confirmed');
       setUnreadCount(count || 0);
+    } else if (role === 'carrier') {
+      const { data } = await supabase.from('load_matches').select('id, loads!inner(posted_by)').eq('status', 'pending').eq('loads.posted_by', userId);
+      setUnreadCount(data?.length || 0);
     }
   }
 
