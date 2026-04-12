@@ -1089,7 +1089,6 @@ function FlatBoardPage({ setPage, user, profile, showToast }: { setPage: (p: Pag
               </div>
             )}
                             {(l.escort_count > 1) && <span className="chip ch-dim" style={{ fontSize: 9 }}>{l.escort_count} Escorts</span>}
-                                            {l.police_escort_required && <span className="chip ch-dim" style={{ fontSize: 9, background: 'rgba(100,0,0,.15)', color: '#f44' }}>Police Escort</span>}
             {l.permit_miles_agreement && (
                   <div style={{ display: 'inline-block', background: '#064e3b', color: '#6ee7b7', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4, marginBottom: 4 }} title="Carrier has agreed bid price applies to actual permitted miles">
                     ✓ Permit Miles Protected
@@ -1591,7 +1590,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
   const [noGoFee] = useState('250');
   const [overnightRate] = useState('100');
     const [escortCount, setEscortCount] = useState(1);
-      const [policeEscort, setPoliceEscort] = useState(false);
+      
         const [showPreTrip, setShowPreTrip] = useState(false);
   // Auto-rate: >250mi = $2/mi, <=250mi = $500/day
   useEffect(() => {
@@ -1656,7 +1655,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
         poster_rating: profile.rating || null,
         poster_jobs: profile.total_jobs || null,
                   escort_count: escortCount,
-                            police_escort_required: policeEscort,
+                            
           });
           if (posErr && !firstError) firstError = posErr;
         }
@@ -1767,7 +1766,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
             <input type="text" placeholder="Describe other cert/escort type..." value={form.certOther} onChange={(e) => setForm(f => ({ ...f, certOther: e.target.value }))} style={{ marginTop: 8, width: "100%" }} />
           )}
         </div>
-        <div className="form-field"><label className="form-label">Number of Escorts Required</label><input type="number" min={1} max={10} value={escortCount} onChange={(e) => setEscortCount(Number(e.target.value))} style={{ width: '100px' }} /></div><div className="form-field" style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4 }}><input type="checkbox" id="policeEscort" checked={policeEscort} onChange={(e) => setPoliceEscort(e.target.checked)} /><label htmlFor="policeEscort" className="form-label" style={{ marginBottom: 0, cursor: 'pointer' }}>Police Escort Required</label></div>
+        <div className="form-field"><label className="form-label">Number of Escorts Required</label><input type="number" min={1} max={10} value={escortCount} onChange={(e) => setEscortCount(Number(e.target.value))} style={{ width: '100px' }} /></div>
         <div className="form-field">
           <label className="form-label">Pay Terms</label>
           <select value={form.payTerm} onChange={(e) => setForm(f => ({ ...f, payTerm: e.target.value }))} style={{ width: "100%" }}>
