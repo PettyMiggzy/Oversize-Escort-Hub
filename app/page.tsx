@@ -434,7 +434,7 @@ function Nav({ page, setPage, user, profile, onSignOut, unreadCount = 0 }: {
       {/* Desktop right */}
       <div className="nav-right" style={{ display: "flex", alignItems: "center", gap: 10, marginLeft: "auto" }}>
         {user && profile ? (
-          <button onClick={()=>setPage('dashboard')} style={{position:'relative',background:'none',border:'none',cursor:'pointer',padding:'4px',color:'var(--t1)',fontSize:20}} title="Notifications">🔔{unreadCount>0&&<span style={{position:'absolute',top:0,right:0,background:'#ff6600',color:'#fff',borderRadius:'50%',fontSize:9,width:16,height:16,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700}}>{unreadCount>9?'9+':unreadCount}</span>}</button><span className="nav-user">
+          <span className="nav-user">
             <span style={{ display:"inline-flex",alignItems:"center",justifyContent:"center",width:26,height:26,borderRadius:"50%",background:profile.avatar_url?"transparent":"#ff6600",color:"#fff",fontSize:10,fontWeight:700,marginRight:6,flexShrink:0,overflow:"hidden" }}>{profile.avatar_url ? <img src={profile.avatar_url} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}} /> : (profile.full_name||"?").split(" ").filter(Boolean).map(function(w){return w[0]}).join("").toUpperCase().slice(0,2)||"?"}</span>
             {profile.full_name || "there"}{" · "}
             <span style={{ color: "var(--or)", fontSize: 8 }}>{profile.tier?.toUpperCase()}</span>{" "}
