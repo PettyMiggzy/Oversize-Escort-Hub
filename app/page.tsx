@@ -1805,6 +1805,7 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
   const [availStates, setAvailStates] = useState<string[]>(profile?.availability_states || [])
   const [zonesSaving, setZonesSaving] = useState(false)
   const [zonesMsg, setZonesMsg] = useState('')
+  const [notifStates, setNotifStates] = useState<string[]>((profile?.notification_states as string[]) || [])
   const US_STATES_ALL = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY']
   const [avatarUploading, setAvatarUploading] = useState(false)
   const avatarFileRef = useRef<HTMLInputElement>(null)
@@ -2014,8 +2015,8 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
               <div className="card" style={{ marginBottom: 24 }}>
                 <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>📍 Load Alert States</div>
                 <div style={{ fontSize: 12, color: 'var(--t2)', marginBottom: 12 }}>Select states you run. SMS alerts only for these states. Leave blank for ALL loads.</div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>{US_STATES_ALL.map((st: string) => { const sel = ((profile?.notification_states as string[]) || []).includes(st); return (<button key={st} onClick={async () => { const { data: { user } } = await supabase.auth.getUser(); if (!user) return; const cur: string[] = ((profile?.notification_states as string[]) || []); const next = sel ? cur.filter((s: string) => s !== st) : [...cur, st]; await supabase.from('profiles').update({ notification_states: next }).eq('id', user.id); }} style={{ padding:'4px 10px', borderRadius:4, fontSize:11, fontWeight:600, border: sel ? '2px solid #ff6600' : '1px solid var(--l2)', background: sel ? '#ff6600' : 'var(--card)', color: sel ? '#fff' : 'var(--t1)', cursor:'pointer' }}>{st}</button>); })}</div>
-                <div style={{ fontSize:11, color:'var(--t3)' }}>{((profile?.notification_states as string[])?.length || 0) === 0 ? '📡 All states' : `📡 ${((profile?.notification_states as string[]) || []).join(', ')}`}</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>{US_STATES_ALL.map((st: string) => { const sel = notifStates.includes(st); return (<button key={st} onClick={async () => { const { data: { user } } = await supabase.auth.getUser(); if (!user) return; const cur: string[] = ((profile?.notification_states as string[]) || []); const next = sel ? cur.filter((s: string) => s !== st) : [...cur, st]; await supabase.from('profiles').update({ notification_states: next }).eq('id', user.id); setNotifStates(next); }} style={{ padding:'4px 10px', borderRadius:4, fontSize:11, fontWeight:600, border: sel ? '2px solid #ff6600' : '1px solid var(--l2)', background: sel ? '#ff6600' : 'var(--card)', color: sel ? '#fff' : 'var(--t1)', cursor:'pointer' }}>{st}</button>); })}</div>
+                <div style={{ fontSize:11, color:'var(--t3)' }}>{notifStates.length === 0 ? 'All states (default)' : notifStates.join(', ')}</div>
               </div>
               <div className="card">
                 <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>🗺️ Availability Zones</div>
