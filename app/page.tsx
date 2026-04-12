@@ -1968,14 +1968,34 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
           </>
         )}
         {tab === "jobs" && (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 200 }}>
-            <div style={{ textAlign: "center" }}>
-              <div className="bb" style={{ fontSize: 24, color: "var(--t2)", marginBottom: 8 }}>NO JOBS YET</div>
-              <p className="mo" style={{ fontSize: 10, color: "var(--t3)", marginBottom: 16 }}>Complete your first load to see it here</p>
-              <button className="btn btn-am btn-sm" onClick={() => setTab("loads")}>Browse Loads →</button>
+        <div style={{ padding: "0 0 16px 0" }}>
+          <div className="bb" style={{ fontSize: 18, marginBottom: 12 }}>My Jobs</div>
+          {myJobs.length === 0 ? (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 200 }}>
+              <div style={{ textAlign: "center" }}>
+                <div className="bb" style={{ fontSize: 24, color: "var(--t2)", marginBottom: 8 }}>NO JOBS YET</div>
+                <p className="mo" style={{ fontSize: 10, color: "var(--t3)", marginBottom: 16 }}>Complete your first load to see it here</p>
+                <button className="btn btn-am btn-sm" onClick={() => setTab("loads")}>Browse Loads →</button>
+              </div>
             </div>
-          </div>
-        )}
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {myJobs.map((j: any) => (
+                <div key={j.id} style={{ background: "var(--card,#111)", border: "1px solid var(--l1,#222)", borderRadius: 8, padding: 14 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                    <span className="bb" style={{ fontSize: 13 }}>{j.loads?.pickup_city}, {j.loads?.pickup_state} → {j.loads?.dest_city}, {j.loads?.dest_state}</span>
+                    <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 12, background: j.status === "confirmed" ? "var(--or,#f60)" : "var(--gr,#0a0)", color: "#fff", fontWeight: 700 }}>{j.status}</span>
+                  </div>
+                  <div style={{ display: "flex", gap: 16, fontSize: 11, color: "var(--t2)" }}>
+                    {j.loads?.commodity && <span>{j.loads.commodity}</span>}
+                    {j.loads?.created_at && <span>{new Date(j.loads.created_at).toLocaleDateString()}</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
               {/* ⛽ Upside Fuel Cash Back Card */}
               <div style={{ background: "var(--card,#111)", border: "1px solid var(--l1,#222)", borderLeft: "3px solid var(--or,#f60)", borderRadius: 8, padding: 20, marginTop: 16 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
