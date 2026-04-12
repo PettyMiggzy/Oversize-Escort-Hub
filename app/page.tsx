@@ -1791,6 +1791,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
 function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; profile: Profile | null }) {
   const [tab, setTab] = useState("overview");
   const [myLoads, setMyLoads] = useState<Load[]>([]);
+  const [myJobs, setMyJobs] = useState<any[]>([]);
 
   useEffect(() => {
     async function fetchLoads() {
@@ -1798,7 +1799,14 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
       if (data && data.length > 0) setMyLoads(data);
       else setMyLoads(SEED_LOADS);
     }
+    async function fetchJobs() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase.from('load_matches').select('*, loads(*)').eq('escort_id', user.id).in('status', ['confirmed','completed']);
+      if (data) setMyJobs(data);
+    }
     fetchLoads();
+    fetchJobs();
   }, []);
 
   // ZONES_HOOK
