@@ -2907,7 +2907,13 @@ export default function OEHPlatform() {
 
   async function loadProfile(userId: string) {
     const { data } = await supabase.from("profiles").select("*").eq("id", userId).single();
-    if (data) setProfile(data as Profile);
+    if (data) { setProfile(data as Profile); loadUnreadCount(userId, (data as Profile).role); }
+  }
+  async function loadUnreadCount(userId: string, role: string) {
+    if (role === 'escort') {
+      const { count } = await supabase.from('load_matches').select('id', { count: 'exact', head: true }).eq('escort_id', userId).eq('status', 'pending');
+      setUnreadCount(count || 0);
+    }
   }
 
   useEffect(() => {
