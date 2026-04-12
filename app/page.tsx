@@ -948,32 +948,25 @@ function EscortCard({ e, setPage }: { e: typeof SEED_ESCORTS[0]; setPage: (p: Pa
 
 // ——— FLAT RATE BOARD ————————————————————————————————————
 function ExternalLoadCard({ el }: { el: any }) {
-  const isRaw = el.pickup_city === 'See details' || el.pickup_state === 'N/A';
   const rawText = el.raw_text || '';
-  const companyMatch = rawText.match(/Load alert from ([^\n]+)/i);
-  const companyName = companyMatch ? companyMatch[1].trim() : (el.raw_title || 'External Load');
-  const description = isRaw ? rawText : `${el.pickup_city}, ${el.pickup_state} \u2192 ${el.destination_city}, ${el.destination_state}`;
+  const companyName = rawText
+    ? rawText.replace('Load alert from ', '').trim() || 'Carrier Load'
+    : (el.raw_title || 'Carrier Load');
+  const description = 'New load available — contact carrier directly for details';
   return (
     <div className="load-card" style={{ borderLeft: '3px solid #555' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
           <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>{companyName}</div>
-          <span style={{ fontSize: 9, background: '#333', color: '#aaa', borderRadius: 3, padding: '2px 6px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.08em' }}>External Load</span>
-        </div>
-        <div style={{ fontSize: 11, color: 'var(--t2)', textAlign: 'right' }}>
-          <div className="mo" style={{ fontSize: 9 }}>via Loads Covered</div>
+          <span style={{ fontSize: 9, background: '#333', color: '#aaa', borderRadius: 3, padding: '2px 6px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.08em' }}>External</span>
         </div>
       </div>
       <div style={{ marginTop: 10, fontSize: 12, color: 'var(--t2)', lineHeight: 1.7 }}>
         {description}
       </div>
-      <div style={{ marginTop: 8 }}>
-        <a href="https://www.loadscovered.com" target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: '#aaa', textDecoration: 'underline' }}>View on Loads Covered \u2192</a>
-      </div>
     </div>
   );
 }
-
 function FlatBoardPage({ setPage, user, profile, showToast }: { setPage: (p: Page) => void; user: User | null; profile: Profile | null; showToast: (msg: string, type: 'gr' | 'rd' | 'am') => void }) {
   const [loads, setLoads] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -1396,7 +1389,7 @@ function OpenBidPage({ setPage, user, profile, showToast }: { setPage: (p: Page)
 
       {externalLoads.length > 0 && (
           <div style={{ marginTop: 24 }}>
-            <div style={{ fontSize: 11, color: 'var(--t2)', letterSpacing: '.1em', marginBottom: 12 }}>EXTERNAL LOADS (via Loads Covered)</div>
+            <div style={{ fontSize: 11, color: 'var(--t2)', letterSpacing: '.1em', marginBottom: 12 }}>EXTERNAL LOADS</div>
             {externalLoads.map(el => <ExternalLoadCard key={el.id} el={el} />)}
           </div>
         )}
