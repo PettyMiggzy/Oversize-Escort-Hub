@@ -103,44 +103,44 @@ export default function PricingPage() {
     return (
           <div className="section">
                 <div style={{ marginBottom: 24 }}>
-                        <h1 className="bb" style={{ fontSize: 28, marginBottom: 8 }}>Pricing</h1>h1>
-                        <p className="mo" style={{ fontSize: 13, color: "var(--t2)" }}>No commissions. No middlemen. Flat subscription only.</p>p>
-                </div>div>
+                        <h1 className="bb" style={{ fontSize: 28, marginBottom: 8 }}>Pricing</h1>
+                        <p className="mo" style={{ fontSize: 13, color: "var(--t2)" }}>No commissions. No middlemen. Flat subscription only.</p>
+                </div>
                 <div className="price-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: 16, marginBottom: 32 }}>
                   {cards.map((c) => (
                       <div key={c.label} style={{ background: "var(--p2)", border: `2px solid ${c.color}`, borderRadius: 12, padding: "24px 20px", display: "flex", flexDirection: "column" }}>
-                        {c.badge && <span style={{ fontSize: 10, fontWeight: 700, background: c.color, color: "#000", padding: "2px 8px", borderRadius: 99, alignSelf: "flex-start", marginBottom: 8 }}>{c.badge}</span>span>}
-                                  <div className="bb" style={{ fontSize: 20, marginBottom: 4 }}>{c.label}</div>div>
+                        {c.badge && <span style={{ fontSize: 10, fontWeight: 700, background: c.color, color: "#000", padding: "2px 8px", borderRadius: 99, alignSelf: "flex-start", marginBottom: 8 }}>{c.badge}</span>}
+                                  <div className="bb" style={{ fontSize: 20, marginBottom: 4 }}>{c.label}</div>
                                   <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 16 }}>
-                                                <span style={{ fontSize: 32, fontWeight: 800, color: c.color }}>{c.price}</span>span>
-                                    {c.period && <span style={{ fontSize: 13, color: "var(--t2)" }}>{c.period}</span>span>}
-                                  </div>div>
+                                                <span style={{ fontSize: 32, fontWeight: 800, color: c.color }}>{c.price}</span>
+                                    {c.period && <span style={{ fontSize: 13, color: "var(--t2)" }}>{c.period}</span>}
+                                  </div>
                                   <ul style={{ listStyle: "none", padding: 0, margin: "0 0 20px 0", flex: 1 }}>
                                     {c.features.map((f) => (
-                                        <li key={f} style={{ fontSize: 13, color: "var(--t1)", display: "flex", gap: 8, alignItems: "flex-start", marginBottom: 6 }}><span style={{ color: c.color }}>+</span>span>{f}</li>li>
+                                        <li key={f} style={{ fontSize: 13, color: "var(--t1)", display: "flex", gap: 8, alignItems: "flex-start", marginBottom: 6 }}><span style={{ color: c.color }}>+</span>{f}</li>li>
                                       ))}
-                                  </ul>ul>
+                                  </ul>
                         {c.cta && c.priceId ? (
                                       <button onClick={() => startCheckout(c.priceId!, setLoading)} disabled={loading === c.priceId} style={{ background: c.color, color: "#000", border: "none", borderRadius: 6, padding: "10px 0", fontWeight: 700, fontSize: 14, cursor: "pointer", opacity: loading === c.priceId ? 0.6 : 1 }}>{loading === c.priceId ? "Loading..." : c.cta}</button>button>
                                     ) : c.cta ? (
                                       <button onClick={() => window.location.href = "/join?role=carrier"} style={{ width: "100%", background: "var(--l2)", color: "var(--t1)", border: "none", borderRadius: 6, padding: "10px 0", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>{c.cta}</button>button>
                                     ) : null}
-                      </div>div>
+                      </div>
                     ))}
-                </div>div>
+                </div>
             {/* BGC Badge */}
                 <div style={{ maxWidth: 480, margin: "0 auto", background: "var(--p2)", border: "1px solid var(--l2)", borderRadius: 12, padding: "28px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
                         <div>
-                                  <span style={{ fontSize: 11, fontWeight: 700, background: "#1e3a5f", color: "#60a5fa", padding: "3px 10px", borderRadius: 99 }}>BACKGROUND CHECK</span>span>
-                                  <h3 style={{ fontSize: 20, fontWeight: 700, marginTop: 10, marginBottom: 4 }}>BGC Badge</h3>h3>
-                                  <p style={{ fontSize: 13, color: "var(--t2)", maxWidth: 300 }}>One-time background check. Admin reviews manually. Badge appears on your profile upon approval.</p>p>
-                        </div>div>
+                                  <span style={{ fontSize: 11, fontWeight: 700, background: "#1e3a5f", color: "#60a5fa", padding: "3px 10px", borderRadius: 99 }}>BACKGROUND CHECK</span>
+                                  <h3 style={{ fontSize: 20, fontWeight: 700, marginTop: 10, marginBottom: 4 }}>BGC Badge</h3>
+                                  <p style={{ fontSize: 13, color: "var(--t2)", maxWidth: 300 }}>One-time background check. Admin reviews manually. Badge appears on your profile upon approval.</p>
+                        </div>
                         <div style={{ textAlign: "right" }}>
-                                  <div style={{ fontSize: 28, fontWeight: 800, color: "var(--t1)" }}>$9.99</div>div>
-                                  <div style={{ fontSize: 12, color: "var(--t2)", marginBottom: 12 }}>one-time</div>div>
+                                  <div style={{ fontSize: 28, fontWeight: 800, color: "var(--t1)" }}>$9.99</div>
+                                  <div style={{ fontSize: 12, color: "var(--t2)", marginBottom: 12 }}>one-time</div>
                                   <button onClick={() => startCheckout(PRICES.bgc, setLoading)} disabled={loading === PRICES.bgc} style={{ background: "#1e3a5f", color: "#60a5fa", border: "none", borderRadius: 6, padding: "10px 28px", fontWeight: 700, fontSize: 15, cursor: "pointer", opacity: loading === PRICES.bgc ? 0.6 : 1 }}>{loading === PRICES.bgc ? "Loading..." : "Get BGC Badge"}</button>button>
-                        </div>div>
-                </div>div>
-          </div>div>
+                        </div>
+                </div>
+          </div>
         );
 }</div>
