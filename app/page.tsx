@@ -1953,7 +1953,6 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
                   onClick={handleManageSubscription}
                 >Manage Subscription</button>
               )}
-          )}
         </div>
       </div>
       <div className="dash-content">
