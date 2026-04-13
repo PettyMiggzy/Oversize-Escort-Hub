@@ -4,7 +4,7 @@ export default function AboutPage() {
     <main style={{ background: '#0a0a0a', color: '#fff', minHeight: '100vh', fontFamily: 'monospace' }}>
       <div style={{ maxWidth: 860, margin: '0 auto', padding: '60px 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: 64 }}>
-          <img src="/logo.png" alt="OEH" style={{ width: 56, marginBottom: 20 }} />
+          <img src="/logo.png" alt="OEH" style={{ width: 200, marginBottom: 20 }} />
           <h1 style={{ fontSize: 36, fontWeight: 900, letterSpacing: '.05em', margin: '0 0 16px', color: '#fff' }}>
             Built by the Industry.<br />For the Industry.
           </h1>

@@ -134,7 +134,7 @@ function LockedTierCard({ t }: { t: typeof TIERS[3] }) {
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
         <span style={{ background: t.badgeColor, color: "#fff", fontSize: 11, fontWeight: 800, letterSpacing: 1, padding: "3px 8px", borderRadius: 4 }}>{t.badge}</span>
         <span style={{ fontSize: 18, fontWeight: 700 }}>{t.name}</span>
-        <span style={{ fontSize: 18 }}>\uD83D\uDD12</span>
+        <span style={{ fontSize: 18 }}>🔒</span>
       </div>
       <p style={{ color: "#9ca3af", fontSize: 14, lineHeight: 1.6, marginBottom: 20, flex: 1 }}>{t.description}</p>
       <TierFeatures features={t.features} color={t.badgeColor} />
