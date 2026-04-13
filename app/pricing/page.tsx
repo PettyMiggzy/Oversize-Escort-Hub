@@ -117,13 +117,13 @@ export default function PricingPage() {
                                   </div>
                                   <ul style={{ listStyle: "none", padding: 0, margin: "0 0 20px 0", flex: 1 }}>
                                     {c.features.map((f) => (
-                                        <li key={f} style={{ fontSize: 13, color: "var(--t1)", display: "flex", gap: 8, alignItems: "flex-start", marginBottom: 6 }}><span style={{ color: c.color }}>+</span>{f}</li>li>
+                                        <li key={f} style={{ fontSize: 13, color: "var(--t1)", display: "flex", gap: 8, alignItems: "flex-start", marginBottom: 6 }}><span style={{ color: c.color }}>+</span>{f}</li>
                                       ))}
                                   </ul>
                         {c.cta && c.priceId ? (
-                                      <button onClick={() => startCheckout(c.priceId!, setLoading)} disabled={loading === c.priceId} style={{ background: c.color, color: "#000", border: "none", borderRadius: 6, padding: "10px 0", fontWeight: 700, fontSize: 14, cursor: "pointer", opacity: loading === c.priceId ? 0.6 : 1 }}>{loading === c.priceId ? "Loading..." : c.cta}</button>button>
+                                      <button onClick={() => startCheckout(c.priceId!, setLoading)} disabled={loading === c.priceId} style={{ background: c.color, color: "#000", border: "none", borderRadius: 6, padding: "10px 0", fontWeight: 700, fontSize: 14, cursor: "pointer", opacity: loading === c.priceId ? 0.6 : 1 }}>{loading === c.priceId ? "Loading..." : c.cta}</button>
                                     ) : c.cta ? (
-                                      <button onClick={() => window.location.href = "/join?role=carrier"} style={{ width: "100%", background: "var(--l2)", color: "var(--t1)", border: "none", borderRadius: 6, padding: "10px 0", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>{c.cta}</button>button>
+                                      <button onClick={() => window.location.href = "/join?role=carrier"} style={{ width: "100%", background: "var(--l2)", color: "var(--t1)", border: "none", borderRadius: 6, padding: "10px 0", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>{c.cta}</button>
                                     ) : null}
                       </div>
                     ))}
@@ -138,7 +138,7 @@ export default function PricingPage() {
                         <div style={{ textAlign: "right" }}>
                                   <div style={{ fontSize: 28, fontWeight: 800, color: "var(--t1)" }}>$9.99</div>
                                   <div style={{ fontSize: 12, color: "var(--t2)", marginBottom: 12 }}>one-time</div>
-                                  <button onClick={() => startCheckout(PRICES.bgc, setLoading)} disabled={loading === PRICES.bgc} style={{ background: "#1e3a5f", color: "#60a5fa", border: "none", borderRadius: 6, padding: "10px 28px", fontWeight: 700, fontSize: 15, cursor: "pointer", opacity: loading === PRICES.bgc ? 0.6 : 1 }}>{loading === PRICES.bgc ? "Loading..." : "Get BGC Badge"}</button>button>
+                                  <button onClick={() => startCheckout(PRICES.bgc, setLoading)} disabled={loading === PRICES.bgc} style={{ background: "#1e3a5f", color: "#60a5fa", border: "none", borderRadius: 6, padding: "10px 28px", fontWeight: 700, fontSize: 15, cursor: "pointer", opacity: loading === PRICES.bgc ? 0.6 : 1 }}>{loading === PRICES.bgc ? "Loading..." : "Get BGC Badge"}</button>
                         </div>
                 </div>
           </div>
