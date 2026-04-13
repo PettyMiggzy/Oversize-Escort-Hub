@@ -7,6 +7,37 @@ const SUPABASE_KEY = env.SUPABASE_KEY;
 
 export default {
   async fetch(request, env) {
+        const url = new URL(request.url);
+            const pathname = url.pathname;
+
+                // POST /expire — mark a load as expired by title
+                    if (pathname.endsWith("/expire") && request.method === "POST") {
+                          const token = request.headers.get("X-OEH-Token");
+                                if (token !== env.OEH_SECRET) {
+                                        return new Response("Unauthorized", { status: 401 });
+                                              }
+                                                    try {
+                                                            const body = await request.json();
+                                                                    const { title } = body;
+                                                                            if (!title) return Response.json({ ok: false, error: "title required" }, { status: 400 });
+                                                                                    const supa = await fetch(`${env.SUPABASE_URL}/rest/v1/external_loads?raw_title=eq.${encodeURIComponent(title)}&select=id`, {
+                                                                                              headers: { "apikey": env.SUPABASE_KEY, "Authorization": `Bearer ${env.SUPABASE_KEY}` }
+                                                                                                      });
+                                                                                                              const rows = await supa.json();
+                                                                                                                      if (!rows.length) return Response.json({ ok: false, error: "not found" }, { status: 404 });
+                                                                                                                              const id = rows[0].id;
+                                                                                                                                      await fetch(`${env.SUPABASE_URL}/rest/v1/external_loads?id=eq.${id}`, {
+                                                                                                                                                method: "PATCH",
+                                                                                                                                                          headers: { "apikey": env.SUPABASE_KEY, "Authorization": `Bearer ${env.SUPABASE_KEY}`, "Content-Type": "application/json", "Prefer": "return=minimal" },
+                                                                                                                                                                    body: JSON.stringify({ status: "expired" })
+                                                                                                                                                                            });
+                                                                                                                                                                                    return Response.json({ ok: true });
+                                                                                                                                                                                          } catch (e) {
+                                                                                                                                                                                                  return Response.json({ ok: false, error: String(e) }, { status: 500 });
+                                                                                                                                                                                                        }
+                                                                                                                                                                                                            }
+
+                                                                                                                                                                                                            
     // Only accept POST requests
     if (request.method !== "POST") {
       return new Response("Method not allowed", { status: 405 });
@@ -100,7 +131,7 @@ function parseLoad(title, text, date, time) {
   if (combined.includes("chase")) escortType = "Chase";
   else if (combined.includes("high pole")) escortType = "High Pole";
   else if (combined.includes("rear steer")) escortType = "Rear Steer";
-  else if (combined.includes("lineman")) escortType = "Lineman";
+  else if (combined.includes("Bucket Truck")) escortType = "Bucket Truck";
   else if (combined.includes("survey")) escortType = "Survey";
   else if (combined.includes("flagger")) escortType = "Flagger";
 

@@ -608,15 +608,12 @@ function HomePage({ setPage, user, profile }: { setPage: (p: Page) => void; user
             <p style={{ fontSize: 11, color: "var(--t2)", lineHeight: 1.5, marginBottom: 16 }}>Licensed freight brokers who need verified P/EVO escorts for oversize shipments.</p>
             <div className="mo" style={{ fontSize: 9, color: "var(--t2)", letterSpacing: ".1em" }}>POST LOADS · FIND ESCORTS · MANAGE SHIPMENTS</div>
           </div>
-          <div className="role-card" style={{ border: "2px solid #3b82f6" }} onClick={() => setRole("fleet_manager")}>
-            <div className="bb" style={{ fontSize: 34, color: "#3b82f6", marginBottom: 10 }}>FLEET MANAGER</div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-              <span style={{ background: "rgba(59,130,246,0.18)", color: "#3b82f6", fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, letterSpacing: 1 }}>PRO REQUIRED</span>
-            </div>
-            <p style={{ lineHeight: 1.5, marginBottom: 16 }}>Manage multiple P/EVO escorts across loads. Find work for your fleet, track jobs, and maximize every mile.</p>
-            <div className="mo" style={{ fontSize: 11, color: "var(--t2)", marginBottom: 20, letterSpacing: ".06em", lineHeight: 1.8 }}>FIND LOADS · FLEET DEADHEAD · MANAGE ESCORTS</div>
-            <a href="/signin" className="mo" style={{ display: "inline-block", padding: "11px 18px", background: "#3b82f6", color: "#fff", borderRadius: 4, fontWeight: 700, fontSize: 10, letterSpacing: ".1em", textDecoration: "none" }}>GET STARTED</a>
-          </div>
+                    <div className="role-card" style={{ border: "2px solid #3b82f6" }} onClick={() => setRole("fleet_manager")}>
+                                  <div className="bb" style={{ fontSize: 34, color: "#3b82f6", marginBottom: 10 }}>FLEET MANAGER</div>
+                                              <p style={{ fontSize: 11, color: "var(--t2)", lineHeight: 1.5, marginBottom: 10 }}>Manage multiple P/EVO escorts across loads. Find work for your fleet, track jobs, and maximize every mile.</p>
+                                                          <div style={{ marginBottom: 16 }}><span style={{ background: "rgba(59,130,246,0.18)", color: "#3b82f6", fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, letterSpacing: 1 }}>PRO REQUIRED</span></div>
+                                                                      <div className="mo" style={{ fontSize: 10, color: "#3b82f6", letterSpacing: ".1em" }}>FIND LOADS · FLEET DEADHEAD · MANAGE ESCORTS</div>
+                                                                                </div>
         </div>
         <button className="mo" style={{ marginTop: 28, background: "none", border: "none", color: "var(--t3)", fontSize: 10, letterSpacing: ".1em", cursor: "pointer" }} onClick={() => setRole("carrier")}>
           Browse as guest
@@ -2627,7 +2624,9 @@ function SignInPage({ setPage, showToast }: { setPage: (p: Page) => void; showTo
         {mode === "signup" && (
           <div className="form-field">
             <label className="form-label">Company / Business Name (optional)</label>
-            <input type="text" placeholder="Your company name" value={company} onChange={(e) => setCompany(e.target.value)} /> </div>{role==="carrier"&&(<div className="form-field"><label className="form-label">DOT Number <span className="mo" style={{fontSize:10,color:'var(--or)',fontWeight:400}}>(for FMCSA verification)</span></label><input type="text" inputMode="numeric" placeholder="e.g. 1234567" value={dotNumber} onChange={(e)=>setDotNumber(e.target.value.replace(/\D/g,''))} style={{width:'100%'}} />{fmcsaInfo&&<p className="mo" style={{fontSize:10,color:'var(--gr)',marginTop:4}}>FMCSA Verified: {fmcsaInfo.name}</p>}</div>)
+            <input type="text" placeholder="Your company name" value={company} onChange={(e) => setCompany(e.target.value)} />
+        </div>
+        {role==="carrier"&&(<div className="form-field"><label className="form-label">DOT Number <span className="mo" style={{fontSize:10,color:'var(--or)',fontWeight:400}}>(for FMCSA verification)</span></label><input type="text" inputMode="numeric" placeholder="e.g. 1234567" value={dotNumber} onChange={(e)=>setDotNumber(e.target.value.replace(/\D/g,''))} style={{width:'100%'}} />{fmcsaInfo&&<p className="mo" style={{fontSize:10,color:'var(--gr)',marginTop:4}}>FMCSA Verified: {fmcsaInfo.name}</p>}</div>)
         )}
         <button className="btn btn-or" style={{ width: "100%", justifyContent: "center", marginBottom: 12 }} onClick={handleSubmit} disabled={loading || !email || !password}>
           {loading ? "Please wait..." : mode === "signup" ? "Create Free Account →" : "Sign In →"}

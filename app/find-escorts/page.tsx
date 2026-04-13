@@ -87,7 +87,7 @@ export default function FindEscortsPage() {
               <option value="Lead">Lead</option>
               <option value="Chase">Chase</option>
               <option value="High Pole">High Pole</option>
-              <option value="Lineman">Lineman</option>
+              <option value="Bucket Truck">Bucket Truck</option>
               <option value="Rear Steer">Rear Steer</option>
               <option value="Survey">Survey</option>
               <option value="Flagger">Flagger</option>

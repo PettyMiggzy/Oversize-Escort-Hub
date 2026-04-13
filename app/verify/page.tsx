@@ -25,11 +25,11 @@ const TIERS = [
     stripePrice: "price_1TF0EILmfugPCRbAvM6Q5rhW", tier_key: "tier3",
   },
   {
-    tier: 4, name: "Admin Verified", badge: "TIER 4", badgeColor: "#ff6600",
-    description: "Full admin verification — unlocks after completing Tiers 1, 2, and 3.",
-    features: ["Admin verified badge", "Featured in directory", "Priority load matching", "Dedicated support"],
-    price: null, locked: true, tier_key: "tier4",
-  },
+        tier: 4, name: "DD-214 Veteran", badge: "TIER 4", badgeColor: "#ff6600",
+            description: "Upload your DD-214 to verify veteran status. Unlock the Veteran Discount when it becomes available.",
+                features: ["Veteran verified badge", "Veteran Discount — Coming Soon", "Priority support"],
+                    price: null, docLabel: "Upload DD-214", accept: ".pdf,.jpg,.jpeg,.png",
+                        apiPath: "/api/verify-doc", tier_key: "tier4",
 ]
 
 function TierFeatures({ features, color }: { features: string[]; color: string }) {
@@ -128,21 +128,56 @@ function StripeTierCard({ t }: { t: typeof TIERS[2] }) {
   )
 }
 
-function LockedTierCard({ t }: { t: typeof TIERS[3] }) {
-  return (
-    <div style={{ background: "#111", border: "1px solid #222", borderLeft: `4px solid ${t.badgeColor}`, borderRadius: 12, padding: "28px 24px", display: "flex", flexDirection: "column", opacity: 0.6 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-        <span style={{ background: t.badgeColor, color: "#fff", fontSize: 11, fontWeight: 800, letterSpacing: 1, padding: "3px 8px", borderRadius: 4 }}>{t.badge}</span>
-        <span style={{ fontSize: 18, fontWeight: 700 }}>{t.name}</span>
-        <span style={{ fontSize: 18 }}>🔒</span>
-      </div>
-      <p style={{ color: "#9ca3af", fontSize: 14, lineHeight: 1.6, marginBottom: 20, flex: 1 }}>{t.description}</p>
-      <TierFeatures features={t.features} color={t.badgeColor} />
-      <div style={{ background: "#1a1a1a", border: "1px solid #333", borderRadius: 8, padding: "12px 16px", textAlign: "center", color: "#9ca3af", fontSize: 13 }}>
-        Complete Tiers 1-3 first
-      </div>
-    </div>
-  )
+function DD214TierCard({ t }: { t: typeof TIERS[3] }) {
+    const ref = useRef<HTMLInputElement>(null)
+      const [status, setStatus] = useState<"idle" | "uploading" | "done" | "error">("idle")
+        const [msg, setMsg] = useState("")
+
+          async function handleSubmit() {
+              const file = ref.current?.files?.[0]
+                  if (!file) { setStatus("error"); setMsg("Please select a file."); return }
+                      setStatus("uploading")
+                          try {
+                                const { data: { session } } = await supabase.auth.getSession()
+                                      const fd = new FormData()
+                                            fd.append("file", file)
+                                                  fd.append("userId", session?.user?.id ?? "")
+                                                        fd.append("tier", t.tier_key!)
+                                                              const res = await fetch(t.apiPath!, { method: "POST", body: fd })
+                                                                    const json = await res.json()
+                                                                          if (!res.ok) throw new Error(json.error || "Upload failed")
+                                                                                setStatus("done"); setMsg("✅ DD-214 submitted! Our team will verify within 24 hours.")
+                                                                                    } catch (e: any) { setStatus("error"); setMsg(e.message || "Upload failed") }
+                                                                                      }
+
+                                                                                        return (
+                                                                                            <div style={{ background: "#111", border: "1px solid #222", borderLeft: `4px solid ${t.badgeColor}`, borderRadius: 12, padding: "28px 24px", display: "flex", flexDirection: "column" }}>
+                                                                                                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+                                                                                                          <span style={{ background: t.badgeColor, color: "#fff", fontSize: 11, fontWeight: 800, letterSpacing: 1, padding: "3px 8px", borderRadius: 4 }}>{t.badge}</span>
+                                                                                                                  <span style={{ fontSize: 18, fontWeight: 700 }}>{t.name}</span>
+                                                                                                                        </div>
+                                                                                                                              <p style={{ color: "#9ca3af", fontSize: 14, lineHeight: 1.6, marginBottom: 20, flex: 1 }}>{t.description}</p>
+                                                                                                                                    <TierFeatures features={t.features} color={t.badgeColor} />
+                                                                                                                                          <div style={{ background: "rgba(255,102,0,0.1)", border: "1px solid rgba(255,102,0,0.3)", borderRadius: 8, padding: "10px 14px", marginBottom: 16, fontSize: 13, color: "#ff9966" }}>
+                                                                                                                                                  🎖️ <strong>Veteran Discount — Coming Soon</strong>
+                                                                                                                                                        </div>
+                                                                                                                                                              {status === "done" ? (
+                                                                                                                                                                      <div style={{ color: "#22c55e", fontSize: 14, fontWeight: 600 }}>{msg}</div>
+                                                                                                                                                                            ) : (
+                                                                                                                                                                                    <>
+                                                                                                                                                                                              <label style={{ background: "#222", border: "1px solid #333", borderRadius: 8, padding: "10px 14px", cursor: "pointer", fontSize: 13, color: "#9ca3af", marginBottom: 10, textAlign: "center" }}>
+                                                                                                                                                                                                          {ref.current?.files?.[0]?.name || `📎 ${t.docLabel}`}
+                                                                                                                                                                                                                      <input ref={ref} type="file" accept={t.accept} style={{ display: "none" }} onChange={() => setMsg("")} />
+                                                                                                                                                                                                                                </label>
+                                                                                                                                                                                                                                          {msg && <p style={{ color: status === "error" ? "#ef4444" : "#22c55e", fontSize: 13, marginBottom: 8 }}>{msg}</p>}
+                                                                                                                                                                                                                                                    <button onClick={handleSubmit} disabled={status === "uploading"} style={{ background: status === "uploading" ? "#555" : t.badgeColor, color: "#fff", border: "none", padding: "12px", borderRadius: 8, fontWeight: 700, fontSize: 14, cursor: status === "uploading" ? "not-allowed" : "pointer" }}>
+                                                                                                                                                                                                                                                                {status === "uploading" ? "Uploading…" : "Upload DD-214"}
+                                                                                                                                                                                                                                                                          </button>
+                                                                                                                                                                                                                                                                                  </>
+                                                                                                                                                                                                                                                                                        )}
+                                                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                                                              )
+                                                                                                                                                                                                                                                                                              }
 }
 
 export default function VerifyPage() {
@@ -164,7 +199,7 @@ export default function VerifyPage() {
           <UploadTierCard t={TIERS[0] as any} />
           <UploadTierCard t={TIERS[1] as any} />
           <StripeTierCard t={TIERS[2] as any} />
-          <LockedTierCard t={TIERS[3] as any} />
+          <DD214TierCard t={TIERS[3] as any} />
         </div>
       </div>
     </main>

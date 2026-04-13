@@ -184,7 +184,7 @@ export default function PostLoadPage() {
               <Check label="Lead" />
               <Check label="Chase" />
               <Check label="High Pole" />
-              <Check label="Lineman" />
+              <Check label="Bucket Truck" />
               <Check label="Rear Steer" />
               <Check label="Survey" />
               <Check label="Flagger" />
