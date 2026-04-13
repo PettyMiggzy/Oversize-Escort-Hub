@@ -1945,7 +1945,7 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
           <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 2 }}>{profile?.full_name || "Your Name"}</div>
           <div className="mo" style={{ fontSize: 9, color: "var(--t2)" }}>{profile?.company_name || "No company set"}</div>
           {profile?.tier === "free" && (
-            <button className="btn btn-am btn-sm" style={{ marginTop: 12, width: "100%", fontSize: 8 }} onClick={() => setPage("pricing")}>Upgrade to Pro →</button>
+            <button className="btn btn-am btn-sm" style={{ marginTop: 12, width: "100%", fontSize: 8 }} onClick={() => setPage("pricing")}>Upgrade to Pro →</button>)}
               {(profile?.tier === 'pro' || profile?.tier === 'member') && (
                 <button
                   className="btn btn-ghost btn-sm"
