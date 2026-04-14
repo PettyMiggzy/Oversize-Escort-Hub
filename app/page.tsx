@@ -3073,7 +3073,40 @@ function AdminPage({ setPage, user, profile }: any) {
         <button className="btn btn-sm" style={{ background: 'var(--rd)', color: '#fff' }} onClick={() => denyBgc(p.id)}>✕ Deny</button>
         </div>
         )))}
-        <div style={{marginTop:24}}><div className="bb" style={{fontSize:15,marginBottom:12,cursor:'pointer'}} onClick={()=>fetchVerifyQueue()}>Verification Queue {verifyQueue.length>0?`(${verifyQueue.length})`:''}:</div>{verifyQueue.length===0?(<p className="mo" style={{fontSize:11,color:'var(--t2)'}}>No pending verifications.</p>):verifyQueue.map(p=>(<div key={p.id} className="card" style={{padding:16,marginBottom:8,display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}}><div style={{flex:1}}><div className="mo" style={{fontSize:12,fontWeight:600}}>{p.full_name||p.email}</div><div className="mo" style={{fontSize:10,color:'var(--t2)'}}>{p.email}</div>{p.verify_doc_url&&<a href={p.verify_doc_url} target="_blank" className="mo" style={{fontSize:10,color:'var(--bl)'}}>View Document</a>}</div><button className="btn btn-am btn-sm" onClick={()=>acceptVerification(p.id,p.email,p.full_name||'')}>Accept</button><button className="btn btn-sm" style={{background:'var(--rd)',color:'#fff'}} onClick={()=>declineVerification(p.id,p.email,p.full_name||'')}>Decline</button><button className="btn btn-ghost btn-sm" onClick={()=>setEditTarget(p)}>Edit User</button></div>))}</div>{editTarget&&(<div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',zIndex:9999,display:'flex',alignItems:'center',justifyContent:'center'}}><div className="card" style={{padding:32,minWidth:320,maxWidth:400,width:'90%'}}><div className="bb" style={{fontSize:18,marginBottom:16}}>Edit User</div><p className="mo" style={{fontSize:12,marginBottom:8,color:'var(--t2)'}}>{editTarget.email}</p><select style={{width:'100%',marginBottom:8,padding:'8px',background:'var(--card)',color:'var(--t1)',border:'1px solid var(--l1)',borderRadius:6}} defaultValue={editTarget.tier||'free'} onChange={async(e)=>{await supabase.from('profiles').update({tier:e.target.value}).eq('id',editTarget.id);setEditTarget(null)}}><option value="free">Free Trial</option><option value="member">Member</option><option value="pro">Pro</option><option value="carrier">Carrier</option></select><button className="btn btn-ghost btn-sm" style={{marginTop:8,width:'100%'}} onClick={()=>setEditTarget(null)}>Cancel</button></div></div>}
+        <div style={{marginTop:24}}>
+          <div className="bb" style={{fontSize:15,marginBottom:12,cursor:'pointer'}} onClick={()=>fetchVerifyQueue()}>
+            Verification Queue {verifyQueue.length>0?('('+verifyQueue.length+')'):''}: 
+          </div>
+          {verifyQueue.length===0?(
+            <p className="mo" style={{fontSize:11,color:'var(--t2)'}}>No pending verifications.</p>
+          ):verifyQueue.map(p=>(
+            <div key={p.id} className="card" style={{padding:16,marginBottom:8,display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}}>
+              <div style={{flex:1}}>
+                <div className="mo" style={{fontSize:12,fontWeight:600}}>{p.full_name||p.email}</div>
+                <div className="mo" style={{fontSize:10,color:'var(--t2)'}}>{p.email}</div>
+                {p.verify_doc_url&&<a href={p.verify_doc_url} target="_blank" className="mo" style={{fontSize:10,color:'var(--bl)'}}>View Document</a>}
+              </div>
+              <button className="btn btn-am btn-sm" onClick={()=>acceptVerification(p.id,p.email,p.full_name||'')}>Accept</button>
+              <button className="btn btn-sm" style={{background:'var(--rd)',color:'#fff'}} onClick={()=>declineVerification(p.id,p.email,p.full_name||'')}>Decline</button>
+              <button className="btn btn-ghost btn-sm" onClick={()=>setEditTarget(p)}>Edit User</button>
+            </div>
+          ))}
+        </div>
+        {editTarget&&(
+          <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',zIndex:9999,display:'flex',alignItems:'center',justifyContent:'center'}}>
+            <div className="card" style={{padding:32,minWidth:320,maxWidth:400,width:'90%'}}>
+              <div className="bb" style={{fontSize:18,marginBottom:16}}>Edit User</div>
+              <p className="mo" style={{fontSize:12,marginBottom:8,color:'var(--t2)'}}>{editTarget.email}</p>
+              <select style={{width:'100%',marginBottom:8,padding:'8px',background:'var(--card)',color:'var(--t1)',border:'1px solid var(--l1)',borderRadius:6}} defaultValue={editTarget.tier||'free'} onChange={async(e)=>{await supabase.from('profiles').update({tier:e.target.value}).eq('id',editTarget.id);setEditTarget(null);}}>
+                <option value="free">Free Trial</option>
+                <option value="member">Member</option>
+                <option value="pro">Pro</option>
+                <option value="carrier">Carrier</option>
+              </select>
+              <button className="btn btn-ghost btn-sm" style={{marginTop:8,width:'100%'}} onClick={()=>setEditTarget(null)}>Cancel</button>
+            </div>
+          </div>
+        )}
         </div>
         </div>
       </div>
