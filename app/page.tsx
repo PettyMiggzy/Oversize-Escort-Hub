@@ -2853,7 +2853,7 @@ function DeadheadPage({ setPage, profile }: any) {
                 <button
                   className="btn btn-ghost btn-sm"
                   style={{ marginTop: 8, fontSize: 11, color: 'var(--t2)' }}
-                  onClick={handleManageSubscription}
+                  onClick={async () => { try { const res = await fetch('/api/portal', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({userId:profile?.id}) }); const data = await res.json(); if(data.url) window.location.href=data.url; else alert(data.error||'Portal unavailable.'); } catch(e:any){alert('Error: '+e.message)} }}
                 >Manage Subscription</button>
               )}
           </div>
