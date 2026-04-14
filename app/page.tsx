@@ -1905,12 +1905,11 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
     setZonesMsg('Saved!'); setZonesSaving(false)
     setTimeout(() => setZonesMsg(''), 3000)
   }
-  const tabs = [
+  const tabs: { id: string; label: string }[] = [
     { id: "overview", label: "Overview" }, { id: "loads", label: "Available Loads" },
     { id: "dh", label: "Deadhead Minimizer" }, { id: "jobs", label: "My Jobs" },
     { id: "certs", label: "Certifications" }, { id: "dispute", label: "Dispute Center" },
     { id: "zones", label: "My States & Photo" },
-
   ];
 
   async function handleManageSubscription() {
