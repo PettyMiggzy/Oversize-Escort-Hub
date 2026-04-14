@@ -2236,17 +2236,18 @@ function CarrierDashPage({ setPage, user, profile, showToast }: { setPage: (p: P
 
   if (!user) return <div style={{ padding: 40, textAlign: 'center' }}>Please sign in to access your Carrier Hub.</div>
 
-  const tabs = [
+  const tabs: { id: string; label: string }[] = [
     { id: 'active', label: 'My Active Loads' },
     { id: 'requests', label: `Match Requests${matchRequests.length > 0 ? ` (${matchRequests.length})` : ''}` },
     { id: 'history', label: 'Load History' },
+  ];
 
   async function handleManageSubscription() {
     try {
       const res = await fetch('/api/portal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id })
+        body: JSON.stringify({ userId: user?.id })
       })
       const data = await res.json()
       if (data.url) window['location']['href'] = data.url
@@ -2255,8 +2256,6 @@ function CarrierDashPage({ setPage, user, profile, showToast }: { setPage: (p: P
       alert('Error opening portal: ' + e.message)
     }
   }
-
-  ]
 
   return (
     <div className="dash-grid">
