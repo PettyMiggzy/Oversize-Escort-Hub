@@ -2626,7 +2626,7 @@ function SignInPage({ setPage, showToast }: { setPage: (p: Page) => void; showTo
             <label className="form-label">Company / Business Name (optional)</label>
             <input type="text" placeholder="Your company name" value={company} onChange={(e) => setCompany(e.target.value)} />
           </div>
-        {role==="carrier"&&(<div className="form-field"><label className="form-label">DOT Number <span className="mo" style={{fontSize:10,color:'var(--or)',fontWeight:400}}>(for FMCSA verification)</span></label><input type="text" inputMode="numeric" placeholder="e.g. 1234567" value={dotNumber} onChange={(e)=>setDotNumber(e.target.value.replace(/\D/g,''))} style={{width:'100%'}} />{fmcsaInfo&&<p className="mo" style={{fontSize:10,color:'var(--gr)',marginTop:4}}>FMCSA Verified: {fmcsaInfo.name}</p>}</div>)
+        {role==="carrier"&&(<div className="form-field"><label className="form-label">DOT Number <span className="mo" style={{fontSize:10,color:'var(--or)',fontWeight:400}}>(for FMCSA verification)</span></label><input type="text" inputMode="numeric" placeholder="e.g. 1234567" value={dotNumber} onChange={(e)=>setDotNumber(e.target.value.replace(/\D/g,''))} style={{width:'100%'}} />{fmcsaInfo&&<p className="mo" style={{fontSize:10,color:'var(--gr)',marginTop:4}}>FMCSA Verified: {fmcsaInfo.name}</p>}</div>)}
         </>)}
         <button className="btn btn-or" style={{ width: "100%", justifyContent: "center", marginBottom: 12 }} onClick={handleSubmit} disabled={loading || !email || !password}>
           {loading ? "Please wait..." : mode === "signup" ? "Create Free Account →" : "Sign In →"}
