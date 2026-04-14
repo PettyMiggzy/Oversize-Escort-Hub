@@ -1911,8 +1911,12 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
     { id: "certs", label: "Certifications" }, { id: "dispute", label: "Dispute Center" },
     { id: "zones", label: "My States & Photo" },
 
+  ];
+
   async function handleManageSubscription() {
     try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { alert('Not logged in.'); return }
       const res = await fetch('/api/portal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1925,8 +1929,6 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
       alert('Error opening portal: ' + e.message)
     }
   }
-
-  ];
 
   return (
     <div className="dash-grid">
