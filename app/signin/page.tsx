@@ -84,7 +84,7 @@ export default function SignInPage() {
           if (profile?.role === "carrier") {
             router.push("/dashboard/carrier");
           } else if (profile?.role === "fleet_manager") {
-            router.push("/fleet-dashboard");   // or wherever your fleet dashboard is
+            router.push("/fleet-dashboard"); 
           } else {
             router.push("/dashboard/escort");
           }
