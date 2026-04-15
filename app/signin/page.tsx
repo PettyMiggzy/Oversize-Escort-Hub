@@ -1,7 +1,8 @@
-"use client";
-import { useState } from "react";
-import { supabase } from "@/lib/supabase";
-import { useRouter } from "next/navigation";
+'use client';
+
+import { useState } from 'react';
+import { supabase } from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
 
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap');
@@ -18,13 +19,15 @@ button{cursor:pointer;font-family:'Inter',system-ui,sans-serif}
 .label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--t2);display:block;margin-bottom:6px}
 .field{margin-bottom:18px}
 .btn{display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;padding:13px 22px;border:none;width:100%;margin-bottom:12px;cursor:pointer}
-.btn-or{background:var(--or);color:#000}.btn-am{background:var(--am);color:#000}.btn-fleet{background:var(--bl);color:#fff}
+.btn-or{background:var(--or);color:#000}
 .btn-am{background:var(--am);color:#000}
+.btn-fleet{background:var(--bl);color:#fff}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 .role-toggle{display:flex;border:1px solid var(--l1);border-radius:3px;overflow:hidden;margin-bottom:20px}
 .role-btn{flex:1;padding:10px;background:transparent;border:none;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--t2);cursor:pointer}
 .role-btn.active-escort{background:var(--am);color:#000}
-.role-btn.active-carrier{background:var(--or);color:#000}.role-btn.active-fleet{background:var(--bl);color:#fff}
+.role-btn.active-carrier{background:var(--or);color:#000}
+.role-btn.active-fleet{background:var(--bl);color:#fff}
 .error{background:rgba(255,53,53,.1);border:1px solid rgba(255,53,53,.2);color:var(--rd);font-family:'DM Mono',monospace;font-size:10px;padding:10px 14px;border-radius:3px;margin-bottom:16px}
 .success{background:rgba(0,204,122,.1);border:1px solid rgba(0,204,122,.2);color:var(--gr);font-family:'DM Mono',monospace;font-size:10px;padding:10px 14px;border-radius:3px;margin-bottom:16px}
 .switch{text-align:center;margin-top:4px}
@@ -49,38 +52,49 @@ export default function SignInPage() {
     setSuccess("");
     setLoading(true);
 
-    if (mode === "signup") {
-      const { error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { full_name: fullName, company_name: company, role },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-      if (signUpError) {
-        setError(signUpError.message);
-      } else {
+    try {
+      if (mode === "signup") {
+        const { error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { full_name: fullName, company_name: company, role },
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
+          },
+        });
+
+        if (signUpError) throw signUpError;
         setSuccess("Check your email to confirm your account, then sign in.");
-      }
-    } else {
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-      if (signInError) {
-        setError(signInError.message);
-      } else if (data.user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", data.user.id)
-          .single();
-        if (profile?.role === "carrier") {
-          router.push("/dashboard/carrier");
-        } else {
-          router.push("/dashboard/escort");
+      } else {
+        // Sign In
+        const { data, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (signInError) throw signInError;
+
+        if (data.user) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("role")
+            .eq("id", data.user.id)
+            .single();
+
+          if (profile?.role === "carrier") {
+            router.push("/dashboard/carrier");
+          } else if (profile?.role === "fleet_manager") {
+            router.push("/fleet-dashboard");   // or wherever your fleet dashboard is
+          } else {
+            router.push("/dashboard/escort");
+          }
         }
       }
+    } catch (err: any) {
+      setError(err.message || "Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   return (
@@ -102,10 +116,16 @@ export default function SignInPage() {
 
           {mode === "signup" && (
             <div className="role-toggle">
-              <button className={`role-btn ${role === "escort" ? "active-escort" : ""}`} onClick={() => setRole("escort")}>
+              <button 
+                className={`role-btn ${role === "escort" ? "active-escort" : ""}`} 
+                onClick={() => setRole("escort")}
+              >
                 Escort / P/EVO
               </button>
-              <button className={`role-btn ${role === "carrier" ? "active-carrier" : ""}`} onClick={() => setRole("carrier")}>
+              <button 
+                className={`role-btn ${role === "carrier" ? "active-carrier" : ""}`} 
+                onClick={() => setRole("carrier")}
+              >
                 Carrier / Operator
               </button>
             </div>
@@ -117,38 +137,69 @@ export default function SignInPage() {
           {mode === "signup" && (
             <div className="field">
               <label className="label">Full Name</label>
-              <input type="text" placeholder="Your full name" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+              <input 
+                type="text" 
+                placeholder="Your full name" 
+                value={fullName} 
+                onChange={(e) => setFullName(e.target.value)} 
+              />
             </div>
           )}
 
           <div className="field">
             <label className="label">Email Address</label>
-            <input type="email" placeholder="your@email.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <input 
+              type="email" 
+              placeholder="your@email.com" 
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)} 
+            />
           </div>
 
           <div className="field">
             <label className="label">Password</label>
-            <input type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} />
+            <input 
+              type="password" 
+              placeholder="••••••••" 
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)} 
+            />
           </div>
 
           {mode === "signup" && (
             <div className="field">
               <label className="label">Company / Business Name (optional)</label>
-              <input type="text" placeholder="Your company name" value={company} onChange={(e) => setCompany(e.target.value)} />
+              <input 
+                type="text" 
+                placeholder="Your company name" 
+                value={company} 
+                onChange={(e) => setCompany(e.target.value)} 
+              />
             </div>
           )}
 
           <button
-            className={`btn ${role === "carrier" ? "btn-or" : role === "fleet_manager" ? "btn btn-fleet" : "btn-am"}`}
+            className={`btn ${role === "carrier" ? "btn-or" : role === "fleet_manager" ? "btn-fleet" : "btn-am"}`}
             onClick={handleSubmit}
             disabled={loading || !email || !password}
           >
-            {loading ? "Please wait..." : mode === "signup" ? "Create Free Account →" : "Sign In →"}
+            {loading 
+              ? "Please wait..." 
+              : mode === "signup" 
+                ? "Create Free Account →" 
+                : "Sign In →"
+            }
           </button>
 
           <div className="switch">
             <span>{mode === "signup" ? "Already have an account?" : "Don't have an account?"}</span>
-            <button onClick={() => { setMode(mode === "signup" ? "signin" : "signup"); setError(""); setSuccess(""); }}>
+            <button 
+              onClick={() => { 
+                setMode(mode === "signup" ? "signin" : "signup"); 
+                setError(""); 
+                setSuccess(""); 
+              }}
+            >
               {mode === "signup" ? "Sign In" : "Start Free Trial"}
             </button>
           </div>
