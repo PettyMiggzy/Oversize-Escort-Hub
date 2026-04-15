@@ -1,0 +1,233 @@
+'use client';
+
+import { useState } from 'react';
+import { supabase } from '@/lib/supabase';   // Make sure this import path is correct for your project
+
+export default function PricingPage() {
+  const [loading, setLoading] = useState<string>('');
+
+  // ==================== PRICES ====================
+  const PRICES = {
+    member:      "price_1TF00LLmfugPCRbAl6SF0Oup",
+    pro:         "price_1TF021LmfugPCRbA7CGgLhC0",
+    pevo_member: "price_1TF0D4LmfugPCRbAd4hM022R",
+    pevo_pro:    "price_1TF0D1LmfugPCRbAPWsN2K5x",
+    bgc:         "price_1TF0EILmfugPCRbAvM6Q5rhW",
+    fleet_starter: "price_1TMUvjLmfugPCRbAa1HHd7f3",
+    fleet_plus:    "price_1TMUwaLmfugPCRbAxwDBbslg",
+    fleet_pro:     "price_1TMT9fLmfugPCRbA0Tu65Ui0",
+  };
+
+  // ==================== START CHECKOUT FUNCTION ====================
+  async function startCheckout(priceId: string) {
+    setLoading(priceId);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        window.location.href = "/signin?redirect=pricing";
+        return;
+      }
+
+      // TODO: Replace this alert with your real Stripe checkout logic
+      alert(`Starting checkout for: ${priceId}`);
+
+      // Example real implementation (uncomment when you have the edge function):
+      // const { error } = await supabase.functions.invoke('create-checkout-session', {
+      //   body: { 
+      //     priceId, 
+      //     successUrl: `${window.location.origin}/success`,
+      //     cancelUrl: window.location.href 
+      //   }
+      // });
+
+    } catch (error) {
+      console.error('Checkout error:', error);
+      alert('Failed to start checkout. Please try again.');
+    } finally {
+      setLoading('');
+    }
+  }
+
+  // ==================== CARDS ARRAY ====================
+  const cards = [
+    {
+      label: "Member",
+      price: "$19.99",
+      period: "/mo",
+      color: "var(--member)",
+      badge: null,
+      features: [
+        "Access to escort directory",
+        "Basic search filters",
+        "Standard support",
+      ],
+      cta: "Get Started",
+      priceId: PRICES.member,
+    },
+    {
+      label: "Pro",
+      price: "$39.99",
+      period: "/mo",
+      color: "var(--pro)",
+      badge: null,
+      features: [
+        "Everything in Member",
+        "Advanced filters",
+        "Priority support",
+        "Save favorite escorts",
+      ],
+      cta: "Upgrade to Pro",
+      priceId: PRICES.pro,
+    },
+
+    // Fleet Manager Tiers
+    {
+      label: "Fleet Starter",
+      price: "$29.99",
+      period: "/mo",
+      color: "var(--fleet)",
+      badge: null,
+      features: [
+        "Up to 5 escorts",
+        "Basic fleet management",
+        "Standard reporting",
+        "Email support",
+      ],
+      cta: "Start Free Trial",
+      priceId: PRICES.fleet_starter,
+    },
+    {
+      label: "Fleet Plus",
+      price: "$49.99",
+      period: "/mo",
+      color: "var(--fleet)",
+      badge: null,
+      features: [
+        "Up to 10 escorts",
+        "Advanced fleet tools",
+        "Priority support",
+        "Detailed analytics",
+      ],
+      cta: "Start Free Trial",
+      priceId: PRICES.fleet_plus,
+    },
+    {
+      label: "Fleet Pro Unlimited",
+      price: "$99.99",
+      period: "/mo",
+      color: "var(--fleet)",
+      badge: "BEST VALUE",
+      features: [
+        "Unlimited escorts",
+        "White-label capabilities",
+        "Custom integrations",
+        "Dedicated account manager",
+      ],
+      cta: "Start Free Trial",
+      priceId: PRICES.fleet_pro,
+    },
+  ];
+
+  return (
+    <div className="section">
+      <div style={{ marginBottom: 24 }}>
+        <h1 className="bb" style={{ fontSize: 28, marginBottom: 8 }}>Pricing</h1>
+        <p style={{ color: "var(--t2)", fontSize: 16 }}>
+          Choose the plan that works best for you or your fleet
+        </p>
+      </div>
+
+      {/* Price Grid */}
+      <div 
+        className="price-grid" 
+        style={{ 
+          display: "grid", 
+          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", 
+          gap: 16, 
+          marginBottom: 32 
+        }}
+      >
+        {cards.map((c) => (
+          <div 
+            key={c.label} 
+            style={{ 
+              background: "var(--p2)", 
+              border: `2px solid ${c.color}`, 
+              borderRadius: 12, 
+              padding: "24px 20px", 
+              display: "flex", 
+              flexDirection: "column",
+              position: "relative"
+            }}
+          >
+            {c.badge && (
+              <span style={{ 
+                fontSize: 10, 
+                fontWeight: 700, 
+                background: c.color, 
+                color: "#000", 
+                padding: "4px 10px", 
+                borderRadius: 99, 
+                alignSelf: "flex-start", 
+                marginBottom: 12 
+              }}>
+                {c.badge}
+              </span>
+            )}
+
+            <div className="bb" style={{ fontSize: 22, marginBottom: 8 }}>{c.label}</div>
+
+            <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 20 }}>
+              <span style={{ fontSize: 36, fontWeight: 800, color: c.color }}>{c.price}</span>
+              {c.period && <span style={{ fontSize: 15, color: "var(--t2)" }}>{c.period}</span>}
+            </div>
+
+            <ul style={{ 
+              listStyle: "none", 
+              padding: 0, 
+              margin: "0 0 24px 0", 
+              flex: 1 
+            }}>
+              {c.features.map((f, index) => (
+                <li 
+                  key={index} 
+                  style={{ 
+                    fontSize: 14, 
+                    color: "var(--t1)", 
+                    display: "flex", 
+                    gap: 8, 
+                    alignItems: "flex-start", 
+                    marginBottom: 8 
+                  }}
+                >
+                  <span style={{ color: c.color, marginTop: 2 }}>•</span>
+                  {f}
+                </li>
+              ))}
+            </ul>
+
+            <button 
+              onClick={() => startCheckout(c.priceId)}
+              disabled={loading === c.priceId}
+              style={{
+                background: c.color,
+                color: "#000",
+                fontWeight: 700,
+                padding: "14px 20px",
+                borderRadius: 8,
+                border: "none",
+                cursor: "pointer",
+                fontSize: 15,
+                marginTop: "auto",
+                opacity: loading === c.priceId ? 0.8 : 1
+              }}
+            >
+              {loading === c.priceId ? "Processing..." : c.cta}
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
