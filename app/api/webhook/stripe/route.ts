@@ -13,37 +13,33 @@ export async function POST(req: NextRequest) {
   try {
     const event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!);
 
-if (event.type === "checkout.session.completed") {
+    if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
-          const customerEmail = session.customer_details?.email;
-              const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
-                  const priceId = lineItems.data[0]?.price?.id;
+      const customerId = session.customer as string;
+      const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
 
-                      if (!customerEmail || !priceId) return NextResponse.json({ received: true });
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("stripe_customer_id", customerId)
+        .single();
 
-                          const updateData: Record<string, unknown> = { tier_updated_at: new Date().toISOString() };
+      if (!profile) return NextResponse.json({ received: true });
 
-                              if (priceId === "price_1TF0D4LmfugPCRbAd4hMO22R") {
-                                    updateData.membership = "member";
-                                          updateData.role = "escort";
-                                              } else if (priceId === "price_1TF0DiLmfugPCRbAPWsN2K5x") {
-                                                    updateData.membership = "pro";
-                                                          updateData.role = "escort";
-                                                              } else if (priceId === "price_1TMT9fLmfugPCRbA0Tu65Ui0") {
-                                                                    updateData.membership = "fleet_pro";
-                                                                          updateData.role = "fleet";
-                                                                              } else if (priceId === "price_1TF0EILmfugPCRbAvM6Q5rhW") {
-                                                                                    updateData.bgc_verified = true;
-                                                                                        } else if (priceId === "price_1TLSu3LmfugPCRbAsumfZjCf") {
-                                                                                              updateData.sponsored_zone = true;
-                                                                                                  }
+      const priceId = lineItems.data[0]?.price?.id;
+      let tier = "trial";
 
-                                                                                                      await supabase
-                                                                                                            .from("profiles")
-                                                                                                                  .update(updateData)
-                                                                                                                        .eq("email", customerEmail);
-                                                                                                                          }
-}
+      if (priceId === "price_1TF00LLmfugPCRbAl6sF0Oup") tier = "member";
+      if (priceId === "price_1TF021LmfugPCRbA7CGgLhC0") tier = "pro";
+      if (priceId === "price_1TF0EILmfugPCRbAvM6Q5rhW") tier = "bgc_badge_purchased";
+      if (priceId === "price_1TLSu3LmfugPCRbAsumfZjCf") tier = "sponsored_zone";
+
+      await supabase
+        .from("profiles")
+        .update({ tier, tier_updated_at: new Date().toISOString() })
+        .eq("id", profile.id);
+    }
+
     if (event.type === "customer.subscription.deleted") {
       const subscription = event.data.object as Stripe.Subscription;
       const customerId = subscription.customer as string;

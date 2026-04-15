@@ -38,7 +38,7 @@ button{cursor:pointer;font-family:'Inter',system-ui,sans-serif}
 export default function SignInPage() {
   const router = useRouter();
   const [mode, setMode] = useState<"signup" | "signin">("signup");
-  const [role, setRole] = useState<"escort" | "carrier" | "fleet_manager">("escort");
+  const [role, setRole] = useState<"escort" | "carrier" | "fleet_manager" | "broker">("escort");
   const [fullName, setFullName] = useState("");
   const [company, setCompany] = useState("");
   const [email, setEmail] = useState("");
@@ -103,7 +103,7 @@ export default function SignInPage() {
       <div className="wrap">
         <div className="box">
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 24 }}>
-            <img src="/logo.png" alt="OEH" style={{ width: 36, height: 36, objectFit: "contain" }} />
+            <img src="/icon.png" alt="OEH" style={{ width: 36, height: 36, objectFit: "contain" }} />
             <div>
               <div className="bb" style={{ fontSize: 20, color: "var(--t1)" }}>
                 {mode === "signup" ? "Start Free Trial" : "Welcome Back"}
@@ -128,6 +128,18 @@ export default function SignInPage() {
               >
                 Carrier / Operator
               </button>
+                                <button
+                                                    className={`role-btn ${role === "broker" ? "active-broker" : ""}`}
+                                                                        onClick={() => setRole("broker")}
+                                                                                          >
+                                                                                                              Freight Broker
+                                                                                                                                </button>
+                                                                                                                                                  <button
+                                                                                                                                                                      className={`role-btn ${role === "fleet_manager" ? "active-fleet" : ""}`}
+                                                                                                                                                                                          onClick={() => setRole("fleet_manager")}
+                                                                                                                                                                                                            >
+                                                                                                                                                                                                                                Fleet Manager
+                                                                                                                                                                                                                                                  </button>
             </div>
           )}
 
@@ -153,6 +165,7 @@ export default function SignInPage() {
               placeholder="your@email.com" 
               value={email} 
               onChange={(e) => setEmail(e.target.value)} 
+                              onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
             />
           </div>
 
@@ -163,6 +176,7 @@ export default function SignInPage() {
               placeholder="••••••••" 
               value={password} 
               onChange={(e) => setPassword(e.target.value)} 
+                              onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
             />
           </div>
 
