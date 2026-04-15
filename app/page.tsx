@@ -345,7 +345,7 @@ footer{background:var(--p1);border-top:1px solid var(--l1);padding:40px 24px 24p
 
 .early-banner{background:linear-gradient(135deg,rgba(245,162,0,.08),rgba(255,98,0,.06));border:1px solid rgba(245,162,0,.2);border-radius:4px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:14px}
 
-.ham-btn{display:none;background:none;border:none;cursor:pointer;padding:8px;color:var(--t1)} @media(max-width:900px){
+@media(max-width:900px){
   .price-grid{grid-template-columns:repeat(2,1fr)}
   .feat-grid{grid-template-columns:repeat(2,1fr)}
   .esc-grid{grid-template-columns:repeat(2,1fr)}
@@ -356,7 +356,7 @@ footer{background:var(--p1);border-top:1px solid var(--l1);padding:40px 24px 24p
   .nav-links{display:none}
   .nav-right{gap:6px}
   .nav-get-started{font-size:9px;padding:7px 12px}
-.ham-btn{background:none;border:none;cursor:pointer;padding:8px;color:var(--t1)}
+.ham-btn{display:none;background:none;border:none;cursor:pointer;padding:8px;color:var(--t1)}
 .ham-btn span{display:block;width:22px;height:2px;background:var(--t1);margin:4px 0;transition:.3s}
 .mobile-drawer{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:999;background:rgba(0,0,0,.7)}
 .mobile-drawer-inner{position:absolute;top:0;right:0;width:80%;max-width:300px;height:100%;background:var(--p1);border-left:1px solid var(--l1);overflow-y:auto;padding:20px 0}
@@ -382,8 +382,8 @@ function Toast({ msg, type, onClose }: { msg: string; type: "gr" | "rd" | "am"; 
   );
 }
 
-function LaunchBanner() { const [dismissed, setDismissed] = useState(false); if (dismissed) return null; return (<div style={{ width: "100%", background: "#f97316", color: "#000", display: "flex", alignItems: "center", justifyContent: "center", gap: 12, padding: "10px 16px", fontSize: 13, fontWeight: 600, flexWrap: "wrap", position: "relative" }}><span>🚀 Official Launch: May 1st, 2025 — Early members get locked-in pricing forever. Join the waitlist now.</span><button onClick={() => setDismissed(true)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "#000", fontSize: 18, cursor: "pointer", padding: "0 4px", lineHeight: 1 }}>x</button></div>); }
-  function Ticker() { const items = [
+function Ticker() {
+  const items = [
     { dot: "dot-gr", text: "Platform launching · Be an early member · $2.00/mi standard rate" },
     { dot: "dot-am", text: "BID BOARD LIVE · 5-Min bids · Pro gets SMS instant · Member gets 60s delay" },
     { dot: "dot-gr", text: "Verified P/EVO escorts · Background checked · Vehicle verified · Admin approved" },
@@ -426,7 +426,7 @@ function Nav({ page, setPage, user, profile, onSignOut, unreadCount = 0 }: {
     <div className="nav">
       <div className="nav-name" style={{ cursor: "pointer" }} onClick={() => setPage("home")}>Oversize Escort Hub</div>
       {/* Desktop links */}
-      <div className="nav-links" style={{ display: user?"flex":"none", gap: 2, alignItems: "center" }}>
+      <div className="nav-links" style={{ display: "flex", gap: 2, alignItems: "center" }}>
         {navLinks.map(([p, label]) => (
           <button key={p} className={`nav-link${page === p ? " active" : ""}`} onClick={() => setPage(p)}>{label}</button>
         ))}
@@ -448,7 +448,7 @@ function Nav({ page, setPage, user, profile, onSignOut, unreadCount = 0 }: {
         ) : (
           <button className="nav-get-started btn btn-or btn-sm" onClick={() => setPage("signin")}>GET STARTED</button>
         )}
-        {/* Hamburger - mobile only */}
+        {/* Hamburger */}
         <button className="ham-btn" onClick={() => setDrawerOpen(true)} aria-label="Menu">
           <span/><span/><span/>
         </button>
@@ -513,7 +513,7 @@ function Footer({ setPage }: { setPage: (p: Page) => void }) {
         </div>
         <div className="footer-col">
           <h4>Company</h4>
-          <a href="/features" style={{color:"var(--t2)"}}>Features</a><a href="/about" style={{color:"var(--t2)"}}>About</a><a href="mailto:support@oversize-escort-hub.com" style={{color:"var(--t2)"}}>Contact</a><a href="/privacy" style={{color:"var(--t2)"}}>Privacy Policy</a><a href="/terms" style={{color:"var(--t2)"}}>Terms of Service</a>
+          <a href="/about" style={{color:"var(--t2)"}}>About</a><a href="mailto:support@oversize-escort-hub.com" style={{color:"var(--t2)"}}>Contact</a><a href="/privacy" style={{color:"var(--t2)"}}>Privacy Policy</a><a href="/terms" style={{color:"var(--t2)"}}>Terms of Service</a>
         </div>
       </div>
       <div className="footer-bottom">
@@ -608,12 +608,15 @@ function HomePage({ setPage, user, profile }: { setPage: (p: Page) => void; user
             <p style={{ fontSize: 11, color: "var(--t2)", lineHeight: 1.5, marginBottom: 16 }}>Licensed freight brokers who need verified P/EVO escorts for oversize shipments.</p>
             <div className="mo" style={{ fontSize: 9, color: "var(--t2)", letterSpacing: ".1em" }}>POST LOADS · FIND ESCORTS · MANAGE SHIPMENTS</div>
           </div>
-                    <div className="role-card" style={{ border: "2px solid #3b82f6" }} onClick={() => setRole("fleet_manager")}>
-                                  <div className="bb" style={{ fontSize: 34, color: "#3b82f6", marginBottom: 10 }}>FLEET MANAGER</div>
-                                              <p style={{ fontSize: 11, color: "var(--t2)", lineHeight: 1.5, marginBottom: 10 }}>Manage multiple P/EVO escorts across loads. Find work for your fleet, track jobs, and maximize every mile.</p>
-                                                          <div style={{ marginBottom: 16 }}><span style={{ background: "rgba(59,130,246,0.18)", color: "#3b82f6", fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, letterSpacing: 1 }}>PRO REQUIRED</span></div>
-                                                                      <div className="mo" style={{ fontSize: 10, color: "#3b82f6", letterSpacing: ".1em" }}>FIND LOADS · FLEET DEADHEAD · MANAGE ESCORTS</div>
-                                                                                </div>
+          <div className="role-card" style={{ border: "2px solid #3b82f6" }} onClick={() => window.location.href = "/join"}>
+            <div className="bb" style={{ fontSize: 34, color: "#3b82f6", marginBottom: 10 }}>FLEET MANAGER</div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+              <span style={{ background: "rgba(59,130,246,0.18)", color: "#3b82f6", fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, letterSpacing: 1 }}>PRO REQUIRED</span>
+            </div>
+            <p style={{ lineHeight: 1.5, marginBottom: 16 }}>Manage multiple P/EVO escorts across loads. Find work for your fleet, track jobs, and maximize every mile.</p>
+            <div className="mo" style={{ fontSize: 11, color: "var(--t2)", marginBottom: 20, letterSpacing: ".06em", lineHeight: 1.8 }}>FIND LOADS · FLEET DEADHEAD · MANAGE ESCORTS</div>
+            <a href="/signin" className="mo" style={{ display: "inline-block", padding: "11px 18px", background: "#3b82f6", color: "#fff", borderRadius: 4, fontWeight: 700, fontSize: 10, letterSpacing: ".1em", textDecoration: "none" }}>GET STARTED</a>
+          </div>
         </div>
         <button className="mo" style={{ marginTop: 28, background: "none", border: "none", color: "var(--t3)", fontSize: 10, letterSpacing: ".1em", cursor: "pointer" }} onClick={() => setRole("carrier")}>
           Browse as guest
@@ -1019,8 +1022,7 @@ function FlatBoardPage({ setPage, user, profile, showToast }: { setPage: (p: Pag
     fetchLoads()
   }
 
-  const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','AB','BC','MB','NB','NL','NS','ON','PE','QC','SK','NT','NU','YT']
-  
+  const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY']
   const CERTS = ['Lead','Chase','High Pole','Bucket Truck','Rear Steer','Survey','Flagger','NY Cert','CSE (Ontario MTO)','BC Pilot Car','WITPAC','TWIC','AZ Cert','CTTS BC/AB','OAPC Ontario','Saskatchewan']
 
   function timeAgo(dt: string) {
@@ -1151,7 +1153,7 @@ function BidBoardPage({ setPage, user, profile, showToast }: { setPage: (p: Page
   const [filterCert, setFilterCert] = useState('')
   const [filterDate, setFilterDate] = useState('')
   const [timers, setTimers] = useState<Record<string, number>>({})
-  const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','AB','BC','MB','NB','NL','NS','ON','PE','QC','SK','NT','NU','YT']
+  const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY']
   const CERTS = ['Lead','Chase','3rd Car','4th Car','High Pole','Rear Steer','Bucket Truck','Route Survey','Flagger','NY Cert','NITPAC','TWIC']
 
   useEffect(() => { fetchLoads() }, [filterState, filterCert, filterDate])
@@ -1282,7 +1284,7 @@ function OpenBidPage({ setPage, user, profile, showToast }: { setPage: (p: Page)
   const [bidCounts, setBidCounts] = useState<Record<string, number>>({})
   const [externalLoads, setExternalLoads] = useState<any[]>([])
 
-  const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','AB','BC','MB','NB','NL','NS','ON','PE','QC','SK','NT','NU','YT']
+  const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY']
   const CERTS = ['Lead','Chase','3rd Car','4th Car','High Pole','Rear Steer','Bucket Truck','Route Survey','Flagger','NY Cert','NITPAC','TWIC']
 
   useEffect(() => { fetchLoads() }, [filterState, filterCert, filterDate])
@@ -1449,10 +1451,10 @@ function EscortsPage({ setPage }: { setPage: (p: Page) => void }) {
   const [filterCert, setFilterCert] = useState('');
   const [filterAvailNow, setFilterAvailNow] = useState(false);
   const [filterBGC, setFilterBGC] = useState(false);
-  const [sortBy, setSortBy] = useState('rating'); const [sponsoredEscorts, setSponsoredEscorts] = useState<any[]>([]); const [sponsoredZoneSettings, setSponsoredZoneSettings] = useState<any>(null);
+  const [sortBy, setSortBy] = useState('rating');
   const CERT_TYPES = ['Lead','Chase','High Pole','Bucket Truck','Rear Steer','Survey','Flagger','NY Cert','CSE (Ontario MTO)','BC Pilot Car','WITPAC','TWIC','AZ Cert','CTTS BC/AB','OAPC Ontario','Saskatchewan'];
-  const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','AB','BC','MB','NB','NL','NS','ON','PE','QC','SK','NT','NU','YT'];
-  useEffect(()=>{if(!filterState){setSponsoredEscorts([]);return;}supabase.from('profiles').select('*').eq('role','escort').contains('sponsored_zones',[filterState]).limit(3).then(({data})=>setSponsoredEscorts(data||[]));supabase.from('sponsored_zone_settings').select('*').single().then(({data})=>setSponsoredZoneSettings(data||null));},[filterState]); let escorts: any[] = [...SEED_ESCORTS];
+  const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
+  let escorts: any[] = [...SEED_ESCORTS];
   if (filterState) escorts = escorts.filter(e => e.states?.includes(filterState));
   if (filterCert) escorts = escorts.filter(e => (e.cert_types || e.badges || []).includes(filterCert));
   if (filterAvailNow) escorts = escorts.filter(e => (e as any).is_available !== false);
@@ -1493,7 +1495,7 @@ function EscortsPage({ setPage }: { setPage: (p: Page) => void }) {
           <input type="checkbox" checked={filterBGC} onChange={e => setFilterBGC(e.target.checked)} />
           BGC Badge
         </label>
-      </div> {filterState&&(<div style={{background:'#1a1a1a',border:'1px solid #ff6b00',borderRadius:8,padding:'16px',marginBottom:16}}><div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12}}><span style={{fontSize:16}}>&#x2B50;</span><span style={{color:'#ff6b00',fontWeight:700,fontSize:14}}>Featured Escorts &mdash; {filterState}</span><span style={{marginLeft:'auto',fontSize:11,color:'#888'}}>Sponsored</span></div><div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))',gap:10}}>{Array.from({length:sponsoredZoneSettings?.slots_per_zone||3}).map((_,i)=>{const sc=sponsoredEscorts[i];if(sc)return(<div key={sc.id} style={{background:'#242424',borderRadius:6,padding:12,border:'1px solid #333'}}><div style={{fontWeight:600,fontSize:13,color:'#fff',marginBottom:4}}>{sc.full_name||sc.email}</div>{sc.cert_types&&<div style={{fontSize:11,color:'#aaa',marginBottom:4}}>{(sc.cert_types as string[]).slice(0,2).join(', ')}</div>}<div style={{fontSize:11,color:sc.is_available?'#22c55e':'#888'}}>{sc.is_available?'Available Now':'Not Available'}</div>{sc.bgc_verified&&<div style={{fontSize:10,color:'#ff6b00',marginTop:4}}>BGC Verified</div>}</div>);return(sponsoredZoneSettings?.show_open_slots!==false)&&(<div key={i} style={{background:'transparent',borderRadius:6,padding:12,border:'2px dashed #444',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:80,gap:6}}><div style={{fontSize:12,color:'#888'}}>This spot is open</div><div style={{fontSize:11,color:'#ff6b00'}}>{sponsoredZoneSettings?.promo_text||'$29.99/mo - 1st month free'}</div><button onClick={()=>alert('Sponsored zone checkout coming soon!')} style={{marginTop:4,background:'#ff6b00',color:'#000',border:'none',borderRadius:4,padding:'4px 10px',fontSize:11,cursor:'pointer',fontWeight:600}}>Get Featured</button></div>);})}</div></div>)}
+      </div>
       <div className="esc-grid">
         {escorts.length > 0 ? escorts.map((e) => <EscortCard key={e.id} e={e} setPage={setPage} />) : (
           <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: 40, color: 'var(--t2)' }}>No escorts match your filters.</div>
@@ -1558,7 +1560,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
   profile: Profile | null;
   showToast: (msg: string, type: "gr" | "rd" | "am") => void;
 }) {
-  // Role guard: carriers and freight brokers only  if (profile && (profile.role === 'escort' || profile.role === 'pevo')) { showToast("Only carriers can post loads.", "rd"); setPage("dashboard-e"); return null; }
+  // Role guard: carriers and freight brokers only
   if (!user) {
     return (
       <div style={{ padding: "40px 24px", textAlign: "center" }}>
@@ -1589,7 +1591,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
   const [overnightRate] = useState('100');
     const [escortCount, setEscortCount] = useState(1);
       
-        const [showPreTrip, setShowPreTrip] = useState(false); const [postLoadSponsored, setPostLoadSponsored] = useState<any[]>([]); const [postLoadZoneSettings, setPostLoadZoneSettings] = useState<any>(null);
+        const [showPreTrip, setShowPreTrip] = useState(false);
   // Auto-rate: >250mi = $2/mi, <=250mi = $500/day
   useEffect(() => {
     const m = parseFloat(form.miles);
@@ -1597,7 +1599,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
       if (m > 250) setForm(f => ({ ...f, rate: '2.00' }));
       else setForm(f => ({ ...f, dayRate: '500' }));
     }
-  }, [form.miles]); useEffect(()=>{if(!form.puState){setPostLoadSponsored([]);return;}supabase.from('profiles').select('*').eq('role','escort').contains('sponsored_zones',[form.puState]).limit(3).then(({data}:any)=>setPostLoadSponsored(data||[]));supabase.from('sponsored_zone_settings').select('*').single().then(({data}:any)=>setPostLoadZoneSettings(data||null));},[form.puState]);
+  }, [form.miles]);
   const estPay = (() => {
     const m = parseFloat(form.miles); const r = parseFloat(form.rate);
     if (!isNaN(m) && !isNaN(r) && m > 0 && r > 0) return (m * r).toFixed(2);
@@ -1691,7 +1693,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
       
     <div className="postload-wrap">
           {showPreTrip && (<div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.75)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}><div className="card" style={{ maxWidth: 460, width: '100%', maxHeight: '80vh', overflowY: 'auto' }}><div className="bb" style={{ fontSize: 20, marginBottom: 12 }}>Pre-Trip Checklist</div><p className="mo" style={{ fontSize: 11, color: 'var(--t2)', marginBottom: 16 }}>Your load has been posted! Review these steps before your escort arrives.</p><ol style={{ paddingLeft: 20, fontSize: 12, lineHeight: '2', color: 'var(--t2)' }}><li>Confirm all permits are valid and on board</li><li>Verify load dimensions match your permit</li><li>Check route for closures or restrictions</li><li>Confirm your escort contact info is correct</li><li>Ensure vehicle lights and flags are ready</li><li>Review curfew windows for each state on route</li><li>Have emergency contact numbers available</li></ol><button className="btn btn-prime" style={{ width: '100%', marginTop: 16 }} onClick={() => { setShowPreTrip(false); setPage('flatboard'); }}>Got it - View My Loads</button></div></div>)}
-      <div className="bb" style={{ fontSize: 28, marginBottom: 4 }}>POST A LOAD</div> {form.puState&&(postLoadSponsored.length>0||(postLoadZoneSettings?.show_open_slots!==false))&&(<div style={{background:'#1a1a1a',border:'1px solid #ff6b00',borderRadius:8,padding:14,marginBottom:16}}><div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}><span>&#x2B50;</span><span style={{color:'#ff6b00',fontWeight:700,fontSize:13}}>Escorts Licensed in {form.puState}</span><span style={{marginLeft:'auto',fontSize:11,color:'#888'}}>Sponsored</span></div><div style={{display:'flex',gap:8,flexWrap:'wrap'}}>{Array.from({length:postLoadZoneSettings?.slots_per_zone||3}).map((_,i)=>{const sc=postLoadSponsored[i];if(sc)return(<div key={sc.id} style={{background:'#242424',borderRadius:6,padding:10,border:'1px solid #333',minWidth:140,flex:1}}><div style={{fontWeight:600,fontSize:12,color:'#fff',marginBottom:3}}>{sc.full_name||sc.email}</div>{sc.cert_types&&<div style={{fontSize:11,color:'#aaa'}}>{(sc.cert_types as string[]).slice(0,2).join(', ')}</div>}<div style={{fontSize:11,color:sc.is_available?'#22c55e':'#888',marginTop:3}}>{sc.is_available?'Available':'Unavailable'}</div></div>);return(postLoadZoneSettings?.show_open_slots!==false)&&(<div key={i} style={{background:'transparent',borderRadius:6,padding:10,border:'2px dashed #444',minWidth:140,flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:4}}><div style={{fontSize:11,color:'#888'}}>Open slot</div><div style={{fontSize:11,color:'#ff6b00'}}>{postLoadZoneSettings?.promo_text||'$29.99/mo'}</div><button onClick={()=>alert('Sponsored zone purchase coming soon!')} style={{background:'#ff6b00',color:'#000',border:'none',borderRadius:4,padding:'3px 8px',fontSize:10,cursor:'pointer',fontWeight:600}}>Get Featured</button></div>);})}</div></div>)}
+      <div className="bb" style={{ fontSize: 28, marginBottom: 4 }}>POST A LOAD</div>
       <p className="mo" style={{ fontSize: 10, color: "var(--t2)", marginBottom: 16 }}>Free for all carriers. Choose your board type.</p>
       <div style={{ background: "rgba(0,204,122,.07)", border: "1px solid rgba(0,204,122,.2)", borderRadius: 3, padding: "10px 16px", marginBottom: 24 }} className="mo">
         <span style={{ fontSize: 10, color: "var(--gr)" }}>Standard Rates: </span>
@@ -1881,7 +1883,7 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
   const [zonesSaving, setZonesSaving] = useState(false)
   const [zonesMsg, setZonesMsg] = useState('')
   const [notifStates, setNotifStates] = useState<string[]>((profile?.notification_states as string[]) || [])
-  const US_STATES_ALL = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','AB','BC','MB','NB','NL','NS','ON','PE','QC','SK','NT','NU','YT']
+  const US_STATES_ALL = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY']
   const [avatarUploading, setAvatarUploading] = useState(false)
   const avatarFileRef = useRef<HTMLInputElement>(null)
   async function handleAvatarUpload() {
@@ -1905,29 +1907,12 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
     setZonesMsg('Saved!'); setZonesSaving(false)
     setTimeout(() => setZonesMsg(''), 3000)
   }
-  const tabs: { id: string; label: string }[] = [
+  const tabs = [
     { id: "overview", label: "Overview" }, { id: "loads", label: "Available Loads" },
     { id: "dh", label: "Deadhead Minimizer" }, { id: "jobs", label: "My Jobs" },
     { id: "certs", label: "Certifications" }, { id: "dispute", label: "Dispute Center" },
     { id: "zones", label: "My States & Photo" },
   ];
-
-  async function handleManageSubscription() {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { alert('Not logged in.'); return }
-      const res = await fetch('/api/portal', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id })
-      })
-      const data = await res.json()
-      if (data.url) window['location']['href'] = data.url
-      else alert(data.error || 'Could not open subscription portal.')
-    } catch (e: any) {
-      alert('Error opening portal: ' + e.message)
-    }
-  }
 
   return (
     <div className="dash-grid">
@@ -1943,14 +1928,8 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
           <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 2 }}>{profile?.full_name || "Your Name"}</div>
           <div className="mo" style={{ fontSize: 9, color: "var(--t2)" }}>{profile?.company_name || "No company set"}</div>
           {profile?.tier === "free" && (
-            <button className="btn btn-am btn-sm" style={{ marginTop: 12, width: "100%", fontSize: 8 }} onClick={() => setPage("pricing")}>Upgrade to Pro →</button>)}
-              {(profile?.tier === 'pro' || profile?.tier === 'member') && (
-                <button
-                  className="btn btn-ghost btn-sm"
-                  style={{ marginTop: 8, fontSize: 11, color: 'var(--t2)' }}
-                  onClick={handleManageSubscription}
-                >Manage Subscription</button>
-              )}
+            <button className="btn btn-am btn-sm" style={{ marginTop: 12, width: "100%", fontSize: 8 }} onClick={() => setPage("pricing")}>Upgrade to Pro →</button>
+          )}
         </div>
       </div>
       <div className="dash-content">
@@ -2236,26 +2215,11 @@ function CarrierDashPage({ setPage, user, profile, showToast }: { setPage: (p: P
 
   if (!user) return <div style={{ padding: 40, textAlign: 'center' }}>Please sign in to access your Carrier Hub.</div>
 
-  const tabs: { id: string; label: string }[] = [
+  const tabs = [
     { id: 'active', label: 'My Active Loads' },
     { id: 'requests', label: `Match Requests${matchRequests.length > 0 ? ` (${matchRequests.length})` : ''}` },
     { id: 'history', label: 'Load History' },
-  ];
-
-  async function handleManageSubscription() {
-    try {
-      const res = await fetch('/api/portal', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user?.id })
-      })
-      const data = await res.json()
-      if (data.url) window['location']['href'] = data.url
-      else alert(data.error || 'Could not open subscription portal.')
-    } catch (e: any) {
-      alert('Error opening portal: ' + e.message)
-    }
-  }
+  ]
 
   return (
     <div className="dash-grid">
@@ -2548,18 +2512,7 @@ function VerificationPage() {
   );
 }
 
-// ─── SIGN IN PAGE ─────────────────────────────────────────────────────────────────
-function ConfirmSignupModal({onClose}:{onClose:()=>void}) {
-  return (
-    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.85)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center"}}>
-      <div style={{background:"#1a1a1a",border:"1px solid #ff6b00",borderRadius:12,padding:32,maxWidth:400,width:"90%",textAlign:"center"}}>
-        <div style={{fontSize:28,marginBottom:12}}>Almost there!</div>
-        <p style={{color:"var(--t2)",marginBottom:24,lineHeight:1.6}}>Check your email for a confirmation link. Click it to activate your account before signing in.</p>
-        <button className="btn" onClick={onClose} style={{background:"#ff6b00",color:"#000",padding:"12px 32px",fontSize:16,fontWeight:700,width:"100%",border:"none",borderRadius:8,cursor:"pointer"}}>Got it</button>
-      </div>
-    </div>
-  );
-}
+// ─── SIGN IN PAGE ─────────────────────────────────────────────────────────────
 
 function SignInPage({ setPage, showToast }: { setPage: (p: Page) => void; showToast: (msg: string, type: "gr" | "rd" | "am") => void }) {
   const [mode, setMode] = useState<"signup" | "signin">("signup");
@@ -2570,7 +2523,7 @@ function SignInPage({ setPage, showToast }: { setPage: (p: Page) => void; showTo
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [smsOptIn, setSmsOptIn] = useState(false);
-  const [termsOptIn, setTermsOptIn] = useState(false); const [showConfirmModal, setShowConfirmModal] = useState(false); const [dotNumber, setDotNumber] = useState(""); const [fmcsaInfo, setFmcsaInfo] = useState<{verified:boolean,name:string}|null>(null);
+  const [termsOptIn, setTermsOptIn] = useState(false);
 
   async function handleForgotPassword() {
     if (!email) { showToast("Enter your email address first", "rd"); return; }
@@ -2587,7 +2540,7 @@ function SignInPage({ setPage, showToast }: { setPage: (p: Page) => void; showTo
         options: { data: { full_name: fullName, company_name: company, role }, emailRedirectTo: `${window.location.origin}/auth/callback` },
       });
       if (error) showToast(error.message, "rd");
-      else{setShowConfirmModal(true);if(role==="carrier"&&dotNumber){try{const r=await fetch(`https://mobile.fmcsa.dot.gov/qc/services/carriers/${dotNumber}?webKey=33623f44d36bdfb1d332edc6ec7f91dcc059a2fd`);const j=await r.json();const c=j?.content?.carrier;if(c){setFmcsaInfo({verified:true,name:c.legalName||c.dbaName||''});}}catch(e){}}}
+      else showToast("Check your email to confirm your account!", "gr");
     } else {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) showToast(error.message, "rd");
@@ -2600,7 +2553,7 @@ function SignInPage({ setPage, showToast }: { setPage: (p: Page) => void; showTo
   }
 
   return (
-    <div className="signin-wrap">{showConfirmModal&&<ConfirmSignupModal onClose={()=>setShowConfirmModal(false)}/>}
+    <div className="signin-wrap">
       <div className="signin-box">
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 24 }}>
           <img src="/logo.png" alt="OEH" style={{ width: 36, height: 36, objectFit: "contain" }} />
@@ -2632,13 +2585,12 @@ function SignInPage({ setPage, showToast }: { setPage: (p: Page) => void; showTo
           <label className="form-label">Password</label>
           <input type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} />
         </div>
-        {mode === "signup" && (<>
+        {mode === "signup" && (
           <div className="form-field">
             <label className="form-label">Company / Business Name (optional)</label>
             <input type="text" placeholder="Your company name" value={company} onChange={(e) => setCompany(e.target.value)} />
           </div>
-        {role==="carrier"&&(<div className="form-field"><label className="form-label">DOT Number <span className="mo" style={{fontSize:10,color:'var(--or)',fontWeight:400}}>(for FMCSA verification)</span></label><input type="text" inputMode="numeric" placeholder="e.g. 1234567" value={dotNumber} onChange={(e)=>setDotNumber(e.target.value.replace(/\D/g,''))} style={{width:'100%'}} />{fmcsaInfo&&<p className="mo" style={{fontSize:10,color:'var(--gr)',marginTop:4}}>FMCSA Verified: {fmcsaInfo.name}</p>}</div>)}
-        </>)}
+        )}
         <button className="btn btn-or" style={{ width: "100%", justifyContent: "center", marginBottom: 12 }} onClick={handleSubmit} disabled={loading || !email || !password}>
           {loading ? "Please wait..." : mode === "signup" ? "Create Free Account →" : "Sign In →"}
         </button>
@@ -2754,7 +2706,7 @@ function ExpensesPage({ setPage, user, profile }: any) { return <Stub title="Exp
 function JobHistoryPage({ setPage }: any) { return <Stub title="Job History" icon="📋" desc="View all completed loads, earnings per job, and carrier history. Syncs automatically from OEH load board." back="tools" setPage={setPage} />; }
 function PermitHubPage({ setPage, user, profile }: any) { return <Stub title="Permit Hub" icon="📄" desc="Carriers upload permits to your load. You get an instant SMS the moment they upload — even if it happens 6am day of load." back="tools" setPage={setPage} />; }
 function DeadheadPage({ setPage, profile }: any) {
-  const isPro = profile?.subscription_tier === "pro" || profile?.role === 'admin'
+  const isPro = profile?.subscription_tier === "pro"
   const [mode, setMode] = useState<"single" | "fleet">("single")
   const [location, setLocation] = useState("")
   const [searching, setSearching] = useState(false)
@@ -2849,13 +2801,6 @@ function DeadheadPage({ setPage, profile }: any) {
               The Deadhead Minimizer and Fleet Manager Tools are available on Pro. The average escort recovers <strong style={{ color: "#fff" }}>$4,800/year</strong> with this feature.
             </p>
             <button style={{ ...S.btn, fontSize: 16 }} onClick={() => setPage("pricing")}>Upgrade to Pro — $29.99/mo</button>
-              {(profile?.tier === 'pro' || profile?.tier === 'member' || profile?.tier === 'carrier_member') && (
-                <button
-                  className="btn btn-ghost btn-sm"
-                  style={{ marginTop: 8, fontSize: 11, color: 'var(--t2)' }}
-                  onClick={async () => { try { const res = await fetch('/api/portal', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({userId:profile?.id}) }); const data = await res.json(); if(data.url) window.location.href=data.url; else alert(data.error||'Portal unavailable.'); } catch(e:any){alert('Error: '+e.message)} }}
-                >Manage Subscription</button>
-              )}
           </div>
         ) : (
           <>
@@ -3003,7 +2948,7 @@ function AdminPage({ setPage, user, profile }: any) {
   // BGC_ADMIN_HOOK
   const [bgcQueue, setBgcQueue] = useState<any[]>([])
   const [bgcTab, setBgcTab] = useState(false)
-    const [adminStats, setAdminStats] = useState<Record<string,number>>({}); const [verifyQueue, setVerifyQueue] = useState<any[]>([]); const [editTarget, setEditTarget] = useState<any>(null); const [adminTab, setAdminTab] = useState<'bgc'|'verify'|'zones'|'stats'>('bgc'); const [zoneSettings, setZoneSettings] = useState<any>({zone_price:29.99,slots_per_zone:3,first_month_free:true,promo_text:'$29.99/mo - 1st month free',canadian_zones:true,show_open_slots:true}); const [zoneSlots, setZoneSlots] = useState<any[]>([]); const [zoneSaving, setZoneSaving] = useState(false);
+    const [adminStats, setAdminStats] = useState<Record<string,number>>({});
   async function fetchBgcQueue() {
     const { data } = await supabase.from('profiles').select('*').eq('bgc_pending', true)
     setBgcQueue(data || [])
@@ -3028,12 +2973,7 @@ function AdminPage({ setPage, user, profile }: any) {
     try{await fetch('/api/sms/bgc-status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:id,status:'denied'})})}catch(e){}
     fetchBgcQueue()
   }
-  async function fetchVerifyQueue(){const{data}=await supabase.from('profiles').select('*').eq('verify_pending',true);setVerifyQueue(data||[])}
-  async function acceptVerification(id:string,email:string,name:string){await supabase.from('profiles').update({p_evo_verified:true,verify_pending:false}).eq('id',id);try{await fetch('/api/send-verification-email',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({to:email,name,status:'approved'})})}catch(e){}fetchVerifyQueue()}
-  async function declineVerification(id:string,email:string,name:string){await supabase.from('profiles').update({verify_pending:false}).eq('id',id);try{await fetch('/api/send-verification-email',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({to:email,name,status:'declined'})})}catch(e){}fetchVerifyQueue()}
-  useEffect(() => { fetchBgcQueue(); fetchAdminStats(); fetchVerifyQueue(); fetchZoneSettings(); }, [])
-  async function fetchZoneSettings(){supabase.from('sponsored_zone_settings').select('*').single().then(({data}:any)=>{if(data)setZoneSettings(data);}); supabase.from('profiles').select('id,full_name,email,sponsored_zones').eq('role','escort').not('sponsored_zones','is',null).then(({data}:any)=>setZoneSlots(data||[]));}
-  async function saveZoneSettings(){setZoneSaving(true);await supabase.from('sponsored_zone_settings').upsert({id:1,...zoneSettings});setZoneSaving(false);alert('Zone settings saved!');}
+  useEffect(() => { fetchBgcQueue(); fetchAdminStats(); }, [])
 
   if (!user || profile?.role !== "admin") {
     return (
@@ -3084,40 +3024,6 @@ function AdminPage({ setPage, user, profile }: any) {
         <button className="btn btn-sm" style={{ background: 'var(--rd)', color: '#fff' }} onClick={() => denyBgc(p.id)}>✕ Deny</button>
         </div>
         )))}
-        <div style={{marginTop:24}}>
-          <div className="bb" style={{fontSize:15,marginBottom:12,cursor:'pointer'}} onClick={()=>fetchVerifyQueue()}>
-            Verification Queue {verifyQueue.length>0?('('+verifyQueue.length+')'):''}: 
-          </div>
-          {verifyQueue.length===0?(
-            <p className="mo" style={{fontSize:11,color:'var(--t2)'}}>No pending verifications.</p>
-          ):verifyQueue.map(p=>(
-            <div key={p.id} className="card" style={{padding:16,marginBottom:8,display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}}>
-              <div style={{flex:1}}>
-                <div className="mo" style={{fontSize:12,fontWeight:600}}>{p.full_name||p.email}</div>
-                <div className="mo" style={{fontSize:10,color:'var(--t2)'}}>{p.email}</div>
-                {p.verify_doc_url&&<a href={p.verify_doc_url} target="_blank" className="mo" style={{fontSize:10,color:'var(--bl)'}}>View Document</a>}
-              </div>
-              <button className="btn btn-am btn-sm" onClick={()=>acceptVerification(p.id,p.email,p.full_name||'')}>Accept</button>
-              <button className="btn btn-sm" style={{background:'var(--rd)',color:'#fff'}} onClick={()=>declineVerification(p.id,p.email,p.full_name||'')}>Decline</button>
-              <button className="btn btn-ghost btn-sm" onClick={()=>setEditTarget(p)}>Edit User</button>
-            </div>
-          ))}
-        </div>
-        {editTarget&&(
-          <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',zIndex:9999,display:'flex',alignItems:'center',justifyContent:'center'}}>
-            <div className="card" style={{padding:32,minWidth:320,maxWidth:400,width:'90%'}}>
-              <div className="bb" style={{fontSize:18,marginBottom:16}}>Edit User</div>
-              <p className="mo" style={{fontSize:12,marginBottom:8,color:'var(--t2)'}}>{editTarget.email}</p>
-              <select style={{width:'100%',marginBottom:8,padding:'8px',background:'var(--card)',color:'var(--t1)',border:'1px solid var(--l1)',borderRadius:6}} defaultValue={editTarget.tier||'free'} onChange={async(e)=>{await supabase.from('profiles').update({tier:e.target.value}).eq('id',editTarget.id);setEditTarget(null);}}>
-                <option value="free">Free Trial</option>
-                <option value="member">Member</option>
-                <option value="pro">Pro</option>
-                <option value="carrier">Carrier</option>
-              </select>
-              <button className="btn btn-ghost btn-sm" style={{marginTop:8,width:'100%'}} onClick={()=>setEditTarget(null)}>Cancel</button>
-            </div>
-          </div>
-        )}
         </div>
         </div>
       </div>
@@ -3238,7 +3144,7 @@ export default function OEHPlatform() {
   return (
     <>
       <style>{CSS}</style>
-      <Ticker /><LaunchBanner />
+      <Ticker />
       <PushInit userId={user?.id} />
       <Nav page={page} setPage={setPage} user={user} profile={profile} onSignOut={handleSignOut} unreadCount={unreadCount} />
       {page === "home" && <HomePage setPage={setPage} user={user} profile={profile} />}
