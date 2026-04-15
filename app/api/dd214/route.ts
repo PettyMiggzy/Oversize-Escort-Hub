@@ -1,3 +1,4 @@
+import { sendEmail } from '@/lib/email';
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
@@ -33,13 +34,9 @@ export async function POST(req: NextRequest) {
   // Mark pending in profiles
   await svc.from("profiles").update({ dd214_pending: true, dd214_url: publicUrl } as any).eq("id", userId);
 
-  // Email to verify@oversize-escort-hub.com via Resend
   if (process.env.RESEND_API_KEY) {
-    const { Resend } = await import("resend");
-    const resend = new Resend(process.env.RESEND_API_KEY);
-    await resend.emails.send({
-      from: "OEH System <noreply@oversize-escort-hub.com>",
-      to: ["verify@oversize-escort-hub.com"],
+
+    await sendEmail({to: ["verify@oversize-escort-hub.com"],
       subject: `DD-214 Submission — User ${userId}`,
       html: `
         <div style="font-family:sans-serif;background:#f4f4f4;padding:20px;">
