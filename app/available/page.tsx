@@ -82,7 +82,7 @@ export default function AvailabilityBoardPage() {
           <p style={{ color: "#9ca3af", fontSize: 13 }}>Pro escorts post availability. Pro carriers can send load alerts.</p>
         </div>
 
-        {profile && ["pro", "member"].includes(profile.tier) && (
+        {profile && (profile.role === "admin" || ["pro", "member"].includes(profile.tier)) && (
           <div style={card}>
             <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Post Your Availability</h2>
             {posted ? (
@@ -138,7 +138,7 @@ export default function AvailabilityBoardPage() {
                         {entry.profiles?.tier?.toUpperCase() || "ESCORT"}
                       </span>
                     </div>
-                    {profile && (profile.tier === "pro" || profile.role === "carrier") && (
+                    {profile && (profile.role === "admin" || profile.tier === "pro" || profile.role === "carrier") && (
                       <button onClick={() => sendLoadAlert(entry.escort_id)} style={btn("#3b82f6")}>Send Load Alert</button>
                     )}
                   </div>
