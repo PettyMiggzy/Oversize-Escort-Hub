@@ -1,37 +1,61 @@
-import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-
-export const dynamic = 'force-dynamic'
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { NextRequest, NextResponse } from 'next/server';
+import { createBrowserClient } from '@supabase/ssr';
+import { checkTierAccess } from '@/lib/tier-access';
 
 export async function POST(req: NextRequest) {
-  const { load_id, reviewer_id, reviewee_id, rating, body } = await req.json();
-  if (!load_id || !reviewer_id || !reviewee_id || !rating) {
-    return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+  try {
+    const body = await req.json();
+    const { userId, email, role, targetUserId, rating, comment } = body;
+
+    const hasAccess = await checkTierAccess(userId, email, 'member', role);
+    if (!hasAccess) {
+      return NextResponse.json({ error: 'Upgrade to access reviews' }, { status: 403 });
+    }
+
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+
+    const { data, error } = await supabase
+      .from('reviews')
+      .insert({
+        reviewer_id: userId,
+        target_user_id: targetUserId,
+        rating,
+        comment,
+        created_at: new Date().toISOString(),
+      });
+
+    if (error) throw error;
+    return NextResponse.json({ success: true, review: data });
+  } catch (error) {
+    console.error('Review error:', error);
+    return NextResponse.json({ error: 'Failed to submit review' }, { status: 500 });
   }
-  if (rating < 1 || rating > 5) {
-    return NextResponse.json({ error: "Rating must be 1-5" }, { status: 400 });
-  }
-  const { error } = await supabase.from("reviews").insert({
-    load_id, reviewer_id, reviewee_id, rating, body,
-  });
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ ok: true });
 }
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const profile_id = searchParams.get("profile_id");
-  if (!profile_id) return NextResponse.json({ error: "profile_id required" }, { status: 400 });
-  const { data, error } = await supabase
-    .from("reviews")
-    .select("id, rating, body, created_at, reviewer_id, profiles!reviewer_id(full_name, avatar_url)")
-    .eq("reviewee_id", profile_id)
-    .order("created_at", { ascending: false });
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ reviews: data });
+  try {
+    const userId = req.nextUrl.searchParams.get('userId');
+    if (!userId) {
+      return NextResponse.json({ error: 'Missing userId' }, { status: 400 });
+    }
+
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+
+    const { data, error } = await supabase
+      .from('reviews')
+      .select('*')
+      .eq('target_user_id', userId);
+
+    if (error) throw error;
+    return NextResponse.json({ reviews: data });
+  } catch (error) {
+    console.error('Get reviews error:', error);
+    return NextResponse.json({ error: 'Failed to fetch reviews' }, { status: 500 });
+  }
 }

@@ -1,0 +1,51 @@
+FINAL BUILD SUMMARY
+
+Expression expected
+
+
+./app/api/jobs/log/route.ts:91:7
+Parsing ecmascript source code failed
+[0m [90m 89 |[39m       }
+ [90m 90 |[39m }
+[31m[1m>[22m[39m[90m 91 |[39m       }
+ [90m    |[39m       [31m[1m^[22m[39m
+ [90m 92 |[39m                                                                             }
+ [90m 93 |[39m                                                             })
+ [90m 94 |[39m                                                         })[0m
+
+Expression expected
+
+
+./app/api/veteran/dd214-submit/route.ts:87:7
+Parsing ecmascript source code failed
+[0m [90m 85 |[39m       }
+ [90m 86 |[39m }
+[31m[1m>[22m[39m[90m 87 |[39m       }
+ [90m    |[39m       [31m[1m^[22m[39m
+ [90m 88 |[39m                                                                           })
+ [90m 89 |[39m                             }
+ [90m 90 |[39m                     }[0m
+
+Expression expected
+
+
+./app/api/webhook/stripe/route.ts:70:11
+Parsing ecmascript source code failed
+[0m [90m 68 |[39m           }
+ [90m 69 |[39m }
+[31m[1m>[22m[39m[90m 70 |[39m           }
+ [90m    |[39m           [31m[1m^[22m[39m
+ [90m 71 |[39m                                                                                     }
+ [90m 72 |[39m                         }
+ [90m 73 |[39m                     }[0m
+
+Expression expected
+
+
+    at <unknown> (./app/api/bgc-badge/approve/route.ts:66:7)
+    at <unknown> (./app/api/bgc-badge/submit/route.ts:50:7)
+    at <unknown> (./app/api/escort/cert-upload/route.ts:84:7)
+    at <unknown> (./app/api/invoices/create/route.ts:72:7)
+    at <unknown> (./app/api/jobs/log/route.ts:91:7)
+    at <unknown> (./app/api/veteran/dd214-submit/route.ts:87:7)
+    at <unknown> (./app/api/webhook/stripe/route.ts:70:11)
