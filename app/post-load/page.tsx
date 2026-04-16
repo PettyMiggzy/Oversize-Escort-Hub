@@ -205,7 +205,8 @@ export default function PostLoadPage() {
                 <div style={grp}>
                   <label style={lbl}>Rate (auto-calculated)</label>
                   <div style={{ ...inp, color: '#f60', fontWeight: 700 }}>
-                    {estimatedRate > 0 ? `$${estimatedRate} ${pickupState === destState ? '(under 250mi day rate)' : '(250+ mi day rate)'}` : 'Enter locations above'}
+                    {estimatedRate > 0 ? `Suggested: $${estimatedRate.toLocaleString()} ${estimatedMiles >= 250 ? `($2.00/mi × ~${estimatedMiles}mi)` : '($500 flat day rate — under 250mi)'}` : 'Enter pickup & destination to auto-calculate'}
+                  {estimatedRate > 0 && <div style={{ color: '#9ca3af', fontSize: 11, marginTop: 4 }}>$250 no-go fee standard · $100–120 overnight standard</div>}
                   </div>
                 </div>
               </div>
