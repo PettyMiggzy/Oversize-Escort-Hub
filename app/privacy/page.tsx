@@ -1,3 +1,17 @@
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy | Oversize Escort Hub',
+  description: 'Read the Privacy Policy for Oversize Escort Hub.',
+  openGraph: {
+    title: 'Privacy Policy | Oversize Escort Hub',
+    description: 'Read the Privacy Policy for Oversize Escort Hub.',
+    url: 'https://www.oversize-escort-hub.com/privacy',
+    siteName: 'Oversize Escort Hub',
+  },
+}
+
+
 "use client";
 
 export default function PrivacyPolicy() {

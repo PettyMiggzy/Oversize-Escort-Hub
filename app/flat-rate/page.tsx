@@ -2,6 +2,20 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Flat Rate Board | Oversize Escort Hub',
+  description: 'Browse flat-rate escort loads posted by carriers. Instant claim, no bidding required.',
+  openGraph: {
+    title: 'Flat Rate Board | Oversize Escort Hub',
+    description: 'Browse flat-rate escort loads posted by carriers. Instant claim, no bidding required.',
+    url: 'https://www.oversize-escort-hub.com/flat-rate',
+    siteName: 'Oversize Escort Hub',
+  },
+}
+
+
 
 interface Load {
   id: string;

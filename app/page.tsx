@@ -3,6 +3,20 @@ import PushInit from './components/PushInit'
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Oversize Escort Hub | Connect P/EVO Escorts with Carriers',
+  description: 'Find licensed pilot car escorts or post oversize loads. The premier marketplace for P/EVO escorts and oversize carriers.',
+  openGraph: {
+    title: 'Oversize Escort Hub | Connect P/EVO Escorts with Carriers',
+    description: 'Find licensed pilot car escorts or post oversize loads. The premier marketplace for P/EVO escorts and oversize carriers.',
+    url: 'https://www.oversize-escort-hub.com/',
+    siteName: 'Oversize Escort Hub',
+  },
+}
+
+
 
 // ─── TYPES ───────────────────────────────────────────────────────────────────
 

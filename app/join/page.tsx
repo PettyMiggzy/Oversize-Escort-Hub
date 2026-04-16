@@ -3,6 +3,20 @@
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";   // Change this path if your supabase client is elsewhere
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Join | Oversize Escort Hub',
+  description: 'Create your free account as a P/EVO escort or oversize carrier on Oversize Escort Hub.',
+  openGraph: {
+    title: 'Join | Oversize Escort Hub',
+    description: 'Create your free account as a P/EVO escort or oversize carrier on Oversize Escort Hub.',
+    url: 'https://www.oversize-escort-hub.com/join',
+    siteName: 'Oversize Escort Hub',
+  },
+}
+
+
 
 function JoinInner() {
   const params = useSearchParams();

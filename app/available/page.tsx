@@ -1,6 +1,20 @@
 "use client"
 import { useEffect, useState } from "react"
 import { createClient } from "@supabase/supabase-js"
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Availability Zones | Oversize Escort Hub',
+  description: 'Set your availability zones to get matched with loads in your area automatically.',
+  openGraph: {
+    title: 'Availability Zones | Oversize Escort Hub',
+    description: 'Set your availability zones to get matched with loads in your area automatically.',
+    url: 'https://www.oversize-escort-hub.com/available',
+    siteName: 'Oversize Escort Hub',
+  },
+}
+
+
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

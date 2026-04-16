@@ -1,3 +1,17 @@
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Terms of Service | Oversize Escort Hub',
+  description: 'Read the Terms of Service for Oversize Escort Hub.',
+  openGraph: {
+    title: 'Terms of Service | Oversize Escort Hub',
+    description: 'Read the Terms of Service for Oversize Escort Hub.',
+    url: 'https://www.oversize-escort-hub.com/terms',
+    siteName: 'Oversize Escort Hub',
+  },
+}
+
+
 export default function TermsOfService() {
   return (
     <div style={{ background: "#0a0a0a", minHeight: "100vh", color: "#ccc", fontFamily: "sans-serif" }}>

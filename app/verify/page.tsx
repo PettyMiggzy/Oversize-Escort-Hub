@@ -1,6 +1,20 @@
 "use client"
 import { useRef, useState } from "react"
 import { supabase } from "@/lib/supabase"
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Verification | Oversize Escort Hub',
+  description: 'Get verified with a BGC badge or upload your DD-214 for a veteran discount on OEH.',
+  openGraph: {
+    title: 'Verification | Oversize Escort Hub',
+    description: 'Get verified with a BGC badge or upload your DD-214 for a veteran discount on OEH.',
+    url: 'https://www.oversize-escort-hub.com/verify',
+    siteName: 'Oversize Escort Hub',
+  },
+}
+
+
 
 const TIERS = [
   {
