@@ -1,97 +1,91 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+'use client';
+import { useState, useEffect } from 'react';
+import { createClient } from '@/lib/supabase';
 
 interface Load {
   id: string;
-  created_at: string;
-  escort_type: string;
+  expires_at: string;
+  pickup_city: string;
+  destination_city: string;
   rate: number;
+  escort_type: string;
+  created_at: string;
   status: string;
-  origin_city?: string;
-  origin_state?: string;
-  dest_city?: string;
-  dest_state?: string;
 }
 
 export default function BidBoard() {
   const [loads, setLoads] = useState<Load[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [timers, setTimers] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
     const fetchLoads = async () => {
-      try {
-        const supabase = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
-        );
-
-        const { data, error } = await supabase
-          .from("loads")
-          .select("*")
-          .eq("board_type", "bid-board")
-          .eq("status", "open");
-
-        if (error) {
-          console.error("Error fetching loads:", error);
-        } else {
-          setLoads(data || []);
-        }
-      } catch (err) {
-        console.error("Fetch error:", err);
-      } finally {
-        setLoading(false);
-      }
+      const supabase = createClient();
+      const { data } = await supabase
+        .from('loads')
+        .select('*')
+        .eq('board_type', 'bid')
+        .eq('status', 'open')
+        .order('created_at', { ascending: false });
+      
+      if (data) setLoads(data);
     };
 
     fetchLoads();
   }, []);
 
-  if (loading) {
-    return (
-      <div style={{ padding: "20px", textAlign: "center" }}>
-        Loading...
-      </div>
-    );
-  }
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimers((prev) => {
+        const updated = { ...prev };
+        loads.forEach((load) => {
+          const expiresAt = new Date(load.expires_at).getTime();
+          const now = new Date().getTime();
+          const diff = expiresAt - now;
 
-  if (loads.length === 0) {
-    return (
-      <div style={{ padding: "20px", textAlign: "center" }}>
-        No loads posted yet.
-      </div>
-    );
-  }
+          if (diff <= 0) {
+            updated[load.id] = 'EXPIRED';
+          } else {
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            updated[load.id] = `${hours}h ${minutes}m ${seconds}s`;
+          }
+        });
+        return updated;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [loads]);
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>Bid Board</h1>
-      <div style={{ marginTop: "20px" }}>
+    <div style={{ padding: '20px', background: '#060b16', color: '#e0e0e0', minHeight: '100vh' }}>
+      <h1 style={{ color: '#f0a500' }}>Bid Board</h1>
+      <div style={{ display: 'grid', gap: '16px' }}>
         {loads.map((load) => (
           <div
             key={load.id}
             style={{
-              border: "1px solid #ccc",
-              padding: "15px",
-              marginBottom: "15px",
-              borderRadius: "4px",
+              background: '#0d1117',
+              padding: '16px',
+              borderRadius: '8px',
+              borderLeft: '4px solid #f0a500',
             }}
           >
-            <p>
-              <strong>Route:</strong> {load.origin_city}, {load.origin_state} →{" "}
-              {load.dest_city}, {load.dest_state}
-            </p>
-            <p>
-              <strong>Escort Type:</strong> {load.escort_type}
-            </p>
-            <p>
-              <strong>Rate:</strong> ${load.rate.toLocaleString()}
-            </p>
-            <p>
-              <strong>Posted:</strong>{" "}
-              {new Date(load.created_at).toLocaleDateString()}
-            </p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+              <div>
+                <h3 style={{ margin: '0 0 8px', color: '#f0a500' }}>
+                  {load.pickup_city} → {load.destination_city}
+                </h3>
+                <p style={{ margin: '0 0 4px', fontSize: '14px' }}>Type: {load.escort_type}</p>
+                <p style={{ margin: '0 0 4px', fontSize: '14px' }}>Rate: ${load.rate}</p>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: '18px', fontWeight: 'bold', color: timers[load.id] === 'EXPIRED' ? '#ff6b6b' : '#4ade80' }}>
+                  {timers[load.id] || 'Loading...'}
+                </div>
+              </div>
+            </div>
           </div>
         ))}
       </div>

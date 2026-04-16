@@ -1,308 +1,195 @@
 'use client';
-
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
-
-type AdminTab =
-  | 'users' | 'bgc' | 'certs' | 'verification'
-  | 'sponsored' | 'disputes' | 'flags' | 'revenue'
-  | 'refunds' | 'loads' | 'sms' | 'settings';
-
-interface Submission {
-  id: string;
-  status: string;
-  created_at: string;
-  pdf_url: string;
-  label: string;
-  type: string;
-}
-
-const NAV_TABS: { key: AdminTab; label: string }[] = [
-  { key: 'users',        label: 'Users' },
-  { key: 'bgc',          label: 'BGC Queue' },
-  { key: 'certs',        label: 'Certs Queue' },
-  { key: 'verification', label: 'Verification Queue' },
-  { key: 'sponsored',    label: 'Sponsored Zones' },
-  { key: 'disputes',     label: 'Disputes' },
-  { key: 'flags',        label: 'Flags / Reports' },
-  { key: 'revenue',      label: 'Revenue' },
-  { key: 'refunds',      label: 'Refunds' },
-  { key: 'loads',        label: 'Loads' },
-  { key: 'sms',          label: 'SMS Blast' },
-  { key: 'settings',     label: 'Settings' },
-];
-
-const C = {
-  bg:        '#060b16',
-  surface:   '#0d1117',
-  card:      '#111827',
-  border:    'rgba(255,255,255,0.08)',
-  orange:    '#f97316',
-  orangeHov: '#ea6a0a',
-  text:      '#e5e7eb',
-  muted:     '#9ca3af',
-  green:     '#22c55e',
-  red:       '#ef4444',
-};
+import { createClient } from '@/lib/supabase';
 
 export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState<AdminTab>('users');
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [loadingId, setLoadingId] = useState<string | null>(null);
-  const [hoveredTab, setHoveredTab] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('users');
+  const [users, setUsers] = useState([]);
+  const [loads, setLoads] = useState([]);
+  const [bgcQueue, setBgcQueue] = useState([]);
+  const [revenue, setRevenue] = useState({ member: 0, pro: 0, fleet: 0 });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const tabsNeedingData: AdminTab[] = ['bgc', 'certs', 'verification'];
-    if (tabsNeedingData.includes(activeTab)) {
-      fetchSubmissions();
-    }
-  }, [activeTab]);
+    const fetchData = async () => {
+      const supabase = createClient();
+      setLoading(true);
 
-  async function fetchSubmissions() {
-    setLoading(true);
-    try {
-      let types: string[] = [];
-      if (activeTab === 'bgc')          types = ['bgc'];
-      else if (activeTab === 'certs')   types = ['cert'];
-      else if (activeTab === 'verification') types = ['bgc', 'dd214', 'cert'];
+      // Fetch users
+      const { data: usersData } = await supabase
+        .from('profiles')
+        .select('id, name, email, role, membership_level, created_at, bgc_verified');
+      setUsers(usersData || []);
 
-      const { data, error } = await supabase
-        .from('submissions')
-        .select('*')
-        .in('type', types)
-        .eq('status', 'pending')
-        .order('created_at', { ascending: false });
+      // Fetch loads
+      const { data: loadsData } = await supabase
+        .from('loads')
+        .select('id, status, carrier_id, escort_type, created_at');
+      setLoads(loadsData || []);
 
-      if (error) throw error;
-      setSubmissions(data || []);
-    } catch (err) {
-      console.error('Failed to fetch submissions:', err);
-    } finally {
-      setLoading(false);
-    }
-  }
+      // Fetch BGC queue
+      const { data: bgcData } = await supabase
+        .from('certifications')
+        .select('id, user_id, status, created_at')
+        .eq('status', 'pending');
+      setBgcQueue(bgcData || []);
 
-  async function handleAction(id: string, action: 'approve' | 'deny') {
-    if (loadingId) return;
-    setLoadingId(id);
-    try {
-      const res = await fetch(`/api/webhook/${activeTab === 'bgc' ? 'bgc' : 'cert'}/${action}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
+      // Fetch revenue
+      const { data: revenueData } = await supabase
+        .from('profiles')
+        .select('membership_level');
+      
+      const counts = { member: 0, pro: 0, fleet: 0 };
+      revenueData?.forEach((p: any) => {
+        if (p.membership_level === 'member') counts.member++;
+        else if (p.membership_level === 'pro') counts.pro++;
+        else if (p.membership_level === 'fleet') counts.fleet++;
       });
-      const json = await res.json();
-      if (json.success) {
-        setSubmissions(prev => prev.filter(s => s.id !== id));
-      }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoadingId(null);
-    }
-  }
+      setRevenue(counts);
 
-  function renderContent() {
-    switch (activeTab) {
-      case 'bgc':
-      case 'certs':
-      case 'verification':
-        const title =
-          activeTab === 'bgc' ? 'BGC Queue' :
-          activeTab === 'certs' ? 'Certs Queue' :
-          'Verification Queue (BGC + DD-214)';
-        return (
-          <div>
-            <h2 style={{ color: C.orange, fontSize: 22, fontWeight: 700, marginBottom: 20 }}>{title}</h2>
-            {loading ? (
-              <p style={{ color: C.muted }}>Loading...</p>
-            ) : submissions.length === 0 ? (
-              <p style={{ color: C.muted }}>No pending submissions found.</p>
-            ) : (
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ borderBottom: `1px solid ${C.border}` }}>
-                    {['ID', 'Type', 'Submitted', 'Document', 'Actions'].map(h => (
-                      <th key={h} style={{ color: C.muted, padding: '8px 12px', textAlign: 'left', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {submissions.map(s => (
-                    <tr key={s.id} style={{ borderBottom: `1px solid ${C.border}` }}>
-                      <td style={{ padding: '10px 12px', color: C.muted, fontSize: 12 }}>{s.id.slice(0, 8)}...</td>
-                      <td style={{ padding: '10px 12px', color: C.text, fontSize: 13 }}>{s.type?.toUpperCase()}</td>
-                      <td style={{ padding: '10px 12px', color: C.muted, fontSize: 12 }}>{new Date(s.created_at).toLocaleDateString()}</td>
-                      <td style={{ padding: '10px 12px' }}>
-                        {s.pdf_url ? (
-                          <a href={s.pdf_url} target="_blank" rel="noopener noreferrer" style={{ color: C.orange, fontSize: 13 }}>View PDF</a>
-                        ) : <span style={{ color: C.muted }}>N/A</span>}
-                      </td>
-                      <td style={{ padding: '10px 12px' }}>
-                        <div style={{ display: 'flex', gap: 8 }}>
-                          <button
-                            type="button"
-                            onClick={() => handleAction(s.id, 'approve')}
-                            disabled={loadingId === s.id}
-                            style={{ background: C.green, color: '#fff', border: 'none', borderRadius: 6, padding: '6px 14px', cursor: 'pointer', fontSize: 12, fontWeight: 600, opacity: loadingId === s.id ? 0.6 : 1 }}
-                          >
-                            {loadingId === s.id ? '...' : 'Approve'}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleAction(s.id, 'deny')}
-                            disabled={loadingId === s.id}
-                            style={{ background: C.red, color: '#fff', border: 'none', borderRadius: 6, padding: '6px 14px', cursor: 'pointer', fontSize: 12, fontWeight: 600, opacity: loadingId === s.id ? 0.6 : 1 }}
-                          >
-                            Deny
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        );
+      setLoading(false);
+    };
 
-      case 'users':
-        return (
-          <div>
-            <h2 style={{ color: C.orange, fontSize: 22, fontWeight: 700, marginBottom: 16 }}>Users</h2>
-            <p style={{ color: C.muted }}>User management coming soon.</p>
-          </div>
-        );
+    fetchData();
+  }, []);
 
-      case 'sponsored':
-        return (
-          <div>
-            <h2 style={{ color: C.orange, fontSize: 22, fontWeight: 700, marginBottom: 16 }}>Sponsored Zones</h2>
-            <p style={{ color: C.muted }}>Manage active sponsored zones here.</p>
-          </div>
-        );
+  const handleBgcApprove = async (id: string) => {
+    const supabase = createClient();
+    await supabase.from('certifications').update({ status: 'approved' }).eq('id', id);
+    setBgcQueue(bgcQueue.filter((b: any) => b.id !== id));
+  };
 
-      case 'disputes':
-        return (
-          <div>
-            <h2 style={{ color: C.orange, fontSize: 22, fontWeight: 700, marginBottom: 16 }}>Disputes</h2>
-            <p style={{ color: C.muted }}>No open disputes.</p>
-          </div>
-        );
+  const handleBgcDeny = async (id: string) => {
+    const supabase = createClient();
+    await supabase.from('certifications').update({ status: 'denied' }).eq('id', id);
+    setBgcQueue(bgcQueue.filter((b: any) => b.id !== id));
+  };
 
-      case 'flags':
-        return (
-          <div>
-            <h2 style={{ color: C.orange, fontSize: 22, fontWeight: 700, marginBottom: 16 }}>Flags / Reports</h2>
-            <p style={{ color: C.muted }}>No user reports at this time.</p>
-          </div>
-        );
+  const tabStyle = {
+    padding: '12px 24px',
+    border: 'none',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    background: '#0d1117',
+    color: '#e0e0e0',
+  };
 
-      case 'revenue':
-        return (
-          <div>
-            <h2 style={{ color: C.orange, fontSize: 22, fontWeight: 700, marginBottom: 16 }}>Revenue</h2>
-            <p style={{ color: C.muted }}>Revenue analytics coming soon.</p>
-          </div>
-        );
-
-      case 'refunds':
-        return (
-          <div>
-            <h2 style={{ color: C.orange, fontSize: 22, fontWeight: 700, marginBottom: 16 }}>Refunds</h2>
-            <p style={{ color: C.muted }}>No pending refunds.</p>
-          </div>
-        );
-
-      case 'loads':
-        return (
-          <div>
-            <h2 style={{ color: C.orange, fontSize: 22, fontWeight: 700, marginBottom: 16 }}>Loads</h2>
-            <p style={{ color: C.muted }}>Load management coming soon.</p>
-          </div>
-        );
-
-      case 'sms':
-        return (
-          <div>
-            <h2 style={{ color: C.orange, fontSize: 22, fontWeight: 700, marginBottom: 16 }}>SMS Blast</h2>
-            <p style={{ color: C.muted }}>SMS broadcasting coming soon.</p>
-          </div>
-        );
-
-      case 'settings':
-        return (
-          <div>
-            <h2 style={{ color: C.orange, fontSize: 22, fontWeight: 700, marginBottom: 16 }}>Settings</h2>
-            <p style={{ color: C.muted }}>Admin settings coming soon.</p>
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  }
+  const activeTabStyle = { ...tabStyle, background: '#f0a500', color: '#060b16' };
 
   return (
-    <div style={{ minHeight: '100vh', background: C.bg, color: C.text, fontFamily: 'Inter, system-ui, sans-serif' }}>
-      {/* Header */}
-      <div style={{ background: C.surface, borderBottom: `1px solid ${C.border}`, padding: '20px 32px' }}>
-        <h1 style={{ fontSize: 26, fontWeight: 800, color: C.text, margin: 0, letterSpacing: '-0.02em' }}>
-          Admin Dashboard
-        </h1>
+    <div style={{ background: '#060b16', color: '#e0e0e0', minHeight: '100vh', padding: '20px' }}>
+      <h1 style={{ color: '#f0a500' }}>Admin Dashboard</h1>
+
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
+        {['users', 'bgc', 'loads', 'revenue'].map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            style={activeTab === tab ? activeTabStyle : tabStyle}
+          >
+            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+          </button>
+        ))}
       </div>
 
-      {/* Nav tabs */}
-      <div style={{ background: C.surface, borderBottom: `1px solid ${C.border}`, padding: '0 32px', display: 'flex', gap: 4, overflowX: 'auto' }}>
-        {NAV_TABS.map(({ key, label }) => {
-          const isActive = activeTab === key;
-          const isHov = hoveredTab === key;
-          return (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setActiveTab(key)}
-              onMouseEnter={() => setHoveredTab(key)}
-              onMouseLeave={() => setHoveredTab(null)}
-              style={{
-                background: isActive ? C.orange : isHov ? 'rgba(249,115,22,0.12)' : 'transparent',
-                color: isActive ? '#fff' : isHov ? C.orange : C.muted,
-                border: 'none',
-                borderBottom: isActive ? `2px solid ${C.orange}` : '2px solid transparent',
-                padding: '14px 16px',
-                cursor: 'pointer',
-                fontSize: 13,
-                fontWeight: isActive ? 700 : 500,
-                whiteSpace: 'nowrap',
-                transition: 'all 0.15s',
-                borderRadius: '6px 6px 0 0',
-              }}
-            >
-              {label}
-            </button>
-          );
-        })}
-      </div>
+      {loading ? <p>Loading...</p> : (
+        <>
+          {activeTab === 'users' && (
+            <div>
+              <h2>Users ({users.length})</h2>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid #444' }}>
+                      <th style={{ textAlign: 'left', padding: '8px' }}>Name</th>
+                      <th style={{ textAlign: 'left', padding: '8px' }}>Email</th>
+                      <th style={{ textAlign: 'left', padding: '8px' }}>Role</th>
+                      <th style={{ textAlign: 'left', padding: '8px' }}>Tier</th>
+                      <th style={{ textAlign: 'left', padding: '8px' }}>BGC</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.map((u: any) => (
+                      <tr key={u.id} style={{ borderBottom: '1px solid #333' }}>
+                        <td style={{ padding: '8px' }}>{u.name || 'N/A'}</td>
+                        <td style={{ padding: '8px' }}>{u.email || 'N/A'}</td>
+                        <td style={{ padding: '8px' }}>{u.role || 'user'}</td>
+                        <td style={{ padding: '8px' }}>{u.membership_level || 'free'}</td>
+                        <td style={{ padding: '8px', color: u.bgc_verified ? '#4ade80' : '#ff6b6b' }}>
+                          {u.bgc_verified ? '✓' : '✗'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
-      {/* Content */}
-      <div style={{ padding: '32px' }}>
-        {renderContent()}
-      </div>
+          {activeTab === 'bgc' && (
+            <div>
+              <h2>BGC Queue ({bgcQueue.length})</h2>
+              {bgcQueue.map((bgc: any) => (
+                <div key={bgc.id} style={{ background: '#0d1117', padding: '12px', marginBottom: '8px', borderRadius: '6px', display: 'flex', justifyContent: 'space-between' }}>
+                  <span>{bgc.user_id}</span>
+                  <div style={{ gap: '8px', display: 'flex' }}>
+                    <button onClick={() => handleBgcApprove(bgc.id)} style={{ background: '#4ade80', color: '#000', padding: '6px 12px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Approve</button>
+                    <button onClick={() => handleBgcDeny(bgc.id)} style={{ background: '#ff6b6b', color: '#fff', padding: '6px 12px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Deny</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {activeTab === 'loads' && (
+            <div>
+              <h2>Loads ({loads.length})</h2>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid #444' }}>
+                      <th style={{ textAlign: 'left', padding: '8px' }}>ID</th>
+                      <th style={{ textAlign: 'left', padding: '8px' }}>Type</th>
+                      <th style={{ textAlign: 'left', padding: '8px' }}>Status</th>
+                      <th style={{ textAlign: 'left', padding: '8px' }}>Created</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {loads.map((l: any) => (
+                      <tr key={l.id} style={{ borderBottom: '1px solid #333' }}>
+                        <td style={{ padding: '8px' }}>{l.id.slice(0, 8)}</td>
+                        <td style={{ padding: '8px' }}>{l.escort_type || 'N/A'}</td>
+                        <td style={{ padding: '8px', color: l.status === 'open' ? '#4ade80' : '#fbbf24' }}>{l.status}</td>
+                        <td style={{ padding: '8px' }}>{new Date(l.created_at).toLocaleDateString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'revenue' && (
+            <div>
+              <h2>Revenue Analytics</h2>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+                <div style={{ background: '#0d1117', padding: '20px', borderRadius: '8px', borderLeft: '4px solid #4ade80' }}>
+                  <h3 style={{ margin: '0 0 8px', color: '#4ade80' }}>Members</h3>
+                  <p style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>{revenue.member}</p>
+                </div>
+                <div style={{ background: '#0d1117', padding: '20px', borderRadius: '8px', borderLeft: '4px solid #f0a500' }}>
+                  <h3 style={{ margin: '0 0 8px', color: '#f0a500' }}>Pro</h3>
+                  <p style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>{revenue.pro}</p>
+                </div>
+                <div style={{ background: '#0d1117', padding: '20px', borderRadius: '8px', borderLeft: '4px solid #3b82f6' }}>
+                  <h3 style={{ margin: '0 0 8px', color: '#3b82f6' }}>Fleet</h3>
+                  <p style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>{revenue.fleet}</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
-
-// Note: Full admin implementation requires:
-// 1. Users tab: Query profiles table
-// 2. BGC Queue: Query certifications/bgc_submissions
-// 3. Loads tab: Query loads table
-// 4. Revenue tab: Count membership tiers
-// 5. SMS Blast: POST /api/sms/blast (requires TextRequest API key)
-// 6. Sponsored Zones: Query sponsored_zones table
-// 7. Disputes: Query disputes table
-
-// These queries should use Supabase client:
-// const { data: users } = await supabase.from('profiles').select('*')
-// const { data: loads } = await supabase.from('loads').select('*')
-// Implement useEffect hooks to load data on component mount
