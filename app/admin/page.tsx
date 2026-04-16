@@ -36,7 +36,7 @@ export default function AdminPage() {
       // Load users
       const { data: usersData } = await supabase
         .from('profiles')
-        .select('id, full_name, email, role, tier, bgc_verified, created_at, suspended, phone, stripe_customer_id')
+        .select('id, full_name, email, role, tier, bgc_verified, created_at, suspended, phone, stripe_customer_id, tier_updated_at')
         .order('created_at', { ascending: false })
       setUsers(usersData || [])
 
@@ -53,7 +53,7 @@ export default function AdminPage() {
 
       setRevenue({ member, pro, fleetPro, bgcCount, zoneCount, mrr: mrr.toFixed(2) })
 
-      const recent = all.filter(u => u.tier).slice(0, 20)
+      const recent = all.filter(u => u.tier && u.tier_updated_at).sort((a, b) => new Date(b.tier_updated_at).getTime() - new Date(a.tier_updated_at).getTime()).slice(0, 20)
       setRecentUpgrades(recent)
 
       setLoading(false)
