@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState('users');
@@ -12,7 +12,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const supabase = createClient();
+      
       setLoading(true);
 
       // Fetch users
@@ -54,13 +54,13 @@ export default function AdminPage() {
   }, []);
 
   const handleBgcApprove = async (id: string) => {
-    const supabase = createClient();
+    
     await supabase.from('certifications').update({ status: 'approved' }).eq('id', id);
     setBgcQueue(bgcQueue.filter((b: any) => b.id !== id));
   };
 
   const handleBgcDeny = async (id: string) => {
-    const supabase = createClient();
+    
     await supabase.from('certifications').update({ status: 'denied' }).eq('id', id);
     setBgcQueue(bgcQueue.filter((b: any) => b.id !== id));
   };
