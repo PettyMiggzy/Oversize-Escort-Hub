@@ -10,7 +10,7 @@ const PRICES = {
   pevo_member: "price_1TF0D4LmfugPCRbAd4hM022R",
   pevo_pro:    "price_1TF0D1LmfugPCRbAPWsN2K5x",
   bgc:         "price_1TF0EILmfugPCRbAvM6Q5rhW",
-      fleet_pro:     "price_1MT9fLmfugPCRbA0Tu6SUI0",
+      fleet_pro:     "price_1TMT9fLmfugPCRbA0Tu65Ui0",
   sponsored_zone: "price_1TLSu3LmfugPCRbAsumfZjCf",
 };
 
