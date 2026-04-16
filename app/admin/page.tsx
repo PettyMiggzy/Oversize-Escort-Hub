@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
-const TABS = ['users', 'bgc', 'loads', 'revenue', 'sms']
+const TABS = ['users', 'bgc', 'certs', 'verification', 'sponsored', 'disputes', 'loads', 'revenue', 'sms']
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState('users')
@@ -23,6 +23,19 @@ export default function AdminPage() {
   const [smsAudience, setSmsAudience] = useState('all')
   const [smsSending, setSmsSending] = useState(false)
   const [smsResult, setSmsResult] = useState('')
+  // BGC Queue
+  const [bgcQueue, setBgcQueue] = useState<any[]>([])
+  // Certs Queue
+  const [certsQueue, setCertsQueue] = useState<any[]>([])
+  // Verification Queue
+  const [verificationQueue, setVerificationQueue] = useState<any[]>([])
+  // Sponsored Zones
+  const [sponsoredZonesList, setSponsoredZonesList] = useState<any[]>([])
+  // Disputes
+  const [disputesList, setDisputesList] = useState<any[]>([])
+  // Loads
+  const [loadsList, setLoadsList] = useState<any[]>([])
+  const [loadsStatusFilter, setLoadsStatusFilter] = useState('')
 
   useEffect(() => {
     const init = async () => {
@@ -59,6 +72,19 @@ export default function AdminPage() {
       setLoading(false)
     }
     init()
+
+    // Fetch BGC queue
+    supabase.from('certifications').select('*, profiles(full_name, email)').eq('type', 'bgc').eq('status', 'pending').then(({data}) => setBgcQueue(data || []))
+    // Fetch Certs queue
+    supabase.from('certifications').select('*, profiles(full_name, email)').neq('type', 'bgc').eq('status', 'pending').then(({data}) => setCertsQueue(data || []))
+    // Fetch Verification queue
+    supabase.from('certifications').select('*, profiles(full_name, email)').eq('status', 'pending').then(({data}) => setVerificationQueue(data || []))
+    // Fetch Sponsored Zones
+    supabase.from('sponsored_zones').select('*, profiles(full_name, email)').then(({data}) => setSponsoredZonesList(data || []))
+    // Fetch Disputes
+    supabase.from('disputes').select('*').then(({data}) => setDisputesList(data || []))
+    // Fetch Loads
+    supabase.from('loads').select('*').order('created_at', {ascending: false}).then(({data}) => setLoadsList(data || []))
   }, [])
 
   const suspendUser = async (userId: string, suspended: boolean) => {
