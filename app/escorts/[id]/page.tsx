@@ -61,7 +61,7 @@ export default async function EscortProfilePage({ params }: { params: { id: stri
             <span style={S.badge(profile.membership === 'pro' ? '#f0a500' : '#6b7280')}>
               {profile.membership === 'pro' ? '⭐ Pro' : 'Member'}
             </span>
-            {profile.bgc_verified && <span style={S.badge('#22c55e')}>✓ BGC Verified</span>}
+            {profile.bgc_verified && <span style={{ background: '#16a34a', color: '#fff', fontWeight: 700, fontSize: 13, padding: '4px 12px', borderRadius: 20, display: 'inline-flex', alignItems: 'center', gap: 4 }}>✓ Background Check Verified</span>}
             {profile.role === 'escort' && <span style={S.badge('#3b82f6')}>P/EVO Escort</span>}
           </div>
           {profile.bio && <p style={{ color: '#9ca3af', fontSize: 14, lineHeight: 1.6 }}>{profile.bio}</p>}
