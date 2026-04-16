@@ -6,25 +6,25 @@ export default function SiteFooter() {
       <div className="mx-auto max-w-6xl px-4 md:px-6 py-5 text-sm text-white/60 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
 
         {/* Flags — left side */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {/* American Flag */}
           <span title="United States" style={{ fontSize: '1.6rem', lineHeight: 1 }}>&#x1F1FA;&#x1F1F8;</span>
 
           {/* Thin Blue Line Flag SVG */}
           <svg
             title="Thin Blue Line"
-            width="40"
-            height="24"
-            viewBox="0 0 40 24"
+            width="32"
+      height="20"
+      viewBox="0 0 32 20"
             xmlns="http://www.w3.org/2000/svg"
             style={{ display: 'inline-block', borderRadius: '2px', overflow: 'hidden' }}
           >
             {/* Top black stripe */}
-            <rect x="0" y="0" width="40" height="10" fill="#111111" />
+            <rect x="0" y="0" width="32" height="7" fill="#111111" />
             {/* Thin blue line */}
-            <rect x="0" y="10" width="40" height="4" fill="#1a6fc4" />
+            <rect x="0" y="7" width="32" height="6" fill="#1a6fc4" />
             {/* Bottom black stripe */}
-            <rect x="0" y="14" width="40" height="10" fill="#111111" />
+            <rect x="0" y="13" width="32" height="7" fill="#111111" />
           </svg>
 
           {/* Canadian Flag */}
