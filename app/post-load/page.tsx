@@ -49,6 +49,33 @@ export default function PostLoadPage() {
   const [loading, setLoading] = useState(true)
   const [allowed, setAllowed] = useState(false)
   const [roleMsg, setRoleMsg] = useState("")
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await fetch('/api/loads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pickupCity: pickupCity,
+          pickupState: pickupState,
+          destinationCity: destState,
+          destinationState: destState,
+          escortType: escortType,
+          rate: rate,
+          boardType: 'flat',
+        }),
+      });
+      if (res.ok) {
+        alert('Load posted successfully');
+        // Reset form
+      } else {
+        alert('Error posting load');
+      }
+    } catch (err) {
+      alert('Error: ' + err);
+    }
+  };
+
   // permit miles state
   const [pickupState, setPickupState] = useState("")
   const [destState, setDestState] = useState("")
@@ -94,7 +121,7 @@ export default function PostLoadPage() {
           Carriers and freight brokers post loads free. Always. Escorts will only bid on complete, clear postings.
         </p>
         <div style={S.panel}>
-          <form style={S.form}>
+          <form style={S.form} onSubmit={handleSubmit}>
             {/* LOAD INFO */}
             <Section title="Load Details" />
             <Grid>

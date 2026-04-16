@@ -1,1 +1,136 @@
-export default function FeaturesPage(){const s={section:{background:"#111",border:"1px solid #222",borderRadius:12,padding:"32px",marginBottom:24},h2:{color:"#ff6b00",fontSize:22,fontWeight:700,marginBottom:8},h3:{color:"#fff",fontSize:16,fontWeight:700,marginBottom:4},p:{color:"#aaa",fontSize:14,lineHeight:1.7,marginBottom:0},tag:{display:"inline-block",background:"#ff6b0022",color:"#ff6b00",border:"1px solid #ff6b0055",borderRadius:4,padding:"2px 8px",fontSize:12,marginRight:6,marginBottom:6}};return(<main style={{background:"#0a0a0a",minHeight:"100vh",padding:"48px 24px",fontFamily:"sans-serif"}}><div style={{maxWidth:860,margin:"0 auto"}}><h1 style={{color:"#fff",fontSize:36,fontWeight:900,marginBottom:8}}>Platform Features</h1><p style={{color:"#aaa",marginBottom:40,fontSize:16}}>Everything Oversize Escort Hub offers — who it's for and how it works.</p><div style={s.section}><h2 style={s.h2}>Load Boards</h2><p style={s.p}>Three dedicated boards connect escorts with carriers moving oversized loads across North America.</p><div style={{marginTop:16}}><h3 style={s.h3}>Flat Rate Board</h3><p style={s.p}>Carriers post loads with a fixed pay rate. Escorts browse and contact directly — no bidding required. Ideal for straightforward, predictable jobs.</p></div><div style={{marginTop:16}}><h3 style={s.h3}>Open Loads Board</h3><p style={s.p}>Loads with flexible pricing posted by carriers and brokers. Escorts see the full route, dimensions, and contact info (Member+ only). Refreshes in real time.</p></div><div style={{marginTop:16}}><h3 style={s.h3}>Bid Board</h3><p style={s.p}>Escorts submit competitive bids on posted loads. Carriers review bids and select their escort. Great for negotiating rates on premium or complex hauls.</p></div><div style={{marginTop:12}}><span style={s.tag}>Member</span><span style={s.tag}>Pro</span><span style={s.tag}>Carrier</span></div></div><div style={s.section}><h2 style={s.h2}>Deadhead Minimizer</h2><p style={s.p}>Pro escorts enter their current location and the tool finds loads with pickup points nearby — reducing costly empty miles. Filters by state, radius, and load type so you only see relevant work near you.</p><div style={{marginTop:12}}><span style={s.tag}>Pro</span></div></div><div style={s.section}><h2 style={s.h2}>Escort Availability Board</h2><p style={s.p}>Escorts post their availability window, location, and certifications. Carriers searching for escorts in a specific region can browse the board and reach out directly — no middleman needed.</p><div style={{marginTop:12}}><span style={s.tag}>Pro</span><span style={s.tag}>Carrier</span></div></div><div style={s.section}><h2 style={s.h2}>Fleet Manager</h2><p style={s.p}>Pro escorts managing a team can add up to 5 escort profiles under one account. Assign jobs, track availability, and manage your fleet from a single dashboard without juggling separate logins.</p><div style={{marginTop:12}}><span style={s.tag}>Pro (up to 5 escorts)</span></div></div><div style={s.section}><h2 style={s.h2}>Verification System</h2><p style={s.p}>Upload your state permit certifications for admin review. Once verified, a green badge appears on your profile and load card — giving carriers confidence you're licensed and legitimate. Carriers are automatically verified via FMCSA DOT/MC lookup on signup.</p><div style={{marginTop:12}}><span style={s.tag}>All tiers</span><span style={s.tag}>First cert free (Pro)</span></div></div><div style={s.section}><h2 style={s.h2}>BGC Badge</h2><p style={s.p}>A one-time $9.99 background check badge that appears on your escort profile. Carriers can filter for BGC-verified escorts to add an extra layer of trust on sensitive or high-value hauls.</p><div style={{marginTop:12}}><span style={s.tag}>One-time fee</span><span style={s.tag}>All escort tiers</span></div></div><div style={s.section}><h2 style={s.h2}>Permit Directory</h2><p style={s.p}>A full searchable directory of oversize permit requirements for all 50 US states and Canadian provinces. Know the max dimensions, speed limits, travel hours, and permit contacts before you accept a load — no more scrambling for state-specific rules.</p><div style={{marginTop:12}}><span style={s.tag}>Member</span><span style={s.tag}>Pro</span></div></div><div style={s.section}><h2 style={s.h2}>Invoice Generator</h2><p style={s.p}>Create professional PDF invoices directly from your dashboard. Pre-fills your profile info, load details, and pay rate. Send to carriers in one click or download for your records.</p><div style={{marginTop:12}}><span style={s.tag}>Pro</span></div></div><div style={s.section}><h2 style={s.h2}>SMS Load Posting</h2><p style={s.p}>Carriers and Pro escorts can post loads via text message — no need to log into the web app. Text the load details to your assigned OEH number and it posts automatically to the correct board. Perfect for dispatchers on the road.</p><div style={{marginTop:12}}><span style={s.tag}>Pro</span><span style={s.tag}>Carrier</span></div></div><div style={s.section}><h2 style={s.h2}>Reviews System</h2><p style={s.p}>After a load is completed, carriers and escorts can leave verified reviews for each other. Ratings build your reputation on the platform and appear publicly on your profile — helping you stand out and win more work.</p><div style={{marginTop:12}}><span style={s.tag}>Member</span><span style={s.tag}>Pro</span><span style={s.tag}>Carrier</span></div></div><div style={{textAlign:"center",marginTop:40,padding:"32px",background:"#111",border:"1px solid #ff6b00",borderRadius:12}}><p style={{color:"#fff",fontSize:20,fontWeight:700,marginBottom:8}}>Ready to get started?</p><p style={{color:"#aaa",marginBottom:20}}>Join thousands of escorts and carriers already using OEH.</p><a href="/" style={{display:"inline-block",background:"#ff6b00",color:"#000",padding:"14px 40px",borderRadius:8,fontWeight:700,fontSize:16,textDecoration:"none"}}>Get Started Free</a></div></div></main>);}
+'use client';
+import { useState } from 'react';
+
+const bgColor = '#060b16';
+const surfaceColor = '#0d1117';
+const orangeColor = '#f0a500';
+const textColor = '#e0e0e0';
+
+const features = [
+  { id: 1, name: 'Load Board', who: 'All', tier: 'Free', desc: 'Browse and claim oversize escort loads' },
+  { id: 2, name: 'Bid Board', who: 'P/EVO', tier: 'Free/Pro', desc: 'Bid on loads — Pro gets 5-min early access' },
+  { id: 3, name: 'Post a Load', who: 'Carrier', tier: 'Free', desc: 'Post loads in under 2 minutes' },
+  { id: 4, name: 'Pro Auto-Match SMS', who: 'P/EVO', tier: 'Pro', desc: 'Get texted instantly when matching load posts' },
+  { id: 5, name: 'BGC Badge', who: 'P/EVO', tier: '$9.99', desc: 'Verified background check badge on profile' },
+  { id: 6, name: 'Availability Zones', who: 'P/EVO', tier: 'Member+', desc: 'Set states you cover for auto-matching' },
+  { id: 7, name: 'Escort Profiles', who: 'All', tier: 'Free', desc: 'View escort certs, ratings, BGC badge, availability' },
+  { id: 8, name: 'Carrier Hub', who: 'Carrier', tier: 'Free', desc: 'Manage active loads, matches, post history' },
+  { id: 9, name: 'Fleet Dashboard', who: 'Fleet', tier: 'Fleet Pro', desc: 'Manage escorts, zones, jobs under one account' },
+  { id: 10, name: 'Sponsored Zone', who: 'P/EVO', tier: '$29.99/mo', desc: 'Featured placement on Find Escorts page' },
+  { id: 11, name: 'Veteran Discount', who: 'P/EVO', tier: 'Coming Soon', desc: '30% off with DD-214 verification' },
+  { id: 12, name: 'Deadhead Minimizer', who: 'P/EVO', tier: 'Coming Soon Pro', desc: 'Find loads near your return route' },
+  { id: 13, name: 'Referral Rewards', who: 'All', tier: 'Coming Soon', desc: 'Refer users and earn rewards' },
+  { id: 14, name: 'Permit Cost Calculator', who: 'Carrier', tier: 'Coming Soon', desc: 'Estimate permit costs by state' },
+  { id: 15, name: 'Map Feature', who: 'All', tier: 'Coming Soon', desc: 'Visual load and escort mapping' },
+];
+
+export default function Features() {
+  const [search, setSearch] = useState('');
+  const [selectedFeature, setSelectedFeature] = useState<(typeof features)[0] | null>(null);
+
+  const filtered = features.filter(f =>
+    f.name.toLowerCase().includes(search.toLowerCase()) ||
+    f.who.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div style={{ background: bgColor, color: textColor, minHeight: '100vh', padding: '40px 20px' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        <h1 style={{ fontSize: '36px', fontWeight: 800, marginBottom: '20px', color: orangeColor }}>
+          Features
+        </h1>
+
+        <input
+          type="text"
+          placeholder="Search features..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{
+            width: '100%',
+            padding: '12px 16px',
+            marginBottom: '32px',
+            background: surfaceColor,
+            border: `1px solid ${orangeColor}`,
+            borderRadius: '8px',
+            color: textColor,
+            fontSize: '16px',
+          }}
+        />
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+          {filtered.map((feature) => (
+            <div
+              key={feature.id}
+              onClick={() => setSelectedFeature(feature)}
+              style={{
+                background: surfaceColor,
+                padding: '20px',
+                borderRadius: '8px',
+                borderLeft: `4px solid ${orangeColor}`,
+                cursor: 'pointer',
+                transition: 'transform 0.2s',
+              }}
+              onMouseOver={(e) => (e.currentTarget.style.transform = 'translateY(-4px)')}
+              onMouseOut={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
+            >
+              <h3 style={{ margin: '0 0 8px', color: orangeColor, fontSize: '18px' }}>{feature.name}</h3>
+              <p style={{ margin: '0 0 8px', fontSize: '12px', color: '#888' }}>
+                {feature.who} • {feature.tier}
+              </p>
+              <p style={{ margin: 0, fontSize: '14px', lineHeight: '1.5' }}>{feature.desc}</p>
+            </div>
+          ))}
+        </div>
+
+        {selectedFeature && (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(0,0,0,0.7)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1000,
+            }}
+            onClick={() => setSelectedFeature(null)}
+          >
+            <div
+              style={{
+                background: surfaceColor,
+                padding: '32px',
+                borderRadius: '12px',
+                borderLeft: `4px solid ${orangeColor}`,
+                maxWidth: '500px',
+                width: '90%',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2 style={{ margin: '0 0 16px', color: orangeColor }}>{selectedFeature.name}</h2>
+              <p style={{ margin: '0 0 12px', fontSize: '14px' }}><strong>For:</strong> {selectedFeature.who}</p>
+              <p style={{ margin: '0 0 12px', fontSize: '14px' }}><strong>Tier:</strong> {selectedFeature.tier}</p>
+              <p style={{ margin: '0 0 24px', fontSize: '16px', lineHeight: '1.6' }}>{selectedFeature.desc}</p>
+              <button
+                onClick={() => setSelectedFeature(null)}
+                style={{
+                  background: orangeColor,
+                  color: bgColor,
+                  padding: '12px 24px',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
