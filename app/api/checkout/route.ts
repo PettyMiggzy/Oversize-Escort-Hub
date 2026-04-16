@@ -19,7 +19,8 @@ export async function POST(req: NextRequest) {
       userId,
       priceId,
       successUrl,
-      cancelUrl
+      cancelUrl,
+      email
     );
 
     return NextResponse.json({

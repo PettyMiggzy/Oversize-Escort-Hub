@@ -7,7 +7,7 @@ const PRICE_IDS = {
   SPONSORED_ZONE: 'price_1TLSu3LmfugPCRbAsumfZjCf',
 };
 
-export async function createCheckoutSession(userId: string, priceId: string, successUrl: string, cancelUrl: string) {
+export async function createCheckoutSession(userId: string, priceId: string, successUrl: string, cancelUrl: string, customerEmail?: string) {
   try {
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -20,7 +20,7 @@ export async function createCheckoutSession(userId: string, priceId: string, suc
       mode: priceId === PRICE_IDS.BGC_BADGE ? 'payment' : 'subscription',
       success_url: successUrl,
       cancel_url: cancelUrl,
-      customer_email: '', // Will be set by caller
+      customer_email: customerEmail || '',
       metadata: {
         userId,
       },
