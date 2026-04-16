@@ -1,66 +1,78 @@
-'use client';
+import type { Metadata } from 'next'
+import Header from '@/app/components/Header'
+import Footer from '@/app/components/Footer'
 
-import { useState } from 'react';
+export const metadata: Metadata = {
+  title: 'About | Oversize Escort Hub',
+  description: 'Founded by Brian Ahmed, OEH connects oversize carriers with licensed, verified P/EVO escorts across the US.',
+  openGraph: {
+    title: 'About | Oversize Escort Hub',
+    description: 'Founded by Brian Ahmed, OEH connects oversize carriers with licensed, verified P/EVO escorts.',
+    url: 'https://www.oversize-escort-hub.com/about',
+    siteName: 'Oversize Escort Hub',
+  },
+}
 
-export default function HomePage() {
-  const [role, setRole] = useState<string | null>(null);
-  const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<any>(null);
-
-  // Fixed Fleet Manager handler
-  const handleFleetClick = () => {
-    window.location.href = "/join";
-  };
+export default function AboutPage() {
+  const bg = '#0a0f1a'
+  const card = { background: '#0f1a2e', border: '1px solid #1e3a5f', borderRadius: 12, padding: '24px 28px', marginBottom: 20 }
 
   return (
-    <div className="min-h-screen bg-[#06080a] text-white">
-      {/* Navigation Bar - keep your existing nav if any */}
+    <div style={{ minHeight: '100vh', background: bg, color: '#fff' }}>
+      <Header />
+      <main style={{ maxWidth: 720, margin: '0 auto', padding: '60px 24px' }}>
+        <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 8 }}>About Oversize Escort Hub</h1>
+        <p style={{ color: '#9ca3af', fontSize: 15, marginBottom: 40, lineHeight: 1.6 }}>
+          Building the future of oversize transport logistics.
+        </p>
 
-      {/* WHO ARE YOU? Section */}
-      <div className="pt-20 pb-16">
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold tracking-tight">WHO ARE YOU?</h1>
-          <p className="text-xl text-zinc-400 mt-4">SELECT YOUR ROLE TO GET STARTED</p>
+        <div style={card}>
+          <h2 style={{ fontSize: 18, fontWeight: 700, color: '#f60', marginBottom: 16 }}>Our Story</h2>
+          <p style={{ color: '#cbd5e1', fontSize: 14, lineHeight: 1.8, marginBottom: 12 }}>
+            Oversize Escort Hub was founded by Brian Ahmed — a former law enforcement officer turned semi driver and licensed P/EVO escort. After years on both sides of the oversize transport industry, Brian identified a critical gap: escorts and carriers had no reliable, verified marketplace to connect.
+          </p>
+          <p style={{ color: '#cbd5e1', fontSize: 14, lineHeight: 1.8 }}>
+            Too many escorts were finding loads through informal channels, and too many carriers were hiring unverified pilots without proper credentials. Brian built OEH to solve this — a platform where trust, verification, and reliability come first.
+          </p>
         </div>
 
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 px-6">
-          {/* Oversize Carrier */}
-          <div className="card bg-[#0f1318] border border-[#1c2229] rounded-xl p-8 hover:border-orange-500 transition cursor-pointer">
-            <h3 className="text-2xl font-bold text-orange-500 mb-4">OVERSIZE CARRIER</h3>
-            <p className="text-zinc-400 mb-8">Carriers hauling oversize/overweight loads who need permits, escorts, and load boards.</p>
-            <div className="text-xs uppercase tracking-widest text-orange-400">POST LOADS · BID BOARD · FIND ESCORTS</div>
-          </div>
+        <div style={card}>
+          <h2 style={{ fontSize: 18, fontWeight: 700, color: '#f60', marginBottom: 16 }}>Our Mission</h2>
+          <p style={{ color: '#cbd5e1', fontSize: 14, lineHeight: 1.8 }}>
+            To connect oversize carriers with licensed, verified P/EVO escorts — making every haul safer, more professional, and more efficient. We believe that when the right people are matched with the right loads, the entire industry improves.
+          </p>
+        </div>
 
-          {/* Pilot Car / P/EVO */}
-          <div className="card bg-[#0f1318] border border-[#1c2229] rounded-xl p-8 hover:border-amber-500 transition cursor-pointer">
-            <h3 className="text-2xl font-bold text-amber-500 mb-4">PILOT CAR / P/EVO</h3>
-            <p className="text-zinc-400 mb-8">Pilot car operators and P/EVO escorts looking for loads, routes, and work opportunities.</p>
-            <div className="text-xs uppercase tracking-widest text-amber-400">FIND LOADS · DEADHEAD MINIMIZER · BID</div>
-          </div>
-
-          {/* Freight Broker */}
-          <div className="card bg-[#0f1318] border border-[#1c2229] rounded-xl p-8 hover:border-emerald-500 transition cursor-pointer">
-            <h3 className="text-2xl font-bold text-emerald-500 mb-4">FREIGHT BROKER</h3>
-            <p className="text-zinc-400 mb-8">Licensed freight brokers who need verified P/EVO escorts for oversize shipments.</p>
-            <div className="text-xs uppercase tracking-widest text-emerald-400">POST LOADS · FIND ESCORTS · MANAGE SHIPMENTS</div>
-          </div>
-
-          {/* FLEET MANAGER - FIXED */}
-          <div 
-            className="card bg-[#0f1318] border-2 border-blue-600 rounded-xl p-8 hover:border-blue-500 transition cursor-pointer"
-            onClick={handleFleetClick}
-          >
-            <h3 className="text-2xl font-bold text-blue-500 mb-4">FLEET MANAGER</h3>
-            <p className="text-zinc-400 mb-8">Manage multiple P/EVO escorts across loads. Find work for your fleet, track jobs, and maximize every mile.</p>
-            <div className="inline-block bg-blue-600 text-white text-xs font-bold px-4 py-1 rounded-full mb-6">PRO REQUIRED</div>
-            <div className="text-xs uppercase tracking-widest text-blue-400">FIND LOADS · FLEET DEADHEAD · MANAGE ESCORTS</div>
+        <div style={card}>
+          <h2 style={{ fontSize: 18, fontWeight: 700, color: '#f60', marginBottom: 16 }}>Our Values</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+            {[
+              { icon: '🛡️', name: 'Safety', desc: 'Every escort on OEH is verified before going live.' },
+              { icon: '✅', name: 'Verification', desc: 'BGC badges and license checks keep the platform clean.' },
+              { icon: '⚡', name: 'Reliability', desc: 'Fast matching, clear communication, no guesswork.' },
+            ].map(v => (
+              <div key={v.name} style={{ background: '#16213a', borderRadius: 8, padding: '16px 14px', textAlign: 'center' }}>
+                <div style={{ fontSize: 28, marginBottom: 8 }}>{v.icon}</div>
+                <p style={{ fontWeight: 700, marginBottom: 4 }}>{v.name}</p>
+                <p style={{ fontSize: 12, color: '#9ca3af', lineHeight: 1.5 }}>{v.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
-      </div>
 
-      {/* Keep the rest of your original page code below this point */}
-      {/* RoleBar, bid-strip, dashboards, etc. - paste your existing code here */}
-
+        <div style={card}>
+          <h2 style={{ fontSize: 18, fontWeight: 700, color: '#f60', marginBottom: 20 }}>The Team</h2>
+          <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
+            <div style={{ width: 64, height: 64, background: '#1e3a5f', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, flexShrink: 0 }}>👤</div>
+            <div>
+              <p style={{ fontWeight: 700, fontSize: 16 }}>Brian Ahmed</p>
+              <p style={{ color: '#f60', fontSize: 13, marginBottom: 4 }}>Founder & CEO</p>
+              <p style={{ color: '#9ca3af', fontSize: 13 }}>Precision Pilot Services LLC · Former Law Enforcement · Licensed P/EVO Escort · CDL Driver</p>
+            </div>
+          </div>
+        </div>
+      </main>
+      <Footer />
     </div>
-  );
+  )
 }

@@ -11,12 +11,8 @@ export async function POST(req: NextRequest) {
     payment_method_types: ["card"],
     mode: "payment",
     line_items: [{
-      price_data: {
-        currency: "usd",
-        product_data: { name: "Background Check Badge", description: "OEH Background Check Verification — $9.99 one-time" },
-        unit_amount: 999,
-      },
-      quantity: 1,
+      price: "price_1TF0EILmfugPCRbAvM6Q5rhW",
+        quantity: 1,
     }],
     customer_email: email,
     metadata: { user_id, type: "bgc" },
