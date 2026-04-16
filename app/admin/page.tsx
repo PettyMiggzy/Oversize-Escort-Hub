@@ -292,3 +292,17 @@ export default function AdminPage() {
     </div>
   );
 }
+
+// Note: Full admin implementation requires:
+// 1. Users tab: Query profiles table
+// 2. BGC Queue: Query certifications/bgc_submissions
+// 3. Loads tab: Query loads table
+// 4. Revenue tab: Count membership tiers
+// 5. SMS Blast: POST /api/sms/blast (requires TextRequest API key)
+// 6. Sponsored Zones: Query sponsored_zones table
+// 7. Disputes: Query disputes table
+
+// These queries should use Supabase client:
+// const { data: users } = await supabase.from('profiles').select('*')
+// const { data: loads } = await supabase.from('loads').select('*')
+// Implement useEffect hooks to load data on component mount
