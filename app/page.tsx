@@ -420,6 +420,7 @@ function Nav({ page, setPage, user, profile, onSignOut, unreadCount = 0 }: {
     ["postload", "Post a Load"],
     ["pricing", "Pricing"],
     ["verification", "Verification"],
+    ["how-it-works", "How It Works"],
   ];
   const closeDrawer = () => setDrawerOpen(false);
   return (
@@ -428,7 +429,7 @@ function Nav({ page, setPage, user, profile, onSignOut, unreadCount = 0 }: {
       {/* Desktop links */}
       <div className="nav-links">
         {navLinks.map(([p, label]) => (
-          <button key={p} className={`nav-link${page === p ? " active" : ""}`} onClick={() => setPage(p)}>{label}</button>
+          <button key={p} className={`nav-link${page === p ? " active" : ""}`} onClick={() => p === "how-it-works" ? (window.location.href = "/how-it-works") : setPage(p)}>{label}</button>
         ))}
       </div>
       {/* Desktop right */}
