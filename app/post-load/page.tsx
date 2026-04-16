@@ -27,6 +27,7 @@ export default function PostLoadPage() {
 
   const [pickupCity, setPickupCity] = useState('')
   const [pickupState, setPickupState] = useState('')
+  const [sponsoredEscorts, setSponsoredEscorts] = useState<any[]>([])
   const [destCity, setDestCity] = useState('')
   const [destState, setDestState] = useState('')
   const [dateNeeded, setDateNeeded] = useState('')
@@ -57,6 +58,24 @@ export default function PostLoadPage() {
     }
     init()
   }, [])
+
+  // Fetch sponsored escorts when pickupState changes
+  useEffect(() => {
+    if (!pickupState) { setSponsoredEscorts([]); return }
+    const fetchSponsored = async () => {
+      const { data } = await supabase
+        .from('sponsored_zones')
+        .select('escort_id, profiles(id, full_name, membership, bgc_verified, certifications(type, status))')
+        .eq('state', pickupState)
+        .eq('active', true)
+      if (data && data.length > 0) {
+        setSponsoredEscorts(data.map((sz: any) => sz.profiles).filter(Boolean))
+      } else {
+        setSponsoredEscorts([])
+      }
+    }
+    fetchSponsored()
+  }, [pickupState])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
