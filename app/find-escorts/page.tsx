@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react"
 import { createClient } from "@supabase/supabase-js"
 import { useRouter } from "next/navigation"
+import SiteHeader from "@/components/SiteHeader"
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -112,14 +113,7 @@ export default function FindEscortsPage() {
 
   return (
     <div style={S.page}>
-      <header style={S.header}>
-        <span style={S.brand} onClick={() => router.push("/")}>OVERSIZE ESCORT HUB</span>
-        <nav style={{ display: "flex", gap: 16 }}>
-          <span style={{ color: "#9ca3af", cursor: "pointer", fontSize: 14 }} onClick={() => router.push("/loads")}>Load Board</span>
-          <span style={{ color: "#9ca3af", cursor: "pointer", fontSize: 14 }} onClick={() => router.push("/pricing")}>Pricing</span>
-          <span style={{ color: "#9ca3af", cursor: "pointer", fontSize: 14 }} onClick={() => router.push("/signin")}>Sign In</span>
-        </nav>
-      </header>
+      <SiteHeader />
       <div style={S.hero}>
         <h1 style={S.h1}>Find P/EVO Escorts</h1>
         <p style={S.sub}>Browse verified oversize escort pilots available in your area.</p>
