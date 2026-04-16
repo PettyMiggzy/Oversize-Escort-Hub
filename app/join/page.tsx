@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import SiteHeader from '@/components/SiteHeader';
 
 const bg = '#060b16';
 const surface = '#0d1117';
@@ -49,6 +50,7 @@ export default function JoinPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: bg, color: '#eee', fontFamily: 'sans-serif' }}>
+      <SiteHeader />
       <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '60px 20px' }}>
         <h1 style={{ textAlign: 'center', fontSize: '36px', fontWeight: 800, marginBottom: '8px' }}>
           Join <span style={{ color: orange }}>Oversize Escort Hub</span>

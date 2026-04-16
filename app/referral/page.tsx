@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
+import SiteHeader from '@/components/SiteHeader';
 import { createClient } from '@/lib/supabase/client'
 
 export default function ReferralPage() {
@@ -24,6 +25,7 @@ export default function ReferralPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#060b16', color: '#dce0e6' }}>
+      <SiteHeader />
       <main style={{ maxWidth: 600, margin: '0 auto', padding: '60px 24px' }}>
         {/* Coming Soon Banner */}
         <div style={{ background: '#16213a', border: '1px solid #1e3a5f', borderRadius: 12, padding: '24px 32px', marginBottom: 32, textAlign: 'center' }}>

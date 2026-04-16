@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import SiteHeader from '@/components/SiteHeader';
 
 interface Review { id: string; reviewer_name: string; rating: number; comment: string; created_at: string; load_id: string; }
 
@@ -27,6 +28,7 @@ export default function ReviewsPage() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-8">
+      <SiteHeader />
       <div className="max-w-3xl mx-auto">
         <h1 className="text-3xl font-bold mb-2">⭐ Reviews</h1>
         <p className="text-gray-400 mb-8">Rate and review carriers, escorts, and partners</p>

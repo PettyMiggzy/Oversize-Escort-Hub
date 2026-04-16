@@ -1,10 +1,10 @@
-
-"use client";
-
+'use client';
+import SiteHeader from '@/components/SiteHeader';
 export default function PrivacyPolicy() {
   const s = { section: { marginBottom: 36 }, h2: { color: "#fff", fontSize: 17, marginBottom: 12, paddingBottom: 8, borderBottom: "1px solid #1a1a1a" }, p: { lineHeight: 1.85, marginBottom: 12, color: "#aaa" }, li: { lineHeight: 1.85, color: "#aaa", marginBottom: 6 }, ul: { paddingLeft: 22, marginBottom: 12 } };
   return (
     <div style={{ background: "#0a0a0a", minHeight: "100vh", color: "#ccc", fontFamily: "system-ui, sans-serif" }}>
+      <SiteHeader />
       <div style={{ background: "#0f0f0f", borderBottom: "1px solid #1a1a1a", padding: "14px 24px", display: "flex", alignItems: "center", gap: 16 }}>
         <a href="/" style={{ background: "none", border: "1px solid #333", color: "#888", fontFamily: "DM Mono, monospace", fontSize: 10, letterSpacing: ".1em", padding: "6px 14px", cursor: "pointer", borderRadius: 2, textDecoration: "none" }}>
           ← BACK
