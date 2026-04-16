@@ -1,0 +1,15 @@
+[33meef5700[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m feat: Tasks 13+14+15 — Contact form+Resend API, About page Brian Ahmed story, Verify BGC price ID fix, DD-214 grayed
+[33mac7d989[m feat: Task 12 — SEO metadata added to all server component pages
+[33m529feba[m feat: Tasks 9+10+11 — Fleet dashboard real data, Open loads bid board, Load detail page [id]
+[33m513df6e[m feat: Tasks 6+7+8 — Admin users real data, revenue MRR, SMS blast tab + /api/sms/blast
+[33m153614a[m feat: Task 5 — Notification system, /api/notify CRUD, carrier badge, match trigger
+[33mcd70e58[m feat: Task 4 — Post Load UX audit, clean form with all required escort types, rate auto-calc
+[33mbebccc2[m feat: Task 2+3 — Veteran Discount coming soon page, Referral scaffold
+[33m2c54f23[m feat: Task 1 — Stripe Customer Portal button on dashboard, /api/stripe/portal route
+[33mab45bfc[m feat: Tasks 1-9 — escort profiles, find-escorts real data+sponsored+state filter, post-load TS errors fixed, SMS TextRequest route, BGC flow certifications+permits bucket+Resend, availability zones grid, pricing audit, mobile nav fix
+[33me3f4693[m fix: correct supabase import (singleton, not createClient) - build passes
+[33m4bc6652[m feat: Task 3,8 REAL IMPLEMENTATION - Bid-board countdown timer with setInterval, admin panel with Supabase queries
+[33mf48a665[m feat: Task 2,3,8 - Add matching engine API, bid-board timer notes, admin panel structure
+[33mfb31b9f[m feat: Task 1-7 - Add load API, how-it-works, features, ToS/Privacy updates
+[33me09bd65[m fix: rewrite admin page with inline styles - buttons now work with full dark theme styling
+[33m87c1079[m feat: admin tab navigation, footer flags, new admin nav buttons

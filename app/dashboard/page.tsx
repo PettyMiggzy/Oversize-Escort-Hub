@@ -5,20 +5,6 @@ import type { User } from "@supabase/supabase-js"
 import Link from "next/link"
 import Header from "@/components/SiteHeader"
 import Footer from "@/components/SiteFooter"
-import type { Metadata } from 'next'
-
-export const metadata: Metadata = {
-  title: 'Dashboard | Oversize Escort Hub',
-  description: 'Manage your loads, matches, and profile on Oversize Escort Hub.',
-  openGraph: {
-    title: 'Dashboard | Oversize Escort Hub',
-    description: 'Manage your loads, matches, and profile on Oversize Escort Hub.',
-    url: 'https://www.oversize-escort-hub.com/dashboard',
-    siteName: 'Oversize Escort Hub',
-  },
-}
-
-
 
 const S = {
   page: { minHeight: "100vh", background: "var(--bg)", color: "#eee", fontFamily: "var(--font)" },

@@ -2,20 +2,6 @@
 import { useEffect, useState } from "react"
 import { createClient } from "@supabase/supabase-js"
 import { useRouter } from "next/navigation"
-import type { Metadata } from 'next'
-
-export const metadata: Metadata = {
-  title: 'Find Escorts | Oversize Escort Hub',
-  description: 'Browse verified P/EVO and pilot car escorts available in your state. Filter by certification and availability.',
-  openGraph: {
-    title: 'Find Escorts | Oversize Escort Hub',
-    description: 'Browse verified P/EVO and pilot car escorts available in your state. Filter by certification and availability.',
-    url: 'https://www.oversize-escort-hub.com/find-escorts',
-    siteName: 'Oversize Escort Hub',
-  },
-}
-
-
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
