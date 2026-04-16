@@ -1,49 +1,48 @@
-"use client";
-import { useState } from "react";
+import type { Metadata } from 'next'
+import Header from '@/app/components/Header'
+import Footer from '@/app/components/Footer'
+
+export const metadata: Metadata = {
+  title: 'Veteran Discount | Oversize Escort Hub',
+  description: 'Upload your DD-214 to receive 30% off your OEH membership. Coming soon.',
+  openGraph: {
+    title: 'Veteran Discount | Oversize Escort Hub',
+    description: 'Upload your DD-214 to receive 30% off your OEH membership. Coming soon.',
+    url: 'https://www.oversize-escort-hub.com/veteran-discount',
+    siteName: 'Oversize Escort Hub',
+  },
+}
 
 export default function VeteranDiscountPage() {
-  const [file, setFile] = useState<File | null>(null);
-  const [status, setStatus] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!file) return;
-    setLoading(true);
-    const formData = new FormData();
-    formData.append("pdf", file);
-    const res = await fetch("/api/veteran/dd214-submit", { method: "POST", body: formData });
-    const data = await res.json();
-    setLoading(false);
-    if (res.ok) setStatus("✓ DD-214 submitted! Submission ID: " + data.submissionId);
-    else setStatus("Error: " + data.error);
-  }
-
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-8">
-      <div className="max-w-2xl mx-auto">
-        <div className="flex items-center gap-3 mb-2">
-          <span className="text-4xl">🎖️</span>
-          <h1 className="text-3xl font-bold">Veteran Discount Program</h1>
+    <div style={{ minHeight: '100vh', background: '#0a0f1a', color: '#fff' }}>
+      <Header />
+      <main style={{ maxWidth: 600, margin: '0 auto', padding: '60px 24px' }}>
+        <div style={{ background: '#16213a', border: '1px solid #1e3a5f', borderRadius: 12, padding: '24px 32px', marginBottom: 32, textAlign: 'center' }}>
+          <div style={{ fontSize: 28, marginBottom: 8 }}>🎖️</div>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: '#f60', marginBottom: 8 }}>Veteran Discount — Coming Soon</h1>
+          <p style={{ color: '#9ca3af', fontSize: 14 }}>We honor your service. This feature is being rolled out shortly.</p>
         </div>
-        <p className="text-gray-400 mb-8">Submit your DD-214 to receive a 30% lifetime discount on all membership tiers.</p>
-        <div className="bg-yellow-900/30 border border-yellow-600/50 rounded-xl p-4 mb-6">
-          <p className="text-yellow-300 font-semibold">🎁 30% Lifetime Discount</p>
-          <p className="text-yellow-200 text-sm">Applied automatically after approval (1-3 business days)</p>
-        </div>
-        <form onSubmit={handleSubmit} className="bg-gray-800 rounded-xl p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">DD-214 Form (PDF)</label>
-            <input type="file" accept=".pdf" onChange={e => setFile(e.target.files?.[0] ?? null)}
-              className="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-green-600 file:text-white hover:file:bg-green-700" />
+
+        <div style={{ background: '#0f1a2e', border: '1px solid #1e3a5f', borderRadius: 12, padding: 32, opacity: 0.6, position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: 16, right: 16, fontSize: 24 }}>🔒</div>
+          <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 16, color: '#e2e8f0' }}>DD-214 Upload</h2>
+          <p style={{ color: '#9ca3af', fontSize: 14, marginBottom: 24 }}>
+            Upload your DD-214 to receive <strong style={{ color: '#f60' }}>30% off</strong> your membership. Available soon.
+          </p>
+          <div style={{ border: '2px dashed #1e3a5f', borderRadius: 8, padding: 32, textAlign: 'center', color: '#4a5568', cursor: 'not-allowed' }}>
+            <div style={{ fontSize: 32, marginBottom: 8 }}>📄</div>
+            <p style={{ fontSize: 13 }}>Click to upload DD-214 (PDF)</p>
+            <p style={{ fontSize: 11, marginTop: 4 }}>Upload disabled — coming soon</p>
           </div>
-          {status && <p className={status.startsWith("✓") ? "text-green-400" : "text-red-400"}>{status}</p>}
-          <button type="submit" disabled={!file || loading}
-            className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-semibold py-3 rounded-lg transition">
-            {loading ? "Submitting..." : "Submit DD-214"}
-          </button>
-        </form>
-      </div>
+          <div style={{ marginTop: 16, textAlign: 'center' }}>
+            <button disabled style={{ background: '#1e3a5f', color: '#4a5568', border: 'none', borderRadius: 6, padding: '10px 24px', fontWeight: 600, cursor: 'not-allowed' }}>
+              Submit for Review
+            </button>
+          </div>
+        </div>
+      </main>
+      <Footer />
     </div>
-  );
+  )
 }
