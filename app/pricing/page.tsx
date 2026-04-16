@@ -10,6 +10,7 @@ const PRICES = {
   pevo_pro:    "price_1TF0D1LmfugPCRbAPWsN2K5x",
   bgc:         "price_1TF0EILmfugPCRbAvM6Q5rhW",
       fleet_pro:     "price_1MT9fLmfugPCRbA0Tu6SUI0",
+  sponsored_zone: "price_1TLSu3LmfugPCRbAsumfZjCf",
 };
 
 async function startCheckout(priceId: string, setLoading: (v: string) => void) {
