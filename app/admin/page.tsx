@@ -36,7 +36,7 @@ export default function AdminPage() {
       // Load users
       const { data: usersData } = await supabase
         .from('profiles')
-        .select('id, full_name, email, role, tier, bgc_verified, created_at, suspended, phone, stripe_customer_id, tier_updated_at')
+        .select('id, full_name, email, role, tier, bgc_verified, created_at, suspended, phone, stripe_customer_id, tier_updated_at, sms_opt_in')
         .order('created_at', { ascending: false })
       setUsers(usersData || [])
 
@@ -92,10 +92,10 @@ export default function AdminPage() {
   }
 
   const estimateRecipients = () => {
-    if (smsAudience === 'all') return users.filter(u => u.phone).length
-    if (smsAudience === 'pro') return users.filter(u => (u.tier === 'pro' || u.tier === 'fleet_pro') && u.phone).length
-    if (smsAudience === 'carriers') return users.filter(u => u.role === 'carrier' && u.phone).length
-    if (smsAudience === 'members') return users.filter(u => u.tier === 'member' && u.phone).length
+    if (smsAudience === 'all') return users.filter(u => u.phone && u.sms_opt_in).length
+    if (smsAudience === 'pro') return users.filter(u => (u.tier === 'pro' || u.tier === 'fleet_pro') && u.phone && u.sms_opt_in).length
+    if (smsAudience === 'carriers') return users.filter(u => u.role === 'carrier' && u.phone && u.sms_opt_in).length
+    if (smsAudience === 'members') return users.filter(u => u.tier === 'member' && u.phone && u.sms_opt_in).length
     return 0
   }
 
