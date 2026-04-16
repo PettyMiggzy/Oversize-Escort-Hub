@@ -42,6 +42,7 @@ export default function DashboardPage() {
   const [matchRequests, setMatchRequests] = useState<any[]>([])
   const [historyLoads, setHistoryLoads] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [portalLoading, setPortalLoading] = useState(false)
   const [toast, setToast] = useState<{msg:string;type:"gr"|"rd"|"am"}|null>(null)
   const [reviews, setReviews] = useState<any[]>([])
   const [stats, setStats] = useState({ open: 0, pending: 0, filled: 0 })
@@ -127,7 +128,22 @@ export default function DashboardPage() {
     </div>
   )
 
-  return (
+
+  const manageSubscription = async () => {
+    setPortalLoading(true)
+    try {
+      const res = await fetch('/api/stripe/portal', { method: 'POST' })
+      const data = await res.json()
+      if (data.url) window.location.href = data.url
+      else alert(data.error || 'No active subscription found.')
+    } catch (e) {
+      alert('Error opening subscription portal.')
+    } finally {
+      setPortalLoading(false)
+    }
+  }
+
+    return (
     <div style={S.page}>
       <Header />
       {toast && (
@@ -295,6 +311,21 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
+        {profile && (
+          <div style={{ textAlign: "center", marginTop: 8 }}>
+            {profile.stripe_customer_id ? (
+              <button
+                onClick={manageSubscription}
+                disabled={portalLoading}
+                style={{ background: "#f60", color: "#fff", border: "none", borderRadius: 6, padding: "8px 20px", fontWeight: 600, cursor: "pointer", fontSize: 13 }}
+              >
+                {portalLoading ? "Loading..." : "Manage Subscription"}
+              </button>
+            ) : (
+              <span style={{ color: "#9ca3af", fontSize: 13 }}>No active subscription</span>
+            )}
+          </div>
+        )}
       )}
 
       {isEscort && (
