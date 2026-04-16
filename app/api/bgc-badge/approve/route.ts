@@ -1,57 +1,40 @@
-import { createBrowserClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
-import { NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
+import { NextRequest, NextResponse } from "next/server"
+import { createClient } from "@supabase/supabase-js"
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-const ADMIN_EMAILS = ["bahmed3170@gmail.com", "brian@precisionpilotservices.com"];
+const svc = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user || !ADMIN_EMAILS.includes(user.email!)) {
-      return NextResponse.json({ error: "Admin only" }, { status: 403 });
-    }
-
-    const { submissionId, action, userId } = await req.json();
+    const { certificationId, action } = await req.json()
+    if (!certificationId || !action) return NextResponse.json({ error: "certificationId and action required" }, { status: 400 })
 
     if (action === "approve") {
-      await supabase
-        .from("bgc_submissions")
-        .update({ status: "approved", approved_at: new Date().toISOString() })
-        .eq("id", submissionId);
+      // Update certifications.status
+      const { data: cert, error: certErr } = await svc
+        .from("certifications")
+        .update({ status: "approved" })
+        .eq("id", certificationId)
+        .select("user_id")
+        .single()
+      if (certErr) return NextResponse.json({ error: certErr.message }, { status: 500 })
 
-      await supabase
-        .from("profiles")
-        .update({ has_bgc_badge: true })
-        .eq("id", userId);
+      // Set profiles.bgc_verified = true
+      if (cert?.user_id) {
+        await svc.from("profiles").update({ bgc_verified: true }).eq("id", cert.user_id)
+      }
 
-      const session = await stripe.checkout.sessions.create({
-        payment_method_types: ["card"],
-        line_items: [{ price: "price_1TF0EILmfugPCRbAvM6Q5rhW", quantity: 1 }],
-        mode: "payment",
-        customer_email: user.email,
-        success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/account?badge=success`,
-        cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/account?badge=canceled`,
-      });
-
-      return NextResponse.json({ sessionId: session.id });
+      return NextResponse.json({ success: true })
+    } else if (action === "deny") {
+      await svc.from("certifications").update({ status: "denied" }).eq("id", certificationId)
+      return NextResponse.json({ success: true })
     }
 
-    if (action === "deny") {
-      await supabase
-        .from("bgc_submissions")
-        .update({ status: "denied", denied_reason: "Admin review" })
-        .eq("id", submissionId);
-
-      return NextResponse.json({ success: true });
-    }
-
-    return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+    return NextResponse.json({ error: "Invalid action" }, { status: 400 })
   } catch (error) {
-    console.error("BGC approval error:", error);
-    return NextResponse.json({ error: "Approval failed" }, { status: 500 });
+    console.error("BGC approval error:", error)
+    return NextResponse.json({ error: "Approval failed" }, { status: 500 })
   }
 }

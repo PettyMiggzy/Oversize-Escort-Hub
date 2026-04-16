@@ -9,9 +9,7 @@ const PRICES = {
   pevo_member: "price_1TF0D4LmfugPCRbAd4hM022R",
   pevo_pro:    "price_1TF0D1LmfugPCRbAPWsN2K5x",
   bgc:         "price_1TF0EILmfugPCRbAvM6Q5rhW",
-  fleet_starter: "price_1TMUvjLmfugPCRbAa1HHd7f3",
-  fleet_plus:    "price_1TMUwaLmfugPCRbAxwDBbslg",
-  fleet_pro:     "price_1TMT9fLmfugPCRbA0Tu65Ui0",
+      fleet_pro:     "price_1MT9fLmfugPCRbA0Tu6SUI0",
 };
 
 async function startCheckout(priceId: string, setLoading: (v: string) => void) {
@@ -112,36 +110,7 @@ export default function PricingPage() {
       priceId: null,
     },
     // Fleet Manager Tiers
-    {
-      label: "Fleet Starter",
-      badge: null,
-      price: "$29.99",
-      period: "/mo",
-      color: "var(--fleet)",
-      features: [
-        "Up to 5 escorts",
-        "Basic fleet management",
-        "Earnings dashboard",
-        "Driver support",
-      ],
-      cta: "Start Free Trial",
-      priceId: PRICES.fleet_starter,
-    },
-    {
-      label: "Fleet Plus",
-      badge: null,
-      price: "$49.99",
-      period: "/mo",
-      color: "var(--fleet)",
-      features: [
-        "Up to 10 escorts",
-        "Advanced fleet management",
-        "API access",
-        "24/7 priority support",
-      ],
-      cta: "Start Free Trial",
-      priceId: PRICES.fleet_plus,
-    },
+    ,
     {
       label: "Fleet Pro Unlimited",
       badge: "BEST VALUE",
@@ -157,7 +126,22 @@ export default function PricingPage() {
       cta: "Start Free Trial",
       priceId: PRICES.fleet_pro,
     },
-  ];
+    {
+    label: "Sponsored Zone",
+    badge: "ADD-ON",
+    price: "$29.99",
+    period: "/mo",
+    color: "var(--or)",
+    features: [
+      "Featured at top of Find Escorts page",
+      "Highlighted sponsored badge",
+      "State-specific targeting",
+      "Cancel anytime",
+    ],
+    cta: "Get Sponsored",
+    priceId: PRICES.sponsored_zone,
+  },
+];
 
   return (
     <div className="section">

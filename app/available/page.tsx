@@ -1,152 +1,126 @@
 "use client"
 import { useEffect, useState } from "react"
-import { supabase } from "@/lib/supabase"
+import { createClient } from "@supabase/supabase-js"
 
-const US_STATES = ["AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"]
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
-type Availability = {
-  id: string
-  escort_id: string
-  state: string
-  available_from: string
-  available_to: string
-  notes: string
-  profiles: { full_name: string; tier: string }
-}
+const US_STATES = [
+  "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA",
+  "HI","ID","IL","IN","IA","KS","KY","LA","ME","MD",
+  "MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ",
+  "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC",
+  "SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"
+]
+const CA_PROVINCES = ["BC","AB","ON","SK","MB"]
+const ALL_ZONES = [...US_STATES, ...CA_PROVINCES]
 
-export default function AvailabilityBoardPage() {
-  const [entries, setEntries] = useState<Availability[]>([])
-  const [profile, setProfile] = useState<any>(null)
-  const [filterState, setFilterState] = useState("")
-  const [form, setForm] = useState({ state: "", from: "", to: "", notes: "" })
-  const [posting, setPosting] = useState(false)
-  const [posted, setPosted] = useState(false)
+export default function AvailabilityPage() {
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [userId, setUserId] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [loading, setLoading] = useState(true)
 
-  useEffect(() => { loadBoard(); getProfile() }, [])
+  useEffect(() => {
+    loadZones()
+  }, [])
 
-  async function loadBoard() {
+  async function loadZones() {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) { setLoading(false); return }
+    setUserId(session.user.id)
+
     const { data } = await supabase
       .from("escort_availability")
-      .select("*, profiles(full_name, tier)")
-      .gte("available_to", new Date().toISOString().split("T")[0])
-      .order("available_from", { ascending: true })
-    setEntries(data || [])
+      .select("state")
+      .eq("escort_id", session.user.id)
+
+    if (data) setSelected(new Set(data.map((r: any) => r.state)))
+    setLoading(false)
   }
 
-  async function getProfile() {
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) return
-    const { data } = await supabase.from("profiles").select("*").eq("id", session.user.id).single()
-    setProfile(data)
-  }
-
-  async function postAvailability() {
-    if (!form.state || !form.from || !form.to) return
-    setPosting(true)
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) { setPosting(false); return }
-    await supabase.from("escort_availability").insert({
-      escort_id: session.user.id,
-      state: form.state,
-      available_from: form.from,
-      available_to: form.to,
-      notes: form.notes,
+  function toggle(zone: string) {
+    setSelected(prev => {
+      const next = new Set(prev)
+      if (next.has(zone)) next.delete(zone)
+      else next.add(zone)
+      return next
     })
-    setPosted(true); setPosting(false)
-    setForm({ state: "", from: "", to: "", notes: "" })
-    loadBoard()
+    setSaved(false)
   }
 
-  async function sendLoadAlert(escortId: string) {
-    const msg = prompt("Enter load details to SMS this escort:")
-    if (!msg) return
-    const { data } = await supabase.from("profiles").select("phone").eq("id", escortId).single()
-    if (!data?.phone) { alert("No phone on file."); return }
-    await fetch("/api/sms-alert", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ phone: data.phone, message: msg }) })
-    alert("Load alert sent!")
+  async function save() {
+    if (!userId) return
+    setSaving(true)
+    // Delete all existing zones
+    await supabase.from("escort_availability").delete().eq("escort_id", userId)
+    // Insert selected zones
+    if (selected.size > 0) {
+      const rows = Array.from(selected).map(state => ({ escort_id: userId, state }))
+      await supabase.from("escort_availability").insert(rows)
+    }
+    setSaving(false)
+    setSaved(true)
   }
 
-  const filtered = filterState ? entries.filter(e => e.state === filterState) : entries
-  const byState: Record<string, Availability[]> = {}
-  filtered.forEach(e => { if (!byState[e.state]) byState[e.state] = []; byState[e.state].push(e) })
+  const S = {
+    page: { minHeight: "100vh", background: "#060b16", color: "#e5e7eb", fontFamily: "system-ui,sans-serif" },
+    header: { padding: "16px 24px", borderBottom: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "space-between" },
+    brand: { fontWeight: 900, color: "#f0a500", textDecoration: "none", fontSize: 18 },
+    wrap: { maxWidth: 860, margin: "0 auto", padding: "40px 24px" },
+    h1: { fontSize: 28, fontWeight: 800, marginBottom: 8 },
+    sub: { color: "#9ca3af", marginBottom: 32, fontSize: 15 },
+    sectionTitle: { fontSize: 13, fontWeight: 700, color: "#f0a500", textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 12 },
+    grid: { display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(64px,1fr))", gap: 8, marginBottom: 32 },
+    zone: (active: boolean) => ({
+      background: active ? "#f0a500" : "rgba(255,255,255,0.04)",
+      color: active ? "#000" : "#e5e7eb",
+      border: active ? "1px solid #f0a500" : "1px solid rgba(255,255,255,0.10)",
+      borderRadius: 8, padding: "8px 4px", textAlign: "center" as const,
+      fontWeight: active ? 700 : 400, fontSize: 13, cursor: "pointer",
+      transition: "all 0.15s"
+    }),
+    btn: { background: "#f0a500", color: "#000", fontWeight: 700, border: "none", borderRadius: 10, padding: "12px 28px", cursor: "pointer", fontSize: 15 },
+    count: { color: "#9ca3af", fontSize: 14, marginBottom: 16 },
+    saved: { color: "#22c55e", fontSize: 14, marginLeft: 12 },
+  }
 
-  const card = { background: "#111", border: "1px solid #222", borderRadius: 10, padding: 20, marginBottom: 16 }
-  const inp = { background: "#1a1a1a", border: "1px solid #333", borderRadius: 6, padding: "8px 12px", color: "#fff", fontSize: 13, width: "100%" }
-  const btn = (color = "#ff6600") => ({ background: color, color: "#fff", border: "none", borderRadius: 6, padding: "8px 16px", cursor: "pointer", fontWeight: 700, fontSize: 13 })
+  if (loading) return <div style={S.page}><div style={{ padding: 40, color: "#9ca3af" }}>Loading...</div></div>
+  if (!userId) return <div style={S.page}><div style={{ padding: 40, color: "#ef4444" }}>Please sign in to manage your availability zones.</div></div>
 
   return (
-    <div style={{ color: "#fff", fontFamily: "sans-serif", background: "#0a0a0a", minHeight: "100vh", padding: 24 }}>
-      <div style={{ maxWidth: 900, margin: "0 auto" }}>
-        <div style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 4 }}>Escort Availability Board</h1>
-          <p style={{ color: "#9ca3af", fontSize: 13 }}>Pro escorts post availability. Pro carriers can send load alerts.</p>
+    <div style={S.page}>
+      <header style={S.header}>
+        <a href="/" style={S.brand}>OVERSIZE ESCORT HUB</a>
+      </header>
+      <div style={S.wrap}>
+        <h1 style={S.h1}>Availability Zones</h1>
+        <p style={S.sub}>Select the states and provinces you cover. Click a zone to toggle it on/off.</p>
+        <p style={S.count}>{selected.size} zone{selected.size !== 1 ? "s" : ""} selected</p>
+
+        <div style={S.sectionTitle}>United States</div>
+        <div style={S.grid}>
+          {US_STATES.map(s => (
+            <div key={s} style={S.zone(selected.has(s))} onClick={() => toggle(s)}>{s}</div>
+          ))}
         </div>
 
-        {profile && (profile.role === "admin" || ["pro", "member"].includes(profile.tier)) && (
-          <div style={card}>
-            <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Post Your Availability</h2>
-            {posted ? (
-              <p style={{ color: "#22c55e" }}>Posted! Expires in 48 hours.</p>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 10 }}>
-                  <select value={form.state} onChange={e => setForm(f => ({ ...f, state: e.target.value }))} style={inp}>
-                    <option value="">State *</option>
-                    {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                  <div>
-                    <label style={{ fontSize: 11, color: "#9ca3af", display: "block", marginBottom: 4 }}>From *</label>
-                    <input type="date" value={form.from} onChange={e => setForm(f => ({ ...f, from: e.target.value }))} style={inp} />
-                  </div>
-                  <div>
-                    <label style={{ fontSize: 11, color: "#9ca3af", display: "block", marginBottom: 4 }}>To *</label>
-                    <input type="date" value={form.to} onChange={e => setForm(f => ({ ...f, to: e.target.value }))} style={inp} />
-                  </div>
-                </div>
-                <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2} style={{ ...inp, resize: "vertical" }} placeholder="Notes (optional)" />
-                <button onClick={postAvailability} disabled={posting} style={btn()}>{posting ? "Posting..." : "Post Availability"}</button>
-              </div>
-            )}
-          </div>
-        )}
-
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
-          <label style={{ fontSize: 13, color: "#9ca3af" }}>Filter:</label>
-          <select value={filterState} onChange={e => setFilterState(e.target.value)} style={{ ...inp, width: "auto", minWidth: 120 }}>
-            <option value="">All States</option>
-            {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-          <span style={{ fontSize: 12, color: "#9ca3af" }}>{filtered.length} escort{filtered.length !== 1 ? "s" : ""}</span>
+        <div style={S.sectionTitle}>Canada</div>
+        <div style={{ ...S.grid, gridTemplateColumns: "repeat(auto-fill,minmax(64px,1fr))", maxWidth: 400 }}>
+          {CA_PROVINCES.map(p => (
+            <div key={p} style={S.zone(selected.has(p))} onClick={() => toggle(p)}>{p}</div>
+          ))}
         </div>
 
-        {Object.keys(byState).length === 0 ? (
-          <div style={{ ...card, textAlign: "center", color: "#9ca3af" }}>
-            No availability posted yet{filterState ? ` in ${filterState}` : ""}. Check back soon.
-          </div>
-        ) : (
-          Object.entries(byState).sort(([a], [b]) => a.localeCompare(b)).map(([state, list]) => (
-            <div key={state} style={card}>
-              <h2 style={{ fontSize: 15, fontWeight: 700, marginBottom: 12, color: "#ff6600" }}>{state}</h2>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {list.map(entry => (
-                  <div key={entry.id} style={{ background: "#1a1a1a", borderRadius: 8, padding: 14, display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 10 }}>
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: 14 }}>{entry.profiles?.full_name || "Escort"}</div>
-                      <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>{entry.available_from} to {entry.available_to}</div>
-                      {entry.notes && <div style={{ fontSize: 12, color: "#d1d5db", marginTop: 4 }}>{entry.notes}</div>}
-                      <span style={{ fontSize: 10, fontWeight: 700, background: "#1e3a5f", color: "#60a5fa", padding: "2px 8px", borderRadius: 99, display: "inline-block", marginTop: 6 }}>
-                        {entry.profiles?.tier?.toUpperCase() || "ESCORT"}
-                      </span>
-                    </div>
-                    {profile && (profile.role === "admin" || profile.tier === "pro" || profile.role === "carrier") && (
-                      <button onClick={() => sendLoadAlert(entry.escort_id)} style={btn("#3b82f6")}>Send Load Alert</button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))
-        )}
+        <div style={{ display: "flex", alignItems: "center", marginTop: 8 }}>
+          <button style={S.btn} onClick={save} disabled={saving}>
+            {saving ? "Saving..." : "Save Zones"}
+          </button>
+          {saved && <span style={S.saved}>✓ Saved!</span>}
+        </div>
       </div>
     </div>
   )

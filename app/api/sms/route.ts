@@ -1,78 +1,71 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-export const dynamic = 'force-dynamic'
-
 const svc = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
-    async function sendSMS(phone: string, body: string) {
-      const apiKey = process.env.TEXTREQUEST_API_KEY!
-        const accountId = process.env.TEXTREQUEST_ACCOUNT_ID!
-          await fetch('https://api.textrequest.com/api/Messages', {
-              method: 'POST',
-                  headers: { 'Content-Type': 'application/json', 'X-Api-Key': apiKey },
-                      body: JSON.stringify({ AccountId: accountId, Contact: { PhoneNumber: phone }, Body: body })
-                        })
-                        }
+async function sendSMS(phone: string, body: string) {
+  const apiKey = process.env.TEXTREQUEST_API_KEY!
+  const accountId = process.env.TEXTREQUEST_ACCOUNT_ID!
+  await fetch(`https://api.textrequest.com/api/v3/Messages`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Api-Key': apiKey },
+    body: JSON.stringify({ AccountId: accountId, Contact: { PhoneNumber: phone }, Body: body })
+  })
+}
 
-                        export async function POST(req: NextRequest) {
-                          const body = await req.json()
-                            const { loadId, pickup, destination, date, certs, rate, pickupState, deliveryState } = body
+export async function POST(req: NextRequest) {
+  try {
+    const { loadId } = await req.json()
+    if (!loadId) return NextResponse.json({ error: 'loadId required' }, { status: 400 })
 
-                              // Update pro_window_expires_at on the load (5-min PRO exclusive window)
-                                const proExpiry = new Date(Date.now() + 5 * 60 * 1000).toISOString()
-                                  await svc.from('loads').update({ pro_window_expires_at: proExpiry }).eq('id', loadId)
+    // Get the load
+    const { data: load } = await svc
+      .from('loads')
+      .select('*')
+      .eq('id', loadId)
+      .eq('board_type', 'bid')
+      .eq('status', 'open')
+      .single()
 
-                                    // Build SMS message body
-                                      const certsStr = Array.isArray(certs) ? certs.join(', ') : (certs || '')
-                                        const proMsg = `OEH NEW LOAD: ${pickup} \u2192 ${destination} | ${date} | ${certsStr} | ${rate} \u2014 5-min PRO exclusive. Login: oversize-escort-hub.com`
-                                          const memberMsg = `OEH NEW LOAD: ${pickup} \u2192 ${destination} | ${date} | ${certsStr} | ${rate}. Login: oversize-escort-hub.com`
+    if (!load) return NextResponse.json({ sent: 0 })
 
-                                            // Fetch opted-out phone numbers
-                                              const { data: optOuts } = await svc.from('sms_opt_outs').select('phone')
-                                                const optOutSet = new Set((optOuts || []).map((r: any) => r.phone))
+    // Get Pro escorts
+    const { data: proEscorts } = await svc
+      .from('profiles')
+      .select('id, full_name, phone')
+      .eq('role', 'escort')
+      .eq('membership', 'pro')
 
-                                                  // Helper: check if escort's notification_states matches this load's states
-                                                    function stateMatches(notifStates: string[] | null, pickup: string, delivery: string): boolean {
-                                                        if (!notifStates || notifStates.length === 0) return true // no preference = all loads
-                                                            return notifStates.includes(pickup) || notifStates.includes(delivery)
-                                                              }
+    if (!proEscorts || proEscorts.length === 0) return NextResponse.json({ sent: 0 })
 
-                                                                // Fetch PRO escorts with phone (immediate send)
-                                                                  const { data: proEscorts } = await svc
-                                                                      .from('profiles')
-                                                                          .select('phone, full_name, notification_states')
-                                                                              .eq('tier', 'pro')
-                                                                                  .eq('role', 'escort')
-                                                                                      .not('phone', 'is', null)
+    // Get zones for each pro escort, filter by pickup/destination state
+    const pickupState = load.pickup_state || ''
+    const destState = load.destination_state || ''
 
-                                                                                        let proSent = 0
-                                                                                          for (const escort of (proEscorts || [])) {
-                                                                                              if (optOutSet.has(escort.phone)) continue
-                                                                                                  if (!stateMatches(escort.notification_states, pickupState || '', deliveryState || '')) continue
-                                                                                                      try { await sendSMS(escort.phone, proMsg); proSent++ } catch {}
-                                                                                                        }
+    let sent = 0
+    for (const escort of proEscorts) {
+      if (!escort.phone) continue
 
-                                                                                                          // Fetch MEMBER escorts with phone (send after 60-second delay)
-                                                                                                            const { data: memberEscorts } = await svc
-                                                                                                                .from('profiles')
-                                                                                                                    .select('phone, full_name, notification_states')
-                                                                                                                        .eq('tier', 'member')
-                                                                                                                            .eq('role', 'escort')
-                                                                                                                                .not('phone', 'is', null)
+      // Check if escort covers pickup state
+      const { data: zones } = await svc
+        .from('escort_availability')
+        .select('state')
+        .eq('escort_id', escort.id)
 
-                                                                                                                                  // Fire-and-forget member sends with 60s delay
-                                                                                                                                    ;(async () => {
-                                                                                                                                        await new Promise(r => setTimeout(r, 60_000))
-                                                                                                                                            for (const escort of (memberEscorts || [])) {
-                                                                                                                                                  if (optOutSet.has(escort.phone)) continue
-                                                                                                                                                        if (!stateMatches(escort.notification_states, pickupState || '', deliveryState || '')) continue
-                                                                                                                                                              try { await sendSMS(escort.phone, memberMsg) } catch {}
-                                                                                                                                                                  }
-                                                                                                                                                                    })()
+      const escortStates = (zones || []).map((z: any) => z.state)
+      if (pickupState && !escortStates.includes(pickupState)) continue
 
-                                                                                                                                                                      return NextResponse.json({ sent: proSent, proExpiry })
-                                                                                                                                                                      }
+      const msg = `New OEH Load: ${load.escort_type || load.escort_types?.[0] || 'Escort'} needed. ${load.pickup_city || ''}, ${pickupState} → ${load.destination_city || ''}, ${destState}. Rate: $${load.rate || '?'}. View: oversize-escort-hub.com/loads/${load.id}`
+
+      try { await sendSMS(escort.phone, msg); sent++ } catch {}
+    }
+
+    return NextResponse.json({ sent })
+  } catch (error) {
+    console.error('SMS route error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}

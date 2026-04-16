@@ -80,6 +80,9 @@ export default function PostLoadPage() {
   const [pickupState, setPickupState] = useState("")
   const [destState, setDestState] = useState("")
   const [permitAgreement, setPermitAgreement] = useState(false)
+  const [pickupCity, setPickupCity] = useState("")
+  const [escortType, setEscortType] = useState("")
+  const [rate, setRate] = useState("")
   const [showRouteStates, setShowRouteStates] = useState(false);
   const [estMiles, setEstMiles] = useState("")
 

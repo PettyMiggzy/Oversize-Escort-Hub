@@ -352,11 +352,11 @@ footer{background:var(--p1);border-top:1px solid var(--l1);padding:40px 24px 24p
   .footer-grid{grid-template-columns:1fr 1fr}
   .dash-grid{grid-template-columns:1fr}
   .dash-nav{display:none}
-  .ham-btn{display:flex;align-items:center;justify-content:center}
-  .nav-links{display:none}
+  .ham-btn{display:none;align-items:center;justify-content:center}
+  .nav-links{display:flex;align-items:center;gap:16px}
   .nav-right{gap:6px}
   .nav-get-started{font-size:9px;padding:7px 12px}
-.ham-btn{display:none;background:none;border:none;cursor:pointer;padding:8px;color:var(--t1)}
+.ham-btn{display:flex;background:none;border:none;cursor:pointer;padding:8px;color:var(--t1)}.nav-links{display:none!important}
 .ham-btn span{display:block;width:22px;height:2px;background:var(--t1);margin:4px 0;transition:.3s}
 .mobile-drawer{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:999;background:rgba(0,0,0,.7)}
 .mobile-drawer-inner{position:absolute;top:0;right:0;width:80%;max-width:300px;height:100%;background:var(--p1);border-left:1px solid var(--l1);overflow-y:auto;padding:20px 0}
@@ -426,7 +426,7 @@ function Nav({ page, setPage, user, profile, onSignOut, unreadCount = 0 }: {
     <div className="nav">
       <div className="nav-name" style={{ cursor: "pointer" }} onClick={() => setPage("home")}>Oversize Escort Hub</div>
       {/* Desktop links */}
-      <div className="nav-links" style={{ display: "flex", gap: 2, alignItems: "center" }}>
+      <div className="nav-links">
         {navLinks.map(([p, label]) => (
           <button key={p} className={`nav-link${page === p ? " active" : ""}`} onClick={() => setPage(p)}>{label}</button>
         ))}
