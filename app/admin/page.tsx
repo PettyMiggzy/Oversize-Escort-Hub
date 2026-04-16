@@ -1,8 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import Header from '@/app/components/Header'
-import Footer from '@/app/components/Footer'
 
 const TABS = ['users', 'bgc', 'loads', 'revenue', 'sms']
 
@@ -118,7 +116,6 @@ export default function AdminPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: bg, color: '#fff' }}>
-      <Header />
       <main style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 24px' }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 24 }}>Admin Panel</h1>
 
@@ -283,7 +280,6 @@ export default function AdminPage() {
           </div>
         )}
       </main>
-      <Footer />
     </div>
   )
 }

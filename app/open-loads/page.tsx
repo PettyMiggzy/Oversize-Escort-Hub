@@ -2,8 +2,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
-import Header from '@/app/components/Header'
-import Footer from '@/app/components/Footer'
 
 function TimeRemaining({ expiresAt }: { expiresAt: string }) {
   const [remaining, setRemaining] = useState('')
@@ -96,7 +94,6 @@ export default function OpenLoadsPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#0a0f1a', color: '#fff' }}>
-      <Header />
       <main style={{ maxWidth: 760, margin: '0 auto', padding: '40px 24px' }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>Open Bid Board</h1>
         <p style={{ color: '#9ca3af', fontSize: 13, marginBottom: 24 }}>Loads sorted by time remaining. Pro escorts can bid. Carriers see all bids in their dashboard.</p>
@@ -187,7 +184,6 @@ export default function OpenLoadsPage() {
         </div>
       )}
 
-      <Footer />
     </div>
   )
 }

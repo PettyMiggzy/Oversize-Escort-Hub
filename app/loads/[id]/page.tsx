@@ -3,8 +3,6 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import Header from '@/app/components/Header'
-import Footer from '@/app/components/Footer'
 
 export default function LoadDetailPage() {
   const params = useParams()
@@ -80,7 +78,6 @@ export default function LoadDetailPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#0a0f1a', color: '#fff' }}>
-      <Header />
       <main style={{ maxWidth: 680, margin: '0 auto', padding: '40px 24px' }}>
         <Link href="/open-loads" style={{ fontSize: 13, color: '#9ca3af', textDecoration: 'none', display: 'block', marginBottom: 16 }}>← Back to Board</Link>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
@@ -176,7 +173,6 @@ export default function LoadDetailPage() {
           </div>
         )}
       </main>
-      <Footer />
     </div>
   )
 }

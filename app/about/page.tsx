@@ -1,6 +1,4 @@
 import type { Metadata } from 'next'
-import Header from '@/app/components/Header'
-import Footer from '@/app/components/Footer'
 
 export const metadata: Metadata = {
   title: 'About | Oversize Escort Hub',
@@ -19,7 +17,6 @@ export default function AboutPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: bg, color: '#fff' }}>
-      <Header />
       <main style={{ maxWidth: 720, margin: '0 auto', padding: '60px 24px' }}>
         <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 8 }}>About Oversize Escort Hub</h1>
         <p style={{ color: '#9ca3af', fontSize: 15, marginBottom: 40, lineHeight: 1.6 }}>
@@ -72,7 +69,6 @@ export default function AboutPage() {
           </div>
         </div>
       </main>
-      <Footer />
     </div>
   )
 }

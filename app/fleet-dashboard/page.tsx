@@ -1,10 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import Header from '@/app/components/Header'
-import Footer from '@/app/components/Footer'
 
-export const metadata = undefined // client component
 
 export default function FleetDashboardPage() {
   const [loading, setLoading] = useState(true)
@@ -85,7 +82,6 @@ export default function FleetDashboardPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: bg, color: '#fff' }}>
-      <Header />
       <main style={{ maxWidth: 900, margin: '0 auto', padding: '40px 24px' }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 24 }}>Fleet Dashboard</h1>
 
@@ -155,7 +151,6 @@ export default function FleetDashboardPage() {
           <p style={{ color: '#9ca3af', fontSize: 13 }}>Est. total earned: <strong style={{ color: '#f60' }}>${activeLoads.filter(l => l.status === 'matched').reduce((s: number, l: any) => s + (l.rate ?? 0), 0).toFixed(2)}</strong></p>
         </div>
       </main>
-      <Footer />
     </div>
   )
 }

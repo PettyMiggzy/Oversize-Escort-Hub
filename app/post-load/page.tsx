@@ -2,8 +2,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import Header from '@/app/components/Header'
-import Footer from '@/app/components/Footer'
 
 const ESCORT_TYPES = [
   'Lead', 'Chase', 'High Pole', 'Lineman', 'Rear Steer',
@@ -109,7 +107,6 @@ export default function PostLoadPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#0a0f1a', color: '#fff' }}>
-      <Header />
       <main style={{ maxWidth: 560, margin: '0 auto', padding: '40px 24px' }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>Post a Load</h1>
         <p style={{ color: '#9ca3af', fontSize: 13, marginBottom: 24 }}>Complete in under 2 minutes. Expires in 24 hours.</p>
@@ -212,7 +209,6 @@ export default function PostLoadPage() {
           </form>
         )}
       </main>
-      <Footer />
     </div>
   )
 }

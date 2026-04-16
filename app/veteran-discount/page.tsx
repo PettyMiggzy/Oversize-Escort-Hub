@@ -1,6 +1,4 @@
 import type { Metadata } from 'next'
-import Header from '@/app/components/Header'
-import Footer from '@/app/components/Footer'
 
 export const metadata: Metadata = {
   title: 'Veteran Discount | Oversize Escort Hub',
@@ -16,7 +14,6 @@ export const metadata: Metadata = {
 export default function VeteranDiscountPage() {
   return (
     <div style={{ minHeight: '100vh', background: '#0a0f1a', color: '#fff' }}>
-      <Header />
       <main style={{ maxWidth: 600, margin: '0 auto', padding: '60px 24px' }}>
         <div style={{ background: '#16213a', border: '1px solid #1e3a5f', borderRadius: 12, padding: '24px 32px', marginBottom: 32, textAlign: 'center' }}>
           <div style={{ fontSize: 28, marginBottom: 8 }}>🎖️</div>
@@ -42,7 +39,6 @@ export default function VeteranDiscountPage() {
           </div>
         </div>
       </main>
-      <Footer />
     </div>
   )
 }
