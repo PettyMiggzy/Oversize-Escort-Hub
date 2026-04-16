@@ -1,4 +1,5 @@
 'use client';
+import SiteHeader from '@/components/SiteHeader';
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -146,6 +147,7 @@ export default function PricingPage() {
 
   return (
     <div className="section">
+      <SiteHeader />
       <div style={{ marginBottom: 24 }}>
         <h1 className="bb" style={{ fontSize: 28, marginBottom: 8 }}>Pricing</h1>
         <p className="mo" style={{ fontSize: 13, color: "var(--t2)" }}>

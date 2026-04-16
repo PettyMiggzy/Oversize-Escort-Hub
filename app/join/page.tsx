@@ -1,154 +1,149 @@
-"use client";
+'use client';
+import { useState } from 'react';
 
-import { Suspense, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { supabase } from "@/lib/supabase";   // Change this path if your supabase client is elsewhere
+const bg = '#060b16';
+const surface = '#0d1117';
+const orange = '#f0a500';
 
-function JoinInner() {
-  const params = useSearchParams();
-  const ref = params.get("ref");
+export default function JoinPage() {
+  const [loading, setLoading] = useState<string | null>(null);
 
-  const [selectedTier, setSelectedTier] = useState<string | null>(null);
-  const [loading, setLoading] = useState<string>("");
-
-  // Fleet tiers
-  const fleetTiers = [
-    {
-      id: "fleet_starter",
-      label: "Fleet Starter",
-      price: "$29.99",
-      period: "/mo",
-      description: "Up to 5 escorts",
-      priceId: "price_1TMUvjLmfugPCRbAa1HHd7f3",
-    },
-    {
-      id: "fleet_plus",
-      label: "Fleet Plus",
-      price: "$49.99",
-      period: "/mo",
-      description: "Up to 10 escorts",
-      priceId: "price_1TMUwaLmfugPCRbAxwDBbslg",
-    },
-    {
-      id: "fleet_pro",
-      label: "Fleet Pro Unlimited",
-      price: "$99.99",
-      period: "/mo",
-      description: "Unlimited escorts • BEST VALUE",
-      priceId: "price_1TMT9fLmfugPCRbA0Tu65Ui0",
-      isBest: true,
-    },
-  ];
-
-  const handleSelectTier = (priceId: string) => {
+  async function checkout(priceId: string) {
     setLoading(priceId);
-    startCheckout(priceId);
-  };
-
-  async function startCheckout(priceId: string) {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-
-      if (!session) {
-        window.location.href = `/signin?join=1&priceId=${encodeURIComponent(priceId)}`;
-        return;
-      }
-
-      // Real checkout logic goes here later
-      alert(`Starting checkout for Fleet plan: ${priceId}`);
-
-    } catch (error) {
-      console.error(error);
-      alert("Failed to start checkout");
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ priceId }),
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+    } catch (e) {
+      console.error(e);
     } finally {
-      setLoading("");
+      setLoading(null);
     }
   }
 
-  // Store referral code if present
-  if (ref) {
-    sessionStorage.setItem("oeh_ref_code", ref);
-  }
+  const btn: React.CSSProperties = {
+    display: 'block',
+    width: '100%',
+    padding: '12px 0',
+    border: 'none',
+    borderRadius: '6px',
+    fontWeight: 700,
+    fontSize: '15px',
+    cursor: 'pointer',
+    marginTop: '12px',
+    transition: 'opacity 0.2s',
+  };
+
+  const card: React.CSSProperties = {
+    background: surface,
+    border: `1px solid #1e2533`,
+    borderRadius: '12px',
+    padding: '32px 28px',
+    flex: '1 1 280px',
+    maxWidth: '360px',
+  };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center p-6">
-      <div className="max-w-4xl w-full">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4">Join Oversize Escort Hub</h1>
-          <p className="text-xl text-zinc-400">Choose your membership type</p>
-        </div>
+    <div style={{ minHeight: '100vh', background: bg, color: '#eee', fontFamily: 'sans-serif' }}>
+      <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '60px 20px' }}>
+        <h1 style={{ textAlign: 'center', fontSize: '36px', fontWeight: 800, marginBottom: '8px' }}>
+          Join <span style={{ color: orange }}>Oversize Escort Hub</span>
+        </h1>
+        <p style={{ textAlign: 'center', color: '#888', marginBottom: '48px', fontSize: '16px' }}>
+          Choose the plan that fits your role
+        </p>
 
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* Individual Member */}
-          <div 
-            onClick={() => window.location.href = "/signin?join=1"}
-            className="bg-zinc-900 border border-zinc-700 rounded-3xl p-10 cursor-pointer hover:border-white/50 transition-all hover:-translate-y-1"
-          >
-            <h2 className="text-3xl font-semibold mb-4">Individual</h2>
-            <p className="text-zinc-400 mb-8 text-lg">Browse escorts and connect as a regular user.</p>
-            <button className="w-full py-4 bg-white text-black font-semibold rounded-2xl text-lg">
-              Join as Individual
-            </button>
-          </div>
+        <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', justifyContent: 'center' }}>
 
-          {/* Fleet Manager */}
-          <div className="bg-zinc-900 border-2 border-blue-600 rounded-3xl p-10 relative overflow-hidden">
-            <div className="absolute top-6 right-6 bg-blue-600 text-white text-xs px-5 py-1.5 rounded-full font-bold">
-              FLEET
-            </div>
+          {/* Card 1 — P/EVO Escort */}
+          <div style={{ ...card, borderTop: `4px solid ${orange}` }}>
+            <h2 style={{ color: orange, fontSize: '22px', fontWeight: 700, margin: '0 0 8px' }}>
+              P/EVO Escort
+            </h2>
+            <p style={{ color: '#aaa', fontSize: '14px', marginBottom: '20px', lineHeight: '1.5' }}>
+              Pilot/escort vehicle operators. Access load matching, escort profiles, BGC badge, and more.
+            </p>
 
-            <h2 className="text-3xl font-semibold mb-3">Fleet Manager</h2>
-            <p className="text-zinc-400 mb-10">Manage multiple escorts under one account</p>
-
-            <div className="space-y-4">
-              {fleetTiers.map((tier) => (
+            <div style={{ borderTop: '1px solid #1e2533', paddingTop: '20px' }}>
+              <div style={{ marginBottom: '16px' }}>
+                <div style={{ fontSize: '13px', color: '#888', marginBottom: '4px' }}>MEMBER</div>
+                <div style={{ fontSize: '28px', fontWeight: 800, color: '#fff' }}>$19.99<span style={{ fontSize: '14px', color: '#888', fontWeight: 400 }}>/mo</span></div>
+                <div style={{ fontSize: '13px', color: '#aaa', marginTop: '4px' }}>Load board access, basic matching</div>
                 <button
-                  key={tier.id}
-                  onClick={() => handleSelectTier(tier.priceId)}
-                  disabled={loading === tier.priceId}
-                  className={`w-full p-6 rounded-2xl border text-left transition-all group
-                    ${tier.isBest 
-                      ? 'border-yellow-500 bg-zinc-950' 
-                      : 'border-zinc-700 hover:border-zinc-500'
-                    }`}
+                  style={{ ...btn, background: '#1e2533', color: '#fff', border: `1px solid ${orange}` }}
+                  disabled={loading === 'price_1TF0D4LmfugPCRbAd4hMO22R'}
+                  onClick={() => checkout('price_1TF0D4LmfugPCRbAd4hMO22R')}
                 >
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <div className="font-semibold text-xl mb-1">{tier.label}</div>
-                      <div className="text-zinc-400">{tier.description}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-3xl font-bold">{tier.price}</div>
-                      <div className="text-sm text-zinc-500">{tier.period}</div>
-                    </div>
-                  </div>
-
-                  {tier.isBest && (
-                    <div className="mt-3 text-yellow-500 text-sm font-medium">BEST VALUE RECOMMENDED</div>
-                  )}
-
-                  <div className="mt-5 text-blue-500 font-medium group-hover:underline">
-                    {loading === tier.priceId ? "Processing..." : "Select Plan →"}
-                  </div>
+                  {loading === 'price_1TF0D4LmfugPCRbAd4hMO22R' ? 'Redirecting...' : 'Get Member — $19.99/mo'}
                 </button>
-              ))}
+              </div>
+
+              <div>
+                <div style={{ fontSize: '13px', color: '#888', marginBottom: '4px' }}>PRO</div>
+                <div style={{ fontSize: '28px', fontWeight: 800, color: orange }}>$29.99<span style={{ fontSize: '14px', color: '#888', fontWeight: 400 }}>/mo</span></div>
+                <div style={{ fontSize: '13px', color: '#aaa', marginTop: '4px' }}>Auto-match SMS, sponsored zone, BGC badge, all Pro features</div>
+                <button
+                  style={{ ...btn, background: orange, color: bg }}
+                  disabled={loading === 'price_1TF0DiLmfugPCRbAPWsN2K5x'}
+                  onClick={() => checkout('price_1TF0DiLmfugPCRbAPWsN2K5x')}
+                >
+                  {loading === 'price_1TF0DiLmfugPCRbAPWsN2K5x' ? 'Redirecting...' : 'Get Pro — $29.99/mo'}
+                </button>
+              </div>
             </div>
           </div>
+
+          {/* Card 2 — Carrier / Operator */}
+          <div style={{ ...card }}>
+            <h2 style={{ color: '#fff', fontSize: '22px', fontWeight: 700, margin: '0 0 8px' }}>
+              Carrier / Operator
+            </h2>
+            <p style={{ color: '#aaa', fontSize: '14px', marginBottom: '20px', lineHeight: '1.5' }}>
+              Trucking companies and load operators. Post loads, access the carrier hub, and manage matches — always free.
+            </p>
+            <div style={{ borderTop: '1px solid #1e2533', paddingTop: '20px' }}>
+              <div style={{ fontSize: '28px', fontWeight: 800, color: '#4ade80' }}>FREE</div>
+              <div style={{ fontSize: '13px', color: '#aaa', marginTop: '4px' }}>No subscription required</div>
+              <a href="/signin" style={{ textDecoration: 'none' }}>
+                <button style={{ ...btn, background: '#1e2533', color: '#fff', border: '1px solid #333' }}>
+                  Sign In / Register Free
+                </button>
+              </a>
+            </div>
+          </div>
+
+          {/* Card 3 — Fleet Manager */}
+          <div style={{ ...card, borderTop: `4px solid ${orange}` }}>
+            <h2 style={{ color: orange, fontSize: '22px', fontWeight: 700, margin: '0 0 8px' }}>
+              Fleet Manager
+            </h2>
+            <p style={{ color: '#aaa', fontSize: '14px', marginBottom: '20px', lineHeight: '1.5' }}>
+              Manage an entire fleet of escorts under one account. Zones, jobs, dashboards, and multi-escort coordination.
+            </p>
+            <div style={{ borderTop: '1px solid #1e2533', paddingTop: '20px' }}>
+              <div style={{ fontSize: '28px', fontWeight: 800, color: orange }}>$99.99<span style={{ fontSize: '14px', color: '#888', fontWeight: 400 }}>/mo</span></div>
+              <div style={{ fontSize: '13px', color: '#aaa', marginTop: '4px' }}>Full fleet dashboard, all Pro features for all escorts</div>
+              <button
+                style={{ ...btn, background: orange, color: bg }}
+                disabled={loading === 'price_1TMT9fLmfugPCRbA0Tu65Ui0'}
+                onClick={() => checkout('price_1TMT9fLmfugPCRbA0Tu65Ui0')}
+              >
+                {loading === 'price_1TMT9fLmfugPCRbA0Tu65Ui0' ? 'Redirecting...' : 'Get Fleet Manager — $99.99/mo'}
+              </button>
+            </div>
+          </div>
+
         </div>
 
-        <p className="text-center text-zinc-500 mt-12">
-          Already have an account?{" "}
-          <a href="/signin" className="text-blue-500 hover:underline">Sign in here</a>
+        <p style={{ textAlign: 'center', color: '#666', marginTop: '40px', fontSize: '13px' }}>
+          Already have an account?{' '}
+          <a href="/signin" style={{ color: orange }}>Sign in here</a>
         </p>
       </div>
     </div>
-  );
-}
-
-export default function JoinPage() {
-  return (
-    <Suspense fallback={<div className="min-h-screen bg-zinc-950 flex items-center justify-center">Loading...</div>}>
-      <JoinInner />
-    </Suspense>
   );
 }

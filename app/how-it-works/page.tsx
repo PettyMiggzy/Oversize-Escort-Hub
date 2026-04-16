@@ -1,5 +1,7 @@
 'use client';
 import { useState } from 'react';
+import SiteHeader from '@/components/SiteHeader';
+
 
 const bgColor = '#060b16';
 const surfaceColor = '#0d1117';
@@ -52,6 +54,7 @@ export default function HowItWorks() {
 
   return (
     <div style={{ background: bgColor, color: textColor, minHeight: '100vh', padding: '40px 20px' }}>
+      <SiteHeader />
       <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
         <h1 style={{ fontSize: '36px', fontWeight: 800, marginBottom: '40px', textAlign: 'center', color: orangeColor }}>
           How It Works

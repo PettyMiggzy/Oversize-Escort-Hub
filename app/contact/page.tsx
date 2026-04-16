@@ -1,4 +1,5 @@
 'use client'
+import SiteHeader from '@/components/SiteHeader'
 import { useState } from 'react'
 
 const S = {
@@ -42,6 +43,7 @@ export default function ContactPage() {
 
   return (
     <div style={S.page}>
+      <SiteHeader />
       <div style={S.container}>
         <h1 style={S.heading}>Contact Us</h1>
         <p style={S.sub}>Questions, issues, or partnership inquiries — we respond within 1 business day.</p>

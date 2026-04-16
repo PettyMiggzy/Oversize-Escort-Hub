@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
+import SiteHeader from '@/components/SiteHeader'
 
 export const metadata: Metadata = {
-  title: 'About | Oversize Escort Hub',
+  title: 'About',
   description: 'Founded by Brian Ahmed, OEH connects oversize carriers with licensed, verified P/EVO escorts across the US.',
   openGraph: {
     title: 'About | Oversize Escort Hub',
@@ -17,6 +18,7 @@ export default function AboutPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: bg, color: '#fff' }}>
+      <SiteHeader />
       <main style={{ maxWidth: 720, margin: '0 auto', padding: '60px 24px' }}>
         <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 8 }}>About Oversize Escort Hub</h1>
         <p style={{ color: '#9ca3af', fontSize: 15, marginBottom: 40, lineHeight: 1.6 }}>
