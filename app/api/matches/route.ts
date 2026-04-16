@@ -14,6 +14,17 @@ export async function POST(request: NextRequest) {
     const { error: updateError } = await supabase
       .from('loads')
       .update({ status: 'pending_match', matched_escort_id: user.id })
+    // Notify carrier
+    try {
+      const { data: loadData } = await supabase.from('loads').select('posted_by').eq('id', load_id).single()
+      if (loadData?.posted_by) {
+        await supabase.from('notifications').insert({
+          user_id: loadData.posted_by,
+          message: 'An escort has claimed your load and it is pending your approval.',
+          read: false
+        })
+      }
+    } catch(_) {}
       .eq('id', load_id);
 
     if (updateError) return NextResponse.json({ error: updateError.message }, { status: 500 });

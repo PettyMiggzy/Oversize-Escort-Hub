@@ -43,6 +43,7 @@ export default function DashboardPage() {
   const [historyLoads, setHistoryLoads] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [portalLoading, setPortalLoading] = useState(false)
+  const [notifications, setNotifications] = useState<any[]>([])
   const [toast, setToast] = useState<{msg:string;type:"gr"|"rd"|"am"}|null>(null)
   const [reviews, setReviews] = useState<any[]>([])
   const [stats, setStats] = useState({ open: 0, pending: 0, filled: 0 })
@@ -54,7 +55,12 @@ export default function DashboardPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) { setLoading(false); return }
+      if (!data.session) { // Fetch notifications
+    try {
+      const nres = await fetch('/api/notify')
+      if (nres.ok) setNotifications(await nres.json())
+    } catch (_) {}
+    setLoading(false); return }
       const u = data.session.user as User
       setUser(u)
       supabase.from("profiles").select("*").eq("id", u.id).single().then(({ data: p }) => {
@@ -112,6 +118,30 @@ export default function DashboardPage() {
   if (loading) return (
     <div style={S.page}>
       <Header />
+
+        {/* Notification Badge */}
+        {notifications.filter(n => !n.read).length > 0 && (
+          <div style={{ position: 'fixed', top: 16, right: 80, zIndex: 1000, background: '#dc2626', color: '#fff', borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}
+            onClick={() => {
+              const panel = document.getElementById('notif-panel')
+              if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none'
+            }}
+          >
+            {notifications.filter(n => !n.read).length}
+          </div>
+        )}
+        {/* Notification Panel */}
+        <div id="notif-panel" style={{ display: 'none', position: 'fixed', top: 48, right: 16, zIndex: 999, background: '#16213a', border: '1px solid #1e3a5f', borderRadius: 10, padding: 16, minWidth: 280, maxHeight: 360, overflowY: 'auto' }}>
+          <p style={{ fontSize: 12, fontWeight: 700, color: '#f60', marginBottom: 12 }}>NOTIFICATIONS</p>
+          {notifications.length === 0 ? (
+            <p style={{ color: '#9ca3af', fontSize: 13 }}>No notifications</p>
+          ) : notifications.map((n: any) => (
+            <div key={n.id} onClick={() => markNotifRead(n.id)} style={{ padding: '8px 0', borderBottom: '1px solid #1e3a5f', cursor: 'pointer', opacity: n.read ? 0.5 : 1 }}>
+              <p style={{ fontSize: 13, color: '#e2e8f0', marginBottom: 2 }}>{n.message}</p>
+              <p style={{ fontSize: 11, color: '#9ca3af' }}>{new Date(n.created_at).toLocaleString()}{n.read ? '' : ' • click to mark read'}</p>
+            </div>
+          ))}
+        </div>
       <div style={{ textAlign: "center", padding: "80px 20px", color: "#9ca3af" }}>Loading...</div>
       <Footer />
     </div>
@@ -120,6 +150,30 @@ export default function DashboardPage() {
   if (!user) return (
     <div style={S.page}>
       <Header />
+
+        {/* Notification Badge */}
+        {notifications.filter(n => !n.read).length > 0 && (
+          <div style={{ position: 'fixed', top: 16, right: 80, zIndex: 1000, background: '#dc2626', color: '#fff', borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}
+            onClick={() => {
+              const panel = document.getElementById('notif-panel')
+              if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none'
+            }}
+          >
+            {notifications.filter(n => !n.read).length}
+          </div>
+        )}
+        {/* Notification Panel */}
+        <div id="notif-panel" style={{ display: 'none', position: 'fixed', top: 48, right: 16, zIndex: 999, background: '#16213a', border: '1px solid #1e3a5f', borderRadius: 10, padding: 16, minWidth: 280, maxHeight: 360, overflowY: 'auto' }}>
+          <p style={{ fontSize: 12, fontWeight: 700, color: '#f60', marginBottom: 12 }}>NOTIFICATIONS</p>
+          {notifications.length === 0 ? (
+            <p style={{ color: '#9ca3af', fontSize: 13 }}>No notifications</p>
+          ) : notifications.map((n: any) => (
+            <div key={n.id} onClick={() => markNotifRead(n.id)} style={{ padding: '8px 0', borderBottom: '1px solid #1e3a5f', cursor: 'pointer', opacity: n.read ? 0.5 : 1 }}>
+              <p style={{ fontSize: 13, color: '#e2e8f0', marginBottom: 2 }}>{n.message}</p>
+              <p style={{ fontSize: 11, color: '#9ca3af' }}>{new Date(n.created_at).toLocaleString()}{n.read ? '' : ' • click to mark read'}</p>
+            </div>
+          ))}
+        </div>
       <div style={{ textAlign: "center", padding: "80px 20px" }}>
         <p style={{ color: "#9ca3af", marginBottom: 16 }}>Please sign in to view your dashboard.</p>
         <Link href="/signin"><button style={S.btnPrime}>Sign In</button></Link>
@@ -128,6 +182,11 @@ export default function DashboardPage() {
     </div>
   )
 
+
+  const markNotifRead = async (id: string) => {
+    await fetch('/api/notify', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))
+  }
 
   const manageSubscription = async () => {
     setPortalLoading(true)
@@ -146,6 +205,30 @@ export default function DashboardPage() {
     return (
     <div style={S.page}>
       <Header />
+
+        {/* Notification Badge */}
+        {notifications.filter(n => !n.read).length > 0 && (
+          <div style={{ position: 'fixed', top: 16, right: 80, zIndex: 1000, background: '#dc2626', color: '#fff', borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}
+            onClick={() => {
+              const panel = document.getElementById('notif-panel')
+              if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none'
+            }}
+          >
+            {notifications.filter(n => !n.read).length}
+          </div>
+        )}
+        {/* Notification Panel */}
+        <div id="notif-panel" style={{ display: 'none', position: 'fixed', top: 48, right: 16, zIndex: 999, background: '#16213a', border: '1px solid #1e3a5f', borderRadius: 10, padding: 16, minWidth: 280, maxHeight: 360, overflowY: 'auto' }}>
+          <p style={{ fontSize: 12, fontWeight: 700, color: '#f60', marginBottom: 12 }}>NOTIFICATIONS</p>
+          {notifications.length === 0 ? (
+            <p style={{ color: '#9ca3af', fontSize: 13 }}>No notifications</p>
+          ) : notifications.map((n: any) => (
+            <div key={n.id} onClick={() => markNotifRead(n.id)} style={{ padding: '8px 0', borderBottom: '1px solid #1e3a5f', cursor: 'pointer', opacity: n.read ? 0.5 : 1 }}>
+              <p style={{ fontSize: 13, color: '#e2e8f0', marginBottom: 2 }}>{n.message}</p>
+              <p style={{ fontSize: 11, color: '#9ca3af' }}>{new Date(n.created_at).toLocaleString()}{n.read ? '' : ' • click to mark read'}</p>
+            </div>
+          ))}
+        </div>
       {toast && (
         <div style={{ position: "fixed", top: 16, right: 16, zIndex: 999, background: toast.type === "gr" ? "#16a34a" : toast.type === "rd" ? "#dc2626" : "#d97706", color: "#fff", padding: "12px 20px", borderRadius: 8, fontSize: 14, fontWeight: 600 }}>
           {toast.msg}
