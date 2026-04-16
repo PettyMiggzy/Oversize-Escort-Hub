@@ -139,7 +139,7 @@ export default function AdminPage() {
               <table style={{ width: '100%', borderCollapse: 'collapse', background: '#0f1a2e', borderRadius: 10, overflow: 'hidden' }}>
                 <thead>
                   <tr>
-                    {['Name', 'Email', 'Role', 'Tier', 'BGC', 'Suspended', 'Joined', 'Actions'].map(h => <th key={h} style={th}>{h}</th>)}
+                    {['Name', 'Email', 'Role', 'Membership', 'BGC', 'Suspended', 'Joined', 'Actions'].map(h => <th key={h} style={th}>{h}</th>)}
                   </tr>
                 </thead>
                 <tbody>
