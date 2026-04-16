@@ -2,7 +2,7 @@
 import { useState } from 'react'
 
 const S = {
-  page: { minHeight: '100vh', background: 'var(--bg)', color: '#eee', fontFamily: 'var(--font)', padding: '40px 20px' },
+  page: { minHeight: '100vh', background: '#060b16', color: '#eee', padding: '40px 20px' },
   container: { maxWidth: 600, margin: '0 auto' },
   heading: { fontSize: 28, fontWeight: 700, color: '#f60', marginBottom: 8 },
   sub: { fontSize: 16, color: '#aaa', marginBottom: 32 },
