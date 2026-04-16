@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import SiteHeader from '@/components/SiteHeader';
 
 export const metadata: Metadata = {
-  title: 'Terms of Service | Oversize Escort Hub',
+  title: 'Terms of Service',
   description: 'Read the Terms of Service for Oversize Escort Hub.',
   openGraph: {
     title: 'Terms of Service | Oversize Escort Hub',
