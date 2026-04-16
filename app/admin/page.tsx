@@ -1,195 +1,289 @@
-'use client';
-import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+'use client'
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import Header from '@/app/components/Header'
+import Footer from '@/app/components/Footer'
+
+const TABS = ['users', 'bgc', 'loads', 'revenue', 'sms']
 
 export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState('users');
-  const [users, setUsers] = useState([]);
-  const [loads, setLoads] = useState([]);
-  const [bgcQueue, setBgcQueue] = useState([]);
-  const [revenue, setRevenue] = useState({ member: 0, pro: 0, fleet: 0 });
-  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('users')
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [loading, setLoading] = useState(true)
+
+  // Users tab
+  const [users, setUsers] = useState<any[]>([])
+  const [userSearch, setUserSearch] = useState('')
+  const [expandedUser, setExpandedUser] = useState<string | null>(null)
+
+  // Revenue tab
+  const [revenue, setRevenue] = useState<any>({})
+  const [recentUpgrades, setRecentUpgrades] = useState<any[]>([])
+
+  // SMS tab
+  const [smsMsg, setSmsMsg] = useState('')
+  const [smsAudience, setSmsAudience] = useState('all')
+  const [smsSending, setSmsSending] = useState(false)
+  const [smsResult, setSmsResult] = useState('')
 
   useEffect(() => {
-    const fetchData = async () => {
-      
-      setLoading(true);
+    const init = async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { setLoading(false); return }
+      const { data: p } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+      if (p?.role !== 'admin') { setLoading(false); return }
+      setIsAdmin(true)
 
-      // Fetch users
+      // Load users
       const { data: usersData } = await supabase
         .from('profiles')
-        .select('id, name, email, role, membership_level, created_at, bgc_verified');
-      setUsers(usersData || []);
+        .select('id, full_name, email, role, tier, bgc_verified, created_at, suspended, phone, stripe_customer_id')
+        .order('created_at', { ascending: false })
+      setUsers(usersData || [])
 
-      // Fetch loads
-      const { data: loadsData } = await supabase
-        .from('loads')
-        .select('id, status, carrier_id, escort_type, created_at');
-      setLoads(loadsData || []);
+      // Revenue
+      const all = usersData || []
+      const member = all.filter(u => u.tier === 'member').length
+      const pro = all.filter(u => u.tier === 'pro').length
+      const fleetPro = all.filter(u => u.tier === 'fleet_pro').length
+      const bgcCount = all.filter(u => u.bgc_verified).length
 
-      // Fetch BGC queue
-      const { data: bgcData } = await supabase
-        .from('certifications')
-        .select('id, user_id, status, created_at')
-        .eq('status', 'pending');
-      setBgcQueue(bgcData || []);
+      const { data: zones } = await supabase.from('sponsored_zones').select('id').eq('active', true)
+      const zoneCount = zones?.length ?? 0
+      const mrr = (member * 19.99) + (pro * 29.99) + (fleetPro * 99.99) + (zoneCount * 29.99)
 
-      // Fetch revenue
-      const { data: revenueData } = await supabase
-        .from('profiles')
-        .select('membership_level');
-      
-      const counts = { member: 0, pro: 0, fleet: 0 };
-      revenueData?.forEach((p: any) => {
-        if (p.membership_level === 'member') counts.member++;
-        else if (p.membership_level === 'pro') counts.pro++;
-        else if (p.membership_level === 'fleet') counts.fleet++;
-      });
-      setRevenue(counts);
+      setRevenue({ member, pro, fleetPro, bgcCount, zoneCount, mrr: mrr.toFixed(2) })
 
-      setLoading(false);
-    };
+      const recent = all.filter(u => u.tier).slice(0, 20)
+      setRecentUpgrades(recent)
 
-    fetchData();
-  }, []);
+      setLoading(false)
+    }
+    init()
+  }, [])
 
-  const handleBgcApprove = async (id: string) => {
-    
-    await supabase.from('certifications').update({ status: 'approved' }).eq('id', id);
-    setBgcQueue(bgcQueue.filter((b: any) => b.id !== id));
-  };
+  const suspendUser = async (userId: string, suspended: boolean) => {
+    const supabase = createClient()
+    await supabase.from('profiles').update({ suspended: !suspended }).eq('id', userId)
+    setUsers(prev => prev.map(u => u.id === userId ? { ...u, suspended: !suspended } : u))
+  }
 
-  const handleBgcDeny = async (id: string) => {
-    
-    await supabase.from('certifications').update({ status: 'denied' }).eq('id', id);
-    setBgcQueue(bgcQueue.filter((b: any) => b.id !== id));
-  };
+  const changeRole = async (userId: string, role: string) => {
+    const supabase = createClient()
+    await supabase.from('profiles').update({ role }).eq('id', userId)
+    setUsers(prev => prev.map(u => u.id === userId ? { ...u, role } : u))
+  }
 
-  const tabStyle = {
-    padding: '12px 24px',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    background: '#0d1117',
-    color: '#e0e0e0',
-  };
+  const sendBlast = async () => {
+    if (!smsMsg.trim()) return
+    setSmsSending(true)
+    setSmsResult('')
+    try {
+      const res = await fetch('/api/sms/blast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: smsMsg, audience: smsAudience })
+      })
+      const data = await res.json()
+      setSmsResult(data.error ? `Error: ${data.error}` : `Sent to ${data.sent} of ${data.total} recipients`)
+    } catch (e) {
+      setSmsResult('Error sending blast')
+    }
+    setSmsSending(false)
+  }
 
-  const activeTabStyle = { ...tabStyle, background: '#f0a500', color: '#060b16' };
+  const estimateRecipients = () => {
+    if (smsAudience === 'all') return users.filter(u => u.phone).length
+    if (smsAudience === 'pro') return users.filter(u => (u.tier === 'pro' || u.tier === 'fleet_pro') && u.phone).length
+    if (smsAudience === 'carriers') return users.filter(u => u.role === 'carrier' && u.phone).length
+    if (smsAudience === 'members') return users.filter(u => u.tier === 'member' && u.phone).length
+    return 0
+  }
+
+  const filteredUsers = users.filter(u => {
+    const s = userSearch.toLowerCase()
+    return !s || u.full_name?.toLowerCase().includes(s) || u.email?.toLowerCase().includes(s)
+  })
+
+  const bg = '#0a0f1a'
+  const card = { background: '#0f1a2e', border: '1px solid #1e3a5f', borderRadius: 10, padding: '16px 20px', marginBottom: 16 }
+  const th = { textAlign: 'left' as const, padding: '8px 12px', fontSize: 11, color: '#9ca3af', fontWeight: 700, textTransform: 'uppercase' as const, borderBottom: '1px solid #1e3a5f' }
+  const td = { padding: '10px 12px', fontSize: 13, color: '#e2e8f0', borderBottom: '1px solid rgba(30,58,95,0.5)' }
+  const btn = { background: '#1e3a5f', color: '#e2e8f0', border: 'none', borderRadius: 4, padding: '4px 10px', fontSize: 12, cursor: 'pointer', marginRight: 4 }
+  const inp = { background: '#0f1a2e', border: '1px solid #1e3a5f', borderRadius: 6, color: '#e2e8f0', padding: '8px 12px', fontSize: 13 }
+
+  if (loading) return <div style={{ background: bg, minHeight: '100vh', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>
+  if (!isAdmin) return <div style={{ background: bg, minHeight: '100vh', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Admin access required.</div>
 
   return (
-    <div style={{ background: '#060b16', color: '#e0e0e0', minHeight: '100vh', padding: '20px' }}>
-      <h1 style={{ color: '#f0a500' }}>Admin Dashboard</h1>
+    <div style={{ minHeight: '100vh', background: bg, color: '#fff' }}>
+      <Header />
+      <main style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 24px' }}>
+        <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 24 }}>Admin Panel</h1>
 
-      <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
-        {['users', 'bgc', 'loads', 'revenue'].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            style={activeTab === tab ? activeTabStyle : tabStyle}
-          >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
-          </button>
-        ))}
-      </div>
+        {/* Tabs */}
+        <div style={{ display: 'flex', gap: 4, marginBottom: 24, borderBottom: '1px solid #1e3a5f', paddingBottom: 0 }}>
+          {TABS.map(t => (
+            <button key={t} onClick={() => setActiveTab(t)} style={{ background: 'none', border: 'none', color: activeTab === t ? '#f60' : '#9ca3af', fontSize: 14, fontWeight: activeTab === t ? 700 : 400, padding: '8px 16px', cursor: 'pointer', borderBottom: activeTab === t ? '2px solid #f60' : '2px solid transparent' }}>
+              {t === 'bgc' ? 'BGC' : t === 'sms' ? 'SMS Blast' : t.charAt(0).toUpperCase() + t.slice(1)}
+            </button>
+          ))}
+        </div>
 
-      {loading ? <p>Loading...</p> : (
-        <>
-          {activeTab === 'users' && (
-            <div>
-              <h2>Users ({users.length})</h2>
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid #444' }}>
-                      <th style={{ textAlign: 'left', padding: '8px' }}>Name</th>
-                      <th style={{ textAlign: 'left', padding: '8px' }}>Email</th>
-                      <th style={{ textAlign: 'left', padding: '8px' }}>Role</th>
-                      <th style={{ textAlign: 'left', padding: '8px' }}>Tier</th>
-                      <th style={{ textAlign: 'left', padding: '8px' }}>BGC</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {users.map((u: any) => (
-                      <tr key={u.id} style={{ borderBottom: '1px solid #333' }}>
-                        <td style={{ padding: '8px' }}>{u.name || 'N/A'}</td>
-                        <td style={{ padding: '8px' }}>{u.email || 'N/A'}</td>
-                        <td style={{ padding: '8px' }}>{u.role || 'user'}</td>
-                        <td style={{ padding: '8px' }}>{u.membership_level || 'free'}</td>
-                        <td style={{ padding: '8px', color: u.bgc_verified ? '#4ade80' : '#ff6b6b' }}>
-                          {u.bgc_verified ? '✓' : '✗'}
+        {/* Users Tab */}
+        {activeTab === 'users' && (
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+              <h2 style={{ fontSize: 16, fontWeight: 600 }}>Users ({filteredUsers.length})</h2>
+              <input style={{ ...inp, flex: 1, maxWidth: 300 }} placeholder="Search by name or email..." value={userSearch} onChange={e => setUserSearch(e.target.value)} />
+            </div>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', background: '#0f1a2e', borderRadius: 10, overflow: 'hidden' }}>
+                <thead>
+                  <tr>
+                    {['Name', 'Email', 'Role', 'Tier', 'BGC', 'Suspended', 'Joined', 'Actions'].map(h => <th key={h} style={th}>{h}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredUsers.map(u => (
+                    <>
+                      <tr key={u.id} onClick={() => setExpandedUser(expandedUser === u.id ? null : u.id)} style={{ cursor: 'pointer', background: expandedUser === u.id ? '#16213a' : 'transparent' }}>
+                        <td style={td}>{u.full_name ?? '—'}</td>
+                        <td style={td}>{u.email ?? '—'}</td>
+                        <td style={td}><span style={{ background: '#1e3a5f', borderRadius: 4, padding: '2px 6px', fontSize: 11 }}>{u.role ?? '—'}</span></td>
+                        <td style={td}>{u.tier ?? '—'}</td>
+                        <td style={td}>{u.bgc_verified ? '✅' : '—'}</td>
+                        <td style={td}>{u.suspended ? '🔴' : '—'}</td>
+                        <td style={td}>{new Date(u.created_at).toLocaleDateString()}</td>
+                        <td style={td}>
+                          <button style={btn} onClick={e => { e.stopPropagation(); suspendUser(u.id, u.suspended) }}>
+                            {u.suspended ? 'Unsuspend' : 'Suspend'}
+                          </button>
+                          <select style={{ ...btn, cursor: 'pointer' }} value={u.role ?? ''} onChange={e => { e.stopPropagation(); changeRole(u.id, e.target.value) }}>
+                            <option value="escort">Escort</option>
+                            <option value="carrier">Carrier</option>
+                            <option value="admin">Admin</option>
+                          </select>
                         </td>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                      {expandedUser === u.id && (
+                        <tr key={u.id + '-exp'}>
+                          <td colSpan={8} style={{ ...td, background: '#16213a', padding: '12px 20px' }}>
+                            <strong>Full Profile</strong><br />
+                            ID: {u.id}<br />
+                            Phone: {u.phone ?? '—'}<br />
+                            Stripe Customer: {u.stripe_customer_id ?? '—'}<br />
+                            Tier: {u.tier ?? '—'} | BGC Verified: {String(u.bgc_verified)}<br />
+                          </td>
+                        </tr>
+                      )}
+                    </>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          )}
+          </div>
+        )}
 
-          {activeTab === 'bgc' && (
-            <div>
-              <h2>BGC Queue ({bgcQueue.length})</h2>
-              {bgcQueue.map((bgc: any) => (
-                <div key={bgc.id} style={{ background: '#0d1117', padding: '12px', marginBottom: '8px', borderRadius: '6px', display: 'flex', justifyContent: 'space-between' }}>
-                  <span>{bgc.user_id}</span>
-                  <div style={{ gap: '8px', display: 'flex' }}>
-                    <button onClick={() => handleBgcApprove(bgc.id)} style={{ background: '#4ade80', color: '#000', padding: '6px 12px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Approve</button>
-                    <button onClick={() => handleBgcDeny(bgc.id)} style={{ background: '#ff6b6b', color: '#fff', padding: '6px 12px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Deny</button>
-                  </div>
+        {/* BGC Tab */}
+        {activeTab === 'bgc' && (
+          <div style={card}>
+            <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>BGC Badge Reviews</h2>
+            <p style={{ color: '#9ca3af', fontSize: 13 }}>BGC submissions appear here. Use Supabase dashboard to review and approve uploads in the bgc_submissions table.</p>
+          </div>
+        )}
+
+        {/* Loads Tab */}
+        {activeTab === 'loads' && (
+          <div style={card}>
+            <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>All Loads</h2>
+            <p style={{ color: '#9ca3af', fontSize: 13 }}>Use the main load board pages to manage loads, or filter from Users tab.</p>
+          </div>
+        )}
+
+        {/* Revenue Tab */}
+        {activeTab === 'revenue' && (
+          <div>
+            <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>Revenue Overview</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: 24 }}>
+              {[
+                { label: 'Member Escorts', value: revenue.member ?? 0, sub: `$${((revenue.member ?? 0) * 19.99).toFixed(2)}/mo` },
+                { label: 'Pro Escorts', value: revenue.pro ?? 0, sub: `$${((revenue.pro ?? 0) * 29.99).toFixed(2)}/mo` },
+                { label: 'Fleet Pro', value: revenue.fleetPro ?? 0, sub: `$${((revenue.fleetPro ?? 0) * 99.99).toFixed(2)}/mo` },
+                { label: 'BGC Badges', value: revenue.bgcCount ?? 0, sub: 'one-time $9.99' },
+                { label: 'Sponsored Zones', value: revenue.zoneCount ?? 0, sub: `$${((revenue.zoneCount ?? 0) * 29.99).toFixed(2)}/mo` },
+                { label: 'Est. MRR', value: `$${revenue.mrr ?? '0.00'}`, sub: 'monthly recurring', accent: true },
+              ].map(item => (
+                <div key={item.label} style={{ background: '#0f1a2e', border: `1px solid ${item.accent ? '#f60' : '#1e3a5f'}`, borderRadius: 8, padding: '14px 16px' }}>
+                  <p style={{ fontSize: 11, color: '#9ca3af', marginBottom: 4 }}>{item.label}</p>
+                  <p style={{ fontSize: 22, fontWeight: 700, color: item.accent ? '#f60' : '#fff' }}>{item.value}</p>
+                  <p style={{ fontSize: 11, color: '#4a5568', marginTop: 4 }}>{item.sub}</p>
                 </div>
               ))}
             </div>
-          )}
+            <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Recent Upgrades (last 20)</h3>
+            <table style={{ width: '100%', borderCollapse: 'collapse', background: '#0f1a2e', borderRadius: 8 }}>
+              <thead>
+                <tr>
+                  {['Name', 'Email', 'Tier', 'Joined'].map(h => <th key={h} style={th}>{h}</th>)}
+                </tr>
+              </thead>
+              <tbody>
+                {recentUpgrades.map(u => (
+                  <tr key={u.id}>
+                    <td style={td}>{u.full_name ?? '—'}</td>
+                    <td style={td}>{u.email ?? '—'}</td>
+                    <td style={td}>{u.tier ?? '—'}</td>
+                    <td style={td}>{new Date(u.created_at).toLocaleDateString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
-          {activeTab === 'loads' && (
-            <div>
-              <h2>Loads ({loads.length})</h2>
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid #444' }}>
-                      <th style={{ textAlign: 'left', padding: '8px' }}>ID</th>
-                      <th style={{ textAlign: 'left', padding: '8px' }}>Type</th>
-                      <th style={{ textAlign: 'left', padding: '8px' }}>Status</th>
-                      <th style={{ textAlign: 'left', padding: '8px' }}>Created</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {loads.map((l: any) => (
-                      <tr key={l.id} style={{ borderBottom: '1px solid #333' }}>
-                        <td style={{ padding: '8px' }}>{l.id.slice(0, 8)}</td>
-                        <td style={{ padding: '8px' }}>{l.escort_type || 'N/A'}</td>
-                        <td style={{ padding: '8px', color: l.status === 'open' ? '#4ade80' : '#fbbf24' }}>{l.status}</td>
-                        <td style={{ padding: '8px' }}>{new Date(l.created_at).toLocaleDateString()}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+        {/* SMS Blast Tab */}
+        {activeTab === 'sms' && (
+          <div>
+            <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>SMS Blast</h2>
+            <div style={card}>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontSize: 12, color: '#9ca3af', marginBottom: 6, fontWeight: 600 }}>AUDIENCE</label>
+                <select style={{ ...inp, width: 240 }} value={smsAudience} onChange={e => setSmsAudience(e.target.value)}>
+                  <option value="all">All Users</option>
+                  <option value="pro">Pro Escorts Only</option>
+                  <option value="carriers">Carriers Only</option>
+                  <option value="members">Members Only</option>
+                </select>
+                <span style={{ marginLeft: 12, fontSize: 13, color: '#9ca3af' }}>~{estimateRecipients()} recipients with phone</span>
               </div>
-            </div>
-          )}
-
-          {activeTab === 'revenue' && (
-            <div>
-              <h2>Revenue Analytics</h2>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
-                <div style={{ background: '#0d1117', padding: '20px', borderRadius: '8px', borderLeft: '4px solid #4ade80' }}>
-                  <h3 style={{ margin: '0 0 8px', color: '#4ade80' }}>Members</h3>
-                  <p style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>{revenue.member}</p>
-                </div>
-                <div style={{ background: '#0d1117', padding: '20px', borderRadius: '8px', borderLeft: '4px solid #f0a500' }}>
-                  <h3 style={{ margin: '0 0 8px', color: '#f0a500' }}>Pro</h3>
-                  <p style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>{revenue.pro}</p>
-                </div>
-                <div style={{ background: '#0d1117', padding: '20px', borderRadius: '8px', borderLeft: '4px solid #3b82f6' }}>
-                  <h3 style={{ margin: '0 0 8px', color: '#3b82f6' }}>Fleet</h3>
-                  <p style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>{revenue.fleet}</p>
-                </div>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontSize: 12, color: '#9ca3af', marginBottom: 6, fontWeight: 600 }}>MESSAGE ({smsMsg.length}/160)</label>
+                <textarea
+                  style={{ ...inp, width: '100%', minHeight: 80, resize: 'vertical', boxSizing: 'border-box' }}
+                  maxLength={160}
+                  value={smsMsg}
+                  onChange={e => setSmsMsg(e.target.value)}
+                  placeholder="Type your SMS message here (max 160 chars)..."
+                />
               </div>
+              <div style={{ marginBottom: 12, padding: '10px 14px', background: '#16213a', borderRadius: 6, fontSize: 12, color: '#9ca3af' }}>
+                Preview: <span style={{ color: '#e2e8f0' }}>{smsMsg || '(empty)'}</span>
+              </div>
+              <button
+                onClick={sendBlast}
+                disabled={smsSending || !smsMsg.trim()}
+                style={{ background: smsSending ? '#1e3a5f' : '#f60', color: '#fff', border: 'none', borderRadius: 6, padding: '10px 24px', fontWeight: 700, cursor: smsSending ? 'not-allowed' : 'pointer' }}
+              >
+                {smsSending ? 'Sending...' : 'Send Blast'}
+              </button>
+              {smsResult && <p style={{ marginTop: 12, fontSize: 13, color: smsResult.startsWith('Error') ? '#ef4444' : '#22c55e' }}>{smsResult}</p>}
             </div>
-          )}
-        </>
-      )}
+          </div>
+        )}
+      </main>
+      <Footer />
     </div>
-  );
+  )
 }
