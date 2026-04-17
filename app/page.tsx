@@ -392,7 +392,7 @@ function Ticker() {
     { dot: "dot-am", text: "Deadhead Minimizer · Return loads near your drop · Stop driving home empty" },
     { dot: "dot-gr", text: "No commissions · No job fees · Ever · Flat subscription only" },
     { dot: "dot-or", text: "Carriers: Post loads free · Escorts: Find loads · Both: No middleman" },
-    { dot: "dot-am", text: "• Fleet Manager Tools — Pro only · Manage up to 5 escorts · Find loads for your fleet" },
+    { dot: "dot-am", text: "• Fleet Pro Unlimited · Manage unlimited escorts · Full fleet dashboard" },
   ];
   return (
     <div className="ticker">
@@ -2842,7 +2842,7 @@ function DeadheadPage({ setPage, profile }: any) {
 
             {mode === "fleet" && (
               <div>
-                <p style={{ color: "#aaa", marginBottom: 4, fontSize: 14 }}>Add up to 5 escort slots. Results show matching loads near each escort's location separately.</p>
+                <p style={{ color: "#aaa", marginBottom: 4, fontSize: 14 }}>Add unlimited escort slots with Fleet Pro. Results show matching loads near each escort's location separately.</p>
                 <p style={{ color: "#666", fontSize: 12, marginBottom: 16 }}>⚠️ Fleet Manager can share load links with escorts but cannot auto-match on their behalf. Escorts must confirm from their own account. Rate limit: 3 searches/hr.</p>
                 {escorts.map((escort, i) => (
                   <div key={i} style={S.slotCard}>
