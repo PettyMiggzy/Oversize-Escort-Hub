@@ -28,7 +28,7 @@ export default function FindEscortsPage() {
     // Base query: profiles where role=escort
     let q = supabase
       .from("profiles")
-      .select("id, full_name, membership, bgc_verified, role")
+      .select("id, full_name, membership, bgc_verified")
       .eq("role", "escort")
     if (memberFilter === "pro") q = q.eq("membership", "pro")
     if (memberFilter === "bgc") q = q.eq("bgc_verified", true)
