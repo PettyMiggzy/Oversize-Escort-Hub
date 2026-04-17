@@ -1,4 +1,5 @@
 'use client'
+import SiteHeader from '@/components/SiteHeader';
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
@@ -93,6 +94,8 @@ export default function OpenLoadsPage() {
   if (loading) return <div style={{ background: '#0a0f1a', minHeight: '100vh', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>
 
   return (
+      <>
+      <SiteHeader />
     <div style={{ minHeight: '100vh', background: '#0a0f1a', color: '#fff' }}>
       <main style={{ maxWidth: 760, margin: '0 auto', padding: '40px 24px' }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>Open Bid Board</h1>
@@ -185,5 +188,6 @@ export default function OpenLoadsPage() {
       )}
 
     </div>
+      </>
   )
 }

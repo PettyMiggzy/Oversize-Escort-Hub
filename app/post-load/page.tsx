@@ -1,4 +1,5 @@
 'use client'
+import SiteHeader from '@/components/SiteHeader';
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -125,6 +126,8 @@ export default function PostLoadPage() {
   if (loading) return <div style={{ background: '#0a0f1a', minHeight: '100vh', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>
 
   return (
+      <>
+      <SiteHeader />
     <div style={{ minHeight: '100vh', background: '#0a0f1a', color: '#fff' }}>
       <main style={{ maxWidth: 560, margin: '0 auto', padding: '40px 24px' }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>Post a Load</h1>
@@ -230,5 +233,6 @@ export default function PostLoadPage() {
         )}
       </main>
     </div>
+      </>
   )
 }

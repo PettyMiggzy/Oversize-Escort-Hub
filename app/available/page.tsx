@@ -1,4 +1,5 @@
 "use client"
+import SiteHeader from '@/components/SiteHeader';
 import { useEffect, useState } from "react"
 import { createClient } from "@supabase/supabase-js"
 
@@ -92,6 +93,8 @@ export default function AvailabilityPage() {
   if (!userId) return <div style={S.page}><div style={{ padding: 40, color: "#ef4444" }}>Please sign in to manage your availability zones.</div></div>
 
   return (
+      <>
+      <SiteHeader />
     <div style={S.page}>
       <header style={S.header}>
         <a href="/" style={S.brand}>OVERSIZE ESCORT HUB</a>
@@ -123,5 +126,6 @@ export default function AvailabilityPage() {
         </div>
       </div>
     </div>
+      </>
   )
 }

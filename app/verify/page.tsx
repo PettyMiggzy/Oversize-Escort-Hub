@@ -1,4 +1,5 @@
 'use client'
+import SiteHeader from '@/components/SiteHeader';
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 
@@ -61,6 +62,8 @@ export default function VerifyPage() {
   }
 
   return (
+      <>
+      <SiteHeader />
     <main style={{ minHeight: '100vh', background: '#0d0d0d', color: '#fff', fontFamily: 'sans-serif', padding: '60px 24px' }}>
       <div style={{ maxWidth: 800, margin: '0 auto' }}>
         <p style={{ color: '#ff6600', fontSize: 13, fontWeight: 600, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>
@@ -134,5 +137,6 @@ export default function VerifyPage() {
         </div>
       </div>
     </main>
+      </>
   )
 }

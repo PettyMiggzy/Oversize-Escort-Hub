@@ -1,4 +1,5 @@
 'use client';
+import SiteHeader from '@/components/SiteHeader';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 
@@ -58,6 +59,8 @@ export default function BidBoard() {
   }, [loads]);
 
   return (
+    <>
+    <SiteHeader />
     <div style={{ padding: '20px', background: '#060b16', color: '#e0e0e0', minHeight: '100vh' }}>
       <h1 style={{ color: '#f0a500' }}>Bid Board</h1>
       <div style={{ display: 'grid', gap: '16px' }}>
@@ -89,5 +92,6 @@ export default function BidBoard() {
         ))}
       </div>
     </div>
+    </>
   );
 }
