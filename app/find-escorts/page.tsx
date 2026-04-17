@@ -69,7 +69,7 @@ export default function FindEscortsPage() {
       const { data: sponsoredZones } = await supabase
         .from("sponsored_zones")
         .select("escort_id, profiles(id, full_name, membership, bgc_verified)")
-        .eq("state", stateFilter)
+        .eq("zone", stateFilter)
         .eq("active", true)
       if (sponsoredZones && sponsoredZones.length > 0) {
         const sponsoredProfiles = sponsoredZones
