@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { isAdminEmail } from '@/lib/supabase'
 
 
 export const dynamic = 'force-dynamic'
@@ -25,10 +26,19 @@ export async function POST(req: NextRequest) {
   if (cert_type) query = query.contains("cert_types", [cert_type]);
 
   const { data: proEscorts } = await query;
-  if (!proEscorts?.length) return NextResponse.json({ notified: 0, tier: "pro" });
+  // Also include admin-email escorts
+    const { data: adminEscorts } = await supabase
+      .from("profiles")
+      .select("id, email")
+      .eq("role", "escort")
+      .in("email", ['brian@precisionpilotservices.com', 'bahamed3170@gmail.com'])
+    const allEscorts = [...(proEscorts || []), ...(adminEscorts || [])].filter(
+      (v, i, a) => a.findIndex(x => x.id === v.id) === i
+    )
+    if (!allEscorts?.length) return NextResponse.json({ notified: 0, tier: "pro" });
 
   // Send push to all matching Pro escorts
-  const inserts = proEscorts.map((e: any) => ({
+  const inserts = allEscorts.map((e: any) => ({
     token: e.push_token,
     title: "⭐ Pro Early Access — New Load",
     body: "A new load just posted. You have a 5-minute exclusive window before Members see it. Tap to view.",
@@ -41,5 +51,5 @@ export async function POST(req: NextRequest) {
   // This is handled by the loads table `visible_at` column (set on post)
   // The loads board filters: WHERE status='open' AND (visible_at IS NULL OR visible_at <= now())
 
-  return NextResponse.json({ ok: true, notified: proEscorts.length, tier: "pro" });
+  return NextResponse.json({ ok: true, notified: allEscorts.length, tier: "pro" });
 }

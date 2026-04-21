@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { supabase , isAdminEmail} from '@/lib/supabase'
 
 const BG = '#060b16'
 const SURFACE = '#0d1117'
@@ -365,7 +365,7 @@ export default function DashboardPage() {
       )}
 
       {/* Deadhead Opportunities - Pro/Fleet only */}
-      {(profile?.membership === 'pro' || profile?.role === 'fleet') && deadheadOpps.length > 0 && (
+      {(profile?.membership === 'pro' || profile?.role === 'fleet' || isAdminEmail(profile?.email)) && deadheadOpps.length > 0 && (
         <section style={{ marginTop: '2rem' }}>
           <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#f59e0b', marginBottom: '1rem' }}>🚛 Deadhead Opportunities</h2>
           {deadheadOpps.map((load: any) => (
@@ -377,7 +377,7 @@ export default function DashboardPage() {
           ))}
         </section>
       )}
-      {(profile?.membership !== 'pro' && profile?.role !== 'fleet') && isEscort && (
+      {(profile?.membership !== 'pro' && profile?.role !== 'fleet' && !isAdminEmail(profile?.email)) && isEscort && (
         <section style={{ marginTop: '2rem', padding: '1rem', background: '#1e2736', borderRadius: 8, border: '1px solid #334155' }}>
           <p style={{ margin: 0, color: '#94a3b8' }}>🚛 <strong style={{ color: '#f59e0b' }}>Deadhead Opportunities</strong> — available to Pro and Fleet members. <a href="/pricing" style={{ color: '#f59e0b' }}>Upgrade to Pro</a></p>
         </section>

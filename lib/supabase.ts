@@ -76,3 +76,13 @@ export type Bid = {
   note: string | null
   status: 'pending' | 'accepted' | 'rejected' | 'withdrawn'
 }
+
+export const ADMIN_EMAILS = [
+  'brian@precisionpilotservices.com',
+  'bahamed3170@gmail.com',
+]
+
+export function isAdminEmail(email?: string | null): boolean {
+  if (!email) return false
+  return ADMIN_EMAILS.includes(email.toLowerCase())
+}

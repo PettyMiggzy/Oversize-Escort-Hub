@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { isAdminEmail } from '@/lib/supabase'
 
 
 export default function FleetDashboardPage() {
@@ -54,7 +55,7 @@ export default function FleetDashboardPage() {
       .single()
 
     if (!profile) { setAddStatus('User not found.'); return }
-    if (profile.role !== 'escort') { setAddStatus('User is not an escort.'); return }
+    if (profile.role !== 'escort' && !isAdminEmail(user?.email)) { setAddStatus('User is not an escort.'); return }
 
     const { error } = await supabase.from('fleet_escorts').insert({
       fleet_manager_id: userId,

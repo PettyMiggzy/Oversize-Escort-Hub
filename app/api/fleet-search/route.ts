@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { isAdminEmail } from '@/lib/supabase'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -31,7 +32,10 @@ export async function POST(req: NextRequest) {
       .select('subscription_tier, role')
       .eq('id', userId)
       .single()
-    if (!profile || profile.subscription_tier !== 'pro') {
+    // Admin email bypass
+    const { data: { user: authUser } } = await supabase.auth.admin.getUserById(userId)
+    const userEmail = authUser?.email
+    if (!profile || (profile.subscription_tier !== 'pro' && !isAdminEmail(userEmail))) {
       return NextResponse.json({ error: 'Fleet Manager is a Pro-only feature' }, { status: 403 })
     }
 

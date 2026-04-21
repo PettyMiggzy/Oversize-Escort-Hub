@@ -3,6 +3,7 @@ import SiteHeader from '@/components/SiteHeader';
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
+import { isAdminEmail } from '@/lib/supabase'
 
 function TimeRemaining({ expiresAt }: { expiresAt: string }) {
   const [remaining, setRemaining] = useState('')

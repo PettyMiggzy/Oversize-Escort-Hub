@@ -3,6 +3,7 @@ import SiteHeader from '@/components/SiteHeader';
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { isAdminEmail } from '@/lib/supabase'
 
 const ESCORT_TYPES = [
   'Lead', 'Chase', 'High Pole', 'Lineman', 'Rear Steer',
@@ -50,7 +51,7 @@ export default function PostLoadPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { setRoleMsg('Please sign in to post a load.'); setLoading(false); return }
       const { data: p } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-      if (p?.role === 'carrier' || p?.role === 'admin') {
+      if (p?.role === 'carrier' || p?.role === 'admin' || isAdminEmail(user?.email)) {
         setAllowed(true)
       } else {
         setRoleMsg('Only carriers can post loads.')

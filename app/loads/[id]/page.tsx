@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import { isAdminEmail } from '@/lib/supabase'
 
 export default function LoadDetailPage() {
   const params = useParams()
@@ -64,7 +65,7 @@ export default function LoadDetailPage() {
 
   const isCarrier = userProfile?.role === 'carrier'
   const isEscort = userProfile?.role === 'escort'
-  const isPro = userProfile?.tier === 'pro' || userProfile?.tier === 'fleet_pro'
+  const isPro = userProfile?.tier === 'pro' || userProfile?.tier === 'fleet_pro' || isAdminEmail(user?.email)
   const isMatchedEscort = currentUser && load.matched_escort_id === currentUser.id
   const isOwnerCarrier = currentUser && load.posted_by === currentUser.id
   const isMatched = load.status === 'matched'
