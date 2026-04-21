@@ -166,11 +166,15 @@ export default function SiteHeader() {
           <Link href="/" style={logoStyle}>OEH</Link>
 
           {/* Desktop nav links */}
-          {!isMobile && NAV.map((n) => (
-            <Link key={n.label} href={n.href} style={navLinkStyle}>
-              {n.label}
-            </Link>
-          ))}
+            {!isMobile && (
+              <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 24 }}>
+                {NAV.map((n) => (
+                  <Link key={n.label} href={n.href} style={navLinkStyle}>
+                    {n.label}
+                  </Link>
+                ))}
+              </div>
+            )}
 
           {/* Desktop CTA */}
           <div style={ctaAreaStyle}>
