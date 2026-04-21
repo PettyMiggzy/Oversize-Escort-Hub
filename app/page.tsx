@@ -290,11 +290,11 @@ table{width:100%;border-collapse:collapse}
 .timer-red{color:var(--rd)}
 .timer-am{color:var(--am)}
 
-.dash-grid{display:grid;grid-template-columns:240px 1fr;gap:0;min-height:calc(100vh - 84px)}
-.dash-nav{background:var(--p1);border-right:1px solid var(--l1);padding:20px 0}
+.dash-grid{display:flex;flex-direction:column;min-height:calc(100vh - 84px)}
+.dash-nav{background:var(--p1);border-bottom:1px solid var(--l1);padding:0 8px;display:flex;flex-direction:row;flex-wrap:wrap;align-items:center}
 .dash-nav-item{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--t2);padding:11px 20px;display:flex;align-items:center;gap:9px;cursor:pointer;transition:background .15s}
 .dash-nav-item:hover,.dash-nav-item.active{background:rgba(255,255,255,.03);color:var(--t1)}
-.dash-nav-item.active{border-right:2px solid var(--or)}
+.dash-nav-item.active{border-bottom:2px solid var(--or)}
 .dash-content{padding:32px 28px;background:var(--bg)}
 .metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px}
 .metric{background:var(--p2);border:1px solid var(--l1);border-radius:3px;padding:14px 16px}
@@ -350,8 +350,8 @@ footer{background:var(--p1);border-top:1px solid var(--l1);padding:40px 24px 24p
   .feat-grid{grid-template-columns:repeat(2,1fr)}
   .esc-grid{grid-template-columns:repeat(2,1fr)}
   .footer-grid{grid-template-columns:1fr 1fr}
-  .dash-grid{grid-template-columns:1fr}
-  .dash-nav{display:none}
+  .dash-grid{flex-direction:column}
+  .dash-nav{display:flex}
   .ham-btn{display:none;align-items:center;justify-content:center}
   .nav-links{display:flex;flex-direction:row;align-items:center;gap:24px}
   .nav-right{gap:6px}
@@ -594,7 +594,7 @@ function HomePage({ setPage, user, profile }: { setPage: (p: Page) => void; user
         <div className="bb" style={{ fontSize: 52, textAlign: "center", marginBottom: 6 }}>WHO ARE YOU?</div>
         <p className="mo" style={{ fontSize: 11, color: "var(--t2)", marginBottom: 48, letterSpacing: ".12em", textTransform: "uppercase" }}>Select your role to get started</p>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20 }}>
-          {/* Left — US + Canada flags stacked */}
+          {/* Left — US flag */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, flexShrink: 0 }}>
             <svg width="78" height="52" viewBox="0 0 78 52" xmlns="http://www.w3.org/2000/svg">
               {[0,1,2,3,4,5,6,7,8,9,10,11,12].map(i => (
@@ -605,12 +605,7 @@ function HomePage({ setPage, user, profile }: { setPage: (p: Page) => void; user
                 <text key={`${row}-${col}`} x={3+col*5} y={6+row*5.5} fontSize="4" fill="white" textAnchor="middle">&#9733;</text>
               )))}
             </svg>
-            <svg width="78" height="52" viewBox="0 0 78 52" xmlns="http://www.w3.org/2000/svg">
-              <rect width="78" height="52" fill="#fff"/>
-              <rect x="0" y="0" width="20" height="52" fill="#FF0000"/>
-              <rect x="58" y="0" width="20" height="52" fill="#FF0000"/>
-              <text x="39" y="33" fontSize="28" fill="#FF0000" textAnchor="middle">&#127809;</text>
-            </svg>
+            
           </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, width: "100%", maxWidth: 720 }}>
           <div className="role-card" style={{ border: "2px solid var(--or)" }} onClick={() => setRole("carrier")}>
@@ -638,10 +633,8 @@ function HomePage({ setPage, user, profile }: { setPage: (p: Page) => void; user
             <a href="/signin" className="mo" style={{ display: "inline-block", padding: "11px 18px", background: "#3b82f6", color: "#fff", borderRadius: 4, fontWeight: 700, fontSize: 10, letterSpacing: ".1em", textDecoration: "none" }}>GET STARTED</a>
           </div>
         </div>
-          {/* Right — Thin Blue Line flag SVG */}
-          <div style={{ flexShrink: 0 }}>
-            <svg width="72" height="130" viewBox="0 0 72 130" xmlns="http://www.w3.org/2000/svg" style={{ borderRadius: 4, display: 'block' }}>   <rect width="72" height="43" fill="#000"/>   <rect y="43" width="72" height="44" fill="#1a6fc4"/>   <rect y="87" width="72" height="43" fill="#000"/> </svg>
-          </div>
+          {/* Right — Canada flag */}
+            <div style={{ flexShrink: 0 }}><svg width="78" height="52" viewBox="0 0 78 52" xmlns="http://www.w3.org/2000/svg"><rect width="78" height="52" fill="#fff"/><rect x="0" y="0" width="20" height="52" fill="#FF0000"/><rect x="58" y="0" width="20" height="52" fill="#FF0000"/><text x="39" y="33" fontSize="28" fill="#FF0000" textAnchor="middle">&#127809;</text></svg></div>
         </div>
         <button className="mo" style={{ marginTop: 28, background: "none", border: "none", color: "var(--t3)", fontSize: 10, letterSpacing: ".1em", cursor: "pointer" }} onClick={() => setRole("carrier")}>
           Browse as guest
