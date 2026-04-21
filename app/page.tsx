@@ -596,8 +596,21 @@ function HomePage({ setPage, user, profile }: { setPage: (p: Page) => void; user
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20 }}>
           {/* Left — US + Canada flags stacked */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-            <span style={{ fontSize: 52, fontFamily: 'Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif', lineHeight: 1 }}>🇺🇸</span>
-            <span style={{ fontSize: 52, fontFamily: 'Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif', lineHeight: 1 }}>🇨🇦</span>
+            <svg width="78" height="52" viewBox="0 0 78 52" xmlns="http://www.w3.org/2000/svg">
+              {[0,1,2,3,4,5,6,7,8,9,10,11,12].map(i => (
+                <rect key={i} x="0" y={i*4} width="78" height="4" fill={i%2===0 ? '#B22234' : '#FFFFFF'}/>
+              ))}
+              <rect x="0" y="0" width="31" height="28" fill="#3C3B6E"/>
+              {[0,1,2,3,4].map(row => [0,1,2,3,4,5].map(col => (
+                <text key={`${row}-${col}`} x={3+col*5} y={6+row*5.5} fontSize="4" fill="white" textAnchor="middle">&#9733;</text>
+              )))}
+            </svg>
+            <svg width="78" height="52" viewBox="0 0 78 52" xmlns="http://www.w3.org/2000/svg">
+              <rect width="78" height="52" fill="#fff"/>
+              <rect x="0" y="0" width="20" height="52" fill="#FF0000"/>
+              <rect x="58" y="0" width="20" height="52" fill="#FF0000"/>
+              <text x="39" y="33" fontSize="28" fill="#FF0000" textAnchor="middle">&#127809;</text>
+            </svg>
           </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, width: "100%", maxWidth: 720 }}>
           <div className="role-card" style={{ border: "2px solid var(--or)" }} onClick={() => setRole("carrier")}>
