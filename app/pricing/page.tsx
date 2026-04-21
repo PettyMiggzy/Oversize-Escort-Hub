@@ -223,11 +223,11 @@ export default function PricingPage() {
                 onClick={() => startCheckout(c.priceId, setLoading)}
                 disabled={loading === c.priceId}
                 style={{
-                  background: c.color,
+                  background: "#f0a500",
                   color: "#000",
                   border: "none",
-                  borderRadius: 8,
-                  padding: "14px 0",
+                  borderRadius: 6,
+                  padding: "12px 24px",
                   fontWeight: 700,
                   fontSize: 15,
                   cursor: "pointer",
@@ -242,11 +242,11 @@ export default function PricingPage() {
                 onClick={() => window.location.href = "/join?role=carrier"}
                 style={{
                   width: "100%",
-                  background: "var(--l2)",
-                  color: "var(--t1)",
+                  background: "#f0a500",
+                  color: "#000",
                   border: "none",
-                  borderRadius: 8,
-                  padding: "14px 0",
+                  borderRadius: 6,
+                  padding: "12px 24px",
                   fontWeight: 700,
                   fontSize: 15,
                   cursor: "pointer"
@@ -275,11 +275,11 @@ export default function PricingPage() {
             onClick={() => startCheckout(PRICES.bgc, setLoading)}
             disabled={loading === PRICES.bgc}
             style={{
-              background: "#1e3a5f",
-              color: "#60a5fa",
+              background: "#f0a500",
+              color: "#000",
               border: "none",
-              borderRadius: 8,
-              padding: "12px 32px",
+              borderRadius: 6,
+              padding: "12px 24px",
               fontWeight: 700,
               fontSize: 15,
               cursor: "pointer",
