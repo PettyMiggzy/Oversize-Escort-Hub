@@ -591,6 +591,11 @@ function HomePage({ setPage, user, profile }: { setPage: (p: Page) => void; user
   if (!role) {
     return (
       <div className="role-picker">
+        {/* Logo */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 32 }}>
+          <img src="/logo.png" alt="OEH" style={{ width: 40, height: 40, objectFit: 'contain' }} />
+          <span className="bb" style={{ fontSize: 18, letterSpacing: '.08em' }}>OVERSIZE ESCORT HUB</span>
+        </div>
         <div className="bb" style={{ fontSize: 52, textAlign: "center", marginBottom: 6 }}>WHO ARE YOU?</div>
         <p className="mo" style={{ fontSize: 11, color: "var(--t2)", marginBottom: 48, letterSpacing: ".12em", textTransform: "uppercase" }}>Select your role to get started</p>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20 }}>
