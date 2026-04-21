@@ -408,8 +408,8 @@ function Ticker() {
   );
 }
 
-function Nav({ page, setPage, user, profile, onSignOut, unreadCount = 0 }: {
-  page: Page; setPage: (p: Page) => void; user: User | null; profile: Profile | null; onSignOut: () => void; unreadCount?: number
+function Nav({ page, setPage, user, profile, onSignOut, unreadCount = 0, setSigninMode }: {
+  page: Page; setPage: (p: Page) => void; user: User | null; profile: Profile | null; onSignOut: () => void; unreadCount?: number; setSigninMode: (m: "signup" | "signin") => void
 }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const navLinks: [Page, string][] = [
@@ -447,7 +447,7 @@ function Nav({ page, setPage, user, profile, onSignOut, unreadCount = 0 }: {
                   )}
           </span>
         ) : (
-          <button className="nav-get-started btn btn-or btn-sm" onClick={() => setPage("signin")}>GET STARTED</button>
+          <button className="nav-get-started btn btn-or btn-sm" onClick={() => { setSigninMode("signup"); setPage("signin"); }}>GET STARTED</button>
         )}
         {/* Hamburger */}
         <button className="ham-btn" onClick={() => setDrawerOpen(true)} aria-label="Menu">
@@ -477,7 +477,7 @@ function Nav({ page, setPage, user, profile, onSignOut, unreadCount = 0 }: {
                   <button className="drawer-signout" onClick={() => { onSignOut(); closeDrawer(); }}>SIGN OUT</button>
                 </>
               ) : (
-                <button className="btn btn-or btn-sm" style={{ width: "100%" }} onClick={() => { setPage("signin"); closeDrawer(); }}>GET STARTED</button>
+                <button className="btn btn-or btn-sm" style={{ width: "100%" }} onClick={() => { setSigninMode("signup"); setPage("signin"); closeDrawer(); }}>GET STARTED</button>
               )}
             </div>
           </div>
@@ -577,7 +577,7 @@ function EarlyBanner({ role }: { role: "carrier" | "escort" }) {
 
 // ─── HOME PAGE ────────────────────────────────────────────────────────────────
 
-function HomePage({ setPage, user, profile }: { setPage: (p: Page) => void; user: User | null; profile: Profile | null }) {
+function HomePage({ setPage, user, profile, setSigninMode }: { setPage: (p: Page) => void; user: User | null; profile: Profile | null; setSigninMode: (m: "signup" | "signin") => void }) {
   const [role, setRole] = useState<Role>(null);
   // Scroll to top on mount
   useEffect(() => { window.scrollTo(0, 0); }, []);
@@ -641,7 +641,7 @@ function HomePage({ setPage, user, profile }: { setPage: (p: Page) => void; user
           {/* Right — Canada flag */}
             <div style={{ flexShrink: 0 }}><svg width="78" height="52" viewBox="0 0 78 52" xmlns="http://www.w3.org/2000/svg"><rect width="78" height="52" fill="#fff"/><rect x="0" y="0" width="20" height="52" fill="#FF0000"/><rect x="58" y="0" width="20" height="52" fill="#FF0000"/><text x="39" y="33" fontSize="28" fill="#FF0000" textAnchor="middle">&#127809;</text></svg></div>
         </div>
-        <button className="btn btn-or btn-sm" style={{ marginTop: 28 }} onClick={() => setPage("signin")}>
+        <button className="btn btn-or btn-sm" style={{ marginTop: 28 }} onClick={() => { setSigninMode("signin"); setPage("signin"); }}>
               Sign In
             </button>
       </div>
@@ -2503,8 +2503,8 @@ function VerificationPage() {
 
 // ─── SIGN IN PAGE ─────────────────────────────────────────────────────────────
 
-function SignInPage({ setPage, showToast }: { setPage: (p: Page) => void; showToast: (msg: string, type: "gr" | "rd" | "am") => void }) {
-  const [mode, setMode] = useState<"signup" | "signin">("signup");
+function SignInPage({ setPage, showToast, initialMode = "signup" }: { setPage: (p: Page) => void; showToast: (msg: string, type: "gr" | "rd" | "am") => void; initialMode?: "signup" | "signin" }) {
+  const [mode, setMode] = useState<"signup" | "signin">(initialMode);
   const [role, setRole] = useState<"escort" | "carrier" | "broker">("escort");
   const [fullName, setFullName] = useState("");
   const [company, setCompany] = useState("");
@@ -3072,6 +3072,7 @@ function AvailabilityBoard({ setPage, profile }: { setPage: (p: Page) => void; p
 }
 export default function OEHPlatform() {
   const [page, setPage] = useState<Page>("home");
+  const [signinMode, setSigninMode] = useState<"signup" | "signin">("signup");
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [toast, setToast] = useState<{ msg: string; type: "gr" | "rd" | "am" } | null>(null);
@@ -3135,9 +3136,9 @@ export default function OEHPlatform() {
       <style>{CSS}</style>
       <Ticker />
       <PushInit userId={user?.id} />
-      <Nav page={page} setPage={setPage} user={user} profile={profile} onSignOut={handleSignOut} unreadCount={unreadCount} />
-      {page === "home" && <HomePage setPage={setPage} user={user} profile={profile} />}
-      {page === "signin" && <SignInPage setPage={setPage} showToast={showToast} />}
+      <Nav page={page} setPage={setPage} user={user} profile={profile} onSignOut={handleSignOut} unreadCount={unreadCount} setSigninMode={setSigninMode} />
+      {page === "home" && <HomePage setPage={setPage} user={user} profile={profile} setSigninMode={setSigninMode} />}
+      {page === "signin" && <SignInPage setPage={setPage} showToast={showToast} initialMode={signinMode} />}
       
           {/* MEMBER PERKS SECTION - desktop only */}
           <div className="hidden md:block" style={{ background: "var(--bg2,#0a0a0a)", padding: "60px 0", borderTop: "1px solid var(--l1,#222)", borderBottom: "1px solid var(--l1,#222)" }}>
