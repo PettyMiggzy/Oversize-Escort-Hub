@@ -68,7 +68,7 @@ export default function PricingPage() {
       period: "/mo",
       color: "var(--gr)",
       features: [
-        "Full load board access (60s after Pro)",
+        "Load board access with 60-second delay",
         "Bid on loads",
         "See carrier contact info",
         "Push notifications",
@@ -125,7 +125,7 @@ export default function PricingPage() {
         "Custom integrations",
         "Dedicated account manager",
       ],
-      cta: "Start Free Trial",
+      cta: "Get Fleet Pro",
       priceId: PRICES.fleet_pro,
     },
     {
@@ -146,7 +146,7 @@ export default function PricingPage() {
 ];
 
   return (
-    <div className="section">
+    <div className="section" style={{ background: '#060b16', minHeight: '100vh', color: '#fff' }}>
       <SiteHeader />
       <div style={{ marginBottom: 24 }}>
         <h1 className="bb" style={{ fontSize: 28, marginBottom: 8 }}>Pricing</h1>
