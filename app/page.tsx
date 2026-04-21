@@ -593,6 +593,12 @@ function HomePage({ setPage, user, profile }: { setPage: (p: Page) => void; user
       <div className="role-picker">
         <div className="bb" style={{ fontSize: 52, textAlign: "center", marginBottom: 6 }}>WHO ARE YOU?</div>
         <p className="mo" style={{ fontSize: 11, color: "var(--t2)", marginBottom: 48, letterSpacing: ".12em", textTransform: "uppercase" }}>Select your role to get started</p>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20 }}>
+          {/* Left — US + Canada flags stacked */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+            <span style={{ fontSize: 52 }}>🇺🇸</span>
+            <span style={{ fontSize: 52 }}>🇨🇦</span>
+          </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, width: "100%", maxWidth: 720 }}>
           <div className="role-card" style={{ border: "2px solid var(--or)" }} onClick={() => setRole("carrier")}>
             <div className="bb" style={{ fontSize: 34, color: "var(--or)", marginBottom: 10 }}>OVERSIZE CARRIER</div>
@@ -617,6 +623,15 @@ function HomePage({ setPage, user, profile }: { setPage: (p: Page) => void; user
             <p style={{ lineHeight: 1.5, marginBottom: 16 }}>Manage multiple P/EVO escorts across loads. Find work for your fleet, track jobs, and maximize every mile.</p>
             <div className="mo" style={{ fontSize: 11, color: "var(--t2)", marginBottom: 20, letterSpacing: ".06em", lineHeight: 1.8 }}>FIND LOADS · FLEET DEADHEAD · MANAGE ESCORTS</div>
             <a href="/signin" className="mo" style={{ display: "inline-block", padding: "11px 18px", background: "#3b82f6", color: "#fff", borderRadius: 4, fontWeight: 700, fontSize: 10, letterSpacing: ".1em", textDecoration: "none" }}>GET STARTED</a>
+          </div>
+        </div>
+          {/* Right — Thin Blue Line flag SVG */}
+          <div style={{ flexShrink: 0 }}>
+            <svg width="48" height="90" viewBox="0 0 48 90" xmlns="http://www.w3.org/2000/svg">
+              <rect width="48" height="30" fill="#000"/>
+              <rect y="30" width="48" height="30" fill="#1a6fc4"/>
+              <rect y="60" width="48" height="30" fill="#000"/>
+            </svg>
           </div>
         </div>
         <button className="mo" style={{ marginTop: 28, background: "none", border: "none", color: "var(--t3)", fontSize: 10, letterSpacing: ".1em", cursor: "pointer" }} onClick={() => setRole("carrier")}>
