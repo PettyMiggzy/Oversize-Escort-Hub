@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 const TABS = ['users', 'bgc', 'certs', 'verification', 'sponsored', 'disputes', 'loads', 'revenue', 'sms']
 
 export default function AdminPage() {
+  const supabase = createClient()
   const [activeTab, setActiveTab] = useState('users')
   const [isAdmin, setIsAdmin] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -39,7 +40,6 @@ export default function AdminPage() {
 
   useEffect(() => {
     const init = async () => {
-      const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { setLoading(false); return }
       const { data: p } = await supabase.from('profiles').select('role').eq('id', user.id).single()
@@ -80,15 +80,14 @@ export default function AdminPage() {
     // Fetch Verification queue
     supabase.from('certifications').select('*, profiles(full_name, email)').eq('status', 'pending').then(({data}) => setVerificationQueue(data || []))
     // Fetch Sponsored Zones
-    supabase.from('sponsored_zones').select('*, profiles(full_name, email)').then(({data}) => setSponsoredZonesList(data || []))
+    supabase.from('sponsored_zones').select('*, profiles(full_name, email)').then(({data}: {data: any}) => setSponsoredZonesList(data || []))
     // Fetch Disputes
-    supabase.from('disputes').select('*').then(({data}) => setDisputesList(data || []))
+    supabase.from('disputes').select('*').then(({data}: {data: any}) => setDisputesList(data || []))
     // Fetch Loads
-    supabase.from('loads').select('*').order('created_at', {ascending: false}).then(({data}) => setLoadsList(data || []))
+    supabase.from('loads').select('*').order('created_at', {ascending: false}).then(({data}: {data: any}) => setLoadsList(data || []))
   }, [])
 
   const suspendUser = async (userId: string, suspended: boolean) => {
-    const supabase = createClient()
     await supabase.from('profiles').update({ suspended: !suspended }).eq('id', userId)
     setUsers(prev => prev.map(u => u.id === userId ? { ...u, suspended: !suspended } : u))
   }

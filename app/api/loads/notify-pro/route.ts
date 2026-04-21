@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
   let query = supabase
     .from("profiles")
     .select("id, push_token, full_name")
-    .eq("tier", "pro").or("role", "eq", "admin")
+    .eq("tier", "pro").or("role.eq.admin")
     .eq("role", "escort")
     .not("push_token", "is", null);
 

@@ -7,7 +7,7 @@ import type { User } from "@supabase/supabase-js";
 // ─── TYPES ───────────────────────────────────────────────────────────────────
 
 type Role = "carrier" | "escort" | "broker" | "admin" | "fleet_manager" | null;
-type Page = "home" | "flatboard" | "openboard" | "bidboard" | "escorts" | "escprofile" | "dashboard-e" | "dashboard-c" | "dashboard-b" | "postload" | "pricing" | "verification" | "signin" | "invoice" | "expenses" | "job-history" | "permits" | "deadhead" | "admin" | "dot-lookup" | "state-reqs" | "weather" | "cb-radio" | "fuel-calc" | "per-diem" | "cert-tracker" | "factoring" | "tools" | "available";
+type Page = "home" | "flatboard" | "openboard" | "bidboard" | "escorts" | "escprofile" | "dashboard-e" | "dashboard-c" | "dashboard-b" | "postload" | "pricing" | "verification" | "signin" | "invoice" | "expenses" | "job-history" | "permits" | "deadhead" | "admin" | "dot-lookup" | "state-reqs" | "weather" | "cb-radio" | "fuel-calc" | "per-diem" | "cert-tracker" | "factoring" | "tools" | "available" | "how-it-works";
 
 type Profile = {
   id: string;
@@ -641,9 +641,9 @@ function HomePage({ setPage, user, profile }: { setPage: (p: Page) => void; user
           {/* Right — Canada flag */}
             <div style={{ flexShrink: 0 }}><svg width="78" height="52" viewBox="0 0 78 52" xmlns="http://www.w3.org/2000/svg"><rect width="78" height="52" fill="#fff"/><rect x="0" y="0" width="20" height="52" fill="#FF0000"/><rect x="58" y="0" width="20" height="52" fill="#FF0000"/><text x="39" y="33" fontSize="28" fill="#FF0000" textAnchor="middle">&#127809;</text></svg></div>
         </div>
-        <button className="mo" style={{ marginTop: 28, background: "none", border: "none", color: "var(--t3)", fontSize: 10, letterSpacing: ".1em", cursor: "pointer" }} onClick={() => setRole("carrier")}>
-          Browse as guest
-        </button>
+        <button className="btn btn-or btn-sm" style={{ marginTop: 28 }} onClick={() => setPage("signin")}>
+              Sign In
+            </button>
       </div>
     );
   }

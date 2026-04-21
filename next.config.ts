@@ -1,6 +1,5 @@
-import type { NextConfig } from 'next'
 
-const nextConfig: NextConfig = {
+const nextConfig = {
   // No output: 'export' — we need server-side features for Supabase auth
   typescript: {
     ignoreBuildErrors: true,
@@ -10,4 +9,4 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default nextConfig
+export default nextConfig as any

@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
 
   if (process.env.RESEND_API_KEY) {
 
-    await sendEmail({to: ["verify@oversize-escort-hub.com"],
+    await sendEmail({to: "verify@oversize-escort-hub.com",
       subject: `DD-214 Submission — User ${userId}`,
       html: `
         <div style="font-family:sans-serif;background:#f4f4f4;padding:20px;">

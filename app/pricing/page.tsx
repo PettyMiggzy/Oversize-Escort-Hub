@@ -165,7 +165,7 @@ export default function PricingPage() {
           marginBottom: 40 
         }}
       >
-        {cards.map((c) => (
+        {cards.filter((c): c is NonNullable<typeof c> => Boolean(c)).map((c) => (
           <div 
             key={c.label} 
             style={{ 

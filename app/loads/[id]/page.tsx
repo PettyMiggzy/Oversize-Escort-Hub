@@ -65,7 +65,7 @@ export default function LoadDetailPage() {
 
   const isCarrier = userProfile?.role === 'carrier'
   const isEscort = userProfile?.role === 'escort'
-  const isPro = userProfile?.tier === 'pro' || userProfile?.tier === 'fleet_pro' || isAdminEmail(user?.email)
+  const isPro = userProfile?.tier === 'pro' || userProfile?.tier === 'fleet_pro' || isAdminEmail(currentUser?.email)
   const isMatchedEscort = currentUser && load.matched_escort_id === currentUser.id
   const isOwnerCarrier = currentUser && load.posted_by === currentUser.id
   const isMatched = load.status === 'matched'

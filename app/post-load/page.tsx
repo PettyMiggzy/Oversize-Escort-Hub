@@ -41,13 +41,15 @@ export default function PostLoadPage() {
 
   // Auto-calculate rate based on a rough mileage estimate
   // Simple heuristic: same state ~150mi, different region ~400mi
+  const estimatedMiles = pickupState && destState ? (pickupState === destState ? 250 : 500) : 0
   const estimatedRate = pickupState && destState
     ? (pickupState === destState ? 250 : 500)
     : 0
 
+  const supabase = createClient()
+
   useEffect(() => {
     const init = async () => {
-      const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { setRoleMsg('Please sign in to post a load.'); setLoading(false); return }
       const { data: p } = await supabase.from('profiles').select('role').eq('id', user.id).single()

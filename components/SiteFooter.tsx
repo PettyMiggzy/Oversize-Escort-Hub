@@ -12,7 +12,7 @@ export default function SiteFooter() {
 
           {/* Thin Blue Line Flag SVG */}
           <svg
-            title="Thin Blue Line"
+            aria-label="Thin Blue Line"
             width="32"
       height="20"
       viewBox="0 0 32 20"

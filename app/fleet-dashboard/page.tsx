@@ -11,6 +11,7 @@ export default function FleetDashboardPage() {
   const [addEmail, setAddEmail] = useState('')
   const [addStatus, setAddStatus] = useState('')
   const [userId, setUserId] = useState<string | null>(null)
+  const [userEmail, setUserEmail] = useState<string | null>(null)
 
   const supabase = createClient()
 
@@ -19,6 +20,7 @@ export default function FleetDashboardPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { setLoading(false); return }
       setUserId(user.id)
+      setUserEmail(user.email ?? null)
       await loadData(user.id)
       setLoading(false)
     }
@@ -55,7 +57,7 @@ export default function FleetDashboardPage() {
       .single()
 
     if (!profile) { setAddStatus('User not found.'); return }
-    if (profile.role !== 'escort' && !isAdminEmail(user?.email)) { setAddStatus('User is not an escort.'); return }
+    if (profile.role !== 'escort' && !isAdminEmail(userEmail ?? undefined)) { setAddStatus('User is not an escort.'); return }
 
     const { error } = await supabase.from('fleet_escorts').insert({
       fleet_manager_id: userId,

@@ -11,6 +11,8 @@ const TEXT = '#e2e8f0'
 const MUTED = '#6b7280'
 
 interface Profile {
+  membership?: string;
+  email?: string;
   id: string
   role: string
   full_name: string | null
