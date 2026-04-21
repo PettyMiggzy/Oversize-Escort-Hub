@@ -1,13 +1,17 @@
 'use client';
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import SiteHeader from '@/components/SiteHeader';
 
 const bg = '#060b16';
 const surface = '#0d1117';
 const orange = '#f0a500';
 
-export default function JoinPage() {
+function JoinPageInner() {
   const [loading, setLoading] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const roleParam = searchParams.get('role');
+  const fleetOnly = roleParam === 'fleet';
 
   async function checkout(priceId: string) {
     setLoading(priceId);
@@ -61,7 +65,9 @@ export default function JoinPage() {
 
         <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', justifyContent: 'center' }}>
 
-          {/* Card 1 — P/EVO Escort */}
+          {/* Card 1 - conditionally shown */}
+            {!fleetOnly && (<>
+            {/* Card 1 — P/EVO Escort */}
           <div style={{ ...card, borderTop: `4px solid ${orange}` }}>
             <h2 style={{ color: orange, fontSize: '22px', fontWeight: 700, margin: '0 0 8px' }}>
               P/EVO Escort
@@ -118,6 +124,9 @@ export default function JoinPage() {
             </div>
           </div>
 
+            </>
+            )}
+
           {/* Card 3 — Fleet Manager */}
           <div style={{ ...card, borderTop: `4px solid ${orange}` }}>
             <h2 style={{ color: orange, fontSize: '22px', fontWeight: 700, margin: '0 0 8px' }}>
@@ -147,5 +156,13 @@ export default function JoinPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function JoinPage() {
+  return (
+    <Suspense fallback={null}>
+      <JoinPageInner />
+    </Suspense>
   );
 }
