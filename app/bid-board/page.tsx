@@ -27,7 +27,10 @@ export default function BidBoard() {
         .eq('status', 'open')
         .order('created_at', { ascending: false });
       
-      if (data) setLoads(data);
+      if (data) setLoads((data || []).filter((load: any) => {
+        if (!load.deadhead_notified_at) return true
+        return new Date(load.deadhead_notified_at).getTime() + 5 * 60 * 1000 <= Date.now()
+      }));
     };
 
     fetchLoads();

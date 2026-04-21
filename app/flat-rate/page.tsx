@@ -37,7 +37,11 @@ interface Load {
                                                                                                                               if (error) {
                                                                                                                                         console.error("Error fetching loads:", error);
                                                                                                                                                 } else {
-                                                                                                                                                          setLoads(data || []);
+                                                                                                                                                          setLoads((data || [])
+      .filter((load: any) => {
+        if (!load.deadhead_notified_at) return true
+        return new Date(load.deadhead_notified_at).getTime() + 5 * 60 * 1000 <= Date.now()
+      }));
                                                                                                                                                                   }
                                                                                                                                                                         } catch (err) {
                                                                                                                                                                                 console.error("Fetch error:", err);

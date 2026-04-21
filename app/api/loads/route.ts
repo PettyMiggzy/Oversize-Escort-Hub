@@ -49,6 +49,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // Trigger deadhead matching async (fire and forget)
+    if (data?.id) {
+      fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/deadhead`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ load_id: data.id }),
+      }).catch(() => {})
+    }
     return NextResponse.json(data, { status: 201 });
   } catch (error) {
     console.error('Error creating load:', error);

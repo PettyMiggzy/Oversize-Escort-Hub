@@ -45,12 +45,17 @@ export default function DashboardPage() {
   const [unreadCount, setUnreadCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [actionMsg, setActionMsg] = useState('')
+  const [deadheadModal, setDeadheadModal] = useState<{loadId: string} | null>(null)
+  const [dhCity, setDhCity] = useState('')
+  const [dhState, setDhState] = useState('')
+  const [dhSubmitting, setDhSubmitting] = useState(false)
+  const [deadheadOpps, setDeadheadOpps] = useState<any[]>([])
 
   useEffect(() => {
     const init = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) {
-        router.push('/login')
+        router.push('/signin')
         return
       }
       const uid = session.user.id
@@ -106,7 +111,7 @@ export default function DashboardPage() {
     init()
   }, [router])
 
-  const handleMatchAction = async (matchId: string, action: 'accept' | 'decline') => {
+  const handleMatchAction = async (matchId: string, action: 'accept' | 'decline', loadId?: string) => {
     setActionMsg('')
     const res = await fetch('/api/matches', {
       method: 'POST',
@@ -114,8 +119,12 @@ export default function DashboardPage() {
       body: JSON.stringify({ matchId, action }),
     })
     if (res.ok) {
+      const data = await res.json()
       setMatches(prev => prev.filter(m => m.id !== matchId))
       setActionMsg(`Match ${action}ed.`)
+      if (action === 'accept' && data.requiresDeadheadDestination && loadId) {
+        setDeadheadModal({ loadId })
+      }
     } else {
       setActionMsg('Action failed. Please try again.')
     }
@@ -217,7 +226,7 @@ export default function DashboardPage() {
                     )}
                     <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem' }}>
                       <button
-                        onClick={() => handleMatchAction(match.id, 'accept')}
+                        onClick={() => handleMatchAction(match.id, 'accept', match.load_id)}
                         style={{ background: ORANGE, color: '#000', border: 'none', borderRadius: 6, padding: '6px 16px', fontWeight: 700, cursor: 'pointer' }}
                       >
                         Accept
@@ -308,6 +317,70 @@ export default function DashboardPage() {
 
       {!isCarrier && !isEscort && (
         <p style={{ color: MUTED }}>Unrecognized role: {profile.role}</p>
+      )}
+
+      {/* Deadhead Destination Modal */}
+      {deadheadModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: '#1e2736', borderRadius: 12, padding: '2rem', width: '100%', maxWidth: 400 }}>
+            <h2 style={{ color: '#f59e0b', margin: '0 0 0.5rem' }}>🚛 Where do you want to end up?</h2>
+            <p style={{ color: '#94a3b8', marginBottom: '1.5rem', fontSize: '0.875rem' }}>After this job — so we can match you with nearby loads.</p>
+            <input
+              placeholder="City"
+              value={dhCity}
+              onChange={e => setDhCity(e.target.value)}
+              style={{ width: '100%', padding: '0.6rem', borderRadius: 6, border: '1px solid #334155', background: '#0f172a', color: '#e2e8f0', marginBottom: '0.75rem', boxSizing: 'border-box' as const }}
+            />
+            <input
+              placeholder="State (e.g. TX)"
+              value={dhState}
+              onChange={e => setDhState(e.target.value)}
+              style={{ width: '100%', padding: '0.6rem', borderRadius: 6, border: '1px solid #334155', background: '#0f172a', color: '#e2e8f0', marginBottom: '1rem', boxSizing: 'border-box' as const }}
+            />
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button
+                disabled={dhSubmitting || !dhCity || !dhState}
+                onClick={async () => {
+                  setDhSubmitting(true)
+                  await fetch(`/api/loads/${deadheadModal.loadId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ deadhead_destination_city: dhCity, deadhead_destination_state: dhState }),
+                  })
+                  setDeadheadModal(null)
+                  setDhCity('')
+                  setDhState('')
+                  setDhSubmitting(false)
+                }}
+                style={{ flex: 1, padding: '0.6rem', background: '#f59e0b', color: '#000', border: 'none', borderRadius: 6, fontWeight: 700, cursor: 'pointer' }}
+              >
+                {dhSubmitting ? 'Saving…' : 'Save Destination'}
+              </button>
+              <button onClick={() => setDeadheadModal(null)} style={{ padding: '0.6rem 1rem', background: '#334155', color: '#e2e8f0', border: 'none', borderRadius: 6, cursor: 'pointer' }}>
+                Skip
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Deadhead Opportunities - Pro/Fleet only */}
+      {(profile?.membership === 'pro' || profile?.role === 'fleet') && deadheadOpps.length > 0 && (
+        <section style={{ marginTop: '2rem' }}>
+          <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#f59e0b', marginBottom: '1rem' }}>🚛 Deadhead Opportunities</h2>
+          {deadheadOpps.map((load: any) => (
+            <div key={load.id} style={{ background: '#1e2736', borderRadius: 8, padding: '1rem', marginBottom: '0.75rem', border: '1px solid #334155' }}>
+              <p style={{ margin: 0, fontWeight: 600 }}>{load.pickup_city}, {load.pickup_state} → {load.dest_city}, {load.dest_state}</p>
+              <p style={{ margin: '0.25rem 0 0', color: '#94a3b8', fontSize: '0.875rem' }}>${load.rate} &bull; {load.escort_type}</p>
+              <a href={`/loads/${load.id}`} style={{ color: '#f59e0b', fontSize: '0.875rem', display: 'inline-block', marginTop: '0.5rem' }}>Claim load →</a>
+            </div>
+          ))}
+        </section>
+      )}
+      {(profile?.membership !== 'pro' && profile?.role !== 'fleet') && isEscort && (
+        <section style={{ marginTop: '2rem', padding: '1rem', background: '#1e2736', borderRadius: 8, border: '1px solid #334155' }}>
+          <p style={{ margin: 0, color: '#94a3b8' }}>🚛 <strong style={{ color: '#f59e0b' }}>Deadhead Opportunities</strong> — available to Pro and Fleet members. <a href="/pricing" style={{ color: '#f59e0b' }}>Upgrade to Pro</a></p>
+        </section>
       )}
     </div>
   )

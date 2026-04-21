@@ -55,7 +55,11 @@ export default function OpenLoadsPage() {
       .eq('status', 'open')
       .gt('expires_at', new Date().toISOString())
       .order('expires_at', { ascending: true })
-    setLoads(data || [])
+    setLoads((data || [])
+      .filter((load: any) => {
+        if (!load.deadhead_notified_at) return true
+        return new Date(load.deadhead_notified_at).getTime() + 5 * 60 * 1000 <= Date.now()
+      }))
 
     // Fetch bids for each load
     if (data && data.length > 0) {

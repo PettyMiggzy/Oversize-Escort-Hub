@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
       } catch(_) {}
     }
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, requiresDeadheadDestination: action === "accept" })
   } catch (error) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
