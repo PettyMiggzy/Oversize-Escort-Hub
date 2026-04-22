@@ -6,6 +6,8 @@ const PROTECTED_ROUTES = [
   '/dashboard',
   '/fleet-dashboard',
   '/loads',
+  '/flat-rate',
+  '/bid-board',
   '/open-loads',
   '/post-load',
   '/invoices',

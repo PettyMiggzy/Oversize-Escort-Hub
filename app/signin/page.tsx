@@ -37,7 +37,7 @@ button{cursor:pointer;font-family:'Inter',system-ui,sans-serif}
 
 export default function SignInPage() {
   const router = useRouter();
-  const [mode, setMode] = useState<"signup" | "signin">("signup");
+  const [mode, setMode] = useState<"signup" | "signin">("signin");
   const [role, setRole] = useState<"escort" | "carrier" | "fleet_manager" | "broker">("escort");
   const [fullName, setFullName] = useState("");
   const [company, setCompany] = useState("");

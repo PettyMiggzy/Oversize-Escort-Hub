@@ -536,7 +536,7 @@ function Footer({ setPage }: { setPage: (p: Page) => void }) {
         </div>
       </div>
       <div className="footer-bottom">
-        <span>© 2025 Precision Pilot Services LLC. All rights reserved.</span>
+        <span>© 2026 Precision Pilot Services LLC. All rights reserved.</span>
         <span style={{ color: "var(--or)", letterSpacing: ".1em" }}>NO COMMISSIONS · NO JOB FEES · EVER</span>
         <span style={{ display: "inline-flex", alignItems: "center", gap: 8, marginTop: 8 }}>
           <span title="American Flag" style={{ fontSize: 20 }}>🇺🇸</span>

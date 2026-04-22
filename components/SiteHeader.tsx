@@ -178,8 +178,11 @@ export default function SiteHeader() {
 
           {/* Desktop CTA */}
           <div style={ctaAreaStyle}>
-            <Link href="/signin" style={btnGhostStyle}>Sign in</Link>
-            <Link href="/dashboard" style={btnPrimeStyle}>Dashboard</Link>
+        {userProfile ? (
+          <Link href="/dashboard" style={btnPrimeStyle}>Dashboard</Link>
+        ) : (
+          <><Link href="/signin" style={btnGhostStyle}>Sign in</Link><Link href="/dashboard" style={btnPrimeStyle}>Dashboard</Link></>
+        )}
           </div>
 
           {/* Mobile hamburger */}
@@ -205,8 +208,11 @@ export default function SiteHeader() {
             </Link>
           ))}
           <div style={mobileCtaStyle}>
-            <Link href="/signin" style={{ ...btnGhostStyle, textAlign: "center", padding: "10px 0" }} onClick={() => setOpen(false)}>Sign in</Link>
+          {userProfile ? (
             <Link href="/dashboard" style={{ ...btnPrimeStyle, textAlign: "center", padding: "10px 0" }} onClick={() => setOpen(false)}>Dashboard</Link>
+          ) : (
+            <><Link href="/signin" style={{ ...btnGhostStyle, textAlign: "center", padding: "10px 0" }} onClick={() => setOpen(false)}>Sign in</Link><Link href="/dashboard" style={{ ...btnPrimeStyle, textAlign: "center", padding: "10px 0" }} onClick={() => setOpen(false)}>Dashboard</Link></>
+          )}
           </div>
         </div>
       </header>
