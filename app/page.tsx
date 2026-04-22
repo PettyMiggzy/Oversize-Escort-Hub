@@ -408,8 +408,8 @@ function Ticker() {
   );
 }
 
-function Nav({ page, setPage, user, profile, onSignOut, unreadCount = 0, setSigninMode }: {
-  page: Page; setPage: (p: Page) => void; user: User | null; profile: Profile | null; onSignOut: () => void; unreadCount?: number; setSigninMode: (m: "signup" | "signin") => void
+function Nav({ page, setPage, user, profile, onSignOut, unreadCount = 0, setSigninMode, profileOverride, setProfileOverride }: {
+  page: Page; setPage: (p: Page) => void; user: User | null; profile: Profile | null; onSignOut: () => void; unreadCount?: number; setSigninMode: (m: "signup" | "signin") => void; profileOverride: Profile | null; setProfileOverride: (p: Profile | null) => void
 }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const navLinks: [Page, string][] = [
@@ -440,7 +440,25 @@ function Nav({ page, setPage, user, profile, onSignOut, unreadCount = 0, setSign
             {profile.full_name || "there"}{" · "}
             <span style={{ color: "var(--or)", fontSize: 8 }}>{profile.tier?.toUpperCase()}</span>{" "}
             {profile?.role === "fleet_manager" && <button className="nav-signout" style={{ color:'#ff6600', borderColor:'#ff6600' }} onClick={() => { window.location.href = '/fleet-dashboard'; }}>FLEET DASHBOARD</button>}
-            {profile?.role === "fleet_manager" && <button className="nav-signout" style={{ color:'#ff6600', borderColor:'#ff6600' }} onClick={() => { window.location.href = '/fleet-dashboard'; }}>FLEET DASHBOARD</button>} <button className="nav-signout" onClick={onSignOut}>SIGN OUT</button>
+            {profile?.role === "fleet_manager" && <button className="nav-signout" style={{ color:'#ff6600', borderColor:'#ff6600' }} onClick={() => { window.location.href = '/fleet-dashboard'; }}>FLEET DASHBOARD</button>} {profile?.role === 'admin' && (
+            <select
+              className="mo"
+              style={{ background: 'var(--p2)', border: '1px solid var(--or)', color: 'var(--or)', fontSize: 9, padding: '5px 8px', borderRadius: 2, cursor: 'pointer' }}
+              value={profileOverride?.role || ''}
+              onChange={e => {
+                const r = e.target.value;
+                if (!r) { setProfileOverride(null); return; }
+                setProfileOverride({ ...profile!, role: r as any, tier: r === 'fleet_manager' ? 'pro' : r === 'escort' ? 'pro' : 'carrier_member' });
+              }}
+            >
+              <option value="">REAL ROLE</option>
+              <option value="escort">TEST: Escort</option>
+              <option value="carrier">TEST: Carrier</option>
+              <option value="broker">TEST: Broker</option>
+              <option value="fleet_manager">TEST: Fleet Mgr</option>
+            </select>
+          )}
+          <button className="nav-signout" onClick={onSignOut}>SIGN OUT</button>
             <button className="nav-signout" style={{ marginLeft: 4 }} onClick={() => profile?.role === "fleet_manager" ? (window["location"]["href"] = "/fleet-dashboard") : setPage(profile.role === "carrier" ? "dashboard-c" : "dashboard-e")}>DASHBOARD →</button>
                   {profile?.role === 'admin' && (
                     <button className="nav-signout" style={{ marginLeft: 4 }} onClick={() => setPage('admin')}>Admin</button>
@@ -3075,6 +3093,8 @@ export default function OEHPlatform() {
   const [signinMode, setSigninMode] = useState<"signup" | "signin">("signup");
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [profileOverride, setProfileOverride] = useState<Profile | null>(null);
+  const activeProfile = profileOverride || profile;
   const [toast, setToast] = useState<{ msg: string; type: "gr" | "rd" | "am" } | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [reviewPrompt, setReviewPrompt] = useState<{loadId:string,targetName:string,targetId:string}|null>(null)
@@ -3136,8 +3156,8 @@ export default function OEHPlatform() {
       <style>{CSS}</style>
       <Ticker />
       <PushInit userId={user?.id} />
-      <Nav page={page} setPage={setPage} user={user} profile={profile} onSignOut={handleSignOut} unreadCount={unreadCount} setSigninMode={setSigninMode} />
-      {page === "home" && <HomePage setPage={setPage} user={user} profile={profile} setSigninMode={setSigninMode} />}
+      <Nav page={page} setPage={setPage} user={user} profile={profile} onSignOut={handleSignOut} unreadCount={unreadCount} setSigninMode={setSigninMode} profileOverride={profileOverride} setProfileOverride={setProfileOverride} />
+      {page === "home" && <HomePage setPage={setPage} user={user} profile={activeProfile} setSigninMode={setSigninMode} />}
       {page === "signin" && <SignInPage setPage={setPage} showToast={showToast} initialMode={signinMode} />}
       
           {/* MEMBER PERKS SECTION - desktop only */}
@@ -3183,16 +3203,16 @@ export default function OEHPlatform() {
           </div>
           {page === "pricing" && <PricingPage setPage={setPage} />}
       {page === "verification" && <VerificationPage />}
-      {page === "flatboard" && <FlatBoardPage setPage={setPage} user={user} profile={profile} showToast={showToast} />}
-      {page === "bidboard" && <BidBoardPage setPage={setPage} user={user} profile={profile} showToast={showToast} />}
-      {page === "openboard" && <OpenBidPage setPage={setPage} user={user} profile={profile} showToast={showToast} />}
+      {page === "flatboard" && <FlatBoardPage setPage={setPage} user={user} profile={activeProfile} showToast={showToast} />}
+      {page === "bidboard" && <BidBoardPage setPage={setPage} user={user} profile={activeProfile} showToast={showToast} />}
+      {page === "openboard" && <OpenBidPage setPage={setPage} user={user} profile={activeProfile} showToast={showToast} />}
       {page === "escorts" && <EscortsPage setPage={setPage} />}
       {page === "escprofile" && <EscProfilePage setPage={setPage} />}
-      {page === "postload" && <PostLoadPage setPage={setPage} user={user} profile={profile} showToast={showToast} />}
-        {page === "dashboard-c" && <CarrierDashPage setPage={setPage} user={user} profile={profile} showToast={showToast} />}
-        {page === "dashboard-e" && <EscortDashPage setPage={setPage} profile={profile} />}
-        {page === "admin" && <AdminPage setPage={setPage} user={user} profile={profile} />}
-              {page === "available" && <AvailabilityBoard setPage={setPage} profile={profile} />}
+      {page === "postload" && <PostLoadPage setPage={setPage} user={user} profile={activeProfile} showToast={showToast} />}
+        {page === "dashboard-c" && <CarrierDashPage setPage={setPage} user={user} profile={activeProfile} showToast={showToast} />}
+        {page === "dashboard-e" && <EscortDashPage setPage={setPage} profile={activeProfile} />}
+        {page === "admin" && <AdminPage setPage={setPage} user={user} profile={activeProfile} />}
+              {page === "available" && <AvailabilityBoard setPage={setPage} profile={activeProfile} />}
       <Footer setPage={setPage} />
       {reviewPrompt && (<div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}><div className="card" style={{ maxWidth:440, width:'100%', padding:28 }}><div style={{ fontSize:18, fontWeight:700, marginBottom:8 }}>⭐ How was your experience?</div><div style={{ fontSize:13, color:'var(--t2)', marginBottom:16 }}>Leave a review for {reviewPrompt.targetName}</div><div style={{ display:'flex', gap:8, marginBottom:16 }}>{[1,2,3,4,5].map(n => (<button key={n} onClick={() => setReviewRating(n)} style={{ fontSize:24, background:'none', border:'none', cursor:'pointer', opacity: n <= reviewRating ? 1 : 0.3 }}>⭐</button>))}</div><textarea value={reviewText} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setReviewText(e.target.value)} placeholder="Optional written review (500 chars max)" maxLength={500} style={{ width:'100%', minHeight:80, padding:10, borderRadius:6, border:'1px solid var(--l2)', background:'var(--bg)', color:'var(--t1)', fontSize:13, resize:'vertical', marginBottom:16 }} /><div style={{ display:'flex', gap:10 }}><button className="btn btn-or" disabled={reviewSubmitting} onClick={async () => { setReviewSubmitting(true); await fetch('/api/reviews', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ load_id: reviewPrompt.loadId, target_id: reviewPrompt.targetId, rating: reviewRating, text: reviewText }) }); setReviewSubmitting(false); setReviewPrompt(null); setReviewRating(5); setReviewText(''); showToast('Thanks for your review!', 'gr') }}>{reviewSubmitting ? 'Submitting…' : 'Submit Review'}</button><button className="btn" onClick={() => setReviewPrompt(null)}>Skip</button></div></div></div>)}
       {reviewPrompt && (<div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}><div className="card" style={{ maxWidth:440, width:'100%', padding:28 }}><div style={{ fontSize:18, fontWeight:700, marginBottom:8 }}>How was your experience?</div><div style={{ fontSize:13, color:'var(--t2)', marginBottom:16 }}>Leave a review for {reviewPrompt.targetName}</div><div style={{ display:'flex', gap:8, marginBottom:16 }}>{[1,2,3,4,5].map(n => (<button key={n} onClick={() => setReviewRating(n)} style={{ fontSize:24, background:'none', border:'none', cursor:'pointer', opacity: n <= reviewRating ? 1 : 0.3 }}>*</button>))}</div><textarea value={reviewText} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setReviewText(e.target.value)} placeholder="Optional written review (500 chars max)" maxLength={500} style={{ width:'100%', minHeight:80, padding:10, borderRadius:6, border:'1px solid var(--l2)', background:'var(--bg)', color:'var(--t1)', fontSize:13, resize:'vertical', marginBottom:16 }} /><div style={{ display:'flex', gap:10 }}><button className="btn btn-or" disabled={reviewSubmitting} onClick={async () => { setReviewSubmitting(true); await fetch('/api/reviews', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ load_id: reviewPrompt.loadId, target_id: reviewPrompt.targetId, rating: reviewRating, text: reviewText }) }); setReviewSubmitting(false); setReviewPrompt(null); setReviewRating(5); setReviewText(''); showToast('Thanks for your review!', 'gr') }}>{reviewSubmitting ? 'Submitting...' : 'Submit Review'}</button><button className="btn" onClick={() => setReviewPrompt(null)}>Skip</button></div></div></div>)} {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
