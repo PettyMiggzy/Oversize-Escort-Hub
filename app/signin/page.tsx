@@ -73,6 +73,7 @@ export default function SignInPage() {
         });
 
         if (signInError) throw signInError;
+        window.location.href = '/';
 
         if (data.user) {
           const { data: profile } = await supabase
