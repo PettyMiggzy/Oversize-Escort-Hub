@@ -327,7 +327,7 @@ footer{background:var(--p1);border-top:1px solid var(--l1);padding:40px 24px 24p
 .esc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 .ob-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 
-.role-picker{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);padding:40px 24px;overflow-y:auto;}
+.role-picker-active{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);padding:40px 24px;overflow-y:auto;}
 .role-card{background:var(--p1);border-radius:4px;padding:36px 28px;cursor:pointer;transition:background .15s;flex:1}
 .role-card:hover{background:rgba(255,255,255,.03)}
 .role-bar{background:var(--p2);border-bottom:1px solid var(--l1);padding:6px 24px;display:flex;align-items:center;gap:12px}
@@ -608,7 +608,7 @@ function HomePage({ setPage, user, profile, setSigninMode }: { setPage: (p: Page
 
   if (!role) {
     return (
-      <div className="role-picker">
+      <div className="role-picker-active">
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 32 }}>
           <img src="/logo.png" alt="OEH" style={{ width: 40, height: 40, objectFit: 'contain' }} />
