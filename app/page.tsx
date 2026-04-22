@@ -595,7 +595,7 @@ function EarlyBanner({ role }: { role: "carrier" | "escort" }) {
 
 // ─── HOME PAGE ────────────────────────────────────────────────────────────────
 
-function HomePage({ setPage, user, profile, setSigninMode }: { setPage: (p: Page) => void; user: User | null; profile: Profile | null; setSigninMode: (m: "signup" | "signin") => void }) {
+function HomePage({ setPage, user, profile, setSigninMode, setPendingRole }: { setPage: (p: Page) => void; user: User | null; profile: Profile | null; setSigninMode: (m: "signup" | "signin") => void; setPendingRole: (r: "escort"|"carrier"|"broker"|null) => void }) {
   const [role, setRole] = useState<Role>(null);
   // Scroll to top on mount
   useEffect(() => { window.scrollTo(0, 0); }, []);
@@ -631,17 +631,17 @@ function HomePage({ setPage, user, profile, setSigninMode }: { setPage: (p: Page
             
           </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, width: "100%", maxWidth: 720 }}>
-          <div className="role-card" style={{ border: "2px solid var(--or)" }} onClick={() => setRole("carrier")}>
+          <div className="role-card" style={{ border: "2px solid var(--or)" }} onClick={() => { setPendingRole("carrier"); setSigninMode("signup"); setPage("signin"); }}>
             <div className="bb" style={{ fontSize: 34, color: "var(--or)", marginBottom: 10 }}>OVERSIZE CARRIER</div>
             <p style={{ fontSize: 11, color: "var(--t2)", lineHeight: 1.5, marginBottom: 16 }}>Carriers hauling oversize/overweight loads who need permits, escorts, and load boards.</p>
             <div className="mo" style={{ fontSize: 10, color: "var(--or)", letterSpacing: ".1em" }}>POST LOADS · BID BOARD · FIND ESCORTS</div>
           </div>
-          <div className="role-card" style={{ border: "2px solid var(--am)" }} onClick={() => setRole("escort")}>
+          <div className="role-card" style={{ border: "2px solid var(--am)" }} onClick={() => { setPendingRole("escort"); setSigninMode("signup"); setPage("signin"); }}>
             <div className="bb" style={{ fontSize: 34, color: "var(--am)", marginBottom: 10 }}>PILOT CAR / P/EVO</div>
             <p style={{ fontSize: 11, color: "var(--t2)", lineHeight: 1.5, marginBottom: 16 }}>Pilot car operators and P/EVO escorts looking for loads, routes, and work opportunities.</p>
             <div className="mo" style={{ fontSize: 10, color: "var(--am)", letterSpacing: ".1em" }}>FIND LOADS · DEADHEAD MINIMIZER · BID</div>
           </div>
-          <div className="role-card" style={{ border: "2px solid var(--t2)" }} onClick={() => setRole("broker")}>
+          <div className="role-card" style={{ border: "2px solid var(--t2)" }} onClick={() => { setPendingRole("broker"); setSigninMode("signup"); setPage("signin"); }}>
             <div className="bb" style={{ fontSize: 34, color: "var(--t2)", marginBottom: 10 }}>FREIGHT BROKER</div>
             <p style={{ fontSize: 11, color: "var(--t2)", lineHeight: 1.5, marginBottom: 16 }}>Licensed freight brokers who need verified P/EVO escorts for oversize shipments.</p>
             <div className="mo" style={{ fontSize: 9, color: "var(--t2)", letterSpacing: ".1em" }}>POST LOADS · FIND ESCORTS · MANAGE SHIPMENTS</div>
@@ -2521,9 +2521,9 @@ function VerificationPage() {
 
 // ─── SIGN IN PAGE ─────────────────────────────────────────────────────────────
 
-function SignInPage({ setPage, showToast, initialMode = "signup" }: { setPage: (p: Page) => void; showToast: (msg: string, type: "gr" | "rd" | "am") => void; initialMode?: "signup" | "signin" }) {
+function SignInPage({ setPage, showToast, initialMode = "signup", initialRole = "escort" }: { setPage: (p: Page) => void; showToast: (msg: string, type: "gr" | "rd" | "am") => void; initialMode?: "signup" | "signin"; initialRole?: "escort"|"carrier"|"broker" }) {
   const [mode, setMode] = useState<"signup" | "signin">(initialMode);
-  const [role, setRole] = useState<"escort" | "carrier" | "broker">("escort");
+  const [role, setRole] = useState<"escort" | "carrier" | "broker">(initialRole);
   const [fullName, setFullName] = useState("");
   const [company, setCompany] = useState("");
   const [email, setEmail] = useState("");
@@ -3091,6 +3091,7 @@ function AvailabilityBoard({ setPage, profile }: { setPage: (p: Page) => void; p
 export default function OEHPlatform() {
   const [page, setPage] = useState<Page>("home");
   const [signinMode, setSigninMode] = useState<"signup" | "signin">("signup");
+  const [pendingRole, setPendingRole] = useState<"escort"|"carrier"|"broker"|null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileOverride, setProfileOverride] = useState<Profile | null>(null);
@@ -3157,8 +3158,8 @@ export default function OEHPlatform() {
       <Ticker />
       <PushInit userId={user?.id} />
       <Nav page={page} setPage={setPage} user={user} profile={profile} onSignOut={handleSignOut} unreadCount={unreadCount} setSigninMode={setSigninMode} profileOverride={profileOverride} setProfileOverride={setProfileOverride} />
-      {page === "home" && <HomePage setPage={setPage} user={user} profile={activeProfile} setSigninMode={setSigninMode} />}
-      {page === "signin" && <SignInPage setPage={setPage} showToast={showToast} initialMode={signinMode} />}
+      {page === "home" && <HomePage setPage={setPage} user={user} profile={activeProfile} setSigninMode={setSigninMode} setPendingRole={setPendingRole} />}
+      {page === "signin" && <SignInPage setPage={setPage} showToast={showToast} initialMode={signinMode} initialRole={pendingRole ?? "escort"} />}
       
           {/* MEMBER PERKS SECTION - desktop only */}
           <div className="hidden md:block" style={{ background: "var(--bg2,#0a0a0a)", padding: "60px 0", borderTop: "1px solid var(--l1,#222)", borderBottom: "1px solid var(--l1,#222)" }}>
