@@ -39,6 +39,8 @@ export default function SignInPage() {
   const router = useRouter();
   const [mode, setMode] = useState<"signup" | "signin">("signin");
   const [role, setRole] = useState<"escort" | "carrier" | "fleet_manager" | "broker">("escort");
+  const [plan, setPlan] = useState<"trial" | "member" | "pro" | null>(null);
+  const [trialBlocked, setTrialBlocked] = useState(false);
   const [fullName, setFullName] = useState("");
   const [company, setCompany] = useState("");
   const [email, setEmail] = useState("");
@@ -47,11 +49,58 @@ export default function SignInPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  function getFingerprint() {
+    const raw = navigator.userAgent + screen.width + screen.height + navigator.language;
+    let hash = 0;
+    for (let i = 0; i < raw.length; i++) {
+      hash = ((hash << 5) - hash) + raw.charCodeAt(i);
+      hash |= 0;
+    }
+    return Math.abs(hash).toString(36);
+  }
+
+  async function handleCheckout(priceId: string) {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ priceId }),
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+      else setError(data.error || 'Checkout failed');
+    } catch (e) {
+      setError('Checkout failed');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleTrialSelect() {
+    setLoading(true);
+    setError("");
+    const fp = getFingerprint();
+    try {
+      const res = await fetch(`/api/check-trial?fp=${fp}`);
+      const data = await res.json();
+      if (data.used) {
+        setTrialBlocked(true);
+      } else {
+        setPlan("trial");
+      }
+    } catch {
+      setPlan("trial");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function handleSubmit() {
     setError("");
     setSuccess("");
     setLoading(true);
-
     try {
       if (mode === "signup") {
         const { error: signUpError } = await supabase.auth.signUp({
@@ -62,8 +111,16 @@ export default function SignInPage() {
             emailRedirectTo: `${window.location.origin}/auth/callback`,
           },
         });
-
         if (signUpError) throw signUpError;
+        // Record fingerprint for free trial
+        if (role === "escort" && plan === "trial") {
+          const fp = getFingerprint();
+          await fetch('/api/check-trial', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fp }),
+          });
+        }
         setSuccess("Check your email to confirm your account, then sign in.");
       } else {
         // Sign In
@@ -71,153 +128,205 @@ export default function SignInPage() {
           email,
           password,
         });
-
         if (signInError) throw signInError;
         window.location.href = '/';
-
-        if (data.user) {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("role")
-            .eq("id", data.user.id)
-            .single();
-
-          if (profile?.role === "carrier") {
-            router.push("/dashboard/carrier");
-          } else if (profile?.role === "fleet_manager") {
-            router.push("/fleet-dashboard"); 
-          } else {
-            router.push("/dashboard/escort");
-          }
-        }
       }
     } catch (err: any) {
-      setError(err.message || "Something went wrong. Please try again.");
+      setError(err.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
   }
+
+  // Plan selection step for escort signup
+  const showPlanStep = mode === "signup" && role === "escort" && plan === null && !trialBlocked;
+  const showTrialBlocked = mode === "signup" && role === "escort" && trialBlocked;
 
   return (
     <>
       <style>{CSS}</style>
       <div className="wrap">
         <div className="box">
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 24 }}>
-            <img src="/icon.png" alt="OEH" style={{ width: 36, height: 36, objectFit: "contain" }} />
-            <div>
-              <div className="bb" style={{ fontSize: 20, color: "var(--t1)" }}>
-                {mode === "signup" ? "Start Free Trial" : "Welcome Back"}
-              </div>
-              <div className="mo" style={{ fontSize: 9, color: "var(--t2)", letterSpacing: ".1em" }}>
-                OVERSIZE ESCORT HUB
-              </div>
-            </div>
+          <div className="role-toggle">
+            <button
+              className={`role-btn ${role === "escort" ? "active-escort" : ""}`}
+              onClick={() => { setRole("escort"); setPlan(null); setTrialBlocked(false); setError(""); setSuccess(""); }}
+            >
+              P/EVO
+            </button>
+            <button
+              className={`role-btn ${role === "carrier" ? "active-carrier" : ""}`}
+              onClick={() => { setRole("carrier"); setPlan(null); setTrialBlocked(false); setError(""); setSuccess(""); }}
+            >
+              Carrier
+            </button>
+            <button
+              className={`role-btn ${role === "broker" ? "active-carrier" : ""}`}
+              onClick={() => { setRole("broker"); setPlan(null); setTrialBlocked(false); setError(""); setSuccess(""); }}
+            >
+              Freight Broker
+            </button>
+            <button
+              className={`role-btn ${role === "fleet_manager" ? "active-fleet" : ""}`}
+              onClick={() => setRole("fleet_manager")}
+            >
+              Fleet Manager
+            </button>
           </div>
-
-          {mode === "signup" && (
-            <div className="role-toggle">
-              <button 
-                className={`role-btn ${role === "escort" ? "active-escort" : ""}`} 
-                onClick={() => setRole("escort")}
-              >
-                Escort / P/EVO
-              </button>
-              <button 
-                className={`role-btn ${role === "carrier" ? "active-carrier" : ""}`} 
-                onClick={() => setRole("carrier")}
-              >
-                Carrier / Operator
-              </button>
-                                <button
-                                                    className={`role-btn ${role === "broker" ? "active-broker" : ""}`}
-                                                                        onClick={() => setRole("broker")}
-                                                                                          >
-                                                                                                              Freight Broker
-                                                                                                                                </button>
-                                                                                                                                                  <button
-                                                                                                                                                                      className={`role-btn ${role === "fleet_manager" ? "active-fleet" : ""}`}
-                                                                                                                                                                                          onClick={() => setRole("fleet_manager")}
-                                                                                                                                                                                                            >
-                                                                                                                                                                                                                                Fleet Manager
-                                                                                                                                                                                                                                                  </button>
-            </div>
-          )}
 
           {error && <div className="error">{error}</div>}
           {success && <div className="success">{success}</div>}
 
-          {mode === "signup" && (
-            <div className="field">
-              <label className="label">Full Name</label>
-              <input 
-                type="text" 
-                placeholder="Your full name" 
-                value={fullName} 
-                onChange={(e) => setFullName(e.target.value)} 
-              />
+          {/* Plan selection step — escort signup only */}
+          {showPlanStep && (
+            <div>
+              <div className="mo" style={{ fontSize: 11, color: "var(--t2)", marginBottom: 20, textAlign: "center" }}>
+                Choose your P/EVO plan
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {/* Free Trial */}
+                <button
+                  className="btn"
+                  style={{ background: "var(--t2)", color: "var(--bg)", opacity: loading ? 0.5 : 1 }}
+                  disabled={loading}
+                  onClick={handleTrialSelect}
+                >
+                  {loading ? "Checking..." : "Free Trial — 30 days · one per device"}
+                </button>
+                {/* Member */}
+                <button
+                  className="btn btn-am"
+                  disabled={loading}
+                  onClick={() => handleCheckout("price_1TF00LLmfugPCRbAl6sF0Oup")}
+                >
+                  Member — $19.99/mo
+                </button>
+                {/* Pro */}
+                <button
+                  className="btn"
+                  style={{ background: "var(--am)", color: "#000", opacity: loading ? 0.5 : 1 }}
+                  disabled={loading}
+                  onClick={() => handleCheckout("price_1TF021LmfugPCRbA7CGgLhC0")}
+                >
+                  Pro — $29.99/mo
+                </button>
+              </div>
+              <div className="switch" style={{ marginTop: 16 }}>
+                <button onClick={() => { setMode("signin"); setPlan(null); setError(""); setSuccess(""); }}>
+                  Already have an account? Sign In
+                </button>
+              </div>
             </div>
           )}
 
-          <div className="field">
-            <label className="label">Email Address</label>
-            <input 
-              type="email" 
-              placeholder="your@email.com" 
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)} 
-                              onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-            />
-          </div>
-
-          <div className="field">
-            <label className="label">Password</label>
-            <input 
-              type="password" 
-              placeholder="••••••••" 
-              value={password} 
-              onChange={(e) => setPassword(e.target.value)} 
-                              onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-            />
-          </div>
-
-          {mode === "signup" && (
-            <div className="field">
-              <label className="label">Company / Business Name (optional)</label>
-              <input 
-                type="text" 
-                placeholder="Your company name" 
-                value={company} 
-                onChange={(e) => setCompany(e.target.value)} 
-              />
+          {/* Trial blocked message */}
+          {showTrialBlocked && (
+            <div>
+              <div className="error" style={{ marginBottom: 16 }}>
+                You've already used your free trial on this device. Choose Member or Pro to continue.
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <button
+                  className="btn btn-am"
+                  disabled={loading}
+                  onClick={() => handleCheckout("price_1TF00LLmfugPCRbAl6sF0Oup")}
+                >
+                  Member — $19.99/mo
+                </button>
+                <button
+                  className="btn"
+                  style={{ background: "var(--am)", color: "#000" }}
+                  disabled={loading}
+                  onClick={() => handleCheckout("price_1TF021LmfugPCRbA7CGgLhC0")}
+                >
+                  Pro — $29.99/mo
+                </button>
+              </div>
+              <div className="switch" style={{ marginTop: 16 }}>
+                <button onClick={() => { setTrialBlocked(false); setPlan(null); setError(""); }}>
+                  ← Back to plans
+                </button>
+              </div>
             </div>
           )}
 
-          <button
-            className={`btn ${role === "carrier" ? "btn-or" : role === "fleet_manager" ? "btn-fleet" : "btn-am"}`}
-            onClick={handleSubmit}
-            disabled={loading || !email || !password}
-          >
-            {loading 
-              ? "Please wait..." 
-              : mode === "signup" 
-                ? "Create Free Account →" 
-                : "Sign In →"
-            }
-          </button>
+          {/* Account creation / sign-in form */}
+          {!showPlanStep && !showTrialBlocked && (
+            <div>
+              {mode === "signup" && (
+                <div className="field">
+                  <label className="label">Full Name</label>
+                  <input
+                    type="text"
+                    placeholder="Your full name"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                  />
+                </div>
+              )}
 
-          <div className="switch">
-            <span>{mode === "signup" ? "Already have an account?" : "Don't have an account?"}</span>
-            <button 
-              onClick={() => { 
-                setMode(mode === "signup" ? "signin" : "signup"); 
-                setError(""); 
-                setSuccess(""); 
-              }}
-            >
-              {mode === "signup" ? "Sign In" : "Start Free Trial"}
-            </button>
-          </div>
+              <div className="field">
+                <label className="label">Email Address</label>
+                <input
+                  type="email"
+                  placeholder="your@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+                />
+              </div>
+
+              <div className="field">
+                <label className="label">Password</label>
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+                />
+              </div>
+
+              {mode === "signup" && (
+                <div className="field">
+                  <label className="label">Company / Business Name (optional)</label>
+                  <input
+                    type="text"
+                    placeholder="Your company name"
+                    value={company}
+                    onChange={(e) => setCompany(e.target.value)}
+                  />
+                </div>
+              )}
+
+              <button
+                className={`btn ${role === "carrier" ? "btn-or" : role === "fleet_manager" ? "btn-fleet" : "btn-am"}`}
+                onClick={handleSubmit}
+                disabled={loading || !email || !password}
+              >
+                {loading
+                  ? "Please wait..."
+                  : mode === "signup"
+                  ? "Create Free Account →"
+                  : "Sign In →"}
+              </button>
+
+              <div className="switch">
+                <span>{mode === "signup" ? "Already have an account?" : "Don't have an account?"}</span>
+                <button
+                  onClick={() => {
+                    setMode(mode === "signup" ? "signin" : "signup");
+                    setPlan(null);
+                    setTrialBlocked(false);
+                    setError("");
+                    setSuccess("");
+                  }}
+                >
+                  {mode === "signup" ? "Sign In" : "Start Free Trial"}
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="mo" style={{ fontSize: 9, color: "var(--t3)", textAlign: "center", marginTop: 20, lineHeight: 1.6 }}>
             30-day free trial · No credit card required<br />

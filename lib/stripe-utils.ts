@@ -7,7 +7,7 @@ const PRICE_IDS = {
   SPONSORED_ZONE: 'price_1TLSu3LmfugPCRbAsumfZjCf',
 };
 
-export async function createCheckoutSession(userId: string, priceId: string, successUrl: string, cancelUrl: string, customerEmail?: string) {
+export async function createCheckoutSession(userId: string | null, priceId: string, successUrl: string, cancelUrl: string, customerEmail?: string) {
   try {
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],

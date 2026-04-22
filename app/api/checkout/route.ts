@@ -6,7 +6,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { userId, email, priceId, productType } = body;
 
-    if (!userId || !email) {
+    // priceId always required; userId/email optional for pre-signup anonymous checkout
+    if (!priceId) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
@@ -16,7 +17,7 @@ export async function POST(req: NextRequest) {
     const cancelUrl = `${origin}/pricing`;
 
     const session = await createCheckoutSession(
-      userId,
+      userId || null,
       priceId,
       successUrl,
       cancelUrl,
