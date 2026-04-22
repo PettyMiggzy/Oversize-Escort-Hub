@@ -11,8 +11,8 @@ const orange = '#f0a500';
 // Fleet Starter  price_1TMT9fLmfugPCRbA0Tu65Ui0  ← existing "Fleet Pro" ID
 //                (only one fleet price existed at grep time; Starter + Plus
 //                 IDs must be added to .env.local once created in Stripe)
-const FLEET_STARTER_PRICE_ID = process.env.NEXT_PUBLIC_FLEET_STARTER_PRICE_ID || 'price_FLEET_STARTER_TODO';
-const FLEET_PLUS_PRICE_ID    = process.env.NEXT_PUBLIC_FLEET_PLUS_PRICE_ID    || 'price_FLEET_PLUS_TODO';
+const FLEET_STARTER_PRICE_ID = process.env.NEXT_PUBLIC_FLEET_STARTER_PRICE_ID || 'price_1TMUvjLmfugPCRbAa1HHd7f3';
+const FLEET_PLUS_PRICE_ID    = process.env.NEXT_PUBLIC_FLEET_PLUS_PRICE_ID    || 'price_1TMUwaLmfugPCRbAxwDBbslg';
 const FLEET_PRO_PRICE_ID     = process.env.NEXT_PUBLIC_FLEET_PRO_PRICE_ID     || 'price_1TMT9fLmfugPCRbA0Tu65Ui0';
 
 const fleetTiers = [
