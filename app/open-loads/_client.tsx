@@ -122,64 +122,97 @@ export function OpenLoadsBoardClient() {
           <div style={{ ...card, textAlign: 'center', padding: 40 }}>
             <p style={{ color: '#9ca3af' }}>No open bid loads available right now.</p>
           </div>
-        ) : loads.map((load: any) => {
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
+            {loads.map((load: any) => {
           const loadBids = bids[load.id] || []
           const highestBid = loadBids[0]?.rate
           return (
-            <div key={load.id} style={card}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                <div>
-                  <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>
+            <div
+              key={load.id}
+              style={{
+                background: '#111',
+                border: '1px solid #222',
+                borderLeft: '4px solid #f0a500',
+                borderRadius: 8,
+                padding: '20px 24px',
+                marginBottom: 16,
+                display: 'grid',
+                gridTemplateColumns: '1fr',
+                gap: 16,
+                alignItems: 'start'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginBottom: 6 }}>
                     {load.pu_city}, {load.pu_state} → {load.dl_city}, {load.dl_state}
-                  </h3>
-                  <p style={{ fontSize: 13, color: '#9ca3af' }}>{load.escort_type} · {load.load_type} · {load.board_type}</p>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <p style={{ fontSize: 12, color: '#9ca3af' }}>Time remaining</p>
-                  <TimeRemaining expiresAt={load.expires_at} />
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', gap: 24, marginBottom: 12 }}>
-                <div>
-                  <p style={{ fontSize: 11, color: '#9ca3af' }}>POSTED RATE</p>
-                  <p style={{ fontSize: 16, fontWeight: 700, color: '#fff' }}>${load.rate != null ? Number(load.rate).toLocaleString() : 'TBD'}</p>
-                </div>
-                <div>
-                  <p style={{ fontSize: 11, color: '#9ca3af' }}>HIGHEST BID</p>
-                  <p style={{ fontSize: 16, fontWeight: 700, color: '#f60' }}>{highestBid ? `$${highestBid}` : 'No bids yet'}</p>
-                </div>
-                <div>
-                  <p style={{ fontSize: 11, color: '#9ca3af' }}>BIDS PLACED</p>
-                  <p style={{ fontSize: 16, fontWeight: 700 }}>{loadBids.length}</p>
-                </div>
-                {load.start_date && (
-                  <div>
-                    <p style={{ fontSize: 11, color: '#9ca3af' }}>DATE NEEDED</p>
-                    <p style={{ fontSize: 14 }}>{load.start_date}</p>
                   </div>
-                )}
+                  <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 8 }}>
+                    <span style={{ fontSize: 13, color: '#f0a500' }}>
+                      {load.escort_type || 'Position TBD'}
+                    </span>
+                    <span style={{ fontSize: 13, color: '#9ca3af' }}>
+                      {load.load_type || ''}{load.load_type && load.board_type ? ' · ' : ''}{load.board_type || ''}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 12, color: '#6b7280' }}>
+                    {load.start_date ? `Needed ${load.start_date}` : `Posted ${new Date(load.created_at).toLocaleDateString()}`}
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right', minWidth: 90 }}>
+                  <div style={{ fontSize: 11, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>
+                    Time Left
+                  </div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#4ade80' }}>
+                    <TimeRemaining expiresAt={load.expires_at} />
+                  </div>
+                </div>
               </div>
-
-              <div style={{ display: 'flex', gap: 8 }}>
-                <Link href={`/loads/${load.id}`} style={{ textDecoration: 'none' }}>
-                  <button style={{ background: '#1e3a5f', color: '#e2e8f0', border: 'none', borderRadius: 6, padding: '7px 14px', fontSize: 13, cursor: 'pointer' }}>View Details</button>
-                </Link>
-                {isPro && userId && (
+              <div>
+                <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 12 }}>
+                  <div>
+                    <div style={{ fontSize: 11, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Posted Rate</div>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: '#f0a500' }}>${load.rate != null ? Number(load.rate).toLocaleString() : 'TBD'}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Highest Bid</div>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: '#f60' }}>{highestBid ? `$${Number(highestBid).toLocaleString()}` : 'No bids'}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Bids</div>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: '#fff' }}>{loadBids.length}</div>
+                  </div>
+                </div>
+                {!userId ? (
+                  <a href={`/signin?redirect=/open-loads`} style={{
+                    display: 'block', background: '#1e3a5f', color: '#e2e8f0', border: 'none', borderRadius: 6,
+                    padding: '8px 20px', fontWeight: 700, fontSize: 13, cursor: 'pointer', width: '100%',
+                    textAlign: 'center', textDecoration: 'none'
+                  }}>Sign In to Bid</a>
+                ) : isPro ? (
                   <button
                     onClick={() => { setBidModal({ loadId: load.id, loadRate: load.rate }); setBidRate('') }}
-                    style={{ background: '#f60', color: '#fff', border: 'none', borderRadius: 6, padding: '7px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+                    style={{
+                      background: '#f0a500', color: '#000', border: 'none', borderRadius: 6,
+                      padding: '8px 20px', fontWeight: 700, fontSize: 13, cursor: 'pointer', width: '100%'
+                    }}
                   >
                     Place Bid
                   </button>
-                )}
-                {!isPro && userId && (
-                  <span style={{ fontSize: 12, color: '#9ca3af', alignSelf: 'center' }}>Pro membership required to bid</span>
+                ) : (
+                  <a href="/pricing" style={{
+                    display: 'block', background: '#2a2a2a', color: '#6b7280', border: '1px solid #333', borderRadius: 6,
+                    padding: '8px 20px', fontWeight: 700, fontSize: 13, cursor: 'pointer', width: '100%',
+                    textAlign: 'center', textDecoration: 'none'
+                  }}>Pro Required</a>
                 )}
               </div>
             </div>
           )
-        })}
+            })}
+          </div>
+        )}
         </main>
         <BoardAdSidebar />
       </div>

@@ -72,35 +72,73 @@ export function BidBoardClient() {
       <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start', maxWidth: 1400, margin: '0 auto' }}>
         <div style={{ flex: 1, minWidth: 0 }}>
       <h1 style={{ color: '#f0a500' }}>Bid Board</h1>
-      <div style={{ display: 'grid', gap: '16px' }}>
-        {loads.map((load) => (
-          <div
-            key={load.id}
-            style={{
-        background: 'var(--p1, #111)',
-        border: '1px solid #222',
-        borderLeft: '3px solid #f0a500',
-        padding: '16px 20px',
-        marginBottom: '12px',
-        borderRadius: '4px',
-      }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-              <div>
-                <h3 style={{ margin: '0 0 8px', color: '#f0a500' }}>
-                  {load.pu_city}, {load.pu_state} → {load.dl_city}, {load.dl_state}
-                </h3>
-                <p style={{ margin: '0 0 4px', fontSize: '14px' }}>Type: {load.escort_type}</p>
-                <p style={{ margin: '0 0 4px', fontSize: '14px' }}>Rate: ${load.rate != null ? Number(load.rate).toLocaleString() : 'TBD'}</p>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '18px', fontWeight: 'bold', color: timers[load.id] === 'EXPIRED' ? '#ff6b6b' : '#4ade80' }}>
-                  {timers[load.id] || 'Loading...'}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
+          {loads.map((load) => (
+            <div
+              key={load.id}
+              style={{
+                background: '#111',
+                border: '1px solid #222',
+                borderLeft: '4px solid #f0a500',
+                borderRadius: 8,
+                padding: '20px 24px',
+                marginBottom: 16,
+                display: 'grid',
+                gridTemplateColumns: '1fr',
+                gap: 16,
+                alignItems: 'start'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginBottom: 6 }}>
+                    {load.pu_city}, {load.pu_state} → {load.dl_city}, {load.dl_state}
+                  </div>
+                  <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 8 }}>
+                    <span style={{ fontSize: 13, color: '#f0a500' }}>
+                      {load.escort_type || 'Position TBD'}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 12, color: '#6b7280' }}>
+                    Posted {new Date(load.created_at).toLocaleDateString()}
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right', minWidth: 80 }}>
+                  <div style={{ fontSize: 11, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>
+                    Time Left
+                  </div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: timers[load.id] === 'EXPIRED' ? '#ff6b6b' : '#4ade80' }}>
+                    {timers[load.id] || 'Loading...'}
+                  </div>
                 </div>
               </div>
+              <div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: '#f0a500', marginBottom: 4 }}>
+                  {load.rate != null ? `$${Number(load.rate).toLocaleString()}` : 'Rate TBD'}
+                </div>
+                <a
+                  href={`/loads/${load.id}`}
+                  style={{
+                    display: 'block',
+                    background: '#f0a500',
+                    color: '#000',
+                    border: 'none',
+                    borderRadius: 6,
+                    padding: '8px 20px',
+                    fontWeight: 700,
+                    fontSize: 13,
+                    cursor: 'pointer',
+                    width: '100%',
+                    textAlign: 'center',
+                    textDecoration: 'none',
+                    marginTop: 8
+                  }}
+                >
+                  View Details
+                </a>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
       </div>
         </div>
         <BoardAdSidebar />
