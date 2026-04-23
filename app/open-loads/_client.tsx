@@ -95,14 +95,14 @@ export function OpenLoadsBoardClient() {
     setTimeout(() => { setBidModal(null); setBidStatus(''); setBidRate('') }, 1500)
   }
 
-  const card = { background: '#0f1a2e', border: '1px solid #1e3a5f', borderRadius: 10, padding: '16px 20px', marginBottom: 12 }
+  const card = { background: 'var(--p1, #111)', border: '1px solid #222', borderLeft: '3px solid #f0a500', padding: '16px 20px', marginBottom: '12px', borderRadius: '4px' }
 
   if (loading) return <div style={{ background: '#0a0f1a', minHeight: '100vh', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>
 
   return (
       <>
       <SiteHeader />
-    <div style={{ minHeight: '100vh', background: '#0a0f1a', color: '#fff' }}>
+    <div style={{ background: '#0a0a0a', minHeight: '100vh', padding: '24px', color: '#ccc' }}>
       <main style={{ maxWidth: 760, margin: '0 auto', padding: '40px 24px' }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>Open Bid Board</h1>
         <p style={{ color: '#9ca3af', fontSize: 13, marginBottom: 24 }}>Loads sorted by time remaining. Pro escorts can bid. Carriers see all bids in their dashboard.</p>

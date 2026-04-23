@@ -64,18 +64,20 @@ export function BidBoardClient() {
   return (
     <>
     <SiteHeader />
-    <div style={{ padding: '20px', background: '#060b16', color: '#e0e0e0', minHeight: '100vh' }}>
+    <div style={{ background: '#0a0a0a', minHeight: '100vh', padding: '24px', color: '#ccc' }}>
       <h1 style={{ color: '#f0a500' }}>Bid Board</h1>
       <div style={{ display: 'grid', gap: '16px' }}>
         {loads.map((load) => (
           <div
             key={load.id}
             style={{
-              background: '#0d1117',
-              padding: '16px',
-              borderRadius: '8px',
-              borderLeft: '4px solid #f0a500',
-            }}
+        background: 'var(--p1, #111)',
+        border: '1px solid #222',
+        borderLeft: '3px solid #f0a500',
+        padding: '16px 20px',
+        marginBottom: '12px',
+        borderRadius: '4px',
+      }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
               <div>
