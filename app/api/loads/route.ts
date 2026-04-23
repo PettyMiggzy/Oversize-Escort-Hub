@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     const { pickupCity, pickupState, destinationCity, destinationState,
-            escortType, escortQty, boardType, loadType, rate, notes,
+            escortType, escort_count, boardType, loadType, rate, notes,
             dateNeeded, expiresAt, cert_types, pay_term } = body
 
     if (!pickupCity || !pickupState || !destinationCity || !destinationState || !escortType || !boardType) {
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
         dl_city: destinationCity,
         dl_state: destinationState,
         escort_type: escortType,
-        escort_count: escortQty || 1,
+        escort_count: escort_count || 1,
         board_type: boardType,
         load_type: loadType || 'oversize',
         per_mile_rate: rate || 0,
