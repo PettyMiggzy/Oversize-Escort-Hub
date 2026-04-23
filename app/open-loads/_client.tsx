@@ -128,7 +128,7 @@ export function OpenLoadsBoardClient() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
                 <div>
                   <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>
-                    {load.pickup_city}, {load.pickup_state} → {load.destination_city}, {load.destination_state}
+                    {load.pu_city}, {load.pu_state} → {load.dl_city}, {load.dl_state}
                   </h3>
                   <p style={{ fontSize: 13, color: '#9ca3af' }}>{load.escort_type} · {load.load_type} · {load.board_type}</p>
                 </div>
@@ -151,10 +151,10 @@ export function OpenLoadsBoardClient() {
                   <p style={{ fontSize: 11, color: '#9ca3af' }}>BIDS PLACED</p>
                   <p style={{ fontSize: 16, fontWeight: 700 }}>{loadBids.length}</p>
                 </div>
-                {load.date_needed && (
+                {load.start_date && (
                   <div>
                     <p style={{ fontSize: 11, color: '#9ca3af' }}>DATE NEEDED</p>
-                    <p style={{ fontSize: 14 }}>{load.date_needed}</p>
+                    <p style={{ fontSize: 14 }}>{load.start_date}</p>
                   </div>
                 )}
               </div>
