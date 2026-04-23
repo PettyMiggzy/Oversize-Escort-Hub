@@ -76,13 +76,13 @@ export async function POST(req: NextRequest) {
             // Query loads within ~150 miles (roughly 2.5 degrees lat/lon)
             const { data: nearbyLoads } = await supabase
               .from('loads')
-              .select('id, pickup_city, pickup_state, delivery_city, delivery_state, rate_per_mile, status, boards')
+              .select('id, pu_city, pu_state, dl_city, dl_state, rate_per_mile, status, board_type')
               .eq('status', 'open')
               .neq('status', 'filled')
 
             // Filter by proximity if we have coords (simplified: same state for now)
             const matchingLoads = (nearbyLoads ?? [])
-              .filter((l) => l.pickup_state?.toLowerCase() === escort.state?.toLowerCase())
+              .filter((l) => l.pu_state?.toLowerCase() === escort.state?.toLowerCase())
               .slice(0, 10)
 
             return {

@@ -42,8 +42,8 @@ export async function POST(req: NextRequest) {
     if (!proEscorts || proEscorts.length === 0) return NextResponse.json({ sent: 0 })
 
     // Get zones for each pro escort, filter by pickup/destination state
-    const pickupState = load.pickup_state || ''
-    const destState = load.destination_state || ''
+    const pu_state = load.pu_state || ''
+    const dl_state = load.dl_state || ''
 
     let sent = 0
     for (const escort of proEscorts) {
@@ -56,9 +56,9 @@ export async function POST(req: NextRequest) {
         .eq('escort_id', escort.id)
 
       const escortStates = (zones || []).map((z: any) => z.state)
-      if (pickupState && !escortStates.includes(pickupState)) continue
+      if (pu_state && !escortStates.includes(pu_state)) continue
 
-      const msg = `New OEH Load: ${load.escort_type || load.escort_types?.[0] || 'Escort'} needed. ${load.pickup_city || ''}, ${pickupState} → ${load.destination_city || ''}, ${destState}. Rate: $${load.rate || '?'}. View: oversize-escort-hub.com/loads/${load.id}`
+      const msg = `New OEH Load: ${load.escort_type || load.escort_types?.[0] || 'Escort'} needed. ${load.pu_city || ''}, ${pu_state} → ${load.dl_city || ''}, ${dl_state}. Rate: $${load.rate || '?'}. View: oversize-escort-hub.com/loads/${load.id}`
 
       try { await sendSMS(escort.phone, msg); sent++ } catch {}
     }
