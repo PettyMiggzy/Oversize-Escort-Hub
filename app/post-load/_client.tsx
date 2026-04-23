@@ -13,6 +13,8 @@ const US_STATES = [
   'VA','WA','WV','WI','WY'
 ]
 
+const CA_PROVINCES = ['AB','BC','MB','NB','NL','NS','NT','NU','ON','PE','QC','SK','YT']
+
 export function PostLoadPageClient() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
@@ -151,7 +153,12 @@ export function PostLoadPageClient() {
                   <label style={lbl}>State *</label>
                   <select style={inp} value={pickupState} onChange={e => setPickupState(e.target.value)} required>
                     <option value="">--</option>
-                    {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                    <optgroup label="US States">
+                      {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                    </optgroup>
+                    <optgroup label="Canadian Provinces">
+                      {CA_PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
+                    </optgroup>
                   </select>
                 </div>
               </div>
@@ -168,7 +175,12 @@ export function PostLoadPageClient() {
                   <label style={lbl}>State *</label>
                   <select style={inp} value={destState} onChange={e => setDestState(e.target.value)} required>
                     <option value="">--</option>
-                    {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                    <optgroup label="US States">
+                      {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                    </optgroup>
+                    <optgroup label="Canadian Provinces">
+                      {CA_PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
+                    </optgroup>
                   </select>
                 </div>
               </div>
