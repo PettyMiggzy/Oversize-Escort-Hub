@@ -6,12 +6,6 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { isAdminEmail } from '@/lib/supabase'
 
-const ESCORT_TYPES = [
-  'Lead', 'Chase', 'High Pole', 'Lineman', 'Rear Steer',
-  'Survey', 'Flagger', 'NY Cert', 'CSE Ontario MTO',
-  'BC Pilot Car', 'WITPAC', 'TWIC', 'AZ Cert'
-]
-
 const US_STATES = [
   'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA',
   'KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ',
@@ -34,7 +28,8 @@ export function PostLoadPageClient() {
   const [destCity, setDestCity] = useState('')
   const [destState, setDestState] = useState('')
   const [dateNeeded, setDateNeeded] = useState('')
-  const [escortType, setEscortType] = useState('Lead')
+  const [positions, setPositions] = useState<string[]>([])
+  const [certTypes, setCertTypes] = useState<string[]>([])
   const [escortQty, setEscortQty] = useState(1)
   const [loadType, setLoadType] = useState('oversize')
   const [boardType, setBoardType] = useState('flat-rate')
@@ -42,6 +37,8 @@ export function PostLoadPageClient() {
 
   // Auto-calculate rate based on a rough mileage estimate
   // Simple heuristic: same state ~150mi, different region ~400mi
+
+  const toggle = (arr: string[], val: string) => arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val]
   const estimatedMiles = pickupState && destState ? (pickupState === destState ? 250 : 500) : 0
   const estimatedRate = pickupState && destState
     ? (pickupState === destState ? 250 : 500)
@@ -99,7 +96,9 @@ export function PostLoadPageClient() {
           destinationCity: destCity,
           destinationState: destState,
           dateNeeded,
-          escortType, escortQty,
+          escort_type: positions.join(', '),
+          cert_types: certTypes,
+          escortQty,
           loadType, boardType,
           rate: estimatedRate,
           notes,
@@ -187,12 +186,30 @@ export function PostLoadPageClient() {
                     {[...Array(10)].map((_, i) => <option key={i+1} value={i+1}>{i+1}</option>)}
                   </select>
                 </div>
-                <div style={grp}>
-                  <label style={lbl}>Escort Type *</label>
-                  <select style={inp} value={escortType} onChange={e => setEscortType(e.target.value)}>
-                    {ESCORT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-                  </select>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <div style={{ marginBottom: 16 }}>
+                  <label style={lbl}>Position *</label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 6 }}>
+                    {['Lead','Chase','High Pole','Lineman','Rear Steer','Survey','Flagger'].map(opt => (
+                      <label key={opt} style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 12px', background: positions.includes(opt) ? '#1a1a1a' : '#111', border: positions.includes(opt) ? '1px solid #f60' : '1px solid #1e3a5f', borderRadius:6, cursor:'pointer', color: positions.includes(opt) ? '#f60' : '#9ca3af', fontSize:13 }}>
+                        <input type="checkbox" checked={positions.includes(opt)} onChange={() => setPositions(prev => toggle(prev, opt))} style={{ accentColor:'#f60' }} />
+                        {opt}
+                      </label>
+                    ))}
+                  </div>
                 </div>
+                <div style={{ marginBottom: 16 }}>
+                  <label style={lbl}>Required Certifications</label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 6 }}>
+                    {['NY Cert','CSE (Ontario MTO)','BC Pilot Car','WITPAC','TWIC','AZ Cert','CTTS BC','CTTS AB','OAPC','Saskatchewan'].map(opt => (
+                      <label key={opt} style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 12px', background: certTypes.includes(opt) ? '#1a1a1a' : '#111', border: certTypes.includes(opt) ? '1px solid #f60' : '1px solid #1e3a5f', borderRadius:6, cursor:'pointer', color: certTypes.includes(opt) ? '#f60' : '#9ca3af', fontSize:13 }}>
+                        <input type="checkbox" checked={certTypes.includes(opt)} onChange={() => setCertTypes(prev => toggle(prev, opt))} style={{ accentColor:'#f60' }} />
+                        {opt}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
                 <div style={grp}>
                   <label style={lbl}>Load Type</label>
                   <select style={inp} value={loadType} onChange={e => setLoadType(e.target.value)}>
