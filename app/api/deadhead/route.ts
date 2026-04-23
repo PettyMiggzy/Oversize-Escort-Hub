@@ -49,14 +49,14 @@ export async function POST(req: NextRequest) {
     // Fetch the new load
     const { data: load } = await supabase
       .from('loads')
-      .select('id, pickup_city, pickup_state, destination_city, destination_state, escort_type, rate, status')
+      .select('id, pu_city, pu_state, dl_city, dl_state, escort_type, rate, status')
       .eq('id', load_id)
       .single()
 
     if (!load || load.status !== 'open') return NextResponse.json({ skipped: true })
 
     // Geocode pickup
-    const pickupCoords = await geocode(load.pickup_city, load.pickup_state)
+    const pickupCoords = await geocode(load.pu_city, load.pu_state)
     if (!pickupCoords) return NextResponse.json({ skipped: true, reason: 'geocode_failed' })
 
     // Find Pro/Fleet escorts with active matches that have a deadhead_destination set
@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
       const profile = profiles.find((p) => p.id === match.matched_escort_id)
       if (!profile) continue
 
-      const msg = `🚛 Deadhead opportunity near your drop zone: ${load.escort_type} needed. ${load.pickup_city}, ${load.pickup_state} → ${load.destination_city}, ${load.destination_state}. Rate: $${load.rate}. You have 5 minutes to claim: oversize-escort-hub.com/loads/${load.id}`
+      const msg = `🚛 Deadhead opportunity near your drop zone: ${load.escort_type} needed. ${load.pu_city}, ${load.pu_state} → ${load.dl_city}, ${load.dl_state}. Rate: $${load.rate}. You have 5 minutes to claim: oversize-escort-hub.com/loads/${load.id}`
 
       // SMS
       if (profile.phone) await sendSMS(profile.phone, msg)

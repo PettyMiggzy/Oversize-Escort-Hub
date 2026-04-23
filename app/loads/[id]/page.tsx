@@ -90,7 +90,7 @@ export default function LoadDetailPage() {
 
         <div style={card}>
           {[
-            ['Route', `${load.pickup_city}, ${load.pickup_state} → ${load.destination_city}, ${load.destination_state}`],
+            ['Route', `${load.pu_city}, ${load.pu_state} → ${load.dl_city}, ${load.dl_state}`],
             ['Escort Type', load.escort_type],
             ['Escort Qty', load.escort_qty ?? 1],
             ['Load Type', load.load_type],
