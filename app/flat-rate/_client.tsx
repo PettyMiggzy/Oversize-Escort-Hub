@@ -45,6 +45,24 @@ export function FlatRateBoardClient() {
   const [loading, setLoading] = useState(true);
   const [stateFilter, setStateFilter] = useState<string>("");
   const [sponsoredEscorts, setSponsoredEscorts] = useState<SponsoredProfile[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [claimedLoads, setClaimedLoads] = useState<Set<string>>(new Set());
+  const [claimError, setClaimError] = useState<Record<string, string>>({});
+
+  // Fetch current user + role
+  useEffect(() => {
+    const fetchUser = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+        const { data: p } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+        setUserRole((p as { role?: string } | null)?.role ?? null);
+      }
+    };
+    fetchUser();
+  }, []);
 
   // Fetch loads
   useEffect(() => {
@@ -106,6 +124,33 @@ export function FlatRateBoardClient() {
     if (!stateFilter) return loads;
     return loads.filter(l => l.pu_state === stateFilter || l.dl_state === stateFilter);
   }, [loads, stateFilter]);
+
+  const handleClaim = async (loadId: string) => {
+    if (!userId) { window.location.href = '/signin'; return; }
+    if (userRole !== 'escort') {
+      setClaimError(prev => ({ ...prev, [loadId]: 'Only escorts can claim loads' }));
+      return;
+    }
+    const res = await fetch('/api/loads/request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ load_id: loadId, escort_id: userId })
+    });
+    if (res.ok) {
+      setClaimedLoads(prev => {
+        const next = new Set(prev);
+        next.add(loadId);
+        return next;
+      });
+    } else {
+      let msg = 'Failed to claim load';
+      try {
+        const d = await res.json();
+        if (d?.error) msg = d.error;
+      } catch {}
+      setClaimError(prev => ({ ...prev, [loadId]: msg }));
+    }
+  };
 
   return (
     <>
@@ -221,20 +266,25 @@ export function FlatRateBoardClient() {
                               <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 12 }}>
                                 $250 no-go · $100 overnight
                               </div>
+                              {claimError[load.id] && (
+                                <div style={{ fontSize: 11, color: '#ef4444', marginBottom: 6 }}>{claimError[load.id]}</div>
+                              )}
                               <button
+                                onClick={() => handleClaim(load.id)}
+                                disabled={claimedLoads.has(load.id)}
                                 style={{
-                                  background: '#f0a500',
-                                  color: '#000',
+                                  background: claimedLoads.has(load.id) ? '#22c55e' : '#f0a500',
+                                  color: claimedLoads.has(load.id) ? '#fff' : '#000',
                                   border: 'none',
                                   borderRadius: 6,
                                   padding: '8px 20px',
                                   fontWeight: 700,
                                   fontSize: 13,
-                                  cursor: 'pointer',
+                                  cursor: claimedLoads.has(load.id) ? 'default' : 'pointer',
                                   width: '100%'
                                 }}
                               >
-                                Claim Load
+                                {claimedLoads.has(load.id) ? 'Request Sent ✓' : 'Claim Load'}
                               </button>
                             </div>
                           </div>
