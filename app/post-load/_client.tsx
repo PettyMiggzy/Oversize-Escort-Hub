@@ -1,5 +1,4 @@
 'use client'
-import '@/app/globals.css'
 import SiteHeader from '@/components/SiteHeader';
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
@@ -32,7 +31,6 @@ export function PostLoadPageClient() {
   const [dateNeeded, setDateNeeded] = useState('')
   const [positions, setPositions] = useState<string[]>([])
   const [certTypes, setCertTypes] = useState<string[]>([])
-  const [escortQty, setEscortQty] = useState(1)
   const [loadType, setLoadType] = useState('oversize')
   const [boardType, setBoardType] = useState('flat-rate')
   const [notes, setNotes] = useState('')
@@ -100,7 +98,7 @@ export function PostLoadPageClient() {
           dateNeeded,
           escort_type: positions.join(', '),
           cert_types: certTypes,
-          escortQty,
+          escort_count: positions.length || 1,
           loadType, boardType,
           rate: estimatedRate,
           notes,
@@ -191,12 +189,6 @@ export function PostLoadPageClient() {
                 <div style={grp}>
                   <label style={lbl}>Date Needed *</label>
                   <input type="date" style={inp} value={dateNeeded} onChange={e => setDateNeeded(e.target.value)} required />
-                </div>
-                <div style={grp}>
-                  <label style={lbl}>Escort Qty</label>
-                  <select style={inp} value={escortQty} onChange={e => setEscortQty(Number(e.target.value))}>
-                    {[...Array(10)].map((_, i) => <option key={i+1} value={i+1}>{i+1}</option>)}
-                  </select>
                 </div>
               <div style={{ gridColumn: '1 / -1' }}>
                 <div style={{ marginBottom: 16 }}>
