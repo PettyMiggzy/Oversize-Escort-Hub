@@ -14,10 +14,10 @@ interface Load {
   rate: number;
   status: string;
   is_external?: boolean;
-  origin_state?: string;
-  origin_city?: string;
-  dest_state?: string;
-  dest_city?: string;
+  pu_state?: string;
+  pu_city?: string;
+  dl_state?: string;
+  dl_city?: string;
   miles?: number;
 }
 
@@ -85,19 +85,19 @@ export default function OpenLoadsPage() {
               </div>
 
               <div className="space-y-1 text-sm text-gray-700">
-                {load.origin_city && (
+                {load.pu_city && (
                   <div className="flex justify-between">
                     <span className="font-medium">From</span>
                     <span>
-                      {load.origin_city}, {load.origin_state}
+                      {load.pu_city}, {load.pu_state}
                     </span>
                   </div>
                 )}
-                {load.dest_city && (
+                {load.dl_city && (
                   <div className="flex justify-between">
                     <span className="font-medium">To</span>
                     <span>
-                      {load.dest_city}, {load.dest_state}
+                      {load.dl_city}, {load.dl_state}
                     </span>
                   </div>
                 )}

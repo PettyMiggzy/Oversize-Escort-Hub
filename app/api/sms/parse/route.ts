@@ -104,12 +104,12 @@ export async function POST(req: NextRequest) {
   // Insert a load for each board
   const insertions = parsed.boards.map((board: string) => ({
     carrier_id: profile.id,
-    board,
+    board_type: board,
     load_type: parsed.type ?? "OVERSIZE",
-    quantity: parsed.quantity ?? 1,
-    pickup_city: parsed.pickup ?? "",
-    destination_city: parsed.destination ?? "",
-    pickup_date: parsed.date ?? null,
+    escort_count: parsed.quantity ?? 1,
+    pu_city: parsed.pickup ?? "",
+    dl_city: parsed.destination ?? "",
+    start_date: parsed.date ?? null,
     rate: parsed.rate ?? null,
     status: "open",
     source: "sms",
