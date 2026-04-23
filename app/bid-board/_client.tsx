@@ -1,13 +1,15 @@
 'use client';
 import SiteHeader from '@/components/SiteHeader';
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/client';
 
 interface Load {
   id: string;
   expires_at: string;
-  pickup_city: string;
-  destination_city: string;
+  pu_city: string;
+  pu_state: string;
+  dl_city: string;
+  dl_state: string;
   rate: number;
   escort_type: string;
   created_at: string;
@@ -15,6 +17,7 @@ interface Load {
 }
 
 export function BidBoardClient() {
+  const supabase = createClient();
   const [loads, setLoads] = useState<Load[]>([]);
   const [timers, setTimers] = useState<{ [key: string]: string }>({});
 
@@ -82,7 +85,7 @@ export function BidBoardClient() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
               <div>
                 <h3 style={{ margin: '0 0 8px', color: '#f0a500' }}>
-                  {load.pickup_city} → {load.destination_city}
+                  {load.pu_city}, {load.pu_state} → {load.dl_city}, {load.dl_state}
                 </h3>
                 <p style={{ margin: '0 0 4px', fontSize: '14px' }}>Type: {load.escort_type}</p>
                 <p style={{ margin: '0 0 4px', fontSize: '14px' }}>Rate: ${load.rate != null ? Number(load.rate).toLocaleString() : 'TBD'}</p>
