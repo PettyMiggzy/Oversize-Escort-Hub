@@ -4,8 +4,8 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 const NAV = [
-  { label: "Flat Rate",     href: "/" },
-  { label: "Open Loads",    href: "/?board=openboard" },
+  { label: "Flat Rate",     href: "/flat-rate" },
+  { label: "Open Loads",    href: "/open-loads" },
   { label: "Bid Board",     href: "/bid-board" },
   { label: "Find Escorts",  href: "/find-escorts" },
   { label: "Post a Load",   href: "/post-load" },

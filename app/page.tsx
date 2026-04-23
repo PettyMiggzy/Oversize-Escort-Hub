@@ -697,7 +697,7 @@ function HomePage({ setPage, user, profile, setSigninMode, setPendingRole }: { s
           <div className="bid-live">5-Min Bid Board</div>
           <div style={{ width: 1, height: 18, background: "var(--l1)" }} />
           <div className="mo" style={{ fontSize: 10, color: "var(--t2)", flex: 1 }}>Loads close on timer · fill · or cancel — Pro SMS instant · Member 60s delay</div>
-          <button className="bid-cta" onClick={() => setPage("bidboard")}>View Live Board →</button>
+          <button className="bid-cta" onClick={() => window.location.href = "/bid-board"}>View Live Board →</button>
         </div>
         <div className="hero hero-carrier">
           <div className="hero-inner">
@@ -712,7 +712,7 @@ function HomePage({ setPage, user, profile, setSigninMode, setPendingRole }: { s
             </div>
             <div className="btn-row">
               <button className="btn btn-or" onClick={() => setPage("postload")}>Post a Load Free →</button>
-              <button className="btn btn-ghost" onClick={() => setPage("bidboard")}>See Bid Board</button>
+              <button className="btn btn-ghost" onClick={() => window.location.href = "/bid-board"}>See Bid Board</button>
             </div>
           </div>
         </div>
@@ -736,7 +736,7 @@ function HomePage({ setPage, user, profile, setSigninMode, setPendingRole }: { s
         <div className="bid-live">5-Min Bid Board</div>
         <div style={{ width: 1, height: 18, background: "var(--l1)" }} />
         <div className="mo" style={{ fontSize: 10, color: "var(--t2)", flex: 1 }}>Loads close on timer · fill · or cancel — Pro SMS instant · Member 60s delay</div>
-        <button className="bid-cta" onClick={() => setPage("bidboard")}>View Live Board →</button>
+        <button className="bid-cta" onClick={() => window.location.href = "/bid-board"}>View Live Board →</button>
       </div>
       <div className="hero hero-escort">
         <div className="hero-inner">
@@ -801,7 +801,7 @@ function FlatBoardPreview({ setPage, escortView }: { setPage: (p: Page) => void;
           <div className="eyebrow" style={{ color: "var(--gr)" }}>{escortView ? "Available Loads" : "Live Board"}</div>
           <div className="section-title">FLAT RATE LOADS</div>
         </div>
-        <button className="section-link" onClick={() => setPage("flatboard")}>View All Loads</button>
+        <button className="section-link" onClick={() => window.location.href = "/flat-rate"}>View All Loads</button>
       </div>
       {hasSamples && <EarlyBanner role={escortView ? "escort" : "carrier"} />}
       {loading ? (
@@ -1682,7 +1682,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
             setTimeout(() => { fetch('/api/push/broadcast', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(broadcastPayload) }).catch(() => {}) }, 5 * 60 * 1000)
           } catch {}
           showToast("Load posted successfully!", "gr"); setShowPreTrip(true); return;
-      setPage("flatboard");
+      window.location.href = "/flat-rate";
     }
   }
 
@@ -1691,7 +1691,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
       <div style={{ textAlign: "center", padding: 60 }}>
         <div className="bb" style={{ fontSize: 18, marginBottom: 8 }}>Carriers and Brokers Only</div>
         <p className="mo" style={{ fontSize: 11, color: "var(--t2)", marginBottom: 20 }}>Carriers and freight brokers post loads free. Always.</p>
-        <button className="btn btn-or btn-sm" onClick={() => setPage("flatboard")}>Browse Available Loads</button>
+        <button className="btn btn-or btn-sm" onClick={() => window.location.href = "/flat-rate"}>Browse Available Loads</button>
       </div>
     );
   }
@@ -1699,7 +1699,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
   return (
       
     <div className="postload-wrap">
-          {showPreTrip && (<div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.75)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}><div className="card" style={{ maxWidth: 460, width: '100%', maxHeight: '80vh', overflowY: 'auto' }}><div className="bb" style={{ fontSize: 20, marginBottom: 12 }}>Pre-Trip Checklist</div><p className="mo" style={{ fontSize: 11, color: 'var(--t2)', marginBottom: 16 }}>Your load has been posted! Review these steps before your escort arrives.</p><ol style={{ paddingLeft: 20, fontSize: 12, lineHeight: '2', color: 'var(--t2)' }}><li>Confirm all permits are valid and on board</li><li>Verify load dimensions match your permit</li><li>Check route for closures or restrictions</li><li>Confirm your escort contact info is correct</li><li>Ensure vehicle lights and flags are ready</li><li>Review curfew windows for each state on route</li><li>Have emergency contact numbers available</li></ol><button className="btn btn-prime" style={{ width: '100%', marginTop: 16 }} onClick={() => { setShowPreTrip(false); setPage('flatboard'); }}>Got it - View My Loads</button></div></div>)}
+          {showPreTrip && (<div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.75)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}><div className="card" style={{ maxWidth: 460, width: '100%', maxHeight: '80vh', overflowY: 'auto' }}><div className="bb" style={{ fontSize: 20, marginBottom: 12 }}>Pre-Trip Checklist</div><p className="mo" style={{ fontSize: 11, color: 'var(--t2)', marginBottom: 16 }}>Your load has been posted! Review these steps before your escort arrives.</p><ol style={{ paddingLeft: 20, fontSize: 12, lineHeight: '2', color: 'var(--t2)' }}><li>Confirm all permits are valid and on board</li><li>Verify load dimensions match your permit</li><li>Check route for closures or restrictions</li><li>Confirm your escort contact info is correct</li><li>Ensure vehicle lights and flags are ready</li><li>Review curfew windows for each state on route</li><li>Have emergency contact numbers available</li></ol><button className="btn btn-prime" style={{ width: '100%', marginTop: 16 }} onClick={() => { setShowPreTrip(false); window.location.href = "/flat-rate"; }}>Got it - View My Loads</button></div></div>)}
       <div className="bb" style={{ fontSize: 28, marginBottom: 4 }}>POST A LOAD</div>
       <p className="mo" style={{ fontSize: 10, color: "var(--t2)", marginBottom: 16 }}>Free for all carriers. Choose your board type.</p>
       <div style={{ background: "rgba(0,204,122,.07)", border: "1px solid rgba(0,204,122,.2)", borderRadius: 3, padding: "10px 16px", marginBottom: 24 }} className="mo">
