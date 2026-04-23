@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
         quantity: 1,
     }],
     customer_email: email,
-    metadata: { user_id, type: "bgc" },
+    metadata: { userId: user_id, priceId: "price_1TF0EILmfugPCRbAvM6Q5rhW", type: "bgc" },
     success_url: `${process.env.NEXT_PUBLIC_APP_URL}/verify?bgc=success`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/verify?bgc=cancel`,
   });
