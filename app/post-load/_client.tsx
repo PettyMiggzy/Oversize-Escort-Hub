@@ -54,7 +54,7 @@ export function PostLoadPageClient() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { setRoleMsg('Please sign in to post a load.'); setLoading(false); return }
       const { data: p } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-      if (p?.role === 'carrier' || p?.role === 'admin' || isAdminEmail(user?.email)) {
+      if (p?.role === 'carrier' || p?.role === 'broker' || p?.role === 'admin' || isAdminEmail(user?.email)) {
         setAllowed(true)
       } else {
         setRoleMsg('Only carriers can post loads.')

@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
         expires_at: expires,
         cert_types: cert_types || [],
         pay_term: pay_term || 'on_completion',
+        permit_url: null,
         status: 'open',
       }])
       .select()
