@@ -37,14 +37,7 @@ export default function OpenLoadsPage() {
 
         if (error) throw error;
 
-        let external: Load[] = [];
-        try {
-          external = await fetch("/api/external-loads").then((r) => r.json());
-        } catch {
-          // external loads optional
-        }
-
-        setLoads([...(data ?? []), ...(external ?? [])]);
+        setLoads(data ?? []);
       } catch (err) {
         console.error("Fetch error:", err);
       } finally {
@@ -82,9 +75,6 @@ export default function OpenLoadsPage() {
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <h3 className="text-lg font-semibold">{load.escort_type}</h3>
-                  <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                    {load.is_external ? "External Load" : "OEH Load"}
-                  </span>
                 </div>
                 <div className="text-right">
                   <p className="text-2xl font-bold text-green-600">

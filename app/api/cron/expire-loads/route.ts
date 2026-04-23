@@ -6,7 +6,6 @@ export async function GET(req: Request) {
   const auth = req.headers.get('authorization')
   if (auth !== `Bearer ${process.env.CRON_SECRET}`) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const now = new Date().toISOString()
-  await supabase.from('external_loads').update({ status: 'expired' }).lt('expires_at', now).eq('status', 'open')
   await supabase.from('loads').update({ status: 'expired' }).lt('expires_at', now).eq('status', 'open')
   return NextResponse.json({ ok: true, expired_at: now })
 }
