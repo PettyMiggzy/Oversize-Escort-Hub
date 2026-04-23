@@ -101,8 +101,7 @@ export function FlatRateBoardClient() {
                   )}
                 </div>
                 <div style={{ fontSize: 12, color: '#6b7280' }}>
-                  Posted {new Date(load.created_at).toLocaleDateString()}
-                  {load.expires_at ? ` · Expires ${new Date(load.expires_at).toLocaleDateString()}` : ''}
+                  Posted {new Date(load.created_at).toLocaleDateString()} · Expires {load.expires_at ? new Date(load.expires_at).toLocaleDateString() : '24hr'}
                 </div>
               </div>
               {/* Right side */}
