@@ -222,8 +222,8 @@ export function PostLoadPageClient() {
                   <label style={lbl}>Board Type</label>
                   <select style={inp} value={boardType} onChange={e => setBoardType(e.target.value)}>
                     <option value="flat-rate">Flat Rate</option>
-                    <option value="open-bid">Open Bid</option>
-                    <option value="bid">Bid</option>
+                    <option value="open-bid">Open Bid (24–48hr)</option>
+                    <option value="bid">5-Min Bid</option>
                   </select>
                 </div>
                 <div style={grp}>
