@@ -2,6 +2,7 @@
 import SiteHeader from '@/components/SiteHeader';
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { BoardAdSidebar } from '@/components/BoardAdSidebar';
 
 interface Load {
   id: string;
@@ -68,6 +69,8 @@ export function BidBoardClient() {
     <>
     <SiteHeader />
     <div style={{ background: '#0a0a0a', minHeight: '100vh', padding: '24px', color: '#ccc' }}>
+      <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start', maxWidth: 1400, margin: '0 auto' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
       <h1 style={{ color: '#f0a500' }}>Bid Board</h1>
       <div style={{ display: 'grid', gap: '16px' }}>
         {loads.map((load) => (
@@ -98,6 +101,9 @@ export function BidBoardClient() {
             </div>
           </div>
         ))}
+      </div>
+        </div>
+        <BoardAdSidebar />
       </div>
     </div>
     </>

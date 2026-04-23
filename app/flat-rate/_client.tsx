@@ -3,6 +3,7 @@ import SiteHeader from '@/components/SiteHeader';
 
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from '@/lib/supabase/client';
+import { BoardAdSidebar } from '@/components/BoardAdSidebar';
 
 const toTitleCase = (str?: string) =>
   str ? str.replace(/\w\S*/g, t => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()) : '';
@@ -157,10 +158,11 @@ export function FlatRateBoardClient() {
       <SiteHeader />
       <div style={{ background: '#0a0a0a', minHeight: '100vh', color: '#ccc' }}>
         <div style={{ maxWidth: 1400, margin: '0 auto', padding: '32px 24px' }}>
+          <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
           {/* Header row */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
             <h1 style={{ fontSize: 22, fontWeight: 700 }}>Flat Rate Board</h1>
-            <a href="/pricing" style={{ fontSize: 12, color: '#f0a500', textDecoration: 'none' }}>⭐ Get Featured — $29.99/mo</a>
           </div>
           <p style={{ color: '#6b7280', fontSize: 13, marginBottom: 16 }}>Fixed-rate loads · Direct hire · No bidding</p>
 
@@ -289,6 +291,9 @@ export function FlatRateBoardClient() {
                             </div>
                           </div>
                         ))}
+          </div>
+            </div>
+            <BoardAdSidebar />
           </div>
         </div>
       </div>
