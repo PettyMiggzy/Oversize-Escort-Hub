@@ -51,20 +51,26 @@ interface Load {
                                                                                                                                                                                                               }, []);
                                                                                                                                                                                                               
                                                                                                                                                                                                                 if (loading) {
-                                                                                                                                                                                                                    return (
-                                                                                                                                                                                                                          <div style={{ padding: "20px", textAlign: "center" }}>
-                                                                                                                                                                                                                                  Loading...
-                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                            );
-                                                                                                                                                                                                                                              }
+    return (
+      <>
+        <SiteHeader />
+        <div style={{ background: '#0a0a0a', minHeight: '100vh', padding: '24px', color: '#ccc', textAlign: 'center' }}>
+          Loading...
+        </div>
+      </>
+    );
+  }
                                                                                                                                                                                                                                               
                                                                                                                                                                                                                                                 if (loads.length === 0) {
-                                                                                                                                                                                                                                                    return (
-                                                                                                                                                                                                                                                          <div style={{ padding: "20px", textAlign: "center" }}>
-                                                                                                                                                                                                                                                                  No loads posted yet.
-                                                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                                                            );
-                                                                                                                                                                                                                                                                              }
+    return (
+      <>
+        <SiteHeader />
+        <div style={{ background: '#0a0a0a', minHeight: '100vh', padding: '24px', color: '#ccc', textAlign: 'center' }}>
+          No loads posted yet.
+        </div>
+      </>
+    );
+  }
                                                                                                                                                                                                                                                                               
                                                                                                                                                                                                                                                                                 return (
                                                                                                                                                                                                                                                                                     <>

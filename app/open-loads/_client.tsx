@@ -97,7 +97,16 @@ export function OpenLoadsBoardClient() {
 
   const card = { background: 'var(--p1, #111)', border: '1px solid #222', borderLeft: '3px solid #f0a500', padding: '16px 20px', marginBottom: '12px', borderRadius: '4px' }
 
-  if (loading) return <div style={{ background: '#0a0f1a', minHeight: '100vh', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>
+  if (loading) {
+    return (
+      <>
+        <SiteHeader />
+        <div style={{ background: '#0a0a0a', minHeight: '100vh', padding: '24px', color: '#ccc', textAlign: 'center' }}>
+          Loading...
+        </div>
+      </>
+    );
+  }
 
   return (
       <>
