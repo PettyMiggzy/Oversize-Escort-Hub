@@ -2095,7 +2095,7 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
               {myJobs.map((j: any) => (
                 <div key={j.id} style={{ background: "var(--card,#111)", border: "1px solid var(--l1,#222)", borderRadius: 8, padding: 14 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                    <span className="bb" style={{ fontSize: 13 }}>{j.loads?.pickup_city}, {j.loads?.pickup_state} → {j.loads?.dest_city}, {j.loads?.dest_state}</span>
+                    <span className="bb" style={{ fontSize: 13 }}>{j.loads?.pu_city}, {j.loads?.pu_state} → {j.loads?.dl_city}, {j.loads?.dl_state}</span>
                     <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 12, background: j.status === "confirmed" ? "var(--or,#f60)" : "var(--gr,#0a0)", color: "#fff", fontWeight: 700 }}>{j.status}</span>
                   </div>
                   <div style={{ display: "flex", gap: 16, fontSize: 11, color: "var(--t2)" }}>
@@ -2744,7 +2744,7 @@ function DeadheadPage({ setPage, profile }: any) {
       const res = await fetch(`/api/loads?board=flat_rate`)
       const data = await res.json()
       const nearby = (data.loads ?? []).filter((l: any) =>
-        l.pickup_state?.toLowerCase() === (state || city)?.toLowerCase()
+        l.pu_state?.toLowerCase() === (state || city)?.toLowerCase()
       ).slice(0, 10)
       setResults(nearby)
       if (!nearby.length) setError("No return loads found near your location. Check back soon.")
@@ -2836,7 +2836,7 @@ function DeadheadPage({ setPage, profile }: any) {
                     <p style={{ color: "#888", fontSize: 13, marginBottom: 12 }}>{results.length} loads found near your location</p>
                     {results.map((load: any, i: number) => (
                       <div key={i} style={S.resultCard}>
-                        <p style={{ margin: 0, fontWeight: 700 }}>{load.pickup_city}, {load.pickup_state} → {load.delivery_city}, {load.delivery_state}</p>
+                        <p style={{ margin: 0, fontWeight: 700 }}>{load.pu_city}, {load.pu_state} → {load.dl_city}, {load.dl_state}</p>
                         {load.rate_per_mile && <p style={{ color: "#00a8e8", margin: "4px 0 0", fontSize: 13 }}>${load.rate_per_mile}/mi</p>}
                         {load.boards?.length > 1 && <p style={{ color: "#666", fontSize: 11, marginTop: 4 }}>Also on: {load.boards.filter((b: string) => b !== "flat_rate").join(" · ")}</p>}
                       </div>
@@ -2892,7 +2892,7 @@ function DeadheadPage({ setPage, profile }: any) {
                     ) : (
                       group.loads.map((load: any, j: number) => (
                         <div key={j} style={S.resultCard}>
-                          <p style={{ margin: 0, fontWeight: 700, fontSize: 14 }}>{load.pickup_city}, {load.pickup_state} → {load.delivery_city}, {load.delivery_state}</p>
+                          <p style={{ margin: 0, fontWeight: 700, fontSize: 14 }}>{load.pu_city}, {load.pu_state} → {load.dl_city}, {load.dl_state}</p>
                           {load.rate_per_mile && <p style={{ color: "#00a8e8", margin: "4px 0 0", fontSize: 13 }}>${load.rate_per_mile}/mi</p>}
                           <button style={S.shareBtn} onClick={() => {
                             const link = `${window.location.origin}/loads/${load.id}`
