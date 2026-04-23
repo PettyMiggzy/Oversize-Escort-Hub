@@ -2117,7 +2117,7 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
                 <p style={{ fontSize: 12, color: "var(--t2,#888)", lineHeight: 1.6, marginBottom: 14 }}>
                   OEH members earn real cash back on fuel through Upside. The average escort saves $600+/year just by activating their free account.
                 </p>
-                <a href="https://upside.app.link/OEH" target="_blank" rel="noopener noreferrer"
+                <a href="https://upside.app.link/9WR232" target="_blank" rel="noopener noreferrer"
                   style={{ display: "inline-block", background: "var(--or,#f60)", color: "#000", fontWeight: 700, fontSize: 12, padding: "10px 20px", borderRadius: 6, textDecoration: "none" }}>
                   Activate Fuel Savings →
                 </a>
@@ -2131,7 +2131,7 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
               { icon: "📋", label: "Permit Directory", href: "/tools/permits" },
               { icon: "📄", label: "Invoice Generator", href: "/tools/invoice", soon: true },
               { icon: "💰", label: "Expense Tracker", href: "/tools/expenses", soon: true },
-              { icon: "⛽", label: "Fuel Savings (Upside)", href: "https://upside.app.link/OEH", ext: true },
+              { icon: "⛽", label: "Fuel Savings (Upside)", href: "https://upside.app.link/9WR232", ext: true },
             ].map(tool => (
               <a key={tool.label} href={tool.href} target={tool.ext ? "_blank" : "_self"} rel="noopener noreferrer"
                 style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 4, background: "var(--p2,#1a1a1a)", border: "1px solid var(--l1,#222)", borderRadius: 8, padding: "12px 14px", textDecoration: "none", color: "var(--t1,#fff)", opacity: tool.soon ? 0.6 : 1, cursor: tool.soon ? "default" : "pointer" }}
@@ -2359,7 +2359,7 @@ function CarrierDashPage({ setPage, user, profile, showToast }: { setPage: (p: P
             {[
               { icon: "📋", label: "Permit Directory", href: "/tools/permits" },
               { icon: "📤", label: "Post a Load", href: "#", action: () => setPage("postload") },
-              { icon: "💰", label: "Upside Fuel Savings", href: "https://upside.app.link/OEH", ext: true },
+              { icon: "💰", label: "Upside Fuel Savings", href: "https://upside.app.link/9WR232", ext: true },
                             { icon: "🚛", label: "Available Escorts", href: "#", action: () => setPage("available") },
             ].map(tool => (
               <a key={tool.label} href={tool.href} target={tool.ext ? "_blank" : "_self"} rel="noopener noreferrer"
@@ -3176,7 +3176,7 @@ export default function OEHPlatform() {
                   <p style={{ fontSize: 12, color: "var(--t2,#888)", lineHeight: 1.7, marginBottom: 16 }}>
                     OEH members earn real cash back on fuel through Upside. The average escort saves $600+/year just by activating their free account.
                   </p>
-                  <a href="https://upside.app.link/OEH" target="_blank" rel="noopener noreferrer"
+                  <a href="https://upside.app.link/9WR232" target="_blank" rel="noopener noreferrer"
                     style={{ display: "inline-block", background: "var(--or,#f60)", color: "#000", fontWeight: 700, fontSize: 12, padding: "10px 20px", borderRadius: 6, textDecoration: "none" }}>
                     Activate Fuel Savings →
                   </a>
