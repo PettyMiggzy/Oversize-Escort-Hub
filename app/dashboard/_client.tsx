@@ -24,10 +24,10 @@ interface Profile {
 interface Load {
   id: string
   title: string
-  pickup_city: string
-  pickup_state: string
-  dest_city: string
-  dest_state: string
+  pu_city: string
+  pu_state: string
+  dl_city: string
+  dl_state: string
   date_needed: string
   status: string
 }
@@ -201,7 +201,7 @@ export function DashboardPageClient() {
                   <div key={load.id} style={{ background: SURFACE, borderRadius: 8, padding: '1rem', border: '1px solid #1e2736' }}>
                     <p style={{ margin: 0, fontWeight: 600 }}>{load.title || 'Load'}</p>
                     <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>
-                      {load.pickup_city}, {load.pickup_state} → {load.dest_city}, {load.dest_state}
+                      {load.pu_city}, {load.pu_state} → {load.dl_city}, {load.dl_state}
                     </p>
                     <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>Needed: {load.date_needed}</p>
                   </div>
@@ -224,7 +224,7 @@ export function DashboardPageClient() {
                     <p style={{ margin: 0, fontWeight: 600 }}>{match.loads?.title || 'Load'}</p>
                     {match.loads && (
                       <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>
-                        {match.loads.pickup_city}, {match.loads.pickup_state} → {match.loads.dest_city}, {match.loads.dest_state}
+                        {match.loads.pu_city}, {match.loads.pu_state} → {match.loads.dl_city}, {match.loads.dl_state}
                       </p>
                     )}
                     <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem' }}>
@@ -260,7 +260,7 @@ export function DashboardPageClient() {
                   <div key={load.id} style={{ background: SURFACE, borderRadius: 8, padding: '1rem', border: '1px solid #1e2736', opacity: 0.75 }}>
                     <p style={{ margin: 0, fontWeight: 600 }}>{load.title || 'Load'}</p>
                     <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>
-                      {load.pickup_city}, {load.pickup_state} → {load.dest_city}, {load.dest_state}
+                      {load.pu_city}, {load.pu_state} → {load.dl_city}, {load.dl_state}
                     </p>
                   </div>
                 ))}
@@ -373,7 +373,7 @@ export function DashboardPageClient() {
           <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#f59e0b', marginBottom: '1rem' }}>🚛 Deadhead Opportunities</h2>
           {deadheadOpps.map((load: any) => (
             <div key={load.id} style={{ background: '#1e2736', borderRadius: 8, padding: '1rem', marginBottom: '0.75rem', border: '1px solid #334155' }}>
-              <p style={{ margin: 0, fontWeight: 600 }}>{load.pickup_city}, {load.pickup_state} → {load.dest_city}, {load.dest_state}</p>
+              <p style={{ margin: 0, fontWeight: 600 }}>{load.pu_city}, {load.pu_state} → {load.dl_city}, {load.dl_state}</p>
               <p style={{ margin: '0.25rem 0 0', color: '#94a3b8', fontSize: '0.875rem' }}>${load.rate} &bull; {load.escort_type}</p>
               <a href={`/loads/${load.id}`} style={{ color: '#f59e0b', fontSize: '0.875rem', display: 'inline-block', marginTop: '0.5rem' }}>Claim load →</a>
             </div>

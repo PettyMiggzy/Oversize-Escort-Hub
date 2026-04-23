@@ -136,7 +136,7 @@ export function FleetDashboardPageClient() {
               <tbody>
                 {activeLoads.map((l: any) => (
                   <tr key={l.id}>
-                    <td style={td}>{l.pickup_city}, {l.pickup_state} → {l.destination_city}, {l.destination_state}</td>
+                    <td style={td}>{l.pu_city}, {l.pu_state} → {l.dl_city}, {l.dl_state}</td>
                     <td style={td}>{l.escort_type ?? '—'}</td>
                     <td style={td}><span style={{ background: '#1e3a5f', borderRadius: 4, padding: '2px 8px', fontSize: 11 }}>{l.status}</span></td>
                     <td style={td}>${l.rate ?? '—'}</td>
