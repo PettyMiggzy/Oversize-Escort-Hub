@@ -141,7 +141,7 @@ export function OpenLoadsBoardClient() {
               <div style={{ display: 'flex', gap: 24, marginBottom: 12 }}>
                 <div>
                   <p style={{ fontSize: 11, color: '#9ca3af' }}>POSTED RATE</p>
-                  <p style={{ fontSize: 16, fontWeight: 700, color: '#fff' }}>${load.rate}</p>
+                  <p style={{ fontSize: 16, fontWeight: 700, color: '#fff' }}>${load.rate != null ? Number(load.rate).toLocaleString() : 'TBD'}</p>
                 </div>
                 <div>
                   <p style={{ fontSize: 11, color: '#9ca3af' }}>HIGHEST BID</p>

@@ -85,7 +85,7 @@ export function BidBoardClient() {
                   {load.pickup_city} → {load.destination_city}
                 </h3>
                 <p style={{ margin: '0 0 4px', fontSize: '14px' }}>Type: {load.escort_type}</p>
-                <p style={{ margin: '0 0 4px', fontSize: '14px' }}>Rate: ${load.rate}</p>
+                <p style={{ margin: '0 0 4px', fontSize: '14px' }}>Rate: ${load.rate != null ? Number(load.rate).toLocaleString() : 'TBD'}</p>
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: '18px', fontWeight: 'bold', color: timers[load.id] === 'EXPIRED' ? '#ff6b6b' : '#4ade80' }}>
