@@ -2670,9 +2670,9 @@ export default function OEHPlatform() {
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user) loadProfile(session.user.id);
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user ?? null);
+      if (user) loadProfile(user.id);
       setLoadingAuth(false);
     });
 

@@ -13,8 +13,8 @@ export async function POST(req: NextRequest) {
 
     // Carriers cannot check out for subscriptions
     const origin = req.headers.get('origin') || 'https://oversize-escort-hub.com';
-    const successUrl = `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`;
-    const cancelUrl = `${origin}/pricing`;
+    const successUrl = `${process.env.NEXT_PUBLIC_APP_URL || origin}/dashboard?upgraded=true`;
+    const cancelUrl = `${process.env.NEXT_PUBLIC_APP_URL || origin}/pricing`;
 
     const session = await createCheckoutSession(
       userId || null,

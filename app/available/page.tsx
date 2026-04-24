@@ -30,14 +30,14 @@ export default function AvailabilityPage() {
   }, [])
 
   async function loadZones() {
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) { setLoading(false); return }
-    setUserId(session.user.id)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setLoading(false); return }
+    setUserId(user.id)
 
     const { data } = await supabase
       .from("escort_availability")
       .select("state")
-      .eq("escort_id", session.user.id)
+      .eq("escort_id", user.id)
 
     if (data) setSelected(new Set(data.map((r: any) => r.state)))
     setLoading(false)

@@ -4,7 +4,7 @@ import { PostLoadPageClient } from './_client'
 
 export default async function PostLoadPage() {
   const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) redirect('/signin')
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/signin')
   return <PostLoadPageClient />
 }

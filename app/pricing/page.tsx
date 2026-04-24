@@ -31,6 +31,7 @@ async function startCheckout(priceId: string, setLoading: (v: string) => void, z
     });
     const { url, error } = await res.json();
     if (error) { alert("Error: " + error); return; }
+    if (!url) { alert("No checkout URL returned"); return; }
     window.location.href = url;
   } catch (e) {
     alert("Checkout failed");
@@ -172,8 +173,8 @@ export default function PricingPage() {
         }),
       });
       const d = await res.json();
-      if (d.url) window.location.href = d.url;
-      else alert('Checkout error: ' + (d.error ?? 'Unknown'));
+      if (!d.url) { alert('Checkout error: ' + (d.error ?? 'Unknown')); return; }
+      window.location.href = d.url;
     } catch (e: any) {
       alert('Checkout failed: ' + e.message);
     } finally {

@@ -59,12 +59,20 @@ export function DashboardPageClient() {
 
   useEffect(() => {
     const init = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
+  if (typeof window !== 'undefined') {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('upgraded') === 'true') {
+      setActionMsg('Subscription activated! Your account has been upgraded.')
+      setTimeout(() => setActionMsg(''), 5000)
+      window.history.replaceState({}, '', window.location.pathname)
+    }
+  }
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
         router.push('/signin')
         return
       }
-      const uid = session.user.id
+      const uid = user.id
 
       const { data: prof } = await supabase
         .from('profiles')
