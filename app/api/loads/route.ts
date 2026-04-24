@@ -45,10 +45,16 @@ export async function POST(request: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
     if (data?.id) {
-      fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/deadhead`, {
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+      fetch(`${baseUrl}/api/deadhead`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ load_id: data.id }),
+      }).catch(() => {})
+      fetch(`${baseUrl}/api/loads/notify-pro`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ load_id: data.id, pu_state: pickupState, dl_state: destinationState }),
       }).catch(() => {})
     }
 

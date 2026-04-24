@@ -7,6 +7,12 @@ const PRICE_IDS = {
   SPONSORED_ZONE: 'price_1TLSu3LmfugPCRbAsumfZjCf',
 };
 
+const ONE_TIME_PRICES: string[] = [
+  PRICE_IDS.BGC_BADGE,
+  'price_1TF0D4LmfugPCRbAd4hMO22R',
+  'price_1TF0DiLmfugPCRbAPWsN2K5x',
+];
+
 export async function createCheckoutSession(userId: string | null, priceId: string, successUrl: string, cancelUrl: string, customerEmail?: string) {
   try {
     const session = await stripe.checkout.sessions.create({
@@ -17,7 +23,7 @@ export async function createCheckoutSession(userId: string | null, priceId: stri
           quantity: 1,
         },
       ],
-      mode: priceId === PRICE_IDS.BGC_BADGE ? 'payment' : 'subscription',
+      mode: ONE_TIME_PRICES.includes(priceId) ? 'payment' : 'subscription',
       success_url: successUrl,
       cancel_url: cancelUrl,
       ...(customerEmail ? { customer_email: customerEmail } : {}),
