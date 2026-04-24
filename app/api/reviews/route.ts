@@ -1,23 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createBrowserClient } from '@supabase/ssr';
+import { createClient as createServerSupabase } from '@/lib/supabase/server';
 import { checkTierAccess } from '@/lib/tier-access';
+
+export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { userId, email, role, targetUserId, rating, comment } = body;
+    const { targetUserId, rating, comment } = body;
+
+    if (!targetUserId || typeof rating !== 'number') {
+      return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
+    }
+
+    // Derive identity from session, not body
+    const authed = await createServerSupabase();
+    const { data: { user } } = await authed.auth.getUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const userId = user.id;
+
+    const { data: profile } = await authed
+      .from('profiles')
+      .select('email, role')
+      .eq('id', userId)
+      .single();
+
+    const email = profile?.email ?? user.email ?? '';
+    const role = profile?.role;
 
     const hasAccess = await checkTierAccess(userId, email, 'member', role);
     if (!hasAccess) {
       return NextResponse.json({ error: 'Upgrade to access reviews' }, { status: 403 });
     }
 
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
-
-    const { data, error } = await supabase
+    const { data, error } = await authed
       .from('reviews')
       .insert({
         reviewer_id: userId,

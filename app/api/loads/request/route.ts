@@ -1,16 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
+import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
+import { createClient as createServerSupabase } from "@/lib/supabase/server";
 
 export const dynamic = 'force-dynamic'
-const supabase = createClient(
+
+const supabase = createSupabaseAdmin(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
 export async function POST(req: NextRequest) {
-  const { load_id, escort_id } = await req.json();
-  if (!load_id || !escort_id) {
+  const { load_id } = await req.json();
+
+  // Server-side auth: derive escort_id from session, not body
+  const authed = await createServerSupabase();
+  const { data: { user } } = await authed.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const escort_id = user.id;
+
+  if (!load_id) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   }
 
