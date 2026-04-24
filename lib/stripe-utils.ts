@@ -1,5 +1,5 @@
 import Stripe from 'stripe'
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-06-20' as any })
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-11-20.acacia' })
 
 const PRICE_IDS = {
   P_EVO_MEMBER: 'price_1TF00LLmfugPCRbAl6sF0Oup',

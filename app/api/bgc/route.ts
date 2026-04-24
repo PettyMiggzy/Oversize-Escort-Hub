@@ -19,5 +19,12 @@ export async function POST(req: NextRequest) {
   if (upErr) return NextResponse.json({ error: upErr.message }, { status: 500 })
   const { data: { publicUrl } } = svc.storage.from('bgc-submissions').getPublicUrl(path)
   await svc.from('profiles').update({ bgc_pending: true, bgc_document_url: publicUrl }).eq('id', userId)
+  await svc.from('certifications').insert({
+    user_id: userId,
+    type: 'bgc',
+    status: 'pending',
+    document_url: publicUrl,
+    created_at: new Date().toISOString()
+  })
   return NextResponse.json({ ok: true, url: publicUrl })
 }
