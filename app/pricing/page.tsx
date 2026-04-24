@@ -116,7 +116,7 @@ function Features({ items }: { items: string[] }) {
 
 function SectionTitle({ children, subtitle }: { children: React.ReactNode; subtitle?: string }) {
   return (
-    <div style={{ margin: "48px 0 20px", textAlign: "center" }}>
+    <div style={{ margin: "32px 0 20px", textAlign: "center" }}>
       <h2 style={{ color: TEXT, fontSize: 26, fontWeight: 800, margin: 0 }}>{children}</h2>
       {subtitle && <p style={{ color: MUTED, fontSize: 14, marginTop: 6 }}>{subtitle}</p>}
     </div>
@@ -280,15 +280,6 @@ export default function PricingPage() {
         {/* SECTION 5 — PARTNER PERKS */}
         <SectionTitle subtitle="Included benefits from OEH partners">Partner Perks</SectionTitle>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
-          <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "24px 26px" }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: ORANGE, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>
-              🏛️ Partner Benefit
-            </div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: TEXT, marginBottom: 8 }}>Evergreen Council — 5% Off Certifications</div>
-            <div style={{ fontSize: 13, color: MUTED, lineHeight: 1.6 }}>
-              Member and Pro subscribers receive 5% off all Evergreen Council certifications, saving $15–20 per cert. Nationally recognized P/EVO certifications across all states. Discount applied automatically when you sign up through OEH.
-            </div>
-          </div>
           <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "24px 26px" }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: ORANGE, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>
               ⛽ Partner Benefit
