@@ -7,7 +7,7 @@ import type { User } from "@supabase/supabase-js";
 // ─── TYPES ───────────────────────────────────────────────────────────────────
 
 type Role = "carrier" | "escort" | "broker" | "admin" | "fleet_manager" | null;
-type Page = "home" | "flatboard" | "openboard" | "bidboard" | "escorts" | "escprofile" | "dashboard-e" | "dashboard-c" | "dashboard-b" | "postload" | "verification" | "signin" | "invoice" | "expenses" | "job-history" | "permits" | "deadhead" | "admin" | "dot-lookup" | "state-reqs" | "weather" | "cb-radio" | "fuel-calc" | "per-diem" | "cert-tracker" | "factoring" | "tools" | "available" | "how-it-works";
+type Page = "home" | "flatboard" | "openboard" | "bidboard" | "escorts" | "escprofile" | "dashboard-e" | "dashboard-c" | "dashboard-b" | "postload" | "pricing" | "verification" | "signin" | "invoice" | "expenses" | "job-history" | "permits" | "deadhead" | "admin" | "dot-lookup" | "state-reqs" | "weather" | "cb-radio" | "fuel-calc" | "per-diem" | "cert-tracker" | "factoring" | "tools" | "available" | "how-it-works";
 
 type Profile = {
   id: string;
@@ -420,6 +420,7 @@ function Nav({ page, setPage, user, profile, onSignOut, unreadCount = 0, setSign
     ["postload", "Post a Load"],
         ["verification", "Verification"],
     ["how-it-works", "How It Works"],
+    ["pricing", "Pricing"],
   ];
   const closeDrawer = () => setDrawerOpen(false);
   return (
@@ -428,7 +429,7 @@ function Nav({ page, setPage, user, profile, onSignOut, unreadCount = 0, setSign
       {/* Desktop links */}
       <div className="nav-links">
         {navLinks.map(([p, label]) => (
-          <button key={p} className={`nav-link${page === p ? " active" : ""}`} onClick={() => { const hardNav: Partial<Record<Page, string>> = { "how-it-works": "/how-it-works", flatboard: "/flat-rate", openboard: "/open-loads", bidboard: "/bid-board" }; const href = hardNav[p]; if (href) { window.location.href = href; } else { setPage(p); } }}>{label}</button>
+          <button key={p} className={`nav-link${page === p ? " active" : ""}`} onClick={() => { const hardNav: Partial<Record<Page, string>> = { "how-it-works": "/how-it-works", pricing: "/pricing", flatboard: "/flat-rate", openboard: "/open-loads", bidboard: "/bid-board" }; const href = hardNav[p]; if (href) { window.location.href = href; } else { setPage(p); } }}>{label}</button>
         ))}
       </div>
       {/* Desktop right */}
@@ -480,7 +481,7 @@ function Nav({ page, setPage, user, profile, onSignOut, unreadCount = 0, setSign
               <button className="drawer-close" onClick={closeDrawer}>✕</button>
             </div>
             {navLinks.map(([p, label]) => (
-              <button key={p} className={`drawer-link${page === p ? " active" : ""}`} onClick={() => { const hardNav: Partial<Record<Page, string>> = { "how-it-works": "/how-it-works", flatboard: "/flat-rate", openboard: "/open-loads", bidboard: "/bid-board" }; const href = hardNav[p]; if (href) { window.location.href = href; return; } setPage(p); closeDrawer(); }}>{label}</button>
+              <button key={p} className={`drawer-link${page === p ? " active" : ""}`} onClick={() => { const hardNav: Partial<Record<Page, string>> = { "how-it-works": "/how-it-works", pricing: "/pricing", flatboard: "/flat-rate", openboard: "/open-loads", bidboard: "/bid-board" }; const href = hardNav[p]; if (href) { window.location.href = href; return; } setPage(p); closeDrawer(); }}>{label}</button>
             ))}
             <div className="drawer-user">
               {user && profile ? (
