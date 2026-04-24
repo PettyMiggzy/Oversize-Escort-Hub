@@ -37,6 +37,19 @@ export async function POST(req: NextRequest) {
       await supabase.from('profiles').update({ bgc_verified: true }).eq('id', userId)
       return NextResponse.json({ received: true })
     }
+
+    if (priceId === 'price_1TLSu3LmfugPCRbAsumfZjCf') {
+      const zone = session.metadata?.zone
+      if (zone && userId) {
+        await supabase.from('sponsored_zones').insert({
+          user_id: userId,
+          state: zone,
+          active: true,
+          expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        })
+      }
+      return NextResponse.json({ received: true })
+    }
     await supabase.from('profiles').update({
       tier: PRICE_TO_TIER[priceId] ?? 'member',
       stripe_customer_id: session.customer as string,

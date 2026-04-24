@@ -15,7 +15,7 @@ const PRICES = {
   sponsored_zone: "price_1TLSu3LmfugPCRbAsumfZjCf",
 };
 
-async function startCheckout(priceId: string, setLoading: (v: string) => void) {
+async function startCheckout(priceId: string, setLoading: (v: string) => void, zone?: string) {
   setLoading(priceId);
   try {
     const { data: { session } } = await supabase.auth.getSession();
@@ -26,7 +26,7 @@ async function startCheckout(priceId: string, setLoading: (v: string) => void) {
     const res = await fetch("/api/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ priceId, userId: session.user.id }),
+      body: JSON.stringify({ priceId, userId: session.user.id, ...(zone ? { zone } : {}) }),
     });
     const { url, error } = await res.json();
     if (error) { alert("Error: " + error); return; }
@@ -142,6 +142,42 @@ function PriceHeader({ label, price, period, highlight }: { label: string; price
 }
 
 export default function PricingPage() {
+  const [showZoneModal, setShowZoneModal] = useState(false);
+  const [selectedZone, setSelectedZone] = useState('');
+  const [zoneLoading, setZoneLoading] = useState(false);
+  const [takenZones, setTakenZones] = useState<string[]>([]);
+
+  const handleSponsoredClick = async () => {
+    const { data } = await supabase.from('sponsored_zones').select('state').eq('active', true);
+    setTakenZones(((data || []) as Array<{ state: string }>).map((r) => r.state));
+    setShowZoneModal(true);
+  };
+
+  const handleZoneCheckout = async () => {
+    if (!selectedZone) return;
+    setZoneLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { window.location.href = '/signin?redirect=pricing'; return; }
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          priceId: PRICES.sponsored_zone,
+          userId: session.user.id,
+          zone: selectedZone,
+        }),
+      });
+      const d = await res.json();
+      if (d.url) window.location.href = d.url;
+      else alert('Checkout error: ' + (d.error ?? 'Unknown'));
+    } catch (e: any) {
+      alert('Checkout failed: ' + e.message);
+    } finally {
+      setZoneLoading(false);
+    }
+  };
+
   const [loading, setLoading] = useState("");
 
   return (
@@ -273,7 +309,7 @@ export default function PricingPage() {
               "Highlighted badge",
               "State-specific targeting",
             ]} />
-            <CTA label="Get Sponsored" onClick={() => startCheckout(PRICES.sponsored_zone, setLoading)} loading={loading === PRICES.sponsored_zone} />
+            <CTA label="Get Sponsored" onClick={handleSponsoredClick} loading={false} />
           </Card>
         </div>
 
@@ -294,6 +330,76 @@ export default function PricingPage() {
           </div>
         </div>
       </div>
-    </div>
+          {showZoneModal && (
+        <div
+          onClick={() => !zoneLoading && setShowZoneModal(false)}
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: CARD, border: `1px solid ${BORDER}`, borderRadius: 12,
+              padding: 24, maxWidth: 720, width: '100%', maxHeight: '85vh', overflow: 'auto',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h2 style={{ fontSize: 22, fontWeight: 800, color: TEXT, margin: 0 }}>Pick Your Sponsored Zone</h2>
+              <button
+                onClick={() => !zoneLoading && setShowZoneModal(false)}
+                style={{ background: 'transparent', border: 'none', color: MUTED, fontSize: 24, cursor: 'pointer' }}
+              >
+                ×
+              </button>
+            </div>
+            <p style={{ fontSize: 13, color: MUTED, marginBottom: 16 }}>
+              One carrier per state/province. Taken zones are greyed out.
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: 8, marginBottom: 20 }}>
+              {[
+                'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD',
+                'MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC',
+                'SD','TN','TX','UT','VT','VA','WA','WV','WI','WY',
+                'AB','BC','MB','NB','NL','NS','ON','PE','QC','SK',
+              ].map((code) => {
+                const taken = takenZones.includes(code);
+                const selected = selectedZone === code;
+                return (
+                  <button
+                    key={code}
+                    disabled={taken || zoneLoading}
+                    onClick={() => setSelectedZone(code)}
+                    style={{
+                      padding: '10px 8px', borderRadius: 6, fontSize: 13, fontWeight: 700,
+                      border: selected ? `2px solid ${ORANGE}` : `1px solid ${BORDER}`,
+                      background: taken ? '#1a1a1a' : (selected ? ORANGE : CARD),
+                      color: taken ? '#555' : (selected ? '#000' : TEXT),
+                      cursor: taken ? 'not-allowed' : 'pointer',
+                      opacity: taken ? 0.5 : 1,
+                    }}
+                  >
+                    {code}{taken ? ' •' : ''}
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              disabled={!selectedZone || zoneLoading}
+              onClick={handleZoneCheckout}
+              style={{
+                width: '100%', padding: '12px 20px', background: ORANGE, color: '#000',
+                border: 'none', borderRadius: 6, fontSize: 15, fontWeight: 700,
+                cursor: !selectedZone || zoneLoading ? 'default' : 'pointer',
+                opacity: !selectedZone || zoneLoading ? 0.6 : 1,
+              }}
+            >
+              {zoneLoading ? 'Processing…' : selectedZone ? `Checkout — ${selectedZone}` : 'Select a zone'}
+            </button>
+          </div>
+        </div>
+      )}
+</div>
   );
 }

@@ -4,7 +4,7 @@ import { createCheckoutSession, STRIPE_PRICE_IDS } from '@/lib/stripe-utils';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { userId, email, priceId, productType } = body;
+    const { userId, email, priceId, productType, zone } = body;
 
     // priceId always required; userId/email optional for pre-signup anonymous checkout
     if (!priceId) {
@@ -21,7 +21,8 @@ export async function POST(req: NextRequest) {
       priceId,
       successUrl,
       cancelUrl,
-      email
+      email,
+      zone
     );
 
     return NextResponse.json({

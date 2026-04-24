@@ -20,9 +20,10 @@ export async function createCheckoutSession(userId: string | null, priceId: stri
       mode: priceId === PRICE_IDS.BGC_BADGE ? 'payment' : 'subscription',
       success_url: successUrl,
       cancel_url: cancelUrl,
-      customer_email: customerEmail || '',
+      ...(customerEmail ? { customer_email: customerEmail } : {}),
       metadata: {
         userId,
+      ...(zone ? { zone } : {}),
       },
     });
     return session;
