@@ -13,7 +13,7 @@ const ONE_TIME_PRICES: string[] = [
   'price_1TF0DiLmfugPCRbAPWsN2K5x',
 ];
 
-export async function createCheckoutSession(userId: string | null, priceId: string, successUrl: string, cancelUrl: string, customerEmail?: string) {
+export async function createCheckoutSession(userId: string | null, priceId: string, successUrl: string, cancelUrl: string, customerEmail?: string, zone?: string) {
   try {
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
