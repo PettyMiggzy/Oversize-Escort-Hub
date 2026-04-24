@@ -34,6 +34,29 @@ export default function SiteFooter() {
         {/* Copyright */}
         <span>&copy; {new Date().getFullYear()} Oversize Escort Hub</span>
 
+            {/* Evergreen Safety Council membership badge */}
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '3px 10px',
+                borderRadius: 999,
+                border: '1px solid rgba(249,144,0,0.35)',
+                background: 'rgba(249,144,0,0.08)',
+                color: '#f0a500',
+                fontSize: 10,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                fontWeight: 600,
+                whiteSpace: 'nowrap',
+              }}
+              title="OEH is an official Evergreen Safety Council member (INV14545)."
+            >
+              <span aria-hidden="true">✓</span>
+              Official Evergreen Safety Council Member
+            </span>
+
         {/* Links */}
         <div className="flex gap-4">
           <Link className="hover:text-white" href="/terms">Terms</Link>

@@ -2,6 +2,7 @@
 
 import { useState, Suspense, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { isNativeApp, openInBrowser, WEB_HOST } from '@/lib/native';
 import { useSearchParams } from 'next/navigation';
 
 const CSS = `
@@ -139,6 +140,11 @@ function SignInInner() {
   async function handleSubmit() {
     setError("");
     setSuccess("");
+    // Block in-app sign-up to avoid Apple/Google IAP 30% fee funnel.
+    if (mode === "signup" && isNativeApp()) {
+      setError("To create your account, visit oversize-escort-hub.com in your browser. This keeps your subscription cost lower \u2014 no app store fees passed to you.");
+      return;
+    }
     setLoading(true);
     try {
       if (mode === "signup") {
@@ -184,6 +190,35 @@ function SignInInner() {
   return (
     <>
       <style>{CSS}</style>
+      {mode === "signup" && isNativeApp() && (
+        <div
+          style={{
+            position: 'relative',
+            zIndex: 10,
+            background: '#111',
+            borderBottom: '1px solid #222',
+            color: '#fff',
+            padding: '14px 18px',
+            fontSize: 13,
+            lineHeight: 1.5,
+            textAlign: 'center',
+            fontFamily: "'Inter', system-ui, sans-serif",
+          }}
+        >
+          <div style={{ maxWidth: 560, margin: '0 auto' }}>
+            <strong style={{ color: '#f0a500' }}>Create your account on the web.</strong>{' '}
+            To keep your subscription cost lower (no app store fees), please visit{' '}
+            <a
+              href={`${WEB_HOST}/signin`}
+              onClick={(e) => { e.preventDefault(); openInBrowser('/signin'); }}
+              style={{ color: '#f0a500', textDecoration: 'underline' }}
+            >
+              oversize-escort-hub.com
+            </a>
+            {' '}in your browser. You can sign in here once your account is created.
+          </div>
+        </div>
+      )}
       <div className="wrap">
         <div className="box">
           <div className="role-toggle">

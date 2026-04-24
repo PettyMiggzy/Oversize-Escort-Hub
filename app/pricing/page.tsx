@@ -2,6 +2,7 @@
 import SiteHeader from '@/components/SiteHeader';
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { isNativeApp, openInBrowser, WEB_HOST } from "@/lib/native";
 
 const PRICES = {
   member:         "price_1TF00LLmfugPCRbAl6sF0Oup",
@@ -16,6 +17,14 @@ const PRICES = {
 };
 
 async function startCheckout(priceId: string, setLoading: (v: string) => void, zone?: string) {
+  // Block in-app Stripe checkout to avoid Apple/Google's 30% fee.
+  if (isNativeApp()) {
+    openInBrowser('/pricing');
+    if (typeof window !== 'undefined') {
+      window.alert('To subscribe, please visit oversize-escort-hub.com in your browser. This keeps your subscription cost lower \u2014 no app store fees passed to you.');
+    }
+    return;
+  }
   const supabase = createClient();
   setLoading(priceId);
   try {
@@ -169,6 +178,13 @@ export default function PricingPage() {
   };
 
   const handleZoneCheckout = async () => {
+    if (isNativeApp()) {
+      openInBrowser('/pricing');
+      if (typeof window !== 'undefined') {
+        window.alert('To subscribe, please visit oversize-escort-hub.com in your browser. This keeps your subscription cost lower \u2014 no app store fees passed to you.');
+      }
+      return;
+    }
     const supabase = createClient();
     if (!selectedZone) return;
     setZoneLoading(true);
@@ -203,6 +219,32 @@ export default function PricingPage() {
   return (
     <div style={{ background: BG, minHeight: "100vh", color: TEXT }}>
       <SiteHeader />
+      {isNativeApp() && (
+        <div
+          style={{
+            background: '#111',
+            borderBottom: '1px solid #222',
+            color: '#fff',
+            padding: '14px 18px',
+            fontSize: 13,
+            lineHeight: 1.5,
+            textAlign: 'center',
+          }}
+        >
+          <div style={{ maxWidth: 720, margin: '0 auto' }}>
+            <strong style={{ color: '#f0a500' }}>Subscribe on the web.</strong>{' '}
+            To keep your subscription cost lower (no app store fees), please visit{' '}
+            <a
+              href={`${WEB_HOST}/pricing`}
+              onClick={(e) => { e.preventDefault(); openInBrowser('/pricing'); }}
+              style={{ color: '#f0a500', textDecoration: 'underline' }}
+            >
+              oversize-escort-hub.com/pricing
+            </a>
+            {' '}in your browser. Your subscription works everywhere — web and app.
+          </div>
+        </div>
+      )}
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" }}>
         <div style={{ textAlign: "center", marginBottom: 16 }}>
           <h1 style={{ fontSize: 40, fontWeight: 900, margin: 0 }}>Pricing</h1>

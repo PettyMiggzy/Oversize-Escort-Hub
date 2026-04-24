@@ -190,8 +190,22 @@ export default function PrivacyPolicy() {
           <h2 style={{ ...s.h2 }}>24. MC/DOT Numbers for Fraud Prevention</h2>
           <p style={{ ...s.p }}>MC (Motor Carrier) and DOT numbers collected from carrier accounts are used for identity verification and fraud prevention. This data is cross-referenced with FMCSA public records. MC/DOT data is stored securely, is not sold, and is only shared with law enforcement or regulatory authorities when required by law or to investigate fraud on the Platform.</p>
         </div> <div style={{...s.section}}><h2 style={{...s.h2}}>25. Escort Availability Board</h2><p style={{...s.p}}>When escorts post on the Availability Board, their stated location, certifications, and availability window are stored and displayed to carriers. This information is public within the platform.</p></div><div style={{...s.section}}><h2 style={{...s.h2}}>26. SMS Load Posting</h2><p style={{...s.p}}>When you use SMS load posting, your phone number and message content are processed to create load listings. Message logs are retained for moderation purposes. You must have opted in to SMS services.</p></div><div style={{...s.section}}><h2 style={{...s.h2}}>27. BGC Badge</h2><p style={{...s.p}}>Background check data is processed by a third-party provider. OEH stores only the verification status (pass/fail) and badge issuance date. Raw background check results are not stored by OEH.</p></div><div style={{...s.section}}><h2 style={{...s.h2}}>28. Canadian Operations</h2><p style={{...s.p}}>Users in Canadian provinces are subject to applicable Canadian privacy laws including PIPEDA. Location and load data involving Canadian addresses is processed on the same infrastructure as US data.</p></div>
-        <div style={{ ...s.section }}>
-          <h2 style={{ ...s.h2 }}>14. Contact Us</h2>
+        
+          <div style={{ ...s.section }}>
+            <h2 style={{ ...s.h2 }}>29. Evergreen Safety Council Partnership Data</h2>
+            <p style={{ ...s.p }}>Oversize Escort Hub is an official Evergreen Safety Council member (INV14545). When you redeem the OSEH2026 promo code on the Evergreen Safety Council platform, OEH does not receive your course enrollment, payment, or grade data. Evergreen Safety Council may confirm back to OEH only whether a promo redemption occurred so we can track subscriber benefit usage. Your interactions with Evergreen Safety Council are governed by their own privacy policy.</p>
+          </div>
+          <div style={{ ...s.section }}>
+            <h2 style={{ ...s.h2 }}>30. Fleet Manager Multi-Escort Data</h2>
+            <p style={{ ...s.p }}>Fleet Manager tools allow a Pro or Fleet subscriber to enter information about escorts they coordinate (name, phone, city, state, availability). By entering this data, the Fleet Manager represents they have each escort’s consent. OEH stores this information solely to facilitate the coordination features, rate-limits fleet searches for abuse prevention, logs access for security auditing, and does not use or sell fleet-escort data for advertising or third-party marketing. Escorts may request removal of their information at any time by emailing support@oversize-escort-hub.com.</p>
+          </div>
+          <div style={{ ...s.section }}>
+            <h2 style={{ ...s.h2 }}>31. In-App Purchase & Subscription Data</h2>
+            <p style={{ ...s.p }}>Subscriptions are sold exclusively through oversize-escort-hub.com via Stripe. OEH does not receive, collect, or process subscription purchases through Apple App Store or Google Play in-app purchase systems. The OEH mobile apps access your subscription status through the same Stripe-backed account you created on the web. Billing information, payment methods, and subscription status are managed at oversize-escort-hub.com; see our Terms of Service, Section 34 (In-App Purchase & Subscription Management Policy) for details.</p>
+          </div>
+
+          <div style={{ ...s.section }}>
+          <h2 style={{ ...s.h2 }}>32. Contact Us</h2>
           <p style={{ ...s.p }}>If you have any questions, concerns, or requests regarding this Privacy Policy or how we handle your personal information, please contact us:</p>
           <div style={{ background: "#111", border: "1px solid #1a1a1a", borderRadius: 6, padding: 20, marginTop: 12 }}>
             <p style={{ color: "#fff", marginBottom: 4, fontWeight: 600 }}>Oversize Escort Hub</p>
