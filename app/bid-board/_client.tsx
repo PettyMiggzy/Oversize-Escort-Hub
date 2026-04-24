@@ -72,7 +72,7 @@ export function BidBoardClient() {
       <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start', maxWidth: 1400, margin: '0 auto' }}>
         <div style={{ flex: 1, minWidth: 0 }}>
       <h1 style={{ color: '#f0a500' }}>Bid Board</h1>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 16 }}>
           {loads.map((load) => (
             <div
               key={load.id}

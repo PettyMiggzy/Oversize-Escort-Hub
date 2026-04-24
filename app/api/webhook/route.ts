@@ -11,6 +11,8 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env
 const PRICE_TO_TIER: Record<string, string> = {
   'price_1TF00LLmfugPCRbAl6sF0Oup': 'member',
   'price_1TF021LmfugPCRbA7CGgLhC0': 'pro',
+  'price_1TMUvjLmfugPCRbAa1HHd7f3': 'fleet_starter',
+  'price_1TMUwaLmfugPCRbAxwDBbslg': 'fleet_plus',
   'price_1TMT9fLmfugPCRbA0Tu65Ui0': 'fleet_pro',
   'price_1TLSu3LmfugPCRbAsumfZjCf': 'sponsored_zone',
 }
