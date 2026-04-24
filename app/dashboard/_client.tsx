@@ -47,6 +47,7 @@ export function DashboardPageClient() {
   const [loads, setLoads] = useState<Load[]>([])
   const [matches, setMatches] = useState<Match[]>([])
   const [completedLoads, setCompletedLoads] = useState<Load[]>([])
+  const [bids, setBids] = useState<any[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [actionMsg, setActionMsg] = useState('')
@@ -93,6 +94,20 @@ export function DashboardPageClient() {
           .order('created_at', { ascending: false })
         setLoads(openLoads ?? [])
 
+        // Fetch pending bids for carrier's open loads
+        const loadIds = (openLoads ?? []).map((l: any) => l.id)
+        if (loadIds.length > 0) {
+          const { data: bidsData } = await supabase
+            .from('bids')
+            .select('*, profiles!escort_id(full_name, bgc_verified, rating, phone)')
+            .in('load_id', loadIds)
+            .eq('status', 'pending')
+            .order('rate', { ascending: false })
+          setBids(bidsData ?? [])
+        } else {
+          setBids([])
+        }
+
         const { data: pendingMatches } = await supabase
           .from('matches')
           .select('*, loads(*)')
@@ -115,6 +130,50 @@ export function DashboardPageClient() {
     }
     init()
   }, [router])
+
+  const refreshBids = async () => {
+    const loadIds = loads.map(l => l.id)
+    if (loadIds.length === 0) { setBids([]); return }
+    const { data } = await supabase
+      .from('bids')
+      .select('*, profiles!escort_id(full_name, bgc_verified, rating, phone)')
+      .in('load_id', loadIds)
+      .eq('status', 'pending')
+      .order('rate', { ascending: false })
+    setBids(data ?? [])
+  }
+
+  const handleBidAccept = async (bid: any) => {
+    setActionMsg('')
+    const res = await fetch('/api/bids/accept', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ load_id: bid.load_id, bid_id: bid.id, escort_id: bid.escort_id }),
+    })
+    if (res.ok) {
+      setActionMsg('Bid accepted — escort notified.')
+      await refreshBids()
+    } else {
+      const data = await res.json().catch(() => ({}))
+      setActionMsg('Error: ' + (data.error || 'Failed to accept bid'))
+    }
+  }
+
+  const handleBidReject = async (bid: any) => {
+    setActionMsg('')
+    const res = await fetch('/api/bids/reject', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bid_id: bid.id, load_id: bid.load_id }),
+    })
+    if (res.ok) {
+      setActionMsg('Bid rejected.')
+      await refreshBids()
+    } else {
+      const data = await res.json().catch(() => ({}))
+      setActionMsg('Error: ' + (data.error || 'Failed to reject bid'))
+    }
+  }
 
   const handleMatchAction = async (matchId: string, action: 'accept' | 'decline', loadId?: string) => {
     setActionMsg('')
@@ -318,6 +377,59 @@ export function DashboardPageClient() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </section>
+
+          {/* Pending Bids */}
+          <section>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: ORANGE, marginBottom: '1rem' }}>
+              Pending Bids ({bids.length})
+            </h2>
+            {bids.length === 0 ? (
+              <p style={{ color: MUTED }}>No pending bids.</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {bids.map((bid: any) => {
+                  const load = loads.find(l => l.id === bid.load_id)
+                  const prof = bid.profiles || {}
+                  return (
+                    <div key={bid.id} style={{ background: SURFACE, borderRadius: 8, padding: '1rem', border: '1px solid #1e2736' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
+                        <div>
+                          <p style={{ margin: 0, fontWeight: 600 }}>
+                            {prof.full_name || 'Escort'}
+                            {prof.bgc_verified && (
+                              <span style={{ marginLeft: 8, fontSize: 11, color: '#22c55e', border: '1px solid #22c55e', borderRadius: 4, padding: '2px 6px' }}>✓ BGC</span>
+                            )}
+                          </p>
+                          <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>
+                            {load ? (load.title || 'Load') + ' — ' + load.pu_city + ', ' + load.pu_state + ' → ' + load.dl_city + ', ' + load.dl_state : 'Load'}
+                          </p>
+                          {prof.rating != null && (
+                            <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>★ {Number(prof.rating).toFixed(1)}</p>
+                          )}
+                          {bid.note && (
+                            <p style={{ margin: '4px 0 0', color: TEXT, fontSize: '0.875rem', fontStyle: 'italic' }}>"{bid.note}"</p>
+                          )}
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <p style={{ margin: 0, fontWeight: 700, fontSize: '1.25rem', color: ORANGE }}>${bid.rate}</p>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                        <button
+                          onClick={() => handleBidAccept(bid)}
+                          style={{ background: '#22c55e', color: '#000', border: 'none', borderRadius: 6, padding: '8px 16px', fontWeight: 700, cursor: 'pointer' }}
+                        >✓ Accept</button>
+                        <button
+                          onClick={() => handleBidReject(bid)}
+                          style={{ background: 'transparent', color: '#ef4444', border: '1px solid #ef4444', borderRadius: 6, padding: '8px 16px', fontWeight: 600, cursor: 'pointer' }}
+                        >✗ Reject</button>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             )}
           </section>
