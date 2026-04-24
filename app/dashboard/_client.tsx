@@ -3,8 +3,8 @@
 import '@/app/globals.css'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase , isAdminEmail} from '@/lib/supabase'
-
+import { createClient } from '@/lib/supabase/client'
+import { isAdminEmail } from '@/lib/supabase'
 const BG = '#060b16'
 const SURFACE = '#0d1117'
 const ORANGE = '#f0a500'
@@ -40,6 +40,7 @@ interface Match {
 }
 
 export function DashboardPageClient() {
+  const supabase = createClient()
   const router = useRouter()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loads, setLoads] = useState<Load[]>([])

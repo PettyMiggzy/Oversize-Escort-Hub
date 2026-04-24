@@ -57,16 +57,25 @@ export function FlatRateBoardClient() {
 
   // Fetch current user + role
   useEffect(() => {
-    const fetchUser = async () => {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         setUserId(user.id);
-        const { data: p } = await supabase.from('profiles').select('role').eq('id', user.id).single();
-        setUserRole((p as { role?: string } | null)?.role ?? null);
+        supabase.from('profiles').select('role').eq('id', user.id).single()
+          .then(({ data: p }) => setUserRole((p as { role?: string } | null)?.role ?? null));
       }
-    };
-    fetchUser();
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUserId(session.user.id);
+        supabase.from('profiles').select('role').eq('id', session.user.id).single()
+          .then(({ data: p }) => setUserRole((p as { role?: string } | null)?.role ?? null));
+      } else {
+        setUserId(null);
+        setUserRole(null);
+      }
+    });
+    return () => subscription.unsubscribe();
   }, []);
 
   // Fetch loads
