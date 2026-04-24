@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, Suspense, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useSearchParams } from 'next/navigation';
 
@@ -37,6 +37,42 @@ button{cursor:pointer;font-family:'Inter',system-ui,sans-serif}
 
 function SignInInner() {
   const supabase = createClient();
+  // One-time migration: older clients stored the session in localStorage only
+  // (@supabase/supabase-js default). The rest of the app now reads cookies via
+  // @supabase/ssr, so lift that token into cookies on mount.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        if (!url) return;
+        const ref = new URL(url).hostname.split('.')[0];
+        const key = `sb-${ref}-auth-token`;
+        const raw = typeof window !== 'undefined' ? window.localStorage.getItem(key) : null;
+        if (!raw) return;
+
+        // If cookies already have a session, nothing to do.
+        const { data: { session: existing } } = await supabase.auth.getSession();
+        if (existing) { window.localStorage.removeItem(key); return; }
+
+        let parsed: any = null;
+        try { parsed = JSON.parse(raw); } catch { /* ignore */ }
+        const access_token = parsed?.access_token ?? parsed?.currentSession?.access_token;
+        const refresh_token = parsed?.refresh_token ?? parsed?.currentSession?.refresh_token;
+        if (!access_token || !refresh_token) return;
+
+        const { error } = await supabase.auth.setSession({ access_token, refresh_token });
+        if (error) return;
+        window.localStorage.removeItem(key);
+        if (cancelled) return;
+        // Full nav so the cookie is sent on the next request and server components see it.
+        window.location.href = redirectPath;
+      } catch { /* swallow: failed migration just means the user signs in again */ }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const searchParams = useSearchParams();
   const redirectParam = searchParams.get('redirect');
   const redirectPath = redirectParam ? '/' + redirectParam.replace(/^\/+/, '') : '/';
