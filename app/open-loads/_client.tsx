@@ -157,6 +157,17 @@ export function OpenLoadsBoardClient() {
                     </span>
                   </div>
                   <div style={{ fontSize: 12, color: '#6b7280' }}>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
+                      {load.bgc_verified && (
+                        <span style={{ background: '#14532d', color: '#22c55e', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4 }}>✓ BGC</span>
+                      )}
+                      {load.fmcsa_verified && (
+                        <span style={{ background: '#1e3a5f', color: '#60a5fa', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4 }}>✓ FMCSA</span>
+                      )}
+                      {load.poster_rating && (
+                        <span style={{ fontSize: 11, color: '#f0a500' }}>★ {Number(load.poster_rating).toFixed(1)} ({load.poster_jobs || 0} jobs)</span>
+                      )}
+                    </div>
                     {load.start_date ? `Needed ${load.start_date}` : `Posted ${new Date(load.created_at).toLocaleDateString()}`}
                   </div>
                 </div>

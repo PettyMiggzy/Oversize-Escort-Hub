@@ -30,6 +30,10 @@ interface Load {
   dl_city?: string;
   dl_state?: string;
   deadhead_notified_at?: string | null;
+  bgc_verified?: boolean;
+  fmcsa_verified?: boolean;
+  poster_rating?: number;
+  poster_jobs?: number;
 }
 
 interface SponsoredProfile {
@@ -253,6 +257,17 @@ export function FlatRateBoardClient() {
                                   </span>
                                 )}
                               </div>
+                              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
+                                {load.bgc_verified && (
+                                  <span style={{ background: '#14532d', color: '#22c55e', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4 }}>✓ BGC</span>
+                                )}
+                                {load.fmcsa_verified && (
+                                  <span style={{ background: '#1e3a5f', color: '#60a5fa', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4 }}>✓ FMCSA</span>
+                                )}
+                                {load.poster_rating && (
+                                  <span style={{ fontSize: 11, color: '#f0a500' }}>★ {Number(load.poster_rating).toFixed(1)} ({load.poster_jobs || 0} jobs)</span>
+                                )}
+                              </div>
                               <div style={{ fontSize: 12, color: '#6b7280' }}>
                                 Posted {new Date(load.created_at).toLocaleDateString()} · Expires {load.expires_at ? new Date(load.expires_at).toLocaleDateString() : '24hr'}
                               </div>
@@ -288,6 +303,11 @@ export function FlatRateBoardClient() {
                               >
                                 {claimedLoads.has(load.id) ? 'Request Sent ✓' : 'Claim Load'}
                               </button>
+                              {userId && load.status === 'filled' && (
+                                <a href={`/review/${load.id}`} style={{ fontSize: 11, color: '#9ca3af', textAlign: 'center', display: 'block', marginTop: 6 }}>
+                                  Leave a Review
+                                </a>
+                              )}
                             </div>
                           </div>
                         ))}
