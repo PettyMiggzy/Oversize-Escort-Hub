@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, Suspense } from 'react';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/client';
 import { useSearchParams } from 'next/navigation';
 
 const CSS = `
@@ -36,6 +36,7 @@ button{cursor:pointer;font-family:'Inter',system-ui,sans-serif}
 `;
 
 function SignInInner() {
+  const supabase = createClient();
   const searchParams = useSearchParams();
   const redirectParam = searchParams.get('redirect');
   const redirectPath = redirectParam ? '/' + redirectParam.replace(/^\/+/, '') : '/';
