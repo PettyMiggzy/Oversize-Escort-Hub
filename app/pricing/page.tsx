@@ -19,15 +19,15 @@ async function startCheckout(priceId: string, setLoading: (v: string) => void, z
   const supabase = createClient();
   setLoading(priceId);
   try {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
       window.location.href = "/signin?redirect=pricing";
       return;
     }
     const res = await fetch("/api/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ priceId, userId: session.user.id, ...(zone ? { zone } : {}) }),
+      body: JSON.stringify({ priceId, userId: user.id, ...(zone ? { zone } : {}) }),
     });
     const { url, error } = await res.json();
     if (error) { alert("Error: " + error); return; }
@@ -160,14 +160,14 @@ export default function PricingPage() {
     if (!selectedZone) return;
     setZoneLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { window.location.href = '/signin?redirect=pricing'; return; }
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { window.location.href = '/signin?redirect=pricing'; return; }
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           priceId: PRICES.sponsored_zone,
-          userId: session.user.id,
+          userId: user.id,
           zone: selectedZone,
         }),
       });
