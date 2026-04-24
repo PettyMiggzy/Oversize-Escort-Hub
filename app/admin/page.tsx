@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { isAdminEmail } from '@/lib/supabase'
 
 const TABS = ['users', 'bgc', 'certs', 'verification', 'sponsored', 'disputes', 'loads', 'revenue', 'sms']
 
@@ -43,7 +44,7 @@ export default function AdminPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { setLoading(false); return }
       const { data: p } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-      if (p?.role !== 'admin') { setLoading(false); return }
+      if (p?.role !== 'admin' && !isAdminEmail(user.email ?? '')) { setLoading(false); return }
       setIsAdmin(true)
 
       // Load users
@@ -259,6 +260,113 @@ export default function AdminPage() {
               )}
             </div>
           )}
+
+        {/* Certs Tab */}
+        {activeTab === 'certs' && (
+          <div style={card}>
+            <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Certifications Queue</h2>
+            {certsQueue.length === 0 ? (
+              <p style={{ color: '#9ca3af', fontSize: 13 }}>No pending certification submissions.</p>
+            ) : (
+              <div style={{ display: 'grid', gap: 12 }}>
+                {certsQueue.map((c: any) => {
+                  const prof = c.profiles || {}
+                  const docUrl = c.document_url || c.file_url || c.url
+                  return (
+                    <div key={c.id} style={{ background: '#0f1a2e', border: '1px solid #1e3a5f', borderRadius: 8, padding: 14 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
+                        <div>
+                          <div style={{ fontWeight: 600, fontSize: 15 }}>{prof.full_name || 'Unknown user'}</div>
+                          <div style={{ color: '#9ca3af', fontSize: 12 }}>{prof.email || c.user_id}</div>
+                          <div style={{ color: '#9ca3af', fontSize: 12, marginTop: 4 }}>Type: {c.type || '-'} • Submitted: {c.created_at ? new Date(c.created_at).toLocaleString() : '-'}</div>
+                          {docUrl && (
+                            <a href={docUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#60a5fa', fontSize: 13, textDecoration: 'underline', display: 'inline-block', marginTop: 6 }}>View document &rarr;</a>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Verification Tab */}
+        {activeTab === 'verification' && (
+          <div style={card}>
+            <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Identity Verification Queue</h2>
+            {verificationQueue.length === 0 ? (
+              <p style={{ color: '#9ca3af', fontSize: 13 }}>No pending verification requests.</p>
+            ) : (
+              <div style={{ display: 'grid', gap: 12 }}>
+                {verificationQueue.map((v: any) => {
+                  const prof = v.profiles || {}
+                  const docUrl = v.document_url || v.file_url || v.url
+                  return (
+                    <div key={v.id} style={{ background: '#0f1a2e', border: '1px solid #1e3a5f', borderRadius: 8, padding: 14 }}>
+                      <div style={{ fontWeight: 600, fontSize: 15 }}>{prof.full_name || 'Unknown user'}</div>
+                      <div style={{ color: '#9ca3af', fontSize: 12 }}>{prof.email || v.user_id}</div>
+                      <div style={{ color: '#9ca3af', fontSize: 12, marginTop: 4 }}>Type: {v.type || '-'} • Submitted: {v.created_at ? new Date(v.created_at).toLocaleString() : '-'}</div>
+                      {docUrl && (
+                        <a href={docUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#60a5fa', fontSize: 13, textDecoration: 'underline', display: 'inline-block', marginTop: 6 }}>View document &rarr;</a>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Sponsored Tab */}
+        {activeTab === 'sponsored' && (
+          <div style={card}>
+            <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Sponsored Zones</h2>
+            {sponsoredZonesList.length === 0 ? (
+              <p style={{ color: '#9ca3af', fontSize: 13 }}>No sponsored zones active.</p>
+            ) : (
+              <div style={{ display: 'grid', gap: 12 }}>
+                {sponsoredZonesList.map((z: any) => {
+                  const prof = z.profiles || {}
+                  return (
+                    <div key={z.id} style={{ background: '#0f1a2e', border: '1px solid #1e3a5f', borderRadius: 8, padding: 14 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                        <div>
+                          <div style={{ fontWeight: 600, fontSize: 15 }}>{z.zone_name || z.city || z.region || 'Zone'}</div>
+                          <div style={{ color: '#9ca3af', fontSize: 12 }}>{prof.full_name || z.user_id} {prof.email ? '• ' + prof.email : ''}</div>
+                          <div style={{ color: '#9ca3af', fontSize: 12, marginTop: 4 }}>Status: {z.status || '-'} • Expires: {z.expires_at ? new Date(z.expires_at).toLocaleDateString() : '-'}</div>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Disputes Tab */}
+        {activeTab === 'disputes' && (
+          <div style={card}>
+            <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Disputes</h2>
+            {disputesList.length === 0 ? (
+              <p style={{ color: '#9ca3af', fontSize: 13 }}>No open disputes.</p>
+            ) : (
+              <div style={{ display: 'grid', gap: 12 }}>
+                {disputesList.map((d: any) => (
+                  <div key={d.id} style={{ background: '#0f1a2e', border: '1px solid #1e3a5f', borderRadius: 8, padding: 14 }}>
+                    <div style={{ fontWeight: 600, fontSize: 15 }}>{d.subject || d.title || 'Dispute #' + d.id}</div>
+                    <div style={{ color: '#9ca3af', fontSize: 12, marginTop: 4 }}>Status: {d.status || 'open'} • Opened: {d.created_at ? new Date(d.created_at).toLocaleString() : '-'}</div>
+                    {d.description && (
+                      <div style={{ color: '#e2e8f0', fontSize: 13, marginTop: 8, whiteSpace: 'pre-wrap' }}>{d.description}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Loads Tab */}
         {activeTab === 'loads' && (
