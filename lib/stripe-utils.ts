@@ -1,11 +1,17 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+import Stripe from 'stripe'
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-06-20' as any })
 
 const PRICE_IDS = {
   P_EVO_MEMBER: 'price_1TF00LLmfugPCRbAl6sF0Oup',
   P_EVO_PRO: 'price_1TF021LmfugPCRbA7CGgLhC0',
   BGC_BADGE: 'price_1TF0EILmfugPCRbAvM6Q5rhW',
   SPONSORED_ZONE: 'price_1TLSu3LmfugPCRbAsumfZjCf',
-};
+  FLEET_STARTER: process.env.NEXT_PUBLIC_FLEET_STARTER_PRICE_ID || 'price_1TMUvjLmfugPCRbAa1HHd7f3',
+  FLEET_PLUS: process.env.NEXT_PUBLIC_FLEET_PLUS_PRICE_ID || 'price_1TMUwaLmfugPCRbAxwDBbslg',
+  FLEET_PRO: process.env.NEXT_PUBLIC_FLEET_PRO_PRICE_ID || 'price_1TMT9fLmfugPCRbA0Tu65Ui0',
+  PEVO_MEMBER_REVIEW: 'price_1TF0D4LmfugPCRbAd4hMO22R',
+  PEVO_PRO_REVIEW: 'price_1TF0DiLmfugPCRbAPWsN2K5x',
+}
 
 const ONE_TIME_PRICES: string[] = [
   PRICE_IDS.BGC_BADGE,

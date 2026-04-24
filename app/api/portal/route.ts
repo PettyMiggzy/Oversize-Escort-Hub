@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
 
     const session = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: process.env.NEXT_PUBLIC_SITE_URL || 'https://oversizeescorthub.com',
+      return_url: process.env.NEXT_PUBLIC_APP_URL || 'https://www.oversize-escort-hub.com',
     })
 
     return NextResponse.json({ url: session.url })

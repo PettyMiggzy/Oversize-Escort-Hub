@@ -1,20 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
+import { STRIPE_PRICE_IDS } from '@/lib/stripe-utils'
 
 
 export const dynamic = 'force-dynamic'
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-06-20' as any })
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
-// P/EVO escort tiers only — carriers are always free, never modified here
+// Derived from shared STRIPE_PRICE_IDS so all routes agree on price -> tier mapping
 const PRICE_TO_TIER: Record<string, string> = {
-  'price_1TF00LLmfugPCRbAl6sF0Oup': 'member',
-  'price_1TF021LmfugPCRbA7CGgLhC0': 'pro',
-  'price_1TMUvjLmfugPCRbAa1HHd7f3': 'fleet_starter',
-  'price_1TMUwaLmfugPCRbAxwDBbslg': 'fleet_plus',
-  'price_1TMT9fLmfugPCRbA0Tu65Ui0': 'fleet_pro',
-  'price_1TLSu3LmfugPCRbAsumfZjCf': 'sponsored_zone',
+  [STRIPE_PRICE_IDS.P_EVO_MEMBER]: 'member',
+  [STRIPE_PRICE_IDS.P_EVO_PRO]: 'pro',
+  [STRIPE_PRICE_IDS.FLEET_STARTER]: 'fleet_starter',
+  [STRIPE_PRICE_IDS.FLEET_PLUS]: 'fleet_plus',
+  [STRIPE_PRICE_IDS.FLEET_PRO]: 'fleet_pro',
+  [STRIPE_PRICE_IDS.SPONSORED_ZONE]: 'sponsored_zone',
 }
 
 export async function POST(req: NextRequest) {
