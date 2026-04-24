@@ -10,11 +10,17 @@ const svc = createClient(
     )
 
     // Verify TextRequest webhook HMAC signature (16g)
-    function verifySignature(body: string, signature: string | null): boolean {
+    function verifySignature(body: string, signature: string | null): boolean | null {
+      // true=valid, false=invalid, null=cannot verify (skip)
       const secret = process.env.TEXTREQUEST_WEBHOOK_SECRET
-        if (!secret || !signature) return false
-          const expected = createHmac('sha256', secret).update(body).digest('hex')
-            return expected === signature
+      if (!secret) return null
+      if (!signature) return null
+      try {
+        const expected = createHmac('sha256', secret).update(body).digest('hex')
+        return expected === signature
+      } catch {
+        return null
+      }
             }
 
             // POST /api/sms/textrequest-webhook — handles inbound SMS from TextRequest (16f)
@@ -22,8 +28,10 @@ const svc = createClient(
               const rawBody = await req.text()
                 const sig = req.headers.get('x-textrequest-signature')
 
-                  // Signature verification (16g) — reject if invalid
-                    if (!verifySignature(rawBody, sig)) {
+                  // Signature verification (16g) — only 401 when we CAN verify AND sig is wrong.
+                  // TextRequest may not send a signature header; missing secret/header must NOT 401.
+                    const sigResult = verifySignature(rawBody, sig)
+                    if (sigResult === false) {
                         return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
                           }
 
