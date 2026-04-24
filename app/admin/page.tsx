@@ -92,6 +92,23 @@ export default function AdminPage() {
     setUsers(prev => prev.map(u => u.id === userId ? { ...u, suspended: !suspended } : u))
   }
 
+  const approveBgc = async (certId: string) => {
+    if (!confirm('Approve this BGC submission? This will mark the user as BGC verified.')) return
+    const res = await fetch('/api/bgc/approve', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cert_id: certId }) })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) { alert('Approve failed: ' + (data.error || res.statusText)); return }
+    setBgcQueue(prev => prev.filter((c: any) => c.id !== certId))
+  }
+
+  const rejectBgc = async (certId: string) => {
+    const reason = prompt('Reason for rejection (optional):') || ''
+    if (!confirm('Reject this BGC submission?')) return
+    const res = await fetch('/api/bgc/reject', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cert_id: certId, reason }) })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) { alert('Reject failed: ' + (data.error || res.statusText)); return }
+    setBgcQueue(prev => prev.filter((c: any) => c.id !== certId))
+  }
+
   const changeRole = async (userId: string, role: string) => {
     const supabase = createClient()
     await supabase.from('profiles').update({ role }).eq('id', userId)
@@ -209,12 +226,39 @@ export default function AdminPage() {
         )}
 
         {/* BGC Tab */}
-        {activeTab === 'bgc' && (
-          <div style={card}>
-            <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>BGC Badge Reviews</h2>
-            <p style={{ color: '#9ca3af', fontSize: 13 }}>BGC submissions appear here. Use Supabase dashboard to review and approve uploads in the bgc_submissions table.</p>
-          </div>
-        )}
+          {activeTab === 'bgc' && (
+            <div style={card}>
+              <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>BGC Badge Reviews <span style={{ color: '#9ca3af', fontWeight: 400, fontSize: 13 }}>({bgcQueue.length} pending)</span></h2>
+              {bgcQueue.length === 0 ? (
+                <p style={{ color: '#9ca3af', fontSize: 13 }}>No pending BGC submissions.</p>
+              ) : (
+                <div style={{ display: 'grid', gap: 12 }}>
+                  {bgcQueue.map((c: any) => {
+                    const prof = c.profiles || {}
+                    const docUrl = c.document_url || c.file_url || c.url
+                    return (
+                      <div key={c.id} style={{ background: '#0f1a2e', border: '1px solid #1e3a5f', borderRadius: 8, padding: 14 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
+                          <div>
+                            <div style={{ fontWeight: 600, fontSize: 15 }}>{prof.full_name || 'Unknown user'}</div>
+                            <div style={{ color: '#9ca3af', fontSize: 12 }}>{prof.email || c.user_id}</div>
+                            <div style={{ color: '#9ca3af', fontSize: 12, marginTop: 4 }}>Submitted: {c.created_at ? new Date(c.created_at).toLocaleString() : '-'}</div>
+                            {docUrl && (
+                              <a href={docUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#60a5fa', fontSize: 13, textDecoration: 'underline', display: 'inline-block', marginTop: 6 }}>View document &rarr;</a>
+                            )}
+                          </div>
+                          <div style={{ display: 'flex', gap: 8 }}>
+                            <button onClick={() => approveBgc(c.id)} style={{ background: '#10b981', color: '#fff', border: 'none', borderRadius: 6, padding: '8px 14px', fontWeight: 600, cursor: 'pointer' }}>Approve</button>
+                            <button onClick={() => rejectBgc(c.id)} style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: 6, padding: '8px 14px', fontWeight: 600, cursor: 'pointer' }}>Reject</button>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )}
 
         {/* Loads Tab */}
         {activeTab === 'loads' && (
