@@ -84,6 +84,7 @@ export function BidBoardClient() {
                 background: '#111',
                 border: '1px solid #222',
                 borderLeft: '4px solid #f0a500',
+                opacity: timers[load.id] === 'EXPIRED' ? 0.5 : 1,
                 borderRadius: 8,
                 padding: '20px 24px',
                 marginBottom: 16,
@@ -131,6 +132,28 @@ export function BidBoardClient() {
                 <div style={{ fontSize: 22, fontWeight: 800, color: '#f0a500', marginBottom: 4 }}>
                   {load.rate != null ? `$${Number(load.rate).toLocaleString()}` : 'Rate TBD'}
                 </div>
+                {timers[load.id] === 'EXPIRED' ? (
+                <span
+                  style={{
+                    display: 'block',
+                    background: '#333',
+                    color: '#888',
+                    border: 'none',
+                    borderRadius: 6,
+                    padding: '8px 20px',
+                    fontWeight: 700,
+                    fontSize: 13,
+                    cursor: 'not-allowed',
+                    width: '100%',
+                    textAlign: 'center',
+                    textDecoration: 'none',
+                    marginTop: 8,
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  Expired
+                </span>
+              ) : (
                 <a
                   href={`/loads/${load.id}`}
                   style={{
@@ -151,6 +174,7 @@ export function BidBoardClient() {
                 >
                   View Details
                 </a>
+              )}
               </div>
             </div>
           ))}

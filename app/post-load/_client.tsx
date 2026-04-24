@@ -88,7 +88,9 @@ export function PostLoadPageClient() {
     }
     setSubmitting(true)
     try {
-      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+      const expiresAt = boardType === 'bid'
+      ? new Date(Date.now() + 5 * 60 * 1000).toISOString()
+      : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
       const res = await fetch('/api/loads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

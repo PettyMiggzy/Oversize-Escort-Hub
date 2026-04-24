@@ -16,7 +16,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    const expires = expiresAt || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+    const expires = boardType === 'bid'
+    ? new Date(Date.now() + 5 * 60 * 1000).toISOString()
+    : expiresAt || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
 
     const { data, error } = await supabase
       .from('loads')
