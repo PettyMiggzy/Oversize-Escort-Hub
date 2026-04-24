@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { supabase } from '@/lib/supabase';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap');
@@ -35,8 +35,11 @@ button{cursor:pointer;font-family:'Inter',system-ui,sans-serif}
 .switch button{background:none;border:none;color:var(--or);font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;text-decoration:underline;margin-left:4px}
 `;
 
-export default function SignInPage() {
+function SignInInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectParam = searchParams.get('redirect');
+  const redirectPath = redirectParam ? '/' + redirectParam.replace(/^\/+/, '') : '/';
   const [mode, setMode] = useState<"signup" | "signin">("signin");
   const [role, setRole] = useState<"escort" | "carrier" | "fleet_manager" | "broker">("escort");
   const [plan, setPlan] = useState<"trial" | "member" | "pro" | null>(null);
@@ -129,7 +132,7 @@ export default function SignInPage() {
           password,
         });
         if (signInError) throw signInError;
-        window.location.href = '/';
+        window.location.href = redirectPath;
       }
     } catch (err: any) {
       setError(err.message || "Something went wrong");
@@ -335,5 +338,13 @@ export default function SignInPage() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a', color: '#fff' }}>Loading...</div>}>
+      <SignInInner />
+    </Suspense>
   );
 }

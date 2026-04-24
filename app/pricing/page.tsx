@@ -1,7 +1,7 @@
 'use client';
 import SiteHeader from '@/components/SiteHeader';
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 
 const PRICES = {
   member:         "price_1TF00LLmfugPCRbAl6sF0Oup",
@@ -16,6 +16,7 @@ const PRICES = {
 };
 
 async function startCheckout(priceId: string, setLoading: (v: string) => void, zone?: string) {
+  const supabase = createClient();
   setLoading(priceId);
   try {
     const { data: { session } } = await supabase.auth.getSession();
@@ -148,12 +149,14 @@ export default function PricingPage() {
   const [takenZones, setTakenZones] = useState<string[]>([]);
 
   const handleSponsoredClick = async () => {
+    const supabase = createClient();
     const { data } = await supabase.from('sponsored_zones').select('state').eq('active', true);
     setTakenZones(((data || []) as Array<{ state: string }>).map((r) => r.state));
     setShowZoneModal(true);
   };
 
   const handleZoneCheckout = async () => {
+    const supabase = createClient();
     if (!selectedZone) return;
     setZoneLoading(true);
     try {

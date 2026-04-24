@@ -26,5 +26,7 @@ export async function GET(req: NextRequest) {
     await supabase.auth.exchangeCodeForSession(code)
   }
 
-  return NextResponse.redirect(requestUrl.origin)
+  const redirect = requestUrl.searchParams.get('redirect')
+  const dest = redirect ? '/' + redirect.replace(/^\/+/, '') : '/'
+  return NextResponse.redirect(new URL(dest, requestUrl.origin))
 }
