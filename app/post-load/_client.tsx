@@ -34,6 +34,7 @@ export function PostLoadPageClient() {
   const [loadType, setLoadType] = useState('oversize')
   const [boardType, setBoardType] = useState('flat-rate')
   const [notes, setNotes] = useState('')
+  const [rate, setRate] = useState<number>(2.00)
 
   // Auto-calculate rate based on a rough mileage estimate
   // Simple heuristic: same state ~150mi, different region ~400mi
@@ -100,7 +101,7 @@ export function PostLoadPageClient() {
           cert_types: certTypes,
           escort_count: positions.length || 1,
           loadType, boardType,
-          rate: estimatedRate,
+          rate: rate,
           notes,
           expiresAt,
         }),
@@ -230,13 +231,26 @@ export function PostLoadPageClient() {
                     <option value="bid">5-Min Bid</option>
                   </select>
                 </div>
-                <div style={grp}>
-                  <label style={lbl}>Rate (auto-calculated)</label>
-                  <div style={{ ...inp, color: '#f60', fontWeight: 700 }}>
-                    {estimatedRate > 0 ? `Suggested: $${estimatedRate.toLocaleString()} ${estimatedMiles >= 250 ? `($2.00/mi × ~${estimatedMiles}mi)` : '($500 flat day rate — under 250mi)'}` : 'Enter pickup & destination to auto-calculate'}
-                  {estimatedRate > 0 && <div style={{ color: '#9ca3af', fontSize: 11, marginTop: 4 }}>$250 no-go fee standard · $100–120 overnight standard</div>}
-                  </div>
-                </div>
+        <div style={grp}>
+          <label style={lbl}>Rate Per Mile (USD)</label>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ color: '#f0a500', fontWeight: 700 }}>$</span>
+            <input
+              type="number"
+              min="0.50"
+              max="99.99"
+              step="0.25"
+              value={rate}
+              onChange={(e) => setRate(Number(e.target.value))}
+              style={{ ...inp, width: 100 }}
+              placeholder="2.00"
+            />
+            <span style={{ color: '#9ca3af', fontSize: 13 }}>/mi</span>
+          </div>
+          <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>
+            Standard: $2.00/mi · No-go: $250 · Overnight: $100
+          </div>
+        </div>
               </div>
               <div style={grp}>
                 <label style={lbl}>Notes (optional)</label>

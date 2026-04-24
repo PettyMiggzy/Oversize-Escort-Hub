@@ -52,6 +52,7 @@ export function FlatRateBoardClient() {
   const [sponsoredEscorts, setSponsoredEscorts] = useState<SponsoredProfile[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [userTier, setUserTier] = useState<string | null>(null);
   const [claimedLoads, setClaimedLoads] = useState<Set<string>>(new Set());
   const [claimError, setClaimError] = useState<Record<string, string>>({});
 
@@ -61,18 +62,27 @@ export function FlatRateBoardClient() {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         setUserId(user.id);
-        supabase.from('profiles').select('role').eq('id', user.id).single()
-          .then(({ data: p }) => setUserRole((p as { role?: string } | null)?.role ?? null));
+        supabase.from('profiles').select('role, tier').eq('id', user.id).single()
+        .then(({ data: p }) => {
+          const prof = p as { role?: string; tier?: string } | null
+          setUserRole(prof?.role ?? null)
+          setUserTier(prof?.tier ?? null)
+        });
       }
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         setUserId(session.user.id);
-        supabase.from('profiles').select('role').eq('id', session.user.id).single()
-          .then(({ data: p }) => setUserRole((p as { role?: string } | null)?.role ?? null));
+        supabase.from('profiles').select('role, tier').eq('id', session.user.id).single()
+        .then(({ data: p }) => {
+          const prof = p as { role?: string; tier?: string } | null
+          setUserRole(prof?.role ?? null)
+          setUserTier(prof?.tier ?? null)
+        });
       } else {
         setUserId(null);
         setUserRole(null);
+        setUserTier(null);
       }
     });
     return () => subscription.unsubscribe();
@@ -83,11 +93,15 @@ export function FlatRateBoardClient() {
     const fetchLoads = async () => {
       try {
         const supabase = createClient();
-        const { data, error } = await supabase
+        const isPro = userTier === 'pro' || userTier === 'fleet_pro'
+        const cutoff = isPro ? null : new Date(Date.now() - 60000).toISOString()
+        let q = supabase
           .from("loads")
           .select("*")
           .eq("board_type", "flat-rate")
           .eq("status", "open");
+        if (cutoff) q = q.lt('created_at', cutoff)
+        const { data, error } = await q;
 
         if (error) {
           console.error("Error fetching loads:", error);
@@ -106,7 +120,7 @@ export function FlatRateBoardClient() {
       }
     };
     fetchLoads();
-  }, []);
+  }, [userTier]);
 
   // Fetch sponsored escorts when state filter changes (mirrors app/post-load/_client.tsx)
   useEffect(() => {

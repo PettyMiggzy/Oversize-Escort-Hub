@@ -37,15 +37,18 @@ export function OpenLoadsBoardClient() {
   const supabase = createClient()
 
   useEffect(() => {
-    const loadUser = async (uid: string) => {
+    const loadUser = async (uid: string): Promise<boolean> => {
       setUserId(uid)
       const { data: p } = await supabase.from('profiles').select('tier').eq('id', uid).single()
-      setIsPro(p?.tier === 'pro' || p?.tier === 'fleet_pro')
+      const pro = p?.tier === 'pro' || p?.tier === 'fleet_pro'
+      setIsPro(pro)
+      return pro
     }
     const init = async () => {
       const { data: { user } } = await supabase.auth.getUser()
-      if (user) await loadUser(user.id)
-      await fetchLoads()
+      let pro = false
+      if (user) pro = await loadUser(user.id)
+      await fetchLoads(pro)
       setLoading(false)
     }
     init()
@@ -60,14 +63,17 @@ export function OpenLoadsBoardClient() {
     return () => subscription.unsubscribe()
   }, [])
 
-  const fetchLoads = async () => {
-    const { data } = await supabase
+  const fetchLoads = async (proFlag?: boolean) => {
+    const effPro = proFlag ?? isPro
+    const cutoff = effPro ? null : new Date(Date.now() - 60000).toISOString()
+    let query = supabase
       .from('loads')
       .select('*')
       .in('board_type', ['open-bid', 'bid'])
       .eq('status', 'open')
       .gt('expires_at', new Date().toISOString())
-      .order('expires_at', { ascending: true })
+    if (cutoff) query = query.lt('created_at', cutoff)
+    const { data } = await query.order('expires_at', { ascending: true })
     setLoads((data || [])
       .filter((load: any) => {
         if (!load.deadhead_notified_at) return true
