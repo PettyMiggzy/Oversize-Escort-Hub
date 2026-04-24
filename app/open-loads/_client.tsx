@@ -37,24 +37,25 @@ export function OpenLoadsBoardClient() {
   const supabase = createClient()
 
   useEffect(() => {
-    const loadUser = async (uid: string): Promise<boolean> => {
+    const loadUser = async (uid: string, email?: string | null): Promise<boolean> => {
       setUserId(uid)
       const { data: p } = await supabase.from('profiles').select('tier').eq('id', uid).single()
-      const pro = p?.tier === 'pro' || p?.tier === 'fleet_pro'
+      const admin = isAdminEmail(email)
+      const pro = admin || p?.tier === 'pro' || p?.tier === 'fleet_pro'
       setIsPro(pro)
       return pro
     }
     const init = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       let pro = false
-      if (user) pro = await loadUser(user.id)
+      if (user) pro = await loadUser(user.id, user.email)
       await fetchLoads(pro)
       setLoading(false)
     }
     init()
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
-        loadUser(session.user.id)
+        loadUser(session.user.id, session.user.email)
       } else {
         setUserId(null)
         setIsPro(false)

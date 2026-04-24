@@ -3,6 +3,7 @@ import SiteHeader from '@/components/SiteHeader';
 
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from '@/lib/supabase/client';
+import { isAdminEmail } from '@/lib/supabase';
 import { BoardAdSidebar } from '@/components/BoardAdSidebar';
 
 const toTitleCase = (str?: string) =>
@@ -53,6 +54,7 @@ export function FlatRateBoardClient() {
   const [userId, setUserId] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [userTier, setUserTier] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [claimedLoads, setClaimedLoads] = useState<Set<string>>(new Set());
   const [claimError, setClaimError] = useState<Record<string, string>>({});
 
@@ -62,6 +64,7 @@ export function FlatRateBoardClient() {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         setUserId(user.id);
+        setUserEmail(user.email ?? null);
         supabase.from('profiles').select('role, tier').eq('id', user.id).single()
         .then(({ data: p }) => {
           const prof = p as { role?: string; tier?: string } | null
@@ -93,7 +96,7 @@ export function FlatRateBoardClient() {
     const fetchLoads = async () => {
       try {
         const supabase = createClient();
-        const isPro = userTier === 'pro' || userTier === 'fleet_pro'
+        const isPro = isAdminEmail(userEmail) || userTier === 'pro' || userTier === 'fleet_pro'
         const cutoff = isPro ? null : new Date(Date.now() - 60000).toISOString()
         let q = supabase
           .from("loads")
@@ -120,7 +123,7 @@ export function FlatRateBoardClient() {
       }
     };
     fetchLoads();
-  }, [userTier]);
+  }, [userTier, userEmail]);
 
   // Fetch sponsored escorts when state filter changes (mirrors app/post-load/_client.tsx)
   useEffect(() => {
