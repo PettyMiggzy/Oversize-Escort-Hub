@@ -607,6 +607,10 @@ function HomePage({ setPage, user, profile, setSigninMode, setPendingRole }: { s
   if (!role) {
     return (
       <div className="role-picker-active">
+        {/* How It Works banner for logged-out visitors */}
+        <div style={{ background: '#111', borderBottom: '1px solid #222', padding: '10px 24px', textAlign: 'center', fontSize: 13, color: '#9ca3af', margin: '-20px -20px 20px -20px' }}>
+          New to OEH? <a href="/how-it-works" style={{ color: '#f0a500', fontWeight: 600, textDecoration: 'none' }}>See How It Works →</a>
+        </div>
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 32 }}>
           <img src="/logo.png" alt="OEH" style={{ width: 40, height: 40, objectFit: 'contain' }} />

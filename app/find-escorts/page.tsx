@@ -64,13 +64,15 @@ export default function FindEscortsPage() {
       ? enriched.filter((e: any) => e.zones.some((z: any) => z.state === stateFilter))
       : enriched
 
-    // Fetch sponsored zones if state selected
-    if (stateFilter) {
-      const { data: sponsoredZones } = await supabase
+    // Always fetch sponsored escorts — filter by zone if selected, else show top 6 nationally
+      let sponsoredQuery = supabase
         .from("sponsored_zones")
-        .select("escort_id, profiles(id, full_name, membership, bgc_verified)")
-        .eq("zone", stateFilter)
+        .select("escort_id, created_at, profiles(id, full_name, membership, bgc_verified)")
         .eq("active", true)
+        .order("created_at", { ascending: false })
+        .limit(6)
+      if (stateFilter) sponsoredQuery = sponsoredQuery.eq("zone", stateFilter)
+      const { data: sponsoredZones } = await sponsoredQuery
       if (sponsoredZones && sponsoredZones.length > 0) {
         const sponsoredProfiles = sponsoredZones
           .map((sz: any) => sz.profiles)
@@ -80,9 +82,6 @@ export default function FindEscortsPage() {
       } else {
         setSponsored([])
       }
-    } else {
-      setSponsored([])
-    }
 
     setEscorts(filtered)
     setLoading(false)
