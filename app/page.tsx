@@ -7,7 +7,7 @@ import type { User } from "@supabase/supabase-js";
 // ─── TYPES ───────────────────────────────────────────────────────────────────
 
 type Role = "carrier" | "escort" | "broker" | "admin" | "fleet_manager" | null;
-type Page = "home" | "flatboard" | "openboard" | "bidboard" | "escorts" | "escprofile" | "dashboard-e" | "dashboard-c" | "dashboard-b" | "postload" | "pricing" | "verification" | "signin" | "invoice" | "expenses" | "job-history" | "permits" | "deadhead" | "admin" | "dot-lookup" | "state-reqs" | "weather" | "cb-radio" | "fuel-calc" | "per-diem" | "cert-tracker" | "factoring" | "tools" | "available" | "how-it-works";
+type Page = "home" | "flatboard" | "openboard" | "bidboard" | "escorts" | "escprofile" | "dashboard-e" | "dashboard-c" | "dashboard-b" | "postload" | "verification" | "signin" | "invoice" | "expenses" | "job-history" | "permits" | "deadhead" | "admin" | "dot-lookup" | "state-reqs" | "weather" | "cb-radio" | "fuel-calc" | "per-diem" | "cert-tracker" | "factoring" | "tools" | "available" | "how-it-works";
 
 type Profile = {
   id: string;
@@ -418,8 +418,7 @@ function Nav({ page, setPage, user, profile, onSignOut, unreadCount = 0, setSign
     ["bidboard", "Bid Board"],
     ["escorts", "Find Escorts"],
     ["postload", "Post a Load"],
-    ["pricing", "Pricing"],
-    ["verification", "Verification"],
+        ["verification", "Verification"],
     ["how-it-works", "How It Works"],
   ];
   const closeDrawer = () => setDrawerOpen(false);
@@ -524,8 +523,8 @@ function Footer({ setPage }: { setPage: (p: Page) => void }) {
         </div>
         <div className="footer-col">
           <h4>Membership</h4>
-          {[["pricing", "Pricing"], ["verification", "Verification"], ["signin", "Start Free Trial"], ["dashboard-e", "Escort Dashboard"], ["dashboard-c", "Carrier Dashboard"]].map(([p, l]) => (
-            <a key={p} onClick={() => setPage(p as Page)}>{l}</a>
+          {[["verification", "Verification"], ["signin", "Start Free Trial"], ["dashboard-e", "Escort Dashboard"], ["dashboard-c", "Carrier Dashboard"]].map(([p, l]) => (
+            <a key={p} onClick={() => p === "pricing" ? window.location.href = '/pricing' : setPage(p as Page)}>{l}</a>
           ))}
         </div>
         <div className="footer-col">
@@ -564,7 +563,7 @@ function LockBar({ setPage }: { setPage: (p: Page) => void }) {
         <div className="mo" style={{ fontSize: 12, color: "var(--t3)" }}>📞 (XXX) XXX-XXXX &nbsp;·&nbsp; 📧 xxxxxxx@xxxxxx.com &nbsp;·&nbsp; 🏢 [Company Hidden]</div>
         <div className="mo" style={{ fontSize: 10, color: "var(--t2)", marginTop: 3 }}>🔒 Member access required — contact info hidden from free accounts</div>
       </div>
-      <button className="btn btn-or btn-sm" style={{ marginLeft: "auto" }} onClick={() => setPage("pricing")}>Upgrade to Member — $19.99/mo →</button>
+      <button className="btn btn-or btn-sm" style={{ marginLeft: "auto" }} onClick={() => { window.location.href = '/pricing'; }}>Upgrade to Member — $19.99/mo →</button>
     </div>
   );
 }
@@ -752,7 +751,7 @@ function HomePage({ setPage, user, profile, setSigninMode, setPendingRole }: { s
             <div className="stat"><div className="stat-n" style={{ color: "var(--gr)" }}>60s</div><div className="stat-l">Pro Head Start</div></div>
           </div>
           <div className="btn-row">
-            <button className="btn btn-am" onClick={() => setPage("pricing")}>Go Pro — $29.99/mo →</button>
+            <button className="btn btn-am" onClick={() => { window.location.href = '/pricing'; }}>Go Pro — $29.99/mo →</button>
             <button className="btn btn-ghost" onClick={() => setPage("signin")}>Start Free Trial</button>
           </div>
         </div>
@@ -889,7 +888,7 @@ function DeadheadSection({ setPage }: { setPage: (p: Page) => void }) {
             </div>
             <div style={{ padding: "12px 16px", background: "rgba(245,162,0,.07)", border: "1px solid rgba(245,162,0,.2)", borderRadius: 3, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" as const }}>
               <div className="mo" style={{ fontSize: 11, color: "var(--am)", lineHeight: 1.55 }}>One recovered run at 150mi = $300. That pays for Pro 10× over.</div>
-              <button className="btn btn-am btn-sm" onClick={() => setPage("pricing")}>GO PRO →</button>
+              <button className="btn btn-am btn-sm" onClick={() => { window.location.href = '/pricing'; }}>GO PRO →</button>
             </div>
           </div>
           <div style={{ display: "grid", gap: 8, alignContent: "start" }}>
@@ -980,7 +979,7 @@ function EscortCard({ e, setPage }: { e: typeof SEED_ESCORTS[0]; setPage: (p: Pa
       </div>
       <div className="mo" style={{ fontSize: 9, color: "var(--t2)", marginBottom: 10 }}>{e.vehicle}</div>
       <div style={{ display: "flex", gap: 6 }}>
-        <button className="btn btn-or btn-sm" style={{ flex: 1, fontSize: 8 }} onClick={() => setPage("pricing")}>🔒 CONTACT (MEMBER)</button>
+        <button className="btn btn-or btn-sm" style={{ flex: 1, fontSize: 8 }} onClick={() => { window.location.href = '/pricing'; }}>🔒 CONTACT (MEMBER)</button>
         <button className="btn btn-ghost btn-sm" onClick={() => setPage("escprofile")}>Profile →</button>
       </div>
     </div>
@@ -1100,7 +1099,7 @@ function EscProfilePage({ setPage }: { setPage: (p: Page) => void }) {
         {reviews.slice(0, 5).map((review, i) => <div key={i} style={{ marginBottom: 12, padding: "12px", backgroundColor: "rgba(0,0,0,0.02)", borderRadius: "4px" }}><div style={{ fontSize: 11, color: "var(--t2)" }}>{review.reviewer} • ★ {review.rating}</div><div style={{ fontSize: 11, color: "var(--t2)", marginTop: 4 }}>{review.text}</div></div>)}
       </div>
       
-      {user?.id === profile?.id && <button className="btn btn-ghost btn-sm" style={{ width: "100%" }} onClick={() => setPage("pricing")}>Edit Profile</button>}
+      {user?.id === profile?.id && <button className="btn btn-ghost btn-sm" style={{ width: "100%" }} onClick={() => { window.location.href = '/pricing'; }}>Edit Profile</button>}
     </div>
   );
   }
@@ -1481,7 +1480,7 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
           <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 2 }}>{profile?.full_name || "Your Name"}</div>
           <div className="mo" style={{ fontSize: 9, color: "var(--t2)" }}>{profile?.company_name || "No company set"}</div>
           {profile?.tier === "free" && (
-            <button className="btn btn-am btn-sm" style={{ marginTop: 12, width: "100%", fontSize: 8 }} onClick={() => setPage("pricing")}>Upgrade to Pro →</button>
+            <button className="btn btn-am btn-sm" style={{ marginTop: 12, width: "100%", fontSize: 8 }} onClick={() => { window.location.href = '/pricing'; }}>Upgrade to Pro →</button>
           )}
         </div>
       </div>
@@ -1507,7 +1506,7 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
                 <div className="mo" style={{ fontSize: 9, letterSpacing: ".12em", textTransform: "uppercase", color: "var(--t2)", marginBottom: 12 }}>I&apos;m Available</div>
                 <div style={{ background: "rgba(245,162,0,.07)", border: "1px solid rgba(245,162,0,.2)", borderRadius: 3, padding: 14, marginBottom: 12 }}>
                   <div className="mo" style={{ fontSize: 10, color: "var(--am)", marginBottom: 8 }}>Broadcast your availability to carriers with loads near you</div>
-                  <button className="btn btn-am btn-sm" style={{ width: "100%" }} onClick={() => setPage("pricing")}>
+                  <button className="btn btn-am btn-sm" style={{ width: "100%" }} onClick={() => { window.location.href = '/pricing'; }}>
                     {profile?.tier === "pro" ? "ACTIVATE BROADCAST" : "🔒 PRO FEATURE"}
                   </button>
                 </div>
@@ -1536,7 +1535,7 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
                       <td style={{ fontSize: 10 }}>{l.position}</td>
                       <td>{l.pay_type === "FastPay" ? <span className="chip ch-gr">⚡ FastPay</span> : <span className="mo" style={{ fontSize: 10, color: "var(--t2)" }}>{l.pay_type}</span>}</td>
                       <td><PayScore score={l.poster_rating || 4.5} /></td>
-                      <td><button className="btn btn-am btn-sm" onClick={() => setPage("pricing")}>Respond →</button></td>
+                      <td><button className="btn btn-am btn-sm" onClick={() => { window.location.href = '/pricing'; }}>Respond →</button></td>
                     </tr>
                   ))}
                 </tbody>
@@ -1551,7 +1550,7 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
               <div style={{ background: "rgba(245,162,0,.07)", border: "1px solid rgba(245,162,0,.2)", borderRadius: 4, padding: 24, textAlign: "center" }}>
                 <div className="bb" style={{ fontSize: 28, color: "var(--am)", marginBottom: 8 }}>PRO FEATURE</div>
                 <p className="mo" style={{ fontSize: 11, color: "var(--t2)", marginBottom: 16 }}>Return load feed, pre-arrival SMS alerts, deadhead savings dashboard</p>
-                <button className="btn btn-am" onClick={() => setPage("pricing")}>Upgrade to Pro — $29.99/mo →</button>
+                <button className="btn btn-am" onClick={() => { window.location.href = '/pricing'; }}>Upgrade to Pro — $29.99/mo →</button>
               </div>
 ) : (
           <div>
@@ -2353,7 +2352,7 @@ function DeadheadPage({ setPage, profile }: any) {
             <p style={{ color: "#aaa", marginBottom: 20, maxWidth: 400, margin: "0 auto 20px" }}>
               The Deadhead Minimizer and Fleet Manager Tools are available on Pro. The average escort recovers <strong style={{ color: "#fff" }}>$4,800/year</strong> with this feature.
             </p>
-            <button style={{ ...S.btn, fontSize: 16 }} onClick={() => setPage("pricing")}>Upgrade to Pro — $29.99/mo</button>
+            <button style={{ ...S.btn, fontSize: 16 }} onClick={() => { window.location.href = '/pricing'; }}>Upgrade to Pro — $29.99/mo</button>
           </div>
         ) : (
           <>
@@ -2763,7 +2762,6 @@ export default function OEHPlatform() {
           </div>
           </>
           )}
-          {page === "pricing" && <PricingPage setPage={setPage} />}
       {page === "verification" && <VerificationPage />}
       {page === "escorts" && <EscortsPage setPage={setPage} />}
       {page === "escprofile" && <EscProfilePage setPage={setPage} />}
