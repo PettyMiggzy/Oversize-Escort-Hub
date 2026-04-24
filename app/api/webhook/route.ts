@@ -5,7 +5,7 @@ import { STRIPE_PRICE_IDS } from '@/lib/stripe-utils'
 
 
 export const dynamic = 'force-dynamic'
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-11-20.acacia' })
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-03-25.dahlia' })
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
 // Derived from shared STRIPE_PRICE_IDS so all routes agree on price -> tier mapping
