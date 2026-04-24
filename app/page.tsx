@@ -797,7 +797,7 @@ function FlatBoardPreview({ setPage, escortView }: { setPage: (p: Page) => void;
   const hasSamples = loads.some(l => l.isSample);
 
   return (
-    <div className="section" style={{ paddingBottom: 0 }}>
+    <div className="section" style={{ paddingBottom: 0, paddingTop: escortView ? 0 : undefined }}>
       <div className="section-header">
         <div>
           <div className="eyebrow" style={{ color: "var(--gr)" }}>{escortView ? "Available Loads" : "Live Board"}</div>
@@ -2707,14 +2707,15 @@ export default function OEHPlatform() {
       {page === "home" && <HomePage setPage={setPage} user={user} profile={activeProfile} setSigninMode={setSigninMode} setPendingRole={setPendingRole} />}
       {page === "signin" && <SignInPage setPage={setPage} showToast={showToast} initialMode={signinMode} initialRole={pendingRole ?? "escort"} />}
       
-          {/* MEMBER PERKS SECTION - desktop only */}
+                    {page === "home" && (<>
+{/* MEMBER PERKS SECTION - desktop only */}
           <div className="hidden md:block" style={{ background: "var(--bg2,#0a0a0a)", padding: "60px 0", borderTop: "1px solid var(--l1,#222)", borderBottom: "1px solid var(--l1,#222)" }}>
             <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px" }}>
               <div style={{ textAlign: "center", marginBottom: 36 }}>
                 <p style={{ fontSize: 10, fontWeight: 700, color: "var(--or,#f60)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 8 }}>MEMBER PERKS — BUILT FOR THE ROAD</p>
                 <h2 style={{ fontSize: 26, fontWeight: 800, margin: 0 }}>Benefits That Travel With You</h2>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 20 }}>
                 {/* Upside */}
                 <div style={{ background: "var(--card,#111)", border: "1px solid var(--l1,#222)", borderLeft: "3px solid var(--or,#f60)", borderRadius: 10, padding: 28 }}>
                   <div style={{ fontSize: 28, marginBottom: 10 }}>⛽</div>
@@ -2726,7 +2727,19 @@ export default function OEHPlatform() {
                     style={{ display: "inline-block", background: "var(--or,#f60)", color: "#000", fontWeight: 700, fontSize: 12, padding: "10px 20px", borderRadius: 6, textDecoration: "none" }}>
                     Activate Fuel Savings →
                   </a>
-                </div>
+                
+              {/* Evergreen Certification Partner */}
+              <div style={{ background: "var(--card,#111)", border: "1px solid var(--l1,#222)", borderLeft: "3px solid #4ade80", borderRadius: 10, padding: 28 }}>
+                <div style={{ fontSize: 28, marginBottom: 10 }}>🎓</div>
+                <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 6 }}>Get Certified — Save 5%</div>
+                <p style={{ fontSize: 12, color: "var(--t2,#888)", lineHeight: 1.7, marginBottom: 16 }}>
+                  P/EVO, WITPAC, Flagger, and TCS certs through our official partner Evergreen Safety Council. Member &amp; Pro subscribers save 5%.
+                </p>
+                <a href="/getting-started" style={{ display: "inline-block", background: "#4ade80", color: "#000", fontWeight: 700, fontSize: 12, padding: "10px 20px", borderRadius: 6, textDecoration: "none" }}>
+                  Learn More →
+                </a>
+              </div>
+              </div>
                 {/* Factoring - Coming Soon */}
                 <div style={{ background: "var(--card,#111)", border: "1px solid var(--l1,#222)", borderLeft: "3px solid #444", borderRadius: 10, padding: 28, opacity: 0.6 }}>
                   <div style={{ fontSize: 28, marginBottom: 10 }}>💸</div>
@@ -2748,6 +2761,8 @@ export default function OEHPlatform() {
               </div>
             </div>
           </div>
+          </>
+          )}
           {page === "pricing" && <PricingPage setPage={setPage} />}
       {page === "verification" && <VerificationPage />}
       {page === "escorts" && <EscortsPage setPage={setPage} />}
