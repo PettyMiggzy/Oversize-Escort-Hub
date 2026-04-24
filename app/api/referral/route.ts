@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { requireAuth } from '@/lib/api-auth'
 
 
 export const dynamic = 'force-dynamic'
@@ -10,6 +11,8 @@ const supabase = createClient(
 
 // GET /api/referral?user_id=xxx — get or create referral link for user
 export async function GET(req: NextRequest) {
+  const { error: __authErr } = await requireAuth()
+  if (__authErr) return __authErr
   const userId = req.nextUrl.searchParams.get("user_id");
   if (!userId) return NextResponse.json({ error: "user_id required" }, { status: 400 });
 

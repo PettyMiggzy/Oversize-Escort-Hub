@@ -2,10 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
+import { requireAuth } from '@/lib/api-auth'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(req: NextRequest) {
+  const { error: __authErr } = await requireAuth()
+  if (__authErr) return __authErr
   try {
     const { load_id } = await req.json()
     if (!load_id) return NextResponse.json({ error: 'load_id required' }, { status: 400 })

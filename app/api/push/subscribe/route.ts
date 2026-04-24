@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireAuth } from '@/lib/api-auth'
 
 
 export const dynamic = 'force-dynamic'
 export async function POST(req: NextRequest) {
+  const { error: __authErr } = await requireAuth()
+  if (__authErr) return __authErr
   const { subscription, userId } = await req.json()
   if (!subscription || !userId) return NextResponse.json({ error: 'missing params' }, { status: 400 })
   const svc = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
