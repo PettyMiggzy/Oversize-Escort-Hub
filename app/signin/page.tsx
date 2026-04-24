@@ -2,7 +2,7 @@
 
 import { useState, Suspense } from 'react';
 import { supabase } from '@/lib/supabase';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap');
@@ -36,7 +36,6 @@ button{cursor:pointer;font-family:'Inter',system-ui,sans-serif}
 `;
 
 function SignInInner() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const redirectParam = searchParams.get('redirect');
   const redirectPath = redirectParam ? '/' + redirectParam.replace(/^\/+/, '') : '/';
@@ -74,7 +73,7 @@ function SignInInner() {
       const data = await res.json();
       if (data.url) window.location.href = data.url;
       else setError(data.error || 'Checkout failed');
-    } catch (e) {
+    } catch {
       setError('Checkout failed');
     } finally {
       setLoading(false);

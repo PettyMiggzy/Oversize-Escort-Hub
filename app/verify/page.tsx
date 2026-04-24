@@ -2,9 +2,6 @@
 import SiteHeader from '@/components/SiteHeader';
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-
-const BGC_PRICE_ID = 'price_1TF0EILmfugPCRbAvM6Q5rhW'
-
 export default function VerifyPage() {
   const supabase = createClient()
   const [file, setFile] = useState<File | null>(null)
@@ -22,6 +19,7 @@ export default function VerifyPage() {
       setUserId(data.user?.id ?? null)
       setEmail(data.user?.email ?? null)
     })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleBGCCheckout = async () => {
