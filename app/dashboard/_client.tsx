@@ -19,6 +19,7 @@ interface Profile {
   full_name: string | null
   company_name: string | null
   stripe_customer_id: string | null
+  fmcsa_verified?: boolean | null
 }
 
 interface Load {
@@ -142,6 +143,72 @@ export function DashboardPageClient() {
     }
   }
 
+  // DOT lookup (E2)
+  const [dotInput, setDotInput] = useState('')
+  const [dotLoading, setDotLoading] = useState(false)
+  const [dotResult, setDotResult] = useState<any>(null)
+  const [dotErr, setDotErr] = useState<string | null>(null)
+  const [fmcsaVerifying, setFmcsaVerifying] = useState(false)
+
+  const handleDotLookup = async () => {
+    const dot = dotInput.trim()
+    if (!dot) { setDotErr('Enter a DOT number.'); return }
+    setDotLoading(true); setDotErr(null); setDotResult(null)
+    try {
+      const res = await fetch(`/api/fmcsa?dot=${encodeURIComponent(dot)}`)
+      const data = await res.json()
+      if (!res.ok || data?.verified === false) {
+        setDotErr(data?.reason || data?.error || 'Lookup failed')
+      } else {
+        setDotResult(data)
+      }
+    } catch (e: any) {
+      setDotErr(e?.message || 'Lookup failed')
+    } finally {
+      setDotLoading(false)
+    }
+  }
+
+  const handleMarkFmcsaVerified = async () => {
+    if (!profile) return
+    setFmcsaVerifying(true)
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          fmcsa_verified: true,
+          dot_number: dotResult?.dotNumber ?? null,
+          mc_number: dotResult?.mcNumber ?? null,
+          company_name: profile.company_name || dotResult?.legalName || null,
+        })
+        .eq('id', profile.id)
+      if (error) { setDotErr(error.message); return }
+      setProfile({ ...profile, company_name: profile.company_name || dotResult?.legalName || null, fmcsa_verified: true })
+      setActionMsg('FMCSA verified — profile updated.')
+    } finally {
+      setFmcsaVerifying(false)
+    }
+  }
+
+  // Invoice download (E3)
+  const handleDownloadInvoice = async (loadId: string) => {
+    try {
+      const res = await fetch('/api/invoices/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ load_id: loadId }),
+      })
+      const { pdf, error } = await res.json()
+      if (!res.ok || !pdf) { setActionMsg(error || 'Invoice failed'); return }
+      const link = document.createElement('a')
+      link.href = pdf
+      link.download = `OEH-Invoice-${loadId.slice(0, 8)}.pdf`
+      link.click()
+    } catch (e: any) {
+      setActionMsg(e?.message || 'Invoice failed')
+    }
+  }
+
   if (loading) {
     return (
       <div style={{ minHeight: '100vh', background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -189,6 +256,45 @@ export function DashboardPageClient() {
       {/* CARRIER VIEW */}
       {isCarrier && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          {/* Verify DOT Number (E2) */}
+          <section style={{ background: SURFACE, borderRadius: 8, padding: '1rem', border: '1px solid #1e2736' }}>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: ORANGE, marginBottom: '0.75rem' }}>Verify DOT Number</h2>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <input
+                value={dotInput}
+                onChange={(e) => setDotInput(e.target.value)}
+                placeholder="Enter DOT number"
+                style={{ flex: 1, minWidth: 180, background: BG, border: '1px solid #1e2736', borderRadius: 6, color: TEXT, padding: '8px 12px', fontSize: 13 }}
+              />
+              <button
+                onClick={handleDotLookup}
+                disabled={dotLoading}
+                style={{ background: ORANGE, color: '#000', border: 'none', borderRadius: 6, padding: '8px 16px', fontWeight: 700, cursor: dotLoading ? 'default' : 'pointer', fontSize: 13 }}
+              >
+                {dotLoading ? 'Looking up…' : 'Look Up'}
+              </button>
+            </div>
+            {dotErr && <p style={{ color: '#fca5a5', fontSize: 12, marginTop: '0.5rem' }}>{dotErr}</p>}
+            {dotResult && (
+              <div style={{ marginTop: '0.75rem', fontSize: 13, color: TEXT, display: 'grid', gap: 4 }}>
+                <div><strong>{dotResult.legalName || '—'}</strong></div>
+                <div style={{ color: MUTED }}>DOT: {dotResult.dotNumber || '—'} | MC: {dotResult.mcNumber || '—'}</div>
+                <div style={{ color: MUTED }}>Status: {dotResult.operatingStatus || '—'}{dotResult.outOfService ? ` (OOS since ${dotResult.outOfService})` : ''}</div>
+                {dotResult.operatingStatus === 'active' && !profile?.fmcsa_verified && (
+                  <button
+                    onClick={handleMarkFmcsaVerified}
+                    disabled={fmcsaVerifying}
+                    style={{ marginTop: 6, background: 'transparent', color: ORANGE, border: `1px solid ${ORANGE}`, borderRadius: 6, padding: '6px 12px', cursor: fmcsaVerifying ? 'default' : 'pointer', fontSize: 12, fontWeight: 600, alignSelf: 'flex-start' }}
+                  >
+                    {fmcsaVerifying ? 'Updating…' : 'Mark as FMCSA Verified'}
+                  </button>
+                )}
+                {profile?.fmcsa_verified && (
+                  <div style={{ color: '#22c55e', fontSize: 12, marginTop: 4 }}>✓ Already FMCSA verified</div>
+                )}
+              </div>
+            )}
+          </section>
           {/* Active Loads */}
           <section>
             <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: ORANGE, marginBottom: '1rem' }}>
@@ -205,6 +311,11 @@ export function DashboardPageClient() {
                       {load.pu_city}, {load.pu_state} → {load.dl_city}, {load.dl_state}
                     </p>
                     <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>Needed: {load.date_needed}</p>
+                    <div style={{ marginTop: 8 }}>
+                      <button onClick={() => handleDownloadInvoice(load.id)} style={{ fontSize: 11, color: '#f0a500', background: 'none', border: '1px solid #f0a500', borderRadius: 4, padding: '3px 10px', cursor: 'pointer' }}>
+                        📄 Invoice
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
