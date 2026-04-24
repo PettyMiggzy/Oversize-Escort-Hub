@@ -429,7 +429,7 @@ function Nav({ page, setPage, user, profile, onSignOut, unreadCount = 0, setSign
       {/* Desktop links */}
       <div className="nav-links">
         {navLinks.map(([p, label]) => (
-          <button key={p} className={`nav-link${page === p ? " active" : ""}`} onClick={() => { const hardNav: Partial<Record<Page, string>> = { "how-it-works": "/how-it-works", pricing: "/pricing", flatboard: "/flat-rate", openboard: "/open-loads", bidboard: "/bid-board" }; const href = hardNav[p]; if (href) { window.location.href = href; } else { setPage(p); } }}>{label}</button>
+          <button key={p} className={`nav-link${page === p ? " active" : ""}`} onClick={() => { const hardNav: Partial<Record<Page, string>> = { "how-it-works": "/how-it-works", pricing: "/pricing", verification: "/verification", flatboard: "/flat-rate", openboard: "/open-loads", bidboard: "/bid-board", escorts: "/find-escorts", postload: "/post-load" }; const href = hardNav[p]; if (href) { window.location.href = href; } else { setPage(p); } }}>{label}</button>
         ))}
       </div>
       {/* Desktop right */}
@@ -481,7 +481,7 @@ function Nav({ page, setPage, user, profile, onSignOut, unreadCount = 0, setSign
               <button className="drawer-close" onClick={closeDrawer}>✕</button>
             </div>
             {navLinks.map(([p, label]) => (
-              <button key={p} className={`drawer-link${page === p ? " active" : ""}`} onClick={() => { const hardNav: Partial<Record<Page, string>> = { "how-it-works": "/how-it-works", pricing: "/pricing", flatboard: "/flat-rate", openboard: "/open-loads", bidboard: "/bid-board" }; const href = hardNav[p]; if (href) { window.location.href = href; return; } setPage(p); closeDrawer(); }}>{label}</button>
+              <button key={p} className={`drawer-link${page === p ? " active" : ""}`} onClick={() => { const hardNav: Partial<Record<Page, string>> = { "how-it-works": "/how-it-works", pricing: "/pricing", verification: "/verification", flatboard: "/flat-rate", openboard: "/open-loads", bidboard: "/bid-board", escorts: "/find-escorts", postload: "/post-load" }; const href = hardNav[p]; if (href) { window.location.href = href; return; } setPage(p); closeDrawer(); }}>{label}</button>
             ))}
             <div className="drawer-user">
               {user && profile ? (
