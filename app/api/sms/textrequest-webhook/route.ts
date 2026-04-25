@@ -56,7 +56,7 @@ function normalizeBoard(raw: string): string | null {
 
 // Parse M/D or M/D/YY or M/D/YYYY. If past, roll to next year.
 function parseDate(raw: string): string | null {
-  const m = raw.match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{2}|\d{4}))?$/)
+  const m = raw.match(/^(\d{1,2})[\/-](\d{1,2})(?:[\/-](\d{2}|\d{4}))?$/)
   if (!m) return null
   const mo = parseInt(m[1], 10)
   const da = parseInt(m[2], 10)
@@ -90,7 +90,8 @@ type Parsed = {
 
 // Format: OEH [board] [city...] [ST] [city...] [ST] [M/D] [position] [rate]
 function parseSms(text: string): { ok: true; data: Parsed } | { ok: false; error: string } {
-  const tokens = text.trim().split(/\s+/)
+  const tokens = text.replace(/[,.]/g, ' ').replace(/\s+/g, ' ').trim().split(' ')
+  console.log('[SMS] tokens:', tokens)
   if (tokens.length < 8) return { ok: false, error: 'too_few_tokens' }
   if (tokens[0].toUpperCase() !== 'OEH') return { ok: false, error: 'missing_oeh' }
 
@@ -246,6 +247,11 @@ export async function POST(req: NextRequest) {
 
     const d = result.data
     const carrierId = await lookupCarrierId(phone)
+      console.log('[SMS] parse result:', JSON.stringify(result))
+      if (!carrierId) {
+        await sendTextRequestReply(phone, '📵 Phone not registered. Sign up free at oversize-escort-hub.com then text again.')
+        return NextResponse.json({ ok: true, registered: false })
+      }
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
 
     const insertRow = {
