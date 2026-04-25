@@ -200,6 +200,7 @@ export async function POST(req: NextRequest) {
   try { parsed = JSON.parse(rawBody) } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
+  console.log("[SMS] payload:", JSON.stringify(parsed))
 
   // TextRequest inbound payload: message + consumerPhoneNumber
   // Tolerate older/alt shapes too.
