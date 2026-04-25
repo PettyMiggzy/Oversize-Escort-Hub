@@ -48,7 +48,7 @@ function normalizePosition(raw: string): string {
 
 function normalizeBoard(raw: string): string | null {
   const k = raw.toLowerCase()
-  if (k === 'flat') return 'flat'
+  if (k === 'flat') return 'flat-rate'
   if (k === 'bid') return 'bid'
   if (k === 'open') return 'open-bid'
   return null
