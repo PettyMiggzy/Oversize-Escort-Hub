@@ -73,3 +73,37 @@ DROP TRIGGER IF EXISTS after_review_insert ON reviews;
 CREATE TRIGGER after_review_insert
   AFTER INSERT OR UPDATE ON reviews
   FOR EACH ROW EXECUTE FUNCTION update_profile_rating();
+
+-- ============================================================
+-- 9. Bids table (back-port from live schema)
+-- The bids table was originally created via the Supabase Studio UI.
+-- This block documents its shape so future rebuilds match production.
+-- Safe to re-run: all statements are idempotent.
+-- ============================================================
+CREATE TABLE IF NOT EXISTS bids (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  load_id UUID NOT NULL REFERENCES loads(id) ON DELETE CASCADE,
+  escort_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  rate NUMERIC NOT NULL CHECK (rate > 0),
+  note TEXT,
+  status TEXT NOT NULL DEFAULT 'pending'
+    CHECK (status IN ('pending','accepted','rejected','withdrawn'))
+);
+
+CREATE INDEX IF NOT EXISTS bids_load_id_idx ON bids(load_id);
+CREATE INDEX IF NOT EXISTS bids_escort_id_idx ON bids(escort_id);
+CREATE INDEX IF NOT EXISTS bids_status_idx ON bids(status);
+
+-- RLS template — review and apply manually in Supabase Studio if not already set:
+-- ALTER TABLE bids ENABLE ROW LEVEL SECURITY;
+-- CREATE POLICY IF NOT EXISTS "Bids viewable by load owner or bidder"
+--   ON bids FOR SELECT USING (
+--     auth.uid() = escort_id
+--     OR auth.uid() IN (SELECT carrier_id FROM loads WHERE loads.id = bids.load_id)
+--   );
+-- CREATE POLICY IF NOT EXISTS "Escorts insert own bids"
+--   ON bids FOR INSERT WITH CHECK (auth.uid() = escort_id);
+-- CREATE POLICY IF NOT EXISTS "Escorts update own bids"
+--   ON bids FOR UPDATE USING (auth.uid() = escort_id);
+

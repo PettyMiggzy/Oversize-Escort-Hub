@@ -72,7 +72,7 @@ export type Bid = {
   created_at: string
   load_id: string
   escort_id: string
-  bid_rate: number
+  rate: number
   note: string | null
   status: 'pending' | 'accepted' | 'rejected' | 'withdrawn'
 }
