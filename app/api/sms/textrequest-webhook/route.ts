@@ -90,7 +90,7 @@ type Parsed = {
 
 // Format: OEH [board] [city...] [ST] [city...] [ST] [M/D] [position] [rate]
 function parseSms(text: string): { ok: true; data: Parsed } | { ok: false; error: string } {
-  const tokens = text.replace(/[,.]/g, ' ').replace(/\s+/g, ' ').trim().split(' ')
+  const tokens = text.replace(/,/g, ' ').replace(/\.(?!\d)/g, ' ').replace(/\s+/g, ' ').trim().split(' ')
   console.log('[SMS] tokens:', tokens)
   if (tokens.length < 8) return { ok: false, error: 'too_few_tokens' }
   if (tokens[0].toUpperCase() !== 'OEH') return { ok: false, error: 'missing_oeh' }
