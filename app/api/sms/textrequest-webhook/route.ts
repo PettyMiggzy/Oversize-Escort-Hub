@@ -204,11 +204,17 @@ export async function POST(req: NextRequest) {
 
   // TextRequest inbound payload: message + consumerPhoneNumber
   // Tolerate older/alt shapes too.
+  // TextRequest nests inbound SMS under parsed.conversation
+  const conv = parsed?.conversation || parsed
   const phone: string =
-    parsed?.consumerPhoneNumber || parsed?.From || parsed?.from || ''
+    conv?.consumerPhoneNumber || parsed?.consumerPhoneNumber || parsed?.From || parsed?.from || ''
   const messageText: string = (
-    parsed?.message || parsed?.Body || parsed?.body || ''
+    conv?.message || parsed?.message || parsed?.Body || parsed?.body || ''
   ).toString()
+  // Only process inbound (received) messages, not our own outbound
+  if (conv?.messageDirection && conv.messageDirection !== 'R') {
+    return NextResponse.json({ ok: true, action: 'ignored_outbound' })
+  }
   const upper = messageText.trim().toUpperCase()
 
   if (!phone) return NextResponse.json({ ok: true })
