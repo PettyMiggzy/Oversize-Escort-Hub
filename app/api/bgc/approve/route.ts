@@ -37,6 +37,13 @@ export async function POST(req: NextRequest) {
         .eq('id', cert.user_id)
     }
 
+    if (cert.type === 'pevo' && cert.user_id) {
+      await supabase
+        .from('profiles')
+        .update({ pevo_verified: true })
+        .eq('id', cert.user_id)
+    }
+
     return NextResponse.json({ ok: true })
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || 'Server error' }, { status: 500 })

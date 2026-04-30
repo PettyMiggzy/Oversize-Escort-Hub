@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Fragment } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { isAdminEmail } from '@/lib/supabase'
 
@@ -14,6 +14,7 @@ export default function AdminPage() {
   // Users tab
   const [users, setUsers] = useState<any[]>([])
   const [userSearch, setUserSearch] = useState('')
+  const [tierFilter, setTierFilter] = useState<string>('all')
   const [expandedUser, setExpandedUser] = useState<string | null>(null)
 
   // Revenue tab
@@ -110,6 +111,30 @@ export default function AdminPage() {
     setBgcQueue(prev => prev.filter((c: any) => c.id !== certId))
   }
 
+  const approveCert = async (certId: string) => {
+    if (!confirm('Approve this certification submission?')) return
+    const res = await fetch('/api/bgc/approve', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cert_id: certId }) })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) { alert('Approve failed: ' + (data.error || res.statusText)); return }
+    setCertsQueue(prev => prev.filter((c: any) => c.id !== certId))
+  }
+
+  const rejectCert = async (certId: string) => {
+    const reason = prompt('Reason for rejection (optional):') || ''
+    if (!confirm('Reject this certification submission?')) return
+    const res = await fetch('/api/bgc/reject', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cert_id: certId, reason }) })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) { alert('Reject failed: ' + (data.error || res.statusText)); return }
+    setCertsQueue(prev => prev.filter((c: any) => c.id !== certId))
+  }
+
+  const expireLoad = async (loadId: string) => {
+    if (!confirm('Mark this load as expired?')) return
+    const { error } = await supabase.from('loads').update({ status: 'expired' }).eq('id', loadId)
+    if (error) { alert('Expire failed: ' + error.message); return }
+    setLoadsList(prev => prev.map((l: any) => l.id === loadId ? { ...l, status: 'expired' } : l))
+  }
+
   const changeRole = async (userId: string, role: string) => {
     const supabase = createClient()
     await supabase.from('profiles').update({ role }).eq('id', userId)
@@ -143,8 +168,10 @@ export default function AdminPage() {
   }
 
   const filteredUsers = users.filter(u => {
-    const s = userSearch.toLowerCase()
-    return !s || u.full_name?.toLowerCase().includes(s) || u.email?.toLowerCase().includes(s)
+    const q = userSearch.toLowerCase()
+    const matchesSearch = !q || u.full_name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q)
+    const matchesTier = tierFilter === 'all' || (u.tier ?? 'free') === tierFilter
+    return matchesSearch && matchesTier
   })
 
   const bg = '#0a0f1a'
@@ -178,6 +205,27 @@ export default function AdminPage() {
               <h2 style={{ fontSize: 16, fontWeight: 600 }}>Users ({filteredUsers.length})</h2>
               <input style={{ ...inp, flex: 1, maxWidth: 300 }} placeholder="Search by name or email..." value={userSearch} onChange={e => setUserSearch(e.target.value)} />
             </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
+          {(['all','free','trial','member','pro','fleet_starter','fleet_plus','fleet_pro'] as const).map(t => (
+            <button
+              key={t}
+              onClick={() => setTierFilter(t)}
+              style={{
+                background: tierFilter === t ? '#f60' : '#1e3a5f',
+                color: tierFilter === t ? '#fff' : '#e2e8f0',
+                border: 'none',
+                borderRadius: 999,
+                padding: '4px 12px',
+                fontSize: 12,
+                fontWeight: tierFilter === t ? 700 : 500,
+                cursor: 'pointer',
+                textTransform: 'capitalize'
+              }}
+            >
+              {t === 'all' ? 'All' : t.replace('_', ' ')}
+            </button>
+          ))}
+        </div>
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', background: '#0f1a2e', borderRadius: 10, overflow: 'hidden' }}>
                 <thead>
@@ -187,8 +235,8 @@ export default function AdminPage() {
                 </thead>
                 <tbody>
                   {filteredUsers.map(u => (
-                    <>
-                      <tr key={u.id} onClick={() => setExpandedUser(expandedUser === u.id ? null : u.id)} style={{ cursor: 'pointer', background: expandedUser === u.id ? '#16213a' : 'transparent' }}>
+                    <Fragment key={u.id}>
+                      <tr onClick={() => setExpandedUser(expandedUser === u.id ? null : u.id)} style={{ cursor: 'pointer', background: expandedUser === u.id ? '#16213a' : 'transparent' }}>
                         <td style={td}>{u.full_name ?? '—'}</td>
                         <td style={td}>{u.email ?? '—'}</td>
                         <td style={td}><span style={{ background: '#1e3a5f', borderRadius: 4, padding: '2px 6px', fontSize: 11 }}>{u.role ?? '—'}</span></td>
@@ -208,7 +256,7 @@ export default function AdminPage() {
                         </td>
                       </tr>
                       {expandedUser === u.id && (
-                        <tr key={u.id + '-exp'}>
+                        <tr>
                           <td colSpan={8} style={{ ...td, background: '#16213a', padding: '12px 20px' }}>
                             <strong>Full Profile</strong><br />
                             ID: {u.id}<br />
@@ -218,7 +266,7 @@ export default function AdminPage() {
                           </td>
                         </tr>
                       )}
-                    </>
+                    </Fragment>
                   ))}
                 </tbody>
               </table>
@@ -283,6 +331,10 @@ export default function AdminPage() {
                             <a href={docUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#60a5fa', fontSize: 13, textDecoration: 'underline', display: 'inline-block', marginTop: 6 }}>View document &rarr;</a>
                           )}
                         </div>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button onClick={() => approveCert(c.id)} style={{ background: '#10b981', color: '#fff', border: 'none', borderRadius: 6, padding: '8px 14px', fontWeight: 600, cursor: 'pointer' }}>Approve</button>
+                        <button onClick={() => rejectCert(c.id)} style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: 6, padding: '8px 14px', fontWeight: 600, cursor: 'pointer' }}>Reject</button>
+                      </div>
                       </div>
                     </div>
                   )
@@ -371,8 +423,59 @@ export default function AdminPage() {
         {/* Loads Tab */}
         {activeTab === 'loads' && (
           <div style={card}>
-            <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>All Loads</h2>
-            <p style={{ color: '#9ca3af', fontSize: 13 }}>Use the main load board pages to manage loads, or filter from Users tab.</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+              <h2 style={{ fontSize: 16, fontWeight: 600 }}>All Loads ({loadsList.filter((l: any) => !loadsStatusFilter || l.status === loadsStatusFilter).length})</h2>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {[['', 'All'], ['open', 'Open'], ['filled', 'Filled'], ['expired', 'Expired'], ['cancelled', 'Cancelled']].map(([val, label]) => (
+                  <button
+                    key={val || 'all'}
+                    onClick={() => setLoadsStatusFilter(val)}
+                    style={{
+                      background: loadsStatusFilter === val ? '#f60' : '#1e3a5f',
+                      color: loadsStatusFilter === val ? '#fff' : '#e2e8f0',
+                      border: 'none',
+                      borderRadius: 999,
+                      padding: '4px 12px',
+                      fontSize: 12,
+                      fontWeight: loadsStatusFilter === val ? 700 : 500,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', background: '#0f1a2e', borderRadius: 10, overflow: 'hidden' }}>
+                <thead>
+                  <tr>
+                    {['Route', 'Position', 'Status', 'Board Type', 'Posted', 'Actions'].map(h => <th key={h} style={th}>{h}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  {loadsList
+                    .filter((l: any) => !loadsStatusFilter || l.status === loadsStatusFilter)
+                    .map((l: any) => (
+                      <tr key={l.id}>
+                        <td style={td}>{(l.pu_city || l.origin_city || '-')}{l.pu_state ? ', ' + l.pu_state : ''} → {(l.dl_city || l.destination_city || '-')}{l.dl_state ? ', ' + l.dl_state : ''}</td>
+                        <td style={td}>{l.position || '-'}</td>
+                        <td style={td}><span style={{ background: '#1e3a5f', borderRadius: 4, padding: '2px 6px', fontSize: 11 }}>{l.status || '-'}</span></td>
+                        <td style={td}>{l.board_type || '-'}</td>
+                        <td style={td}>{l.created_at ? new Date(l.created_at).toLocaleDateString() : '-'}</td>
+                        <td style={td}>
+                          {l.status !== 'expired' && (
+                            <button style={btn} onClick={() => expireLoad(l.id)}>Expire now</button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  {loadsList.filter((l: any) => !loadsStatusFilter || l.status === loadsStatusFilter).length === 0 && (
+                    <tr><td colSpan={6} style={{ ...td, color: '#9ca3af', textAlign: 'center' }}>No loads match the current filter.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
