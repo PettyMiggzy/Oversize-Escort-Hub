@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
 
     // BGC one-time purchase
     if (priceId === BGC_PRICE) {
-      await supabase.from('profiles').update({ bgc_verified: true }).eq('id', userId)
+      await supabase.from('profiles').update({ bgc_paid: true }).eq('id', userId)
       return NextResponse.json({ received: true })
     }
 
@@ -90,11 +90,14 @@ export async function POST(req: NextRequest) {
 
     // Subscription tier upgrade
     const tier = PRICE_TO_TIER[priceId] ?? 'member'
-    await supabase.from('profiles').update({
+    const isPevo = priceId === 'price_1TF0DiLmfugPCRbAPWsN2K5x' || priceId === 'price_1TF0D4LmfugPCRbAd4hMO22R'
+    const update: any = {
       tier,
       stripe_customer_id: (session.customer as string) ?? null,
       stripe_subscription_id: (session.subscription as string) ?? null,
-    }).eq('id', userId)
+    }
+    if (isPevo) update.pevo_paid = true
+    await supabase.from('profiles').update(update).eq('id', userId)
 
     return NextResponse.json({ received: true })
   }
