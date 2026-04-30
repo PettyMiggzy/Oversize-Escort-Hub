@@ -77,8 +77,13 @@ function SignInInner() {
   const searchParams = useSearchParams();
   const redirectParam = searchParams.get('redirect');
   const redirectPath = redirectParam ? '/' + redirectParam.replace(/^\/+/, '') : '/dashboard';
+  const roleParamRaw = searchParams.get('role');
+  const allowedRoles = ['escort', 'carrier', 'broker', 'fleet_manager'] as const;
+  const initialRole = (allowedRoles as readonly string[]).includes(roleParamRaw ?? '')
+    ? (roleParamRaw as 'escort' | 'carrier' | 'broker' | 'fleet_manager')
+    : 'escort';
   const [mode, setMode] = useState<"signup" | "signin">("signin");
-  const [role, setRole] = useState<"escort" | "carrier" | "fleet_manager" | "broker">("escort");
+  const [role, setRole] = useState<"escort" | "carrier" | "fleet_manager" | "broker">(initialRole);
   const [plan, setPlan] = useState<"trial" | "member" | "pro" | null>(null);
   const [trialBlocked, setTrialBlocked] = useState(false);
   const [fullName, setFullName] = useState("");
