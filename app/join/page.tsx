@@ -111,6 +111,27 @@ function JoinPageInner() {
           {fleetOnly ? 'Choose your Fleet plan' : 'Choose the plan that fits your role'}
         </p>
 
+        {!fleetOnly && (
+          <div
+            style={{
+              textAlign: 'center',
+              marginTop: '-32px',
+              marginBottom: '40px',
+              fontSize: '13px',
+              color: '#888',
+            }}
+          >
+            Carrier or Freight Broker?{' '}
+            <a href="/signin?role=carrier" style={{ color: orange, textDecoration: 'none', fontWeight: 600 }}>
+              Sign in as Carrier →
+            </a>
+            <span style={{ margin: '0 10px', color: '#444' }}>•</span>
+            <a href="/signin?role=broker" style={{ color: orange, textDecoration: 'none', fontWeight: 600 }}>
+              Sign in as Freight Broker →
+            </a>
+          </div>
+        )}
+
         {/* ── Non-fleet cards (hidden when ?role=fleet) ── */}
         {!fleetOnly && (
           <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', justifyContent: 'center', marginBottom: '48px' }}>

@@ -76,7 +76,7 @@ function SignInInner() {
 
   const searchParams = useSearchParams();
   const redirectParam = searchParams.get('redirect');
-  const redirectPath = redirectParam ? '/' + redirectParam.replace(/^\/+/, '') : '/';
+  const redirectPath = redirectParam ? '/' + redirectParam.replace(/^\/+/, '') : '/dashboard';
   const [mode, setMode] = useState<"signup" | "signin">("signin");
   const [role, setRole] = useState<"escort" | "carrier" | "fleet_manager" | "broker">("escort");
   const [plan, setPlan] = useState<"trial" | "member" | "pro" | null>(null);
@@ -88,6 +88,9 @@ function SignInInner() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [unconfirmedEmail, setUnconfirmedEmail] = useState<string>("");
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendNotice, setResendNotice] = useState<string>("");
 
   function getFingerprint() {
     const raw = navigator.userAgent + screen.width + screen.height + navigator.language;
@@ -137,6 +140,28 @@ function SignInInner() {
     }
   }
 
+  async function handleResendConfirmation() {
+    if (!unconfirmedEmail) return;
+    setResendLoading(true);
+    setResendNotice("");
+    try {
+      const { error: resendErr } = await supabase.auth.resend({
+        type: 'signup',
+        email: unconfirmedEmail,
+        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      });
+      if (resendErr) {
+        setResendNotice(resendErr.message || 'Could not resend.');
+      } else {
+        setResendNotice('Confirmation email sent. Check your inbox.');
+      }
+    } catch (e: any) {
+      setResendNotice(e?.message || 'Could not resend.');
+    } finally {
+      setResendLoading(false);
+    }
+  }
+
   async function handleSubmit() {
     setError("");
     setSuccess("");
@@ -177,7 +202,15 @@ function SignInInner() {
         window.location.href = redirectPath;
       }
     } catch (err: any) {
-      setError(err.message || "Something went wrong");
+      const msg = err?.message || "Something went wrong";
+      // Supabase returns this exact phrase for unconfirmed accounts.
+      if (/email not confirmed/i.test(msg) || err?.code === 'email_not_confirmed') {
+        setUnconfirmedEmail(email);
+        setError("Your email isn't confirmed yet. Check your inbox or resend the confirmation link below.");
+      } else {
+        setUnconfirmedEmail("");
+        setError(msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -249,6 +282,24 @@ function SignInInner() {
           </div>
 
           {error && <div className="error">{error}</div>}
+            {unconfirmedEmail && (
+              <div style={{ marginBottom: 16 }}>
+                <button
+                  type="button"
+                  className="btn"
+                  style={{ background: 'var(--bl)', color: '#fff', marginBottom: 6 }}
+                  disabled={resendLoading}
+                  onClick={handleResendConfirmation}
+                >
+                  {resendLoading ? 'Sending…' : 'Resend confirmation email'}
+                </button>
+                {resendNotice && (
+                  <div className="mo" style={{ fontSize: 10, color: 'var(--t2)', textAlign: 'center' }}>
+                    {resendNotice}
+                  </div>
+                )}
+              </div>
+            )}
           {success && <div className="success">{success}</div>}
 
           {/* Plan selection step — escort signup only */}
