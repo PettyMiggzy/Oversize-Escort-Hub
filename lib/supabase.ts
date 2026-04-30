@@ -34,7 +34,7 @@ export type Load = {
   id: string
   created_at: string
   carrier_id: string
-  board_type: 'flat' | 'bid' | 'open'
+  board_type: 'flat-rate' | 'bid' | 'open-bid'
   pu_city: string
   pu_state: string
   dl_city: string

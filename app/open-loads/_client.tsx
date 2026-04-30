@@ -70,7 +70,7 @@ export function OpenLoadsBoardClient() {
     let query = supabase
       .from('loads')
       .select('*')
-      .in('board_type', ['open-bid', 'bid'])
+      .in('board_type', ['open-bid'])
       .eq('status', 'open')
       .gt('expires_at', new Date().toISOString())
     if (cutoff) query = query.lt('created_at', cutoff)

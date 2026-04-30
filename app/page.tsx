@@ -780,7 +780,7 @@ function FlatBoardPreview({ setPage, escortView }: { setPage: (p: Page) => void;
       const { data } = await supabase
         .from("loads")
         .select("*")
-        .eq("board_type", "flat")
+        .eq("board_type", "flat-rate")
         .eq("status", "open")
         .order("created_at", { ascending: false })
         .limit(5);
@@ -1401,7 +1401,7 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
   async function fetchDhLoads() {
     const states = profile?.states_licensed || [];
     if (states.length === 0) return;
-    const { data } = await supabase.from('loads').select('*').eq('board_type', 'flat').eq('status', 'active').in('pu_state', states).limit(20);
+    const { data } = await supabase.from('loads').select('*').eq('board_type', 'flat-rate').eq('status', 'open').in('pu_state', states).limit(20);
     setDhLoads(data || []);
   }
 
@@ -1736,7 +1736,7 @@ function CarrierDashPage({ setPage, user, profile, showToast }: { setPage: (p: P
     if (!user) return
     setLoading(true)
     if (tab === 'active') {
-      const { data } = await supabase.from('loads').select('*').eq('posted_by', user.id).eq('status', 'active').order('created_at', { ascending: false })
+      const { data } = await supabase.from('loads').select('*').eq('posted_by', user.id).eq('status', 'open').order('created_at', { ascending: false })
       setActiveLoads(data || [])
     } else if (tab === 'requests') {
       const { data } = await supabase.from('load_matches').select('*, loads(*), profiles!load_matches_escort_id_fkey(full_name, tier, bgc_verified, certs)').eq('status', 'pending').order('created_at', { ascending: false })
