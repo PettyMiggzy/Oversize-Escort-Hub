@@ -276,6 +276,80 @@ export function DashboardPageClient() {
     }
   }
 
+  // ==== ESCORT DASHBOARD STATE ====
+  const [escortJobs, setEscortJobs] = useState<any[]>([])
+  const [earnings, setEarnings] = useState<{month: number; lifetime: number; jobsCount: number} | null>(null)
+  const [expenses, setExpenses] = useState<any[]>([])
+  const [expKind, setExpKind] = useState<'mileage'|'fuel'|'lodging'|'meal'|'toll'|'other'>('mileage')
+  const [expAmount, setExpAmount] = useState('')
+  const [expMiles, setExpMiles] = useState('')
+  const [expNote, setExpNote] = useState('')
+  const [expSubmitting, setExpSubmitting] = useState(false)
+  const [breakdownOn, setBreakdownOn] = useState<boolean>(false)
+  const [breakdownSaving, setBreakdownSaving] = useState(false)
+
+  useEffect(() => {
+    if (!profile) return
+    if (!(profile.role === 'escort' || profile.role === 'pro')) return
+    const loadEscort = async () => {
+      const { data: acceptedBids } = await supabase
+        .from('bids')
+        .select('id, rate, created_at, load_id, status, loads:load_id(id, title, pu_city, pu_state, dl_city, dl_state, date_needed, status)')
+        .eq('escort_id', profile.id)
+        .eq('status', 'accepted')
+        .order('created_at', { ascending: false })
+      setEscortJobs(acceptedBids ?? [])
+      try {
+        const r = await fetch('/api/escort/earnings'); const d = await r.json()
+        if (r.ok) setEarnings({ month: d.month, lifetime: d.lifetime, jobsCount: d.jobsCount })
+      } catch {}
+      try {
+        const r = await fetch('/api/expenses'); const d = await r.json()
+        if (r.ok) setExpenses(d.expenses ?? [])
+      } catch {}
+      setBreakdownOn(Boolean((profile as any).breakdown_protocol_enabled))
+    }
+    loadEscort()
+  }, [profile])
+
+  const handleAddExpense = async () => {
+    setActionMsg('')
+    if (!expAmount) { setActionMsg('Amount required'); return }
+    setExpSubmitting(true)
+    try {
+      const res = await fetch('/api/expenses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kind: expKind, amount: Number(expAmount), miles: expMiles || null, note: expNote || null }),
+      })
+      const d = await res.json()
+      if (!res.ok) { setActionMsg(d.error || 'Failed to add expense'); return }
+      setExpenses(prev => [d.expense, ...prev])
+      setExpAmount(''); setExpMiles(''); setExpNote('')
+      setActionMsg('Expense saved.')
+    } finally { setExpSubmitting(false) }
+  }
+
+  const handleDeleteExpense = async (id: string) => {
+    const res = await fetch('/api/expenses?id=' + encodeURIComponent(id), { method: 'DELETE' })
+    if (res.ok) setExpenses(prev => prev.filter(e => e.id !== id))
+  }
+
+  const handleToggleBreakdown = async () => {
+    setBreakdownSaving(true)
+    const next = !breakdownOn
+    try {
+      const res = await fetch('/api/escort/breakdown', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: next }),
+      })
+      if (res.ok) setBreakdownOn(next)
+      else setActionMsg('Failed to update breakdown protocol')
+    } finally { setBreakdownSaving(false) }
+  }
+
+
   if (loading) {
     return (
       <div style={{ minHeight: '100vh', background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -505,13 +579,120 @@ export function DashboardPageClient() {
       {/* ESCORT / PRO VIEW */}
       {isEscort && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-          {/* Available Loads */}
+          {/* Earnings */}
+          <section>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: ORANGE, marginBottom: '1rem' }}>Earnings</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
+              <div style={{ background: SURFACE, borderRadius: 8, padding: '1rem', border: '1px solid #1e2736' }}>
+                <p style={{ margin: 0, color: MUTED, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: 1 }}>This Month</p>
+                <p style={{ margin: '6px 0 0', fontSize: '1.5rem', fontWeight: 700, color: ORANGE }}>${earnings ? earnings.month.toFixed(2) : '0.00'}</p>
+              </div>
+              <div style={{ background: SURFACE, borderRadius: 8, padding: '1rem', border: '1px solid #1e2736' }}>
+                <p style={{ margin: 0, color: MUTED, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: 1 }}>Lifetime</p>
+                <p style={{ margin: '6px 0 0', fontSize: '1.5rem', fontWeight: 700, color: ORANGE }}>${earnings ? earnings.lifetime.toFixed(2) : '0.00'}</p>
+              </div>
+              <div style={{ background: SURFACE, borderRadius: 8, padding: '1rem', border: '1px solid #1e2736' }}>
+                <p style={{ margin: 0, color: MUTED, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: 1 }}>Jobs Completed</p>
+                <p style={{ margin: '6px 0 0', fontSize: '1.5rem', fontWeight: 700, color: ORANGE }}>{earnings ? earnings.jobsCount : 0}</p>
+              </div>
+            </div>
+          </section>
+
+          {/* Active Jobs */}
+          <section>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: ORANGE, marginBottom: '1rem' }}>Active Jobs ({escortJobs.length})</h2>
+            {escortJobs.length === 0 ? (
+              <p style={{ color: MUTED }}>No active jobs. <a href="/loads" style={{ color: ORANGE }}>Browse available loads →</a></p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {escortJobs.map((bid: any) => {
+                  const ld = bid.loads || {}
+                  return (
+                    <div key={bid.id} style={{ background: SURFACE, borderRadius: 8, padding: '1rem', border: '1px solid #1e2736' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
+                        <div>
+                          <p style={{ margin: 0, fontWeight: 600 }}>{ld.title || 'Load'}</p>
+                          <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>
+                            {ld.pu_city || '—'}, {ld.pu_state || ''} → {ld.dl_city || '—'}, {ld.dl_state || ''}
+                          </p>
+                          {ld.date_needed && <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>Needed: {ld.date_needed}</p>}
+                        </div>
+                        <p style={{ margin: 0, fontWeight: 700, fontSize: '1.25rem', color: ORANGE }}>${Number(bid.rate).toFixed(2)}</p>
+                      </div>
+                      {ld.id && (
+                        <div style={{ marginTop: 8 }}>
+                          <button onClick={() => handleDownloadInvoice(ld.id)} style={{ fontSize: 11, color: ORANGE, background: 'none', border: '1px solid ' + ORANGE, borderRadius: 4, padding: '3px 10px', cursor: 'pointer' }}>
+                            📄 Invoice
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </section>
+
+          {/* Mileage / Expense Tracker */}
+          <section>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: ORANGE, marginBottom: '1rem' }}>Mileage &amp; Expenses</h2>
+            <div style={{ background: SURFACE, borderRadius: 8, padding: '1rem', border: '1px solid #1e2736' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.5rem' }}>
+                <select value={expKind} onChange={e => setExpKind(e.target.value as any)} style={{ background: BG, border: '1px solid #1e2736', borderRadius: 6, color: TEXT, padding: '8px', fontSize: 13 }}>
+                  <option value="mileage">Mileage</option>
+                  <option value="fuel">Fuel</option>
+                  <option value="lodging">Lodging</option>
+                  <option value="meal">Meal</option>
+                  <option value="toll">Toll</option>
+                  <option value="other">Other</option>
+                </select>
+                <input value={expAmount} onChange={e => setExpAmount(e.target.value)} placeholder="Amount $" type="number" step="0.01" style={{ background: BG, border: '1px solid #1e2736', borderRadius: 6, color: TEXT, padding: '8px', fontSize: 13 }} />
+                <input value={expMiles} onChange={e => setExpMiles(e.target.value)} placeholder="Miles (opt)" type="number" style={{ background: BG, border: '1px solid #1e2736', borderRadius: 6, color: TEXT, padding: '8px', fontSize: 13 }} />
+                <input value={expNote} onChange={e => setExpNote(e.target.value)} placeholder="Note" style={{ background: BG, border: '1px solid #1e2736', borderRadius: 6, color: TEXT, padding: '8px', fontSize: 13 }} />
+                <button onClick={handleAddExpense} disabled={expSubmitting} style={{ background: ORANGE, color: '#000', border: 'none', borderRadius: 6, padding: '8px 16px', fontWeight: 700, cursor: expSubmitting ? 'default' : 'pointer', fontSize: 13 }}>
+                  {expSubmitting ? 'Saving…' : 'Add'}
+                </button>
+              </div>
+              {expenses.length > 0 && (
+                <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {expenses.map((ex: any) => (
+                    <div key={ex.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0.75rem', background: BG, borderRadius: 6, border: '1px solid #1e2736' }}>
+                      <div style={{ fontSize: 13 }}>
+                        <strong style={{ color: ORANGE, textTransform: 'capitalize' }}>{ex.kind}</strong>
+                        <span style={{ color: MUTED, marginLeft: 8 }}>{ex.incurred_on}</span>
+                        {ex.miles ? <span style={{ color: MUTED, marginLeft: 8 }}>{ex.miles}mi</span> : null}
+                        {ex.note ? <span style={{ color: TEXT, marginLeft: 8, fontStyle: 'italic' }}>— {ex.note}</span> : null}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontWeight: 700, color: ORANGE }}>${Number(ex.amount).toFixed(2)}</span>
+                        <button onClick={() => handleDeleteExpense(ex.id)} style={{ background: 'transparent', color: '#ef4444', border: 'none', cursor: 'pointer', fontSize: 14 }}>✕</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {expenses.length === 0 && <p style={{ color: MUTED, fontSize: 13, marginTop: 12, marginBottom: 0 }}>No expenses logged yet.</p>}
+            </div>
+          </section>
+
+          {/* Breakdown Protocol Toggle */}
+          <section>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: ORANGE, marginBottom: '1rem' }}>Breakdown Protocol</h2>
+            <div style={{ background: SURFACE, borderRadius: 8, padding: '1rem', border: '1px solid #1e2736', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+              <div>
+                <p style={{ margin: 0, fontWeight: 600 }}>{breakdownOn ? 'Enabled' : 'Disabled'}</p>
+                <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>When enabled, you receive automated breakdown alerts and route safety prompts during active jobs.</p>
+              </div>
+              <button onClick={handleToggleBreakdown} disabled={breakdownSaving} style={{ background: breakdownOn ? '#22c55e' : 'transparent', color: breakdownOn ? '#000' : ORANGE, border: '1px solid ' + (breakdownOn ? '#22c55e' : ORANGE), borderRadius: 6, padding: '8px 20px', fontWeight: 700, cursor: breakdownSaving ? 'default' : 'pointer', fontSize: 13 }}>
+                {breakdownSaving ? 'Saving…' : breakdownOn ? 'Turn Off' : 'Turn On'}
+              </button>
+            </div>
+          </section>
+
+          {/* Find Work */}
           <section>
             <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: ORANGE, marginBottom: '1rem' }}>Find Work</h2>
-            <a
-              href="/loads"
-              style={{ display: 'inline-block', background: ORANGE, color: '#000', borderRadius: 6, padding: '10px 24px', fontWeight: 700, textDecoration: 'none' }}
-            >
+            <a href="/loads" style={{ display: 'inline-block', background: ORANGE, color: '#000', borderRadius: 6, padding: '10px 24px', fontWeight: 700, textDecoration: 'none' }}>
               Browse Available Loads
             </a>
           </section>
@@ -531,17 +712,11 @@ export function DashboardPageClient() {
             <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: ORANGE, marginBottom: '1rem' }}>Subscription</h2>
             <div style={{ background: SURFACE, borderRadius: 8, padding: '1rem', border: '1px solid #1e2736', textAlign: 'center', marginTop: 8 }}>
               {profile.stripe_customer_id ? (
-                <button
-                  onClick={handleStripePortal}
-                  style={{ background: ORANGE, color: '#000', border: 'none', borderRadius: 6, padding: '10px 24px', fontWeight: 700, cursor: 'pointer' }}
-                >
+                <button onClick={handleStripePortal} style={{ background: ORANGE, color: '#000', border: 'none', borderRadius: 6, padding: '10px 24px', fontWeight: 700, cursor: 'pointer' }}>
                   Manage Subscription
                 </button>
               ) : (
-                <a
-                  href="/checkout"
-                  style={{ display: 'inline-block', background: ORANGE, color: '#000', borderRadius: 6, padding: '10px 24px', fontWeight: 700, textDecoration: 'none' }}
-                >
+                <a href="/checkout" style={{ display: 'inline-block', background: ORANGE, color: '#000', borderRadius: 6, padding: '10px 24px', fontWeight: 700, textDecoration: 'none' }}>
                   Upgrade to Pro
                 </a>
               )}
