@@ -37,7 +37,9 @@ export async function POST(req: NextRequest) {
         .eq('id', cert.user_id)
     }
 
-    if (cert.type === 'pevo' && cert.user_id) {
+    const _ct = (cert.type || '').toString().toLowerCase()
+    const _isPevo = cert.type === 'pevo' || cert.type === 'p_evo' || _ct.includes('pevo') || _ct.includes('p/evo')
+    if (_isPevo && cert.user_id) {
       await supabase
         .from('profiles')
         .update({ pevo_verified: true })

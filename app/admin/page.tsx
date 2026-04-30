@@ -130,8 +130,13 @@ export default function AdminPage() {
 
   const expireLoad = async (loadId: string) => {
     if (!confirm('Mark this load as expired?')) return
-    const { error } = await supabase.from('loads').update({ status: 'expired' }).eq('id', loadId)
-    if (error) { alert('Expire failed: ' + error.message); return }
+    const res = await fetch('/api/admin/expire-load', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ load_id: loadId }),
+    })
+    const j = await res.json().catch(() => ({}))
+    if (!res.ok) { alert('Expire failed: ' + (j?.error || res.statusText)); return }
     setLoadsList(prev => prev.map((l: any) => l.id === loadId ? { ...l, status: 'expired' } : l))
   }
 
