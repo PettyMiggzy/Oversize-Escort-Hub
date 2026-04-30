@@ -90,21 +90,24 @@ type Parsed = {
 
 // Format: OEH [board] [city...] [ST] [city...] [ST] [M/D] [position] [rate]
 function parseSms(text: string): { ok: true; data: Parsed } | { ok: false; error: string } {
-  const tokens = text.replace(/,/g, ' ').replace(/\.(?!\d)/g, ' ').replace(/\s+/g, ' ').trim().split(' ')
+  const rawTokens = text.replace(/,/g, ' ').replace(/\.(?!\d)/g, ' ').replace(/\s+/g, ' ').trim().split(' ')
+  // OEH prefix is optional. If present, drop it.
+  const tokens = rawTokens[0]?.toUpperCase() === 'OEH' ? rawTokens.slice(1) : rawTokens
   console.log('[SMS] tokens:', tokens)
+  // Minimum: board, puCity, puState, dlCity, dlState, M/D, position, rate = 8 tokens.
+  // (puCity and dlCity may each span multiple tokens, only increasing the floor.)
   if (tokens.length < 8) return { ok: false, error: 'too_few_tokens' }
-  if (tokens[0].toUpperCase() !== 'OEH') return { ok: false, error: 'missing_oeh' }
 
-  const board = normalizeBoard(tokens[1])
+  const board = normalizeBoard(tokens[0])
   if (!board) return { ok: false, error: 'bad_board' }
 
   // Find first 2-letter state token after board (index 2+)
   let puStateIdx = -1
-  for (let i = 2; i < tokens.length; i++) {
+  for (let i = 1; i < tokens.length; i++) {
     const t = tokens[i].toUpperCase()
     if (t.length === 2 && US_STATES.has(t)) { puStateIdx = i; break }
   }
-  if (puStateIdx < 3) return { ok: false, error: 'missing_pu_state' }
+  if (puStateIdx < 2) return { ok: false, error: 'missing_pu_state' }
 
   // Find second state after puStateIdx
   let dlStateIdx = -1
@@ -114,7 +117,7 @@ function parseSms(text: string): { ok: true; data: Parsed } | { ok: false; error
   }
   if (dlStateIdx < puStateIdx + 2) return { ok: false, error: 'missing_dl_state' }
 
-  const puCity = titleCase(tokens.slice(2, puStateIdx).join(' '))
+  const puCity = titleCase(tokens.slice(1, puStateIdx).join(' '))
   const puState = tokens[puStateIdx].toUpperCase()
   const dlCity = titleCase(tokens.slice(puStateIdx + 1, dlStateIdx).join(' '))
   const dlState = tokens[dlStateIdx].toUpperCase()
