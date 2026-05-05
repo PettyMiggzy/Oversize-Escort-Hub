@@ -13,6 +13,7 @@ const MUTED = '#6b7280'
 
 interface Profile {
   membership?: string;
+  tier?: string;
   email?: string;
   id: string
   role: string
@@ -290,7 +291,7 @@ export function DashboardPageClient() {
 
   useEffect(() => {
     if (!profile) return
-    if (!(profile.role === 'escort' || profile.role === 'pro')) return
+    if (!(profile.role === 'escort' || profile.role === 'pro' || (profile as any).tier === 'pro')) return
     const loadEscort = async () => {
       const { data: acceptedBids } = await supabase
         .from('bids')
@@ -367,7 +368,8 @@ export function DashboardPageClient() {
   }
 
   const isCarrier = profile.role === 'carrier' || profile.role === 'admin'
-  const isEscort = profile.role === 'escort' || profile.role === 'pro'
+  const isEscort = profile.role === 'escort' || profile.role === 'pro' || (profile as any).tier === 'pro'
+  const isPro = profile.tier === 'pro' || profile.membership === 'pro' || profile.role === 'pro'
 
   return (
     <div style={{ minHeight: '100vh', background: BG, color: TEXT, padding: '2rem' }}>
@@ -378,7 +380,7 @@ export function DashboardPageClient() {
             Dashboard
           </h1>
           <p style={{ color: MUTED, margin: '4px 0 0', fontSize: '0.875rem' }}>
-            {profile.full_name || profile.company_name || 'Welcome'} &mdash; {profile.role}
+            {profile.full_name || profile.company_name || 'Welcome'} &mdash; {profile.role}{isPro ? ' • Pro' : ''}
           </p>
         </div>
         {unreadCount > 0 && (
@@ -711,7 +713,7 @@ export function DashboardPageClient() {
           <section>
             <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: ORANGE, marginBottom: '1rem' }}>Subscription</h2>
             <div style={{ background: SURFACE, borderRadius: 8, padding: '1rem', border: '1px solid #1e2736', textAlign: 'center', marginTop: 8 }}>
-              {profile.stripe_customer_id ? (
+              {(profile.stripe_customer_id || isPro) ? (
                 <button onClick={handleStripePortal} style={{ background: ORANGE, color: '#000', border: 'none', borderRadius: 6, padding: '10px 24px', fontWeight: 700, cursor: 'pointer' }}>
                   Manage Subscription
                 </button>
@@ -775,7 +777,7 @@ export function DashboardPageClient() {
       )}
 
       {/* Deadhead Opportunities - Pro/Fleet only */}
-      {(profile?.membership === 'pro' || profile?.role === 'fleet' || isAdminEmail(profile?.email)) && deadheadOpps.length > 0 && (
+      {(profile?.membership === 'pro' || profile?.tier === 'pro' || profile?.role === 'fleet' || isAdminEmail(profile?.email)) && deadheadOpps.length > 0 && (
         <section style={{ marginTop: '2rem' }}>
           <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#f59e0b', marginBottom: '1rem' }}>🚛 Deadhead Opportunities</h2>
           {deadheadOpps.map((load: any) => (
@@ -787,7 +789,7 @@ export function DashboardPageClient() {
           ))}
         </section>
       )}
-      {(profile?.membership !== 'pro' && profile?.role !== 'fleet' && !isAdminEmail(profile?.email)) && isEscort && (
+      {(profile?.membership !== 'pro' && profile?.tier !== 'pro' && profile?.role !== 'fleet' && !isAdminEmail(profile?.email)) && isEscort && (
         <section style={{ marginTop: '2rem', padding: '1rem', background: '#1e2736', borderRadius: 8, border: '1px solid #334155' }}>
           <p style={{ margin: 0, color: '#94a3b8' }}>🚛 <strong style={{ color: '#f59e0b' }}>Deadhead Opportunities</strong> — available to Pro and Fleet members. <a href="/pricing" style={{ color: '#f59e0b' }}>Upgrade to Pro</a></p>
         </section>
