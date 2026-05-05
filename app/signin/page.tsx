@@ -33,7 +33,7 @@ button{cursor:pointer;font-family:'Inter',system-ui,sans-serif}
 .success{background:rgba(0,204,122,.1);border:1px solid rgba(0,204,122,.2);color:var(--gr);font-family:'DM Mono',monospace;font-size:10px;padding:10px 14px;border-radius:3px;margin-bottom:16px}
 .switch{text-align:center;margin-top:4px}
 .switch span{font-family:'DM Mono',monospace;font-size:10px;color:var(--t2)}
-.switch button{background:none;border:none;color:var(--or);font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;text-decoration:underline;margin-left:4px}
+.switch button{background:none;border:none;color:var(--or);font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;text-decoration:underline;margin-left:4px}@media(max-width:480px){.box{padding:24px 20px;max-width:100%}.wrap{padding:16px 12px}input{font-size:16px;padding:12px 14px}.btn{padding:14px 18px;font-size:11px}}
 `;
 
 function SignInInner() {

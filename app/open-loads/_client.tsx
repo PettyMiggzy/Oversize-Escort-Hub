@@ -34,6 +34,15 @@ export function OpenLoadsBoardClient() {
   const [bidRate, setBidRate] = useState('')
   const [bidStatus, setBidStatus] = useState('')
 
+  const [windowWidth, setWindowWidth] = useState(1200);
+  useEffect(() => {
+    setWindowWidth(window.innerWidth);
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+  const isMobile = windowWidth < 768;
+
   const supabase = createClient()
 
   useEffect(() => {
@@ -130,8 +139,8 @@ export function OpenLoadsBoardClient() {
       <>
       <SiteHeader />
     <div style={{ background: '#0a0a0a', minHeight: '100vh', padding: '24px', color: '#ccc' }}>
-      <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start', maxWidth: 1100, margin: '0 auto' }}>
-        <main style={{ flex: 1, minWidth: 0, maxWidth: 760, padding: '40px 24px' }}>
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 16 : 24, alignItems: 'flex-start', maxWidth: 1100, margin: '0 auto' }}>
+        <main style={{ flex: 1, minWidth: 0, maxWidth: 760, padding: isMobile ? '20px 12px' : '40px 24px', width: '100%' }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>Open Bid Board</h1>
         <p style={{ color: '#9ca3af', fontSize: 13, marginBottom: 24 }}>Loads sorted by time remaining. Pro escorts can bid. Carriers see all bids in their dashboard.</p>
 
@@ -140,7 +149,7 @@ export function OpenLoadsBoardClient() {
             <p style={{ color: '#9ca3af' }}>No open bid loads available right now.</p>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
             {loads.map((load: any) => {
           const loadBids = bids[load.id] || []
           const highestBid = loadBids[0]?.rate

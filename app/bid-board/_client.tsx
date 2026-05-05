@@ -26,6 +26,15 @@ export function BidBoardClient() {
   const [loads, setLoads] = useState<Load[]>([]);
   const [timers, setTimers] = useState<{ [key: string]: string }>({});
 
+  const [windowWidth, setWindowWidth] = useState(1200);
+  useEffect(() => {
+    setWindowWidth(window.innerWidth);
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+  const isMobile = windowWidth < 768;
+
   useEffect(() => {
     const fetchLoads = async () => {
       const { data } = await supabase
@@ -72,11 +81,11 @@ export function BidBoardClient() {
   return (
     <>
     <SiteHeader />
-    <div style={{ background: '#0a0a0a', minHeight: '100vh', padding: '24px', color: '#ccc' }}>
-      <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start', maxWidth: 1400, margin: '0 auto' }}>
+    <div style={{ background: '#0a0a0a', minHeight: '100vh', padding: isMobile ? '16px 12px' : '24px', color: '#ccc' }}>
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 16 : 24, alignItems: 'flex-start', maxWidth: 1400, margin: '0 auto' }}>
         <div style={{ flex: 1, minWidth: 0 }}>
       <h1 style={{ color: '#f0a500' }}>Bid Board</h1>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(240px, 1fr))', gap: 16 }}>
           {loads.map((load) => (
             <div
               key={load.id}

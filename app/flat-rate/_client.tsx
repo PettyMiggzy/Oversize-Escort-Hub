@@ -58,6 +58,15 @@ export function FlatRateBoardClient() {
   const [claimedLoads, setClaimedLoads] = useState<Set<string>>(new Set());
   const [claimError, setClaimError] = useState<Record<string, string>>({});
 
+  const [windowWidth, setWindowWidth] = useState(1200);
+  useEffect(() => {
+    setWindowWidth(window.innerWidth);
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+  const isMobile = windowWidth < 768;
+
   // Fetch current user + role
   useEffect(() => {
     const supabase = createClient();
@@ -187,7 +196,7 @@ export function FlatRateBoardClient() {
     <>
       <SiteHeader />
       <div style={{ background: '#0a0a0a', minHeight: '100vh', color: '#ccc' }}>
-        <div style={{ maxWidth: 1400, margin: '0 auto', padding: '32px 24px' }}>
+        <div style={{ maxWidth: 1400, margin: '0 auto', padding: isMobile ? '20px 12px' : '32px 24px' }}>
           <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
           {/* Header row */}
@@ -249,7 +258,7 @@ export function FlatRateBoardClient() {
           )}
 
           {/* Cards grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
             {filteredLoads.map((load) => (
                           <div
                             key={load.id}
