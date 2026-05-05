@@ -84,7 +84,7 @@ type Parsed = {
   dlCity: string
   dlState: string
   startDate: string
-  position: string
+  positions: string[]
   perMileRate: number
 }
 
@@ -128,7 +128,12 @@ function parseSms(text: string): { ok: true; data: Parsed } | { ok: false; error
   const startDate = parseDate(rest[0])
   if (!startDate) return { ok: false, error: 'bad_date' }
 
-  const position = normalizePosition(rest[1])
+  // Positions span tokens between the date (rest[0]) and the rate (rest[last]).
+  const posTokens = rest.slice(1, rest.length - 1)
+  if (posTokens.length === 0) return { ok: false, error: 'missing_position' }
+  // Recognize compound "Lead Chase" as two positions; otherwise each token is its own position.
+  const positions: string[] = posTokens.map(normalizePosition).filter((x) => x.length > 0)
+  if (positions.length === 0) return { ok: false, error: 'bad_position' }
 
   const rateToken = rest[rest.length - 1].replace(/[^0-9.]/g, '')
   const perMileRate = parseFloat(rateToken)
@@ -136,7 +141,7 @@ function parseSms(text: string): { ok: true; data: Parsed } | { ok: false; error
 
   return {
     ok: true,
-    data: { boardType: board, puCity, puState, dlCity, dlState, startDate, position, perMileRate },
+    data: { boardType: board, puCity, puState, dlCity, dlState, startDate, positions, perMileRate },
   }
 }
 
@@ -243,8 +248,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, action: 'help_sent' })
   }
 
-  // Load post path — must start with OEH
-  if (upper.startsWith('OEH ')) {
+  // Load post path — OEH prefix is optional
+  {
     const result = parseSms(messageText)
     if (!result.ok) {
       console.error('SMS parse failed:', result.error, 'text=', messageText)
@@ -264,46 +269,92 @@ export async function POST(req: NextRequest) {
       }
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
 
-    const insertRow = {
-      carrier_id: carrierId,
-      board_type: d.boardType,
-      pu_city: d.puCity,
-      pu_state: d.puState,
-      dl_city: d.dlCity,
-      dl_state: d.dlState,
-      position: d.position,
-      status: 'open',
-      per_mile_rate: d.perMileRate,
-      day_rate: 500,
-      overnight_fee: 100,
-      no_go_fee: 250,
-      pay_type: 'FastPay',
-      start_date: d.startDate,
-      expires_at: expiresAt,
-      notes: messageText,
+    const insertedIds: string[] = []
+    let lastErr: unknown = null
+    for (const pos of d.positions) {
+      const insertRow = {
+        carrier_id: carrierId,
+        board_type: d.boardType,
+        pu_city: d.puCity,
+        pu_state: d.puState,
+        dl_city: d.dlCity,
+        dl_state: d.dlState,
+        position: pos,
+        status: 'open',
+        per_mile_rate: d.perMileRate,
+        day_rate: 500,
+        overnight_fee: 100,
+        no_go_fee: 250,
+        pay_type: 'FastPay',
+        start_date: d.startDate,
+        expires_at: expiresAt,
+        notes: messageText,
+      }
+      const { data: inserted, error: insErr } = await svc
+        .from('loads')
+        .insert(insertRow)
+        .select('id')
+        .single()
+      if (insErr) {
+        console.error('SMS insert failed:', JSON.stringify(insErr), 'row=', JSON.stringify(insertRow))
+        lastErr = insErr
+        continue
+      }
+      if (inserted?.id) insertedIds.push(inserted.id)
     }
 
-    const { data: inserted, error: insErr } = await svc
-      .from('loads')
-      .insert(insertRow)
-      .select('id')
-      .single()
-
-    if (insErr) {
-      console.error('SMS insert failed:', JSON.stringify(insErr), 'row=', JSON.stringify(insertRow))
+    if (insertedIds.length === 0) {
       await sendTextRequestReply(
         phone,
         `OEH: Load parsed but failed to post. Please try again or contact support.`
       )
-      return NextResponse.json({ ok: true, inserted: false })
+      return NextResponse.json({ ok: true, inserted: false, error: String(lastErr) })
     }
 
-    console.log('SMS load inserted:', inserted?.id, 'carrier_id=', carrierId)
+    console.log('SMS load inserted:', insertedIds, 'carrier_id=', carrierId)
+    const positionsLabel = d.positions.join('+')
+    const countLabel = insertedIds.length > 1 ? ` (${insertedIds.length} loads)` : ''
     await sendTextRequestReply(
       phone,
-      `OEH: Load posted. ${d.boardType} ${d.puCity} ${d.puState} → ${d.dlCity} ${d.dlState} ${d.startDate} ${d.position} $${d.perMileRate}/mi.`
+      `OEH: Load posted${countLabel}. ${d.boardType} ${d.puCity} ${d.puState} → ${d.dlCity} ${d.dlState} ${d.startDate} ${positionsLabel} $${d.perMileRate}/mi.`
     )
-    return NextResponse.json({ ok: true, inserted: true, id: inserted?.id })
+
+    // Email confirmation to carrier (best-effort, non-blocking on failure)
+    try {
+      const resendKey = process.env.RESEND_API_KEY
+      if (resendKey) {
+        const { data: prof } = await svc
+          .from('profiles')
+          .select('email, full_name, company_name')
+          .eq('id', carrierId)
+          .single()
+        const carrierEmail = (prof as { email?: string } | null)?.email
+        if (carrierEmail) {
+          const profAny = prof as { full_name?: string; company_name?: string } | null
+          const greeting = profAny?.full_name || profAny?.company_name || 'Carrier'
+          const rows = insertedIds
+            .map((id, i) => `<li>${d.positions[i]} — Load ID <code>${id}</code></li>`)
+            .join('')
+          await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${resendKey}`,
+            },
+            body: JSON.stringify({
+              from: 'OEH Loads <noreply@oversize-escort-hub.com>',
+              to: carrierEmail,
+              subject: `OEH: ${insertedIds.length > 1 ? insertedIds.length + ' loads' : 'Load'} posted — ${d.puCity} ${d.puState} → ${d.dlCity} ${d.dlState}`,
+              html: `<p>Hi ${greeting},</p><p>Your SMS load post was confirmed:</p><ul><li><strong>Board:</strong> ${d.boardType}</li><li><strong>Pickup:</strong> ${d.puCity}, ${d.puState}</li><li><strong>Drop:</strong> ${d.dlCity}, ${d.dlState}</li><li><strong>Date:</strong> ${d.startDate}</li><li><strong>Rate:</strong> $${d.perMileRate}/mi</li></ul><p><strong>Positions:</strong></p><ul>${rows}</ul><p>View on the board: <a href="https://oversize-escort-hub.com/${d.boardType === 'flat-rate' ? 'flat-rate' : d.boardType === 'bid' ? 'bid-board' : 'open-loads'}">oversize-escort-hub.com</a></p>`,
+            }),
+          })
+        }
+      }
+    } catch (e) {
+      console.error('SMS email confirm failed:', (e as Error)?.message)
+    }
+
+    return NextResponse.json({ ok: true, inserted: true, ids: insertedIds })
   }
 
   // Fallthrough — unknown message
