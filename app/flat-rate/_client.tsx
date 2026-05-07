@@ -205,7 +205,7 @@ export function FlatRateBoardClient() {
       <SiteHeader />
       <div style={{ background: '#0a0a0a', minHeight: '100vh', color: '#ccc' }}>
         <div style={{ maxWidth: 1400, margin: '0 auto', padding: isMobile ? '20px 12px' : '32px 24px' }}>
-          <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
+          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 16 : 24, alignItems: 'flex-start' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
           {/* Header row */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
