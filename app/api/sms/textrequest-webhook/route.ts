@@ -328,7 +328,21 @@ export async function POST(req: NextRequest) {
           .select('email, full_name, company_name')
           .eq('id', carrierId)
           .single()
-        const carrierEmail = (prof as { email?: string } | null)?.email
+        let carrierEmail = (prof as { email?: string } | null)?.email
+        // Fallback: carriers who signed up before commit 9f2246b have profiles.email = null.
+        // Pull the email from auth.users via the admin API instead.
+        if (!carrierEmail) {
+          try {
+            const { data: userRes, error: userErr } = await svc.auth.admin.getUserById(carrierId)
+            if (userErr) {
+              console.warn('SMS email confirm: auth.admin.getUserById failed:', userErr.message)
+            } else {
+              carrierEmail = userRes?.user?.email ?? undefined
+            }
+          } catch (e) {
+            console.warn('SMS email confirm: auth lookup threw:', (e as Error)?.message)
+          }
+        }
         if (carrierEmail) {
           const profAny = prof as { full_name?: string; company_name?: string } | null
           const greeting = profAny?.full_name || profAny?.company_name || 'Carrier'
