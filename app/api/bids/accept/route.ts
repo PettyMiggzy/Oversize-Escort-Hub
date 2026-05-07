@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     // Verify caller is the carrier for this load
     const { data: load } = await supabase
       .from('loads')
-      .select('carrier_id, status, title')
+      .select('carrier_id, status, title, dl_city, dl_state')
       .eq('id', load_id)
       .single()
     if (!load) return NextResponse.json({ error: 'Load not found' }, { status: 404 })
@@ -45,6 +45,8 @@ export async function POST(req: NextRequest) {
         status: 'filled',
         matched_escort_id: escort_id,
         match_requested_at: new Date().toISOString(),
+        deadhead_destination_city: load.dl_city,
+        deadhead_destination_state: load.dl_state,
       })
       .eq('id', load_id)
 

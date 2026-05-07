@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
 
   const { data: load } = await supabase
     .from("loads")
-    .select("id, status, matched_escort_id, carrier_id, title")
+    .select("id, status, matched_escort_id, carrier_id, title, dl_city, dl_state")
     .eq("id", load_id)
     .single();
 
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     ]);
 
     // Close load permanently
-    await supabase.from("loads").update({ status: "filled" }).eq("id", load_id);
+    await supabase.from("loads").update({ status: "filled", deadhead_destination_city: load.dl_city, deadhead_destination_state: load.dl_state }).eq("id", load_id);
 
     // Notify escort
     const { data: escortProfile } = await supabase
