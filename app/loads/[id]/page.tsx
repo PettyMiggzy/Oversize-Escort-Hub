@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { isAdminEmail } from '@/lib/supabase'
+import { getAccessLevel, secondsUntilClaimable } from '@/lib/board-access'
 
 export default function LoadDetailPage() {
   const params = useParams()
@@ -19,6 +20,11 @@ export default function LoadDetailPage() {
   const [loading, setLoading] = useState(true)
 
   const supabase = createClient()
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(t)
+  }, [])
 
   useEffect(() => {
     if (!id) return
@@ -143,23 +149,37 @@ export default function LoadDetailPage() {
           </div>
         )}
 
-        {/* Bid form for Pro escorts on bid loads */}
-        {isBidType && isPro && isEscort && load.status === 'open' && (
-          <div style={card}>
-            <h2 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Place a Bid</h2>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <input
-                type="number"
-                style={{ flex: 1, background: '#16213a', border: '1px solid #1e3a5f', borderRadius: 6, color: '#e2e8f0', padding: '10px 12px', fontSize: 14 }}
-                placeholder="Your rate ($)"
-                value={bidRate}
-                onChange={e => setBidRate(e.target.value)}
-              />
-              <button onClick={submitBid} style={{ background: '#f60', color: '#fff', border: 'none', borderRadius: 6, padding: '10px 20px', fontWeight: 700, cursor: 'pointer' }}>Bid</button>
+        {/* Bid form: tier-gated for escorts on bid loads */}
+        {isBidType && isEscort && load.status === 'open' && (() => {
+          const level = getAccessLevel(userProfile?.tier, isAdminEmail(currentUser?.email))
+          if (level === 'none') {
+            return (
+              <div style={card}>
+                <h2 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Place a Bid</h2>
+                <p style={{ fontSize: 13, color: '#9ca3af', marginBottom: 12 }}>Bidding requires a paid escort plan.</p>
+                <Link href="/pricing" style={{ display: 'inline-block', background: '#f60', color: '#fff', borderRadius: 6, padding: '10px 20px', fontWeight: 700, fontSize: 13, textDecoration: 'none' }}>Upgrade to Member →</Link>
+              </div>
+            )
+          }
+          const secondsLeft = level === 'delayed' ? secondsUntilClaimable(load.created_at, now) : 0
+          const locked = secondsLeft > 0
+          return (
+            <div style={card}>
+              <h2 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Place a Bid</h2>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input
+                  type="number"
+                  style={{ flex: 1, background: '#16213a', border: '1px solid #1e3a5f', borderRadius: 6, color: '#e2e8f0', padding: '10px 12px', fontSize: 14 }}
+                  placeholder="Your rate ($)"
+                  value={bidRate}
+                  onChange={e => setBidRate(e.target.value)}
+                />
+                <button onClick={submitBid} disabled={locked} style={{ background: locked ? '#374151' : '#f60', color: '#fff', border: 'none', borderRadius: 6, padding: '10px 20px', fontWeight: 700, cursor: locked ? 'not-allowed' : 'pointer' }}>{locked ? `Available in ${secondsLeft}s...` : 'Bid'}</button>
+              </div>
+              {bidStatus && <p style={{ fontSize: 12, color: bidStatus.startsWith('Error') ? '#ef4444' : '#22c55e', marginTop: 8 }}>{bidStatus}</p>}
             </div>
-            {bidStatus && <p style={{ fontSize: 12, color: bidStatus.startsWith('Error') ? '#ef4444' : '#22c55e', marginTop: 8 }}>{bidStatus}</p>}
-          </div>
-        )}
+          )
+        })()}
 
         {/* Bids list (carrier only or when matched) */}
         {isBidType && bids.length > 0 && (isOwnerCarrier || isMatchedEscort) && (
