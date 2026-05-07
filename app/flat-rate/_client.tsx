@@ -37,6 +37,7 @@ interface Load {
   fmcsa_verified?: boolean;
   poster_rating?: number;
   poster_jobs?: number;
+  load_type?: string | null;
 }
 
 interface SponsoredProfile {
@@ -284,7 +285,12 @@ export function FlatRateBoardClient() {
                             }}
                           >
                             <div>
-                              <div style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginBottom: 6 }}>
+                              {load.load_type === 'breakdown' && (
+          <div style={{ display: 'inline-block', background: '#7a1f1f', color: '#fff', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4, marginBottom: 6 }}>
+            🚨 BREAKDOWN ASSISTANCE
+          </div>
+        )}
+        <div style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginBottom: 6 }}>
                                 {toTitleCase(load.pu_city)}, {load.pu_state} → {toTitleCase(load.dl_city)}, {load.dl_state}
                               </div>
                               <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 8 }}>
