@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { isAdminEmail } from '@/lib/supabase'
+import { getAccessLevel, secondsUntilClaimable, type AccessLevel } from '@/lib/board-access'
 import { BoardAdSidebar } from '@/components/BoardAdSidebar';
 
 function TimeRemaining({ expiresAt }: { expiresAt: string }) {
@@ -28,7 +29,13 @@ export function OpenLoadsBoardClient() {
   const [loads, setLoads] = useState<any[]>([])
   const [bids, setBids] = useState<Record<string, any[]>>({})
   const [loading, setLoading] = useState(true)
-  const [isPro, setIsPro] = useState(false)
+  const [accessLevel, setAccessLevel] = useState<AccessLevel>('none')
+  // Tick once a second so per-load Member countdowns re-render in real time.
+  const [now, setNow] = useState<number>(() => Date.now())
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(id)
+  }, [])
   const [userId, setUserId] = useState<string | null>(null)
   const [bidModal, setBidModal] = useState<{ loadId: string; loadRate: number } | null>(null)
   const [bidRate, setBidRate] = useState('')
@@ -50,9 +57,9 @@ export function OpenLoadsBoardClient() {
       setUserId(uid)
       const { data: p } = await supabase.from('profiles').select('tier').eq('id', uid).single()
       const admin = isAdminEmail(email)
-      const pro = admin || p?.tier === 'pro' || p?.tier === 'fleet_pro'
-      setIsPro(pro)
-      return pro
+      const level = getAccessLevel(p?.tier ?? null, admin)
+      setAccessLevel(level)
+      return level === 'instant'
     }
     const init = async () => {
       const { data: { user } } = await supabase.auth.getUser()
@@ -67,22 +74,22 @@ export function OpenLoadsBoardClient() {
         loadUser(session.user.id, session.user.email)
       } else {
         setUserId(null)
-        setIsPro(false)
+        setAccessLevel('none')
       }
     })
     return () => subscription.unsubscribe()
   }, [])
 
-  const fetchLoads = async (proFlag?: boolean) => {
-    const effPro = proFlag ?? isPro
-    const cutoff = effPro ? null : new Date(Date.now() - 60000).toISOString()
+  const fetchLoads = async (_proFlag?: boolean) => {
+    // Tier gating is enforced in the per-load button UI (see Place Bid block),
+    // not at the query level. Every authenticated escort sees every open load.
     let query = supabase
       .from('loads')
       .select('*')
       .in('board_type', ['open-bid'])
       .eq('status', 'open')
       .gt('expires_at', new Date().toISOString())
-    if (cutoff) query = query.lt('created_at', cutoff)
+    // (cutoff filter removed: tier gating now lives in the button UI)
     const { data } = await query.order('expires_at', { ascending: true })
     setLoads((data || [])
       .filter((load: any) => {
@@ -223,11 +230,11 @@ export function OpenLoadsBoardClient() {
                 </div>
                 {!userId ? (
                   <a href={`/signin?redirect=/open-loads`} style={{
-                    display: 'block', background: '#1e3a5f', color: '#e2e8f0', border: 'none', borderRadius: 6,
+                    display: 'block', background: '#1e3a5f', color: '#e2e8f0', border: '1px solid #2563eb', borderRadius: 6,
                     padding: '8px 20px', fontWeight: 700, fontSize: 13, cursor: 'pointer', width: '100%',
                     textAlign: 'center', textDecoration: 'none'
                   }}>Sign In to Bid</a>
-                ) : isPro ? (
+                ) : accessLevel === 'instant' ? (
                   <button
                     onClick={() => { setBidModal({ loadId: load.id, loadRate: load.rate }); setBidRate('') }}
                     style={{
@@ -237,12 +244,39 @@ export function OpenLoadsBoardClient() {
                   >
                     Place Bid
                   </button>
+                ) : accessLevel === 'delayed' ? (
+                  // Member: 60s countdown gated on load.created_at, then Place Bid unlocks.
+                  (() => {
+                    const remaining = secondsUntilClaimable(load.created_at, now)
+                    if (remaining > 0) {
+                      return (
+                        <button
+                          disabled
+                          style={{
+                            background: '#3a3a3a', color: '#9ca3af', border: 'none', borderRadius: 6,
+                            padding: '8px 20px', fontWeight: 700, fontSize: 13, cursor: 'default', width: '100%'
+                          }}
+                        >{`Available in ${remaining}s...`}</button>
+                      )
+                    }
+                    return (
+                      <button
+                        onClick={() => { setBidModal({ loadId: load.id, loadRate: load.rate }); setBidRate('') }}
+                        style={{
+                          background: '#f0a500', color: '#000', border: 'none', borderRadius: 6,
+                          padding: '8px 20px', fontWeight: 700, fontSize: 13, cursor: 'pointer', width: '100%'
+                        }}
+                      >
+                        Place Bid
+                      </button>
+                    )
+                  })()
                 ) : (
-                  <a href="/pricing" style={{
-                    display: 'block', background: '#2a2a2a', color: '#6b7280', border: '1px solid #333', borderRadius: 6,
+                  <Link href="/pricing" style={{
+                    display: 'block', background: '#2a2a2a', color: '#f0a500', border: '1px solid #f0a500', borderRadius: 6,
                     padding: '8px 20px', fontWeight: 700, fontSize: 13, cursor: 'pointer', width: '100%',
                     textAlign: 'center', textDecoration: 'none'
-                  }}>Pro Required</a>
+                  }}>Upgrade to Member →</Link>
                 )}
               </div>
             </div>

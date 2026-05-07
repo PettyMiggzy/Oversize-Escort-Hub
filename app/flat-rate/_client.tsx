@@ -2,8 +2,10 @@
 import SiteHeader from '@/components/SiteHeader';
 
 import { useEffect, useMemo, useState } from "react";
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { isAdminEmail } from '@/lib/supabase';
+import { getAccessLevel, secondsUntilClaimable } from '@/lib/board-access';
 import { BoardAdSidebar } from '@/components/BoardAdSidebar';
 
 const toTitleCase = (str?: string) =>
@@ -59,6 +61,13 @@ export function FlatRateBoardClient() {
   const [claimError, setClaimError] = useState<Record<string, string>>({});
 
   const [windowWidth, setWindowWidth] = useState(1200);
+  // Tick every second so per-load Member countdowns re-render in real time.
+  // One setState/sec for the whole board; cheaper than per-row timers.
+  const [now, setNow] = useState<number>(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
   useEffect(() => {
     setWindowWidth(window.innerWidth);
     const handleResize = () => setWindowWidth(window.innerWidth);
@@ -105,14 +114,13 @@ export function FlatRateBoardClient() {
     const fetchLoads = async () => {
       try {
         const supabase = createClient();
-        const isPro = isAdminEmail(userEmail) || userTier === 'pro' || userTier === 'fleet_pro'
-        const cutoff = isPro ? null : new Date(Date.now() - 60000).toISOString()
+        // Tier-based gating is enforced in the button UI (see Claim button below),
+        // not at the query level. Every authenticated escort sees every open load.
         let q = supabase
           .from("loads")
           .select("*")
           .eq("board_type", "flat-rate")
           .eq("status", "open");
-        if (cutoff) q = q.lt('created_at', cutoff)
         const { data, error } = await q;
 
         if (error) {
@@ -321,23 +329,62 @@ export function FlatRateBoardClient() {
                               {claimError[load.id] && (
                                 <div style={{ fontSize: 11, color: '#ef4444', marginBottom: 6 }}>{claimError[load.id]}</div>
                               )}
-                              <button
-                                onClick={() => handleClaim(load.id)}
-                                disabled={claimedLoads.has(load.id)}
-                                style={{
-                                  background: claimedLoads.has(load.id) ? '#22c55e' : '#f0a500',
-                                  color: claimedLoads.has(load.id) ? '#fff' : '#000',
-                                  border: 'none',
-                                  borderRadius: 6,
-                                  padding: '8px 20px',
-                                  fontWeight: 700,
-                                  fontSize: 13,
-                                  cursor: claimedLoads.has(load.id) ? 'default' : 'pointer',
-                                  width: '100%'
-                                }}
-                              >
-                                {claimedLoads.has(load.id) ? 'Request Sent ✓' : 'Claim Load'}
-                              </button>
+                              {(() => {
+                                // Tier-aware claim CTA. See lib/board-access.ts for the rules.
+                                const access = getAccessLevel(userTier, isAdminEmail(userEmail));
+                                const claimed = claimedLoads.has(load.id);
+                                const remaining = access === 'delayed'
+                                  ? secondsUntilClaimable(load.created_at, now)
+                                  : 0;
+                                const locked = access === 'delayed' && remaining > 0;
+                                if (access === 'none') {
+                                  // Free / trial / unknown tier: hard upgrade CTA.
+                                  return (
+                                    <Link
+                                      href="/pricing"
+                                      style={{
+                                        display: 'block',
+                                        background: '#2a2a2a',
+                                        color: '#f0a500',
+                                        border: '1px solid #f0a500',
+                                        borderRadius: 6,
+                                        padding: '8px 20px',
+                                        fontWeight: 700,
+                                        fontSize: 13,
+                                        textAlign: 'center',
+                                        textDecoration: 'none',
+                                        width: '100%',
+                                        boxSizing: 'border-box',
+                                      }}
+                                    >
+                                      Upgrade to Member →
+                                    </Link>
+                                  );
+                                }
+                                return (
+                                  <button
+                                    onClick={() => handleClaim(load.id)}
+                                    disabled={claimed || locked}
+                                    style={{
+                                      background: claimed ? '#22c55e' : locked ? '#3a3a3a' : '#f0a500',
+                                      color: claimed ? '#fff' : locked ? '#9ca3af' : '#000',
+                                      border: 'none',
+                                      borderRadius: 6,
+                                      padding: '8px 20px',
+                                      fontWeight: 700,
+                                      fontSize: 13,
+                                      cursor: claimed || locked ? 'default' : 'pointer',
+                                      width: '100%'
+                                    }}
+                                  >
+                                    {claimed
+                                      ? 'Request Sent ✓'
+                                      : locked
+                                        ? `Available in ${remaining}s...`
+                                        : 'Claim Load'}
+                                  </button>
+                                );
+                              })()}
                               {userId && load.status === 'filled' && (
                                 <a href={`/review/${load.id}`} style={{ fontSize: 11, color: '#9ca3af', textAlign: 'center', display: 'block', marginTop: 6 }}>
                                   Leave a Review
