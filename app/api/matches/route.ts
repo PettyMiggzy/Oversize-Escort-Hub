@@ -18,10 +18,10 @@ export async function POST(request: NextRequest) {
 
       // Notify carrier
       try {
-        const { data: loadData } = await supabase.from('loads').select('posted_by').eq('id', load_id).single()
-        if (loadData?.posted_by) {
+        const { data: loadData } = await supabase.from('loads').select('carrier_id').eq('id', load_id).single()
+        if (loadData?.carrier_id) {
           await supabase.from('notifications').insert({
-            user_id: loadData.posted_by,
+            user_id: loadData.carrier_id,
             message: 'An escort has claimed your load. Review and accept or decline in your dashboard.',
             read: false,
             created_at: new Date().toISOString(),

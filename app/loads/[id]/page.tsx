@@ -39,8 +39,8 @@ export default function LoadDetailPage() {
       const { data: loadData } = await supabase.from('loads').select('*').eq('id', id).single()
       setLoad(loadData)
 
-      if (loadData?.posted_by) {
-        const { data: c } = await supabase.from('profiles').select('full_name, phone, email').eq('id', loadData.posted_by).single()
+      if (loadData?.carrier_id) {
+        const { data: c } = await supabase.from('profiles').select('full_name, phone, email').eq('id', loadData.carrier_id).single()
         setCarrier(c)
       }
       if (loadData?.matched_escort_id) {
@@ -73,7 +73,7 @@ export default function LoadDetailPage() {
   const isEscort = userProfile?.role === 'escort'
   const isPro = userProfile?.tier === 'pro' || userProfile?.tier === 'fleet_pro' || isAdminEmail(currentUser?.email)
   const isMatchedEscort = currentUser && load.matched_escort_id === currentUser.id
-  const isOwnerCarrier = currentUser && load.posted_by === currentUser.id
+  const isOwnerCarrier = currentUser && load.carrier_id === currentUser.id
   const isMatched = load.status === 'matched'
   const canSeeFull = isMatched && (isMatchedEscort || isOwnerCarrier)
   const isBidType = load.board_type === 'bid' || load.board_type === 'open-bid'

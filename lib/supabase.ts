@@ -79,7 +79,7 @@ export type Bid = {
 
 export const ADMIN_EMAILS = [
   'brian@precisionpilotservices.com',
-  'bahamed3170@gmail.com',
+  'bahmed3170@gmail.com',
 ]
 
 export function isAdminEmail(email?: string | null): boolean {

@@ -1,0 +1,161 @@
+# Code Audit — Oversize Escort Hub
+
+**Date:** 2026-06-23
+**Branch:** `claude/code-audit-fixes-qjzfbk`
+**Scope:** Full-repo audit ("audit every line, fix what's broken").
+
+This file is a handoff note for the next person/Claude session. It records what
+was wrong, what I changed, and what still needs a human decision.
+
+---
+
+## TL;DR
+
+The app compiles cleanly (`npx tsc --noEmit` passes). The build was already
+functional; the broken things were **logic/data bugs and repo hygiene**, not
+compile errors. The stale `build_summary.txt` that claimed parse errors was
+out of date — those files had already been fixed before this audit.
+
+I fixed 7 concrete bug classes (below). One area — the **matching subsystem** —
+is architecturally inconsistent and needs a human decision before touching; I
+documented it rather than guess.
+
+---
+
+## How I audited
+
+1. `npm install` then `npx tsc --noEmit` → **passes** (0 errors).
+2. `npx next build` → only fails on fetching Google Fonts (`Inter`) because this
+   sandbox has no outbound network to `fonts.googleapis.com`. **Not a code bug** —
+   it will build fine on Vercel. Could not produce a full local build here.
+3. `npx eslint .` → 365 problems (260 errors, 105 warnings). Almost all are
+   pre-existing `@typescript-eslint/no-explicit-any` (197) and unused-vars (82).
+   The serious one (`react-hooks/rules-of-hooks`) is now fixed (see below).
+4. Cross-checked DB column/table names in code against `supabase/migrations*`.
+
+---
+
+## What I FIXED
+
+### 1. Removed accidental junk files at repo root
+Shell-redirect artifacts that had been committed (they contained `less` help
+text and `git log` output). Deleted:
+`, re`, `=re.DOTALL`, `e:`, `f:`, `fw:`, `grep`, `loadingAuthsed`,
+`that have both metadata export AND use client`, and the stale `build_summary.txt`.
+
+### 2. Removed conflicting/duplicate config files
+- `postcss.config.mjs` referenced **Tailwind v4** (`@tailwindcss/postcss`, which
+  is *not installed* — the project uses Tailwind v3 `^3.4.17`). PostCSS happened
+  to resolve `postcss.config.js` first, so the build worked, but the `.mjs` was a
+  latent landmine. **Kept `postcss.config.js` (v3-correct), deleted `.mjs`.**
+- Deleted duplicate `tailwind.config.js`, kept `tailwind.config.ts`.
+
+### 3. Rules-of-Hooks crash in `app/page.tsx` (`PostLoadPage`)
+`useState`/`useEffect` were called **after** early `return`s (the not-signed-in
+and escort guards). When auth/profile resolved between renders, React throws
+"Rendered fewer hooks than expected" and the **Post Load page crashes**.
+**Fix:** moved all hooks above the guard returns; removed a now-unreachable
+duplicate escort guard.
+
+### 4. Admin email typo locking the admin out
+`bahamed3170@gmail.com` (extra "a") instead of the real `bahmed3170@gmail.com`
+in `lib/supabase.ts` (`ADMIN_EMAILS`, used by `isAdminEmail`) and
+`app/api/loads/notify-pro/route.ts`. This silently denied admin access / excluded
+the admin from Pro notifications. **Fixed both.**
+
+### 5. `posted_by` vs `carrier_id` — wrong column, reads returned nothing
+The `loads` table's owner column is **`carrier_id`** (confirmed by the
+`loads_carrier_id_idx` index and every INSERT). Several reads queried
+`posted_by`, which is **never written**, so they silently returned empty.
+This broke: the carrier "my loads" dashboard tabs, the post-load SMS hook's
+`loadId` lookup, the pending-match count, match notifications, and the load
+detail page's carrier-contact + owner check. Fixed all `posted_by` → `carrier_id`
+in `app/page.tsx` (5 sites), `app/api/matches/route.ts`, and
+`app/loads/[id]/page.tsx`.
+
+### 6. Server routes using the browser/anon client for auth → always 401
+`createBrowserClient()` (and the bare `@/lib/supabase` anon singleton) can't read
+the auth cookie server-side, so `supabase.auth.getUser()` always returned null —
+the routes always responded 401 / "Admin only". Switched to the cookie-aware
+server client (`@/lib/supabase/server`) in:
+- `app/api/jobs/log/route.ts`
+- `app/api/invoices/create/route.ts`
+- `app/api/escort/cert-upload/route.ts`
+- `app/api/veteran/dd214-submit/route.ts`
+- `app/api/notify/route.ts` (GET/POST/PATCH)
+
+(`app/api/reviews/route.ts` already did this correctly — left as is.)
+
+### 7. `lib/tier-access.ts` queried a non-existent table
+`checkTierAccess` / `enforceTierLimit` read from `user_subscriptions`, which does
+not exist in the migrations. The rest of the app uses **`profiles.tier`**. So any
+non-admin/non-carrier escort was wrongly blocked from invoices and reviews.
+Rewrote it to read `profiles.tier` via the server client, with a tier-rank map
+(`free/trial=0`, `member/carrier_member=1`, `pro/fleet_*=2`).
+
+---
+
+## KNOWN ISSUES — need a human decision (NOT fixed)
+
+### A. Matching subsystem uses three incompatible models ⚠️ (highest priority)
+The "match" feature is implemented three different ways against tables that
+**aren't in the repo migrations**:
+- `app/dashboard/_client.tsx` reads a **`matches`** table and calls
+  `POST /api/matches` with `{ matchId, action }`.
+- `app/api/matches/route.ts` reads `{ load_id, action }` (so `load_id` is
+  `undefined` — payload mismatch) **and** auths via the bare anon singleton
+  (always 401). It updates `loads.status` directly.
+- `app/page.tsx` (a separate carrier UI) reads a **`load_matches`** table.
+- `app/api/loads/match/route.ts` is the most complete endpoint (service-role,
+  `{ load_id, action, carrier_id }`, push notifications) and works off
+  `loads.matched_escort_id`.
+
+**Decision needed:** which table is canonical (`matches`, `load_matches`, or just
+`loads.matched_escort_id`)? Once that's settled, the dashboard should call the
+canonical endpoint with the matching payload, and the dead/duplicate route(s)
+removed. I left this untouched to avoid guessing against an unknown live schema.
+
+### B. `lib/email.ts` is a half-built stub
+In production (when `SMTP_HOST`/`GMAIL_USER` is set) it does a **relative** fetch
+to `/api/internal/send-email`, which (a) doesn't exist and (b) won't resolve
+server-side without an absolute base URL — so those emails silently fail.
+Meanwhile `app/api/bgc-badge/submit/route.ts` calls Resend directly and the
+project already depends on `resend`. **Recommend:** make `lib/email.ts` use
+Resend (`RESEND_API_KEY`) for consistency.
+
+### C. `lib/auth-utils.ts` is dead code against a stale schema
+Unused everywhere; queries non-existent `users` / `user_subscriptions` tables.
+Safe to delete, or rewrite against `profiles` if you intend to use it.
+
+### D. Pre-existing lint debt (not breaking, but worth a pass)
+- 197 `@typescript-eslint/no-explicit-any`, 82 unused-vars, 28
+  `react/no-unescaped-entities`, plus `react-hooks/exhaustive-deps`,
+  `set-state-in-effect`, inline-component, and TDZ-style
+  (`react-hooks/immutability`) warnings across `app/page.tsx`,
+  `app/dashboard/_client.tsx`, the board `_client.tsx` files, and `SiteHeader`.
+- None of these crash at runtime (the one that could — conditional hooks — is
+  fixed). If your **Vercel build fails on ESLint**, the quick unblock is to add
+  `eslint: { ignoreDuringBuilds: true }` to `next.config.ts`; the proper fix is a
+  typing/cleanup pass.
+
+### E. `/api/notify` POST has no authorization
+Anyone can insert a notification for any `user_id` (the body is trusted). Auth
+on GET/PATCH is now fixed, but POST should verify the caller before it's wired
+into the UI (currently unused by the frontend).
+
+---
+
+## How to verify
+```bash
+npm install
+npx tsc --noEmit          # passes
+npx eslint .              # pre-existing debt only; no rules-of-hooks errors
+npx next build            # works where Google Fonts is reachable (e.g. Vercel)
+```
+
+## Files changed in this audit
+- Deleted: junk root files, `build_summary.txt`, `postcss.config.mjs`,
+  `tailwind.config.js`
+- Modified: `app/page.tsx`, `app/loads/[id]/page.tsx`,
+  `app/api/{jobs/log,invoices/create,escort/cert-upload,veteran/dd214-submit,notify,matches,loads/notify-pro}/route.ts`,
+  `lib/supabase.ts`, `lib/tier-access.ts`
