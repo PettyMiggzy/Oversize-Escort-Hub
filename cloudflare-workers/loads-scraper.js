@@ -2,11 +2,13 @@
 // OEH Loads Covered Scraper Worker
 // Receives email webhook from Gmail → parses load → pushes to Supabase
 
-const SUPABASE_URL = env.SUPABASE_URL;
-const SUPABASE_KEY = env.SUPABASE_KEY;
-
 export default {
   async fetch(request, env) {
+        // env is only available inside the handler in the Workers modules
+        // format — reading it at module top-level throws ReferenceError and
+        // prevents the Worker from starting (deploy failure).
+        const SUPABASE_URL = env.SUPABASE_URL;
+        const SUPABASE_KEY = env.SUPABASE_KEY;
         const url = new URL(request.url);
             const pathname = url.pathname;
 
