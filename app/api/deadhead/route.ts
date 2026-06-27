@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
       .not('matched_escort_id', 'is', null)
       .not('deadhead_destination_city', 'is', null)
       .not('deadhead_destination_state', 'is', null)
-      .in('status', ['matched', 'pending_match'])
+      .in('status', ['filled', 'pending_match'])
 
     if (!activeMatches?.length) return NextResponse.json({ notified: 0 })
 

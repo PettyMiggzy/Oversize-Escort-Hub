@@ -74,7 +74,7 @@ export default function LoadDetailPage() {
   const isPro = userProfile?.tier === 'pro' || userProfile?.tier === 'fleet_pro' || isAdminEmail(currentUser?.email)
   const isMatchedEscort = currentUser && load.matched_escort_id === currentUser.id
   const isOwnerCarrier = currentUser && load.carrier_id === currentUser.id
-  const isMatched = load.status === 'matched'
+  const isMatched = load.status === 'filled'
   const canSeeFull = isMatched && (isMatchedEscort || isOwnerCarrier)
   const isBidType = load.board_type === 'bid' || load.board_type === 'open-bid'
 
@@ -89,7 +89,7 @@ export default function LoadDetailPage() {
         <Link href="/open-loads" style={{ fontSize: 13, color: '#9ca3af', textDecoration: 'none', display: 'block', marginBottom: 16 }}>← Back to Board</Link>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
           <h1 style={{ fontSize: 20, fontWeight: 700 }}>Load Details</h1>
-          <span style={{ background: load.status === 'open' ? '#1e3a5f' : load.status === 'matched' ? '#14532d' : '#7f1d1d', color: '#fff', borderRadius: 6, padding: '4px 12px', fontSize: 12, fontWeight: 700 }}>
+          <span style={{ background: load.status === 'open' ? '#1e3a5f' : load.status === 'filled' ? '#14532d' : '#7f1d1d', color: '#fff', borderRadius: 6, padding: '4px 12px', fontSize: 12, fontWeight: 700 }}>
             {load.status?.toUpperCase()}
           </span>
         </div>

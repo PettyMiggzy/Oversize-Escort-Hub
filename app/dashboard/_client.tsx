@@ -39,6 +39,7 @@ interface Match {
   load_id: string
   status: string
   loads: Load | null
+  escort?: { full_name?: string; phone?: string; tier?: string; bgc_verified?: boolean } | null
 }
 
 export function DashboardPageClient() {
@@ -117,19 +118,24 @@ export function DashboardPageClient() {
           setBids([])
         }
 
-        const { data: pendingMatches } = await supabase
-          .from('matches')
-          .select('*, loads(*)')
+        // Pending matches = the carrier's own loads an escort has claimed
+        // (status 'pending_match', escort in matched_escort_id). Single source
+        // of truth is the loads table; we shape rows to the Match interface.
+        const { data: pendingLoads } = await supabase
+          .from('loads')
+          .select('*, escort:profiles!matched_escort_id(full_name, phone, tier, bgc_verified)')
           .eq('carrier_id', uid)
           .eq('status', 'pending_match')
-          .order('created_at', { ascending: false })
-        setMatches(pendingMatches ?? [])
+          .order('match_requested_at', { ascending: false })
+        setMatches((pendingLoads ?? []).map((l: any) => ({
+          id: l.id, load_id: l.id, status: l.status, loads: l, escort: l.escort ?? null,
+        })))
 
         const { data: done } = await supabase
           .from('loads')
           .select('*')
           .eq('carrier_id', uid)
-          .eq('status', 'matched')
+          .eq('status', 'filled')
           .order('created_at', { ascending: false })
           .limit(10)
         setCompletedLoads(done ?? [])
@@ -186,16 +192,21 @@ export function DashboardPageClient() {
 
   const handleMatchAction = async (matchId: string, action: 'accept' | 'decline', loadId?: string) => {
     setActionMsg('')
-    const res = await fetch('/api/matches', {
+    if (!loadId || !profile?.id) {
+      setActionMsg('Action failed. Please try again.')
+      return
+    }
+    const res = await fetch('/api/loads/match', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ matchId, action }),
+      body: JSON.stringify({ load_id: loadId, action, carrier_id: profile.id }),
     })
     if (res.ok) {
-      const data = await res.json()
       setMatches(prev => prev.filter(m => m.id !== matchId))
       setActionMsg(`Match ${action}ed.`)
-      if (action === 'accept' && data.requiresDeadheadDestination && loadId) {
+      // /api/loads/match auto-fills the deadhead destination from the load's
+      // drop-off on accept; offer the carrier a chance to override it.
+      if (action === 'accept') {
         setDeadheadModal({ loadId })
       }
     } else {
@@ -543,7 +554,7 @@ export function DashboardPageClient() {
                         Accept
                       </button>
                       <button
-                        onClick={() => handleMatchAction(match.id, 'decline')}
+                        onClick={() => handleMatchAction(match.id, 'decline', match.load_id)}
                         style={{ background: 'transparent', color: MUTED, border: `1px solid ${MUTED}`, borderRadius: 6, padding: '6px 16px', cursor: 'pointer' }}
                       >
                         Decline
