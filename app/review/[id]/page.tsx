@@ -72,7 +72,7 @@ export default function ReviewPage() {
       const res = await fetch('/api/reviews', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ targetUserId: load.carrier_id, rating, comment }),
+        body: JSON.stringify({ loadId, targetUserId: load.carrier_id, rating, comment }),
       })
       const j = await res.json()
       if (!res.ok) throw new Error(j?.error || 'Failed to submit review')

@@ -8,9 +8,9 @@ export const dynamic = 'force-dynamic';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { targetUserId, rating, comment } = body;
+    const { loadId, targetUserId, rating, comment } = body;
 
-    if (!targetUserId || typeof rating !== 'number') {
+    if (!loadId || !targetUserId || typeof rating !== 'number') {
       return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
     }
 
@@ -37,11 +37,11 @@ export async function POST(req: NextRequest) {
     const { data, error } = await authed
       .from('reviews')
       .insert({
+        load_id: loadId,
         reviewer_id: userId,
-        target_user_id: targetUserId,
+        reviewee_id: targetUserId,
         rating,
-        comment,
-        created_at: new Date().toISOString(),
+        body: comment ?? null,
       });
 
     if (error) throw error;
@@ -67,7 +67,7 @@ export async function GET(req: NextRequest) {
     const { data, error } = await supabase
       .from('reviews')
       .select('*')
-      .eq('target_user_id', userId);
+      .eq('reviewee_id', userId);
 
     if (error) throw error;
     return NextResponse.json({ reviews: data });

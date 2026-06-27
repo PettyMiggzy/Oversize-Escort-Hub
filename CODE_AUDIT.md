@@ -153,9 +153,110 @@ npx eslint .              # pre-existing debt only; no rules-of-hooks errors
 npx next build            # works where Google Fonts is reachable (e.g. Vercel)
 ```
 
+---
+
+# Round 2 — Deep re-audit (every API route + page)
+
+After the first pass I re-audited the whole repo subsystem-by-subsystem (payments,
+SMS/push, loads/bids/escort, and the page/React layer). Found and fixed another
+batch of **high-confidence, verified** bugs. As before, `npx tsc --noEmit` passes.
+
+> Important context discovered: the repo's `supabase/migrations*` are **incomplete** —
+> the production database has many tables created directly in Supabase Studio
+> (bids' own migration says "back-port from live schema"). So "not in migrations"
+> does **not** mean "doesn't exist." I only renamed columns/values I could verify
+> against the committed migration (`reviews`) or the `Profile` type + consistent
+> app-wide usage (`carrier_id`, `tier`). Everything uncertain is documented, not changed.
+
+## Round 2 — FIXED
+
+### Reviews were broken end-to-end → now aligned to the real schema
+The `reviews` table (in `migrations.sql`) is `load_id (NOT NULL)`, `reviewer_id`,
+`reviewee_id`, `rating`, `body`, with `UNIQUE(load_id, reviewer_id)`. The code used
+`target_user_id`/`comment`/`escort_id` and never sent `load_id`, so **every review
+insert failed** and **every rating display read the wrong column** (always 0 stars).
+Fixed across: `app/api/reviews/route.ts` (insert `load_id`/`reviewee_id`/`body`; GET
+filters `reviewee_id`), `app/review/[id]/page.tsx` (now sends `loadId`),
+`app/find-escorts/page.tsx` and `app/escorts/[id]/page.tsx` (`escort_id`→`reviewee_id`,
+`comment`→`body`).
+
+### Posting a load via `/post-load` always failed
+`app/post-load/_client.tsx` sent `escort_type`, but `app/api/loads/route.ts` requires
+`escortType` (camelCase) → 400 "Missing required fields" every time. Fixed the field name.
+
+### Stripe checkout from `/checkout` always failed
+`app/checkout/page.tsx` sent internal keys (`"P_EVO_MEMBER"`, `"FLEET_PRO"`) as the
+Stripe price id; the route passed them straight to Stripe, which rejects them. The
+route now resolves keys through `STRIPE_PRICE_IDS` and passes real `price_…` ids
+through unchanged (so the `/pricing` page still works too). `app/api/checkout/route.ts`.
+
+### Stripe webhook mis-tiered one-time purchases
+A one-time **P/EVO cert-review** purchase fell into the subscription block where
+`PRICE_TO_TIER[priceId] ?? 'member'` **silently set the buyer's tier to `member`**
+and nulled `stripe_subscription_id`. Now cert-review purchases only set `pevo_paid`,
+and unknown prices no longer default anyone to `member`. `app/api/webhook/route.ts`.
+
+### Two endpoints 404'd on every call (selected a non-existent `title` column)
+`app/api/loads/request/route.ts` and `app/api/bids/accept/route.ts` selected a `title`
+column on `loads` (no such column; never read in the code) → query error → "Load not
+found" every time → match requests and bid acceptance were impossible. Removed `title`.
+
+### Fleet Manager was Pro-only-but-403-for-everyone
+`app/api/fleet-search/route.ts` checked `profile.subscription_tier` (real column is
+`tier`) → undefined → every non-admin got 403. Now checks `tier` (`pro`/`fleet_pro`).
+
+### Pro escorts never got "new load" alerts
+`app/api/loads/notify-pro/route.ts` had a self-contradictory filter
+(`.eq("tier","pro").or("role.eq.admin").eq("role","escort")` → `role=admin AND
+role=escort` → matches nothing). Removed the bad `.or()`; admins are already added
+separately. `app/api/sms/route.ts` filtered on a non-existent `membership` column →
+changed to `tier`.
+
+### Bid submission rejected valid open-bid loads
+`app/api/bids/route.ts` only accepted `board_type` of `'bid'` or `'open'`, but some
+loads use `'open-bid'`. Now accepts `bid`/`open`/`open-bid`.
+
+### Notification emails silently never sent
+`lib/email.ts` did a relative `fetch('/api/internal/send-email')` (no such route, and
+relative URLs don't resolve server-side). Rewrote to use **Resend** (`RESEND_API_KEY`),
+matching how `app/api/bgc-badge/submit` already sends email. Falls back to a console
+stub when no key is set.
+
+## Round 2 — STILL needs a human decision (NOT changed)
+
+- **`board_type` naming is inconsistent app-wide.** The main posting UI writes
+  `flat`/`bid`/`open`; the SMS webhook and the `Load` type use `flat-rate`/`bid`/`open-bid`.
+  The board pages filter on specific strings, so some loads may not appear on the
+  board you'd expect. Needs one canonical set of values + a data backfill.
+- **`/api/sms/parse`** inserts loads with `board_type` values like `flat_rate`/`open_loads`
+  (underscores — match nothing) and a `source` column. It has **no in-app callers**
+  (external webhook or dead). Don't wire it up until its insert shape is reconciled.
+- **TextRequest API calls disagree on URL/host/version** across routes
+  (`api.textrequest.com/api/v3/Messages`, `app.textrequest.com/api/v2/...`,
+  `www.textrequest.com/api/v3/send/` in `lib/sms.ts`). At most one is correct — verify
+  against your TextRequest account and standardize. (`lib/sms.ts` is also unused/dead.)
+- **Auth gaps:** `app/api/loads/[id]/route.ts` (PATCH) and `app/api/deadhead/route.ts`
+  (PATCH) let anyone modify any load's deadhead destination — no caller check.
+- **`app/api/deadhead/route.ts`** filters `status IN ('matched','pending_match')` but the
+  migration's status CHECK is `open/pending_match/filled/expired` (`'matched'` is written
+  only by the divergent `/api/matches`). Tied to the matching-model decision (section A).
+- **Verify these tables/columns exist in production** (referenced in code, absent from
+  repo migrations): `matches`, `load_matches`, `sponsored_zones`, `device_fingerprints`,
+  `escort_certs`, `invoices`, `job_logs`, `fleet_searches`, `admin_flags`,
+  `escort_availability`, `launch_waitlist`, `disputes`, `fleet_escorts`,
+  `veteran_discounts`, `dd214_submissions`, and the `profiles.stripe_subscription_id`
+  column. If any are missing, the related feature throws at runtime.
+- **Dead/inert code:** `lib/auth-utils.ts` (queries non-existent `users`/`user_subscriptions`),
+  `lib/sms.ts` (unused), and `app/components/PushInit` is imported but never rendered in
+  `app/layout.tsx` so push registration never runs.
+
 ## Files changed in this audit
-- Deleted: junk root files, `build_summary.txt`, `postcss.config.mjs`,
-  `tailwind.config.js`
-- Modified: `app/page.tsx`, `app/loads/[id]/page.tsx`,
+- **Round 1** — Deleted: junk root files, `build_summary.txt`, `postcss.config.mjs`,
+  `tailwind.config.js`. Modified: `app/page.tsx`, `app/loads/[id]/page.tsx`,
   `app/api/{jobs/log,invoices/create,escort/cert-upload,veteran/dd214-submit,notify,matches,loads/notify-pro}/route.ts`,
   `lib/supabase.ts`, `lib/tier-access.ts`
+- **Round 2** — Modified: `app/api/reviews/route.ts`, `app/review/[id]/page.tsx`,
+  `app/find-escorts/page.tsx`, `app/escorts/[id]/page.tsx`, `app/post-load/_client.tsx`,
+  `app/api/checkout/route.ts`, `app/api/webhook/route.ts`, `app/api/loads/request/route.ts`,
+  `app/api/bids/accept/route.ts`, `app/api/bids/route.ts`, `app/api/fleet-search/route.ts`,
+  `app/api/loads/notify-pro/route.ts`, `app/api/sms/route.ts`, `lib/email.ts`

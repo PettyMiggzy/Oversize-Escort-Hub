@@ -88,16 +88,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ received: true })
     }
 
-    // Subscription tier upgrade
-    const tier = PRICE_TO_TIER[priceId] ?? 'member'
-    const isPevo = priceId === 'price_1TF0DiLmfugPCRbAPWsN2K5x' || priceId === 'price_1TF0D4LmfugPCRbAd4hMO22R'
-    const update: any = {
+    // One-time P/EVO cert-review purchase: mark paid only. Do NOT touch the
+    // subscription tier or stripe_subscription_id (this is a payment-mode
+    // session with no subscription).
+    if (priceId === STRIPE_PRICE_IDS.PEVO_MEMBER_REVIEW || priceId === STRIPE_PRICE_IDS.PEVO_PRO_REVIEW) {
+      await supabase.from('profiles').update({ pevo_paid: true }).eq('id', userId)
+      return NextResponse.json({ received: true })
+    }
+
+    // Subscription tier upgrade — only for known subscription prices.
+    // Never default an unknown price to 'member' (that would mis-tier any
+    // one-time or unrecognized purchase).
+    const tier = PRICE_TO_TIER[priceId]
+    if (!tier) {
+      console.error('[stripe webhook] unknown priceId on checkout.session.completed', { priceId, sessionId: session.id })
+      return NextResponse.json({ received: true })
+    }
+    await supabase.from('profiles').update({
       tier,
       stripe_customer_id: (session.customer as string) ?? null,
       stripe_subscription_id: (session.subscription as string) ?? null,
-    }
-    if (isPevo) update.pevo_paid = true
-    await supabase.from('profiles').update(update).eq('id', userId)
+    }).eq('id', userId)
 
     return NextResponse.json({ received: true })
   }

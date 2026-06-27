@@ -16,7 +16,7 @@ export default async function EscortProfilePage({ params }: { params: { id: stri
   const { data: reviews } = await svc
     .from('reviews')
     .select('*')
-    .eq('escort_id', params.id)
+    .eq('reviewee_id', params.id)
     .order('created_at', { ascending: false })
 
   const avgRating = reviews && reviews.length > 0
@@ -109,7 +109,7 @@ export default async function EscortProfilePage({ params }: { params: { id: stri
                   <span style={{ color: '#f0a500' }}>{'★'.repeat(r.rating || 0)}</span>
                   <span style={S.reviewDate}>{r.created_at ? new Date(r.created_at).toLocaleDateString() : ''}</span>
                 </div>
-                {r.comment && <p style={S.reviewText}>{r.comment}</p>}
+                {r.body && <p style={S.reviewText}>{r.body}</p>}
               </div>
             ))}
           </div>
