@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
   let query = supabase
     .from("profiles")
     .select("id, push_token, full_name, phone")
-    .eq("tier", "pro").or("role.eq.admin")
+    .eq("tier", "pro")
     .eq("role", "escort")
     .not("push_token", "is", null);
 
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     .from("profiles")
     .select("id, email, push_token, phone")
     .eq("role", "escort")
-    .in("email", ['brian@precisionpilotservices.com', 'bahamed3170@gmail.com']);
+    .in("email", ['brian@precisionpilotservices.com', 'bahmed3170@gmail.com']);
   const allEscorts = [...(proEscorts || []), ...(adminEscorts || [])].filter(
     (v, i, a) => a.findIndex((x: any) => x.id === v.id) === i
   );

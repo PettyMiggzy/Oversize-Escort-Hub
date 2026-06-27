@@ -1,18 +1,29 @@
 export async function sendEmail({ to, subject, html }: { to: string; subject: string; html: string }): Promise<boolean> {
   try {
-    // Email sending via environment-configured SMTP
-    // Falls back to console log in development
-    if (!process.env.SMTP_HOST && !process.env.GMAIL_USER) {
-      console.log('[Email stub]', { to, subject });
+    const resendKey = process.env.RESEND_API_KEY;
+
+    // No provider configured (e.g. local dev): log and succeed so callers that
+    // only send notification emails don't fail their primary operation.
+    if (!resendKey) {
+      console.log('[Email stub — set RESEND_API_KEY to send]', { to, subject });
       return true;
     }
-    // Production: use fetch to internal email service or SMTP relay
-    const response = await fetch('/api/internal/send-email', {
+
+    const from = process.env.EMAIL_FROM || 'OEH <noreply@oversize-escort-hub.com>';
+    const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ to, subject, html }),
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${resendKey}`,
+      },
+      body: JSON.stringify({ from, to, subject, html }),
     }).catch(() => null);
-    return response?.ok ?? false;
+
+    if (!response?.ok) {
+      console.error('Email send failed:', response?.status, await response?.text?.().catch(() => ''));
+      return false;
+    }
+    return true;
   } catch (error) {
     console.error('Email error:', error);
     return false;

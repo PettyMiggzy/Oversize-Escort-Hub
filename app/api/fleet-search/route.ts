@@ -29,13 +29,13 @@ export async function POST(req: NextRequest) {
     // Verify Pro membership
     const { data: profile } = await supabase
       .from('profiles')
-      .select('subscription_tier, role')
+      .select('tier, role')
       .eq('id', userId)
       .single()
     // Admin email bypass
     const { data: { user: authUser } } = await supabase.auth.admin.getUserById(userId)
     const userEmail = authUser?.email
-    if (!profile || (profile.subscription_tier !== 'pro' && !isAdminEmail(userEmail))) {
+    if (!profile || (profile.tier !== 'pro' && profile.tier !== 'fleet_pro' && !isAdminEmail(userEmail))) {
       return NextResponse.json({ error: 'Fleet Manager is a Pro-only feature' }, { status: 403 })
     }
 

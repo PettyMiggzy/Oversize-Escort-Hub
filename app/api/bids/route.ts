@@ -61,7 +61,9 @@ export async function POST(req: NextRequest) {
     if (load.status !== 'open') {
       return NextResponse.json({ error: 'Load not open for bidding' }, { status: 409 })
     }
-    if (load.board_type !== 'bid' && load.board_type !== 'open') {
+    // Bid boards use several historical labels for the biddable types:
+    // 'bid'/'5-min bid' and 'open'/'open-bid'. Accept all of them.
+    if (!['bid', 'open', 'open-bid'].includes(load.board_type)) {
       return NextResponse.json({ error: 'Load is not biddable' }, { status: 409 })
     }
 

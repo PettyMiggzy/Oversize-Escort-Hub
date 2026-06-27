@@ -1,12 +1,11 @@
-import { createBrowserClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
 const ADMIN_EMAILS = ["bahmed3170@gmail.com", "brian@precisionpilotservices.com"];
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+    const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -47,7 +46,7 @@ export async function POST(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
-    const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+    const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user || !ADMIN_EMAILS.includes(user.email!)) {

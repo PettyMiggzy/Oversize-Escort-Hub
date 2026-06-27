@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
   // Check load is open
   const { data: load, error: le } = await supabase
     .from("loads")
-    .select("id, status, carrier_id, title")
+    .select("id, status, carrier_id")
     .eq("id", load_id)
     .single();
   if (le || !load) return NextResponse.json({ error: "Load not found" }, { status: 404 });

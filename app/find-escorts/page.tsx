@@ -51,7 +51,7 @@ export default function FindEscortsPage() {
         const { data: reviews } = await supabase
           .from("reviews")
           .select("rating")
-          .eq("escort_id", p.id)
+          .eq("reviewee_id", p.id)
         const avgRating = reviews && reviews.length > 0
           ? (reviews.reduce((s: number, r: any) => s + (r.rating || 0), 0) / reviews.length).toFixed(1)
           : null

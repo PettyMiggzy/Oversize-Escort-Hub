@@ -99,7 +99,7 @@ export function PostLoadPageClient() {
           destinationCity: destCity,
           destinationState: destState,
           dateNeeded,
-          escort_type: positions.join(', '),
+          escortType: positions.join(', '),
           cert_types: certTypes,
           escort_count: positions.length || 1,
           loadType, boardType,

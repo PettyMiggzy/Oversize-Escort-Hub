@@ -1113,24 +1113,9 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
   profile: Profile | null;
   showToast: (msg: string, type: "gr" | "rd" | "am") => void;
 }) {
-  // Role guard: carriers and freight brokers only
-  if (!user) {
-    return (
-      <div style={{ padding: "40px 24px", textAlign: "center" }}>
-        <p style={{ color: "var(--t2)", marginBottom: 16 }}>You must be signed in as a carrier or freight broker to post a load.</p>
-        <button className="btn btn-prime" onClick={() => setPage("signin")}>Sign In</button>
-      </div>
-    );
-  }
-  if ((profile as any)?.role === "escort") {
-    return (
-      <div style={{ padding: "40px 24px", textAlign: "center" }}>
-        <p style={{ color: "var(--t2)", marginBottom: 8 }}>Load posting is for carriers and freight brokers only.</p>
-        <p className="mo" style={{ fontSize: 11, color: "var(--t3)" }}>Escorts use Find Escorts to connect with carriers directly.</p>
-        <button className="btn btn-outline" style={{ marginTop: 16 }} onClick={() => setPage("escorts")}>Browse Open Loads</button>
-      </div>
-    );
-  }
+  // NOTE: All hooks must run unconditionally before any early returns below,
+  // otherwise React throws "Rendered fewer hooks than expected" when the
+  // user/profile props change between renders (Rules of Hooks).
   const [boardType, setBoardType] = useState<"flat" | "bid" | "open">("flat");
   const [form, setForm] = useState({
     puCity: "", puState: "", dlCity: "", dlState: "",
@@ -1153,6 +1138,26 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
       else setForm(f => ({ ...f, dayRate: '500' }));
     }
   }, [form.miles]);
+
+  // Role guard: carriers and freight brokers only. Declared AFTER all hooks.
+  if (!user) {
+    return (
+      <div style={{ padding: "40px 24px", textAlign: "center" }}>
+        <p style={{ color: "var(--t2)", marginBottom: 16 }}>You must be signed in as a carrier or freight broker to post a load.</p>
+        <button className="btn btn-prime" onClick={() => setPage("signin")}>Sign In</button>
+      </div>
+    );
+  }
+  if ((profile as any)?.role === "escort") {
+    return (
+      <div style={{ padding: "40px 24px", textAlign: "center" }}>
+        <p style={{ color: "var(--t2)", marginBottom: 8 }}>Load posting is for carriers and freight brokers only.</p>
+        <p className="mo" style={{ fontSize: 11, color: "var(--t3)" }}>Escorts use Find Escorts to connect with carriers directly.</p>
+        <button className="btn btn-outline" style={{ marginTop: 16 }} onClick={() => setPage("escorts")}>Browse Open Loads</button>
+      </div>
+    );
+  }
+
   const estPay = (() => {
     const m = parseFloat(form.miles); const r = parseFloat(form.rate);
     if (!isNaN(m) && !isNaN(r) && m > 0 && r > 0) return (m * r).toFixed(2);
@@ -1220,7 +1225,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
       // SMS_BLAST_HOOK
           try {
             fetch('/api/sms', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ loadId: (await supabase.from('loads').select('id').eq('posted_by', user?.id).order('created_at', { ascending: false }).limit(1).single()).data?.id, pickup: form.puCity + ', ' + form.puState, destination: form.dlCity + ', ' + form.dlState, date: form.startDate, certs: form.certTypes, rate: form.rate || '' }) })
+              body: JSON.stringify({ loadId: (await supabase.from('loads').select('id').eq('carrier_id', user?.id).order('created_at', { ascending: false }).limit(1).single()).data?.id, pickup: form.puCity + ', ' + form.puState, destination: form.dlCity + ', ' + form.dlState, date: form.startDate, certs: form.certTypes, rate: form.rate || '' }) })
           } catch {}
           // PUSH_MEMBER_BROADCAST: notify Member escorts after Pro window expires
           try {
@@ -1232,18 +1237,8 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
     }
   }
 
-  if ((profile as any)?.role === "escort") {
-    return (
-      <div style={{ textAlign: "center", padding: 60 }}>
-        <div className="bb" style={{ fontSize: 18, marginBottom: 8 }}>Carriers and Brokers Only</div>
-        <p className="mo" style={{ fontSize: 11, color: "var(--t2)", marginBottom: 20 }}>Carriers and freight brokers post loads free. Always.</p>
-        <button className="btn btn-or btn-sm" onClick={() => window.location.href = "/flat-rate"}>Browse Available Loads</button>
-      </div>
-    );
-  }
-
   return (
-      
+
     <div className="postload-wrap">
           {showPreTrip && (<div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.75)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}><div className="card" style={{ maxWidth: 460, width: '100%', maxHeight: '80vh', overflowY: 'auto' }}><div className="bb" style={{ fontSize: 20, marginBottom: 12 }}>Pre-Trip Checklist</div><p className="mo" style={{ fontSize: 11, color: 'var(--t2)', marginBottom: 16 }}>Your load has been posted! Review these steps before your escort arrives.</p><ol style={{ paddingLeft: 20, fontSize: 12, lineHeight: '2', color: 'var(--t2)' }}><li>Confirm all permits are valid and on board</li><li>Verify load dimensions match your permit</li><li>Check route for closures or restrictions</li><li>Confirm your escort contact info is correct</li><li>Ensure vehicle lights and flags are ready</li><li>Review curfew windows for each state on route</li><li>Have emergency contact numbers available</li></ol><button className="btn btn-prime" style={{ width: '100%', marginTop: 16 }} onClick={() => { setShowPreTrip(false); window.location.href = "/flat-rate"; }}>Got it - View My Loads</button></div></div>)}
       <div className="bb" style={{ fontSize: 28, marginBottom: 4 }}>POST A LOAD</div>
@@ -1736,14 +1731,14 @@ function CarrierDashPage({ setPage, user, profile, showToast }: { setPage: (p: P
     if (!user) return
     setLoading(true)
     if (tab === 'active') {
-      const { data } = await supabase.from('loads').select('*').eq('posted_by', user.id).eq('status', 'open').order('created_at', { ascending: false })
+      const { data } = await supabase.from('loads').select('*').eq('carrier_id', user.id).eq('status', 'open').order('created_at', { ascending: false })
       setActiveLoads(data || [])
     } else if (tab === 'requests') {
       const { data } = await supabase.from('load_matches').select('*, loads(*), profiles!load_matches_escort_id_fkey(full_name, tier, bgc_verified, certs)').eq('status', 'pending').order('created_at', { ascending: false })
-      const mine = (data || []).filter((m: any) => m.loads?.posted_by === user.id)
+      const mine = (data || []).filter((m: any) => m.loads?.carrier_id === user.id)
       setMatchRequests(mine)
     } else if (tab === 'history') {
-      const { data } = await supabase.from('loads').select('*').eq('posted_by', user.id).in('status', ['filled', 'expired', 'cancelled']).order('created_at', { ascending: false })
+      const { data } = await supabase.from('loads').select('*').eq('carrier_id', user.id).in('status', ['filled', 'expired', 'cancelled']).order('created_at', { ascending: false })
       setHistoryLoads(data || [])
     }
     setLoading(false)
@@ -2663,7 +2658,7 @@ export default function OEHPlatform() {
       const { count } = await supabase.from('load_matches').select('id', { count: 'exact', head: true }).eq('escort_id', userId).eq('status', 'confirmed');
       setUnreadCount(count || 0);
     } else if (role === 'carrier') {
-      const { data } = await supabase.from('load_matches').select('id, loads!inner(posted_by)').eq('status', 'pending').eq('loads.posted_by', userId);
+      const { data } = await supabase.from('load_matches').select('id, loads!inner(carrier_id)').eq('status', 'pending').eq('loads.carrier_id', userId);
       setUnreadCount(data?.length || 0);
     }
   }

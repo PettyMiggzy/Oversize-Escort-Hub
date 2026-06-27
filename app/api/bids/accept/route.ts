@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     // Verify caller is the carrier for this load
     const { data: load } = await supabase
       .from('loads')
-      .select('carrier_id, status, title, dl_city, dl_state')
+      .select('carrier_id, status, dl_city, dl_state')
       .eq('id', load_id)
       .single()
     if (!load) return NextResponse.json({ error: 'Load not found' }, { status: 404 })

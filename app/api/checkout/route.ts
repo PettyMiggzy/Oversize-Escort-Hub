@@ -4,12 +4,18 @@ import { createCheckoutSession, STRIPE_PRICE_IDS } from '@/lib/stripe-utils';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { userId, email, priceId, productType, zone } = body;
+    const { userId, email, priceId: rawPriceId, productType, zone } = body;
 
     // priceId always required; userId/email optional for pre-signup anonymous checkout
-    if (!priceId) {
+    if (!rawPriceId) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
+
+    // Callers may send either a real Stripe price id ("price_...") or one of our
+    // internal product keys ("P_EVO_MEMBER", "FLEET_PRO", ...). Resolve keys to
+    // real price ids; pass real price ids through unchanged.
+    const priceId =
+      STRIPE_PRICE_IDS[rawPriceId as keyof typeof STRIPE_PRICE_IDS] || rawPriceId;
 
     // Carriers cannot check out for subscriptions
     const origin = req.headers.get('origin') || 'https://oversize-escort-hub.com';

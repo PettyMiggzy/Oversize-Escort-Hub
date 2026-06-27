@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
       .from('profiles')
       .select('id, full_name, phone')
       .eq('role', 'escort')
-      .eq('membership', 'pro')
+      .eq('tier', 'pro')
 
     if (!proEscorts || proEscorts.length === 0) return NextResponse.json({ sent: 0 })
 
