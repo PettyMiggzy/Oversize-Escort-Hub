@@ -250,6 +250,51 @@ stub when no key is set.
   `lib/sms.ts` (unused), and `app/components/PushInit` is imported but never rendered in
   `app/layout.tsx` so push registration never runs.
 
+---
+
+# Round 3 — Matching unified + schema verifier
+
+## Matching subsystem (was Round 1 "section A") — NOW FIXED
+The feature was built three incompatible ways (a `matches` table, a `load_matches`
+table, and `loads.matched_escort_id`). Standardized everything on the model the
+committed migration already defines and the working endpoints already use:
+
+- **One source of truth:** `loads.status` (`open` → `pending_match` → `filled`)
+  plus `loads.matched_escort_id`. Dropped all reads/writes of the orphan
+  `matches`/`load_matches` tables.
+- **One accept/decline path:** both the `/dashboard` page and the homepage carrier
+  hub now call `POST /api/loads/match` with `{ load_id, action, carrier_id }`
+  (service-role, already complete: sets `filled`/`open`, fills the deadhead
+  destination, pushes the escort). Deleted the broken duplicate `/api/matches`
+  (it auth'd with the anon client → always 401, and read `load_id` while the
+  caller sent `matchId`).
+- **One "done" status:** standardized on `filled` everywhere (the migration's
+  status CHECK is `open/pending_match/filled/expired` — `matched` isn't valid and
+  could fail the constraint). Fixed readers in `/dashboard`, the homepage carrier
+  hub + escort jobs, fleet dashboard, load detail page, and the deadhead route.
+- Fixed `page.tsx` decline writing the invalid status `'active'` (now `open`, via
+  the API).
+
+Files: `app/dashboard/_client.tsx`, `app/page.tsx`, `app/loads/[id]/page.tsx`,
+`app/fleet-dashboard/_client.tsx`, `app/api/deadhead/route.ts`, and deleted
+`app/api/matches/route.ts`.
+
+Residual note: `/api/loads/match` trusts `carrier_id` from the body but verifies
+it equals the load's `carrier_id`, so a caller can only act as the actual load
+owner. Pre-existing; fine for now, worth tightening to session auth later.
+
+## Database schema verifier (the other Round 2 "needs decision" item)
+Added `supabase/verify_schema.sql` — a **read-only** query that reports which
+expected tables and key columns exist vs. are missing in production. The repo's
+migrations are incomplete (many tables were made in Supabase Studio), so this is
+how to confirm nothing the code relies on is absent. Run it in the Supabase SQL
+editor; anything marked MISSING is a feature that will error until created.
+
+## Scraper
+Removed from the repo in Round 2 (`cloudflare-workers/` deleted). Fully retiring
+it also requires disconnecting/deleting the `oehscraper` Worker in the Cloudflare
+dashboard — that integration lives outside the repo and can't be changed here.
+
 ## Files changed in this audit
 - **Round 1** — Deleted: junk root files, `build_summary.txt`, `postcss.config.mjs`,
   `tailwind.config.js`. Modified: `app/page.tsx`, `app/loads/[id]/page.tsx`,

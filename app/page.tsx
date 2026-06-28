@@ -1383,8 +1383,13 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
     async function fetchJobs() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      const { data } = await supabase.from('load_matches').select('*, loads(*)').eq('escort_id', user.id).in('status', ['confirmed','completed']);
-      if (data) setMyJobs(data);
+      const { data } = await supabase
+        .from('loads')
+        .select('*')
+        .eq('matched_escort_id', user.id)
+        .eq('status', 'filled')
+        .order('created_at', { ascending: false });
+      if (data) setMyJobs(data.map((l: any) => ({ id: l.id, status: l.status, loads: l })));
     }
     fetchLoads();
     fetchJobs();
@@ -1734,8 +1739,18 @@ function CarrierDashPage({ setPage, user, profile, showToast }: { setPage: (p: P
       const { data } = await supabase.from('loads').select('*').eq('carrier_id', user.id).eq('status', 'open').order('created_at', { ascending: false })
       setActiveLoads(data || [])
     } else if (tab === 'requests') {
-      const { data } = await supabase.from('load_matches').select('*, loads(*), profiles!load_matches_escort_id_fkey(full_name, tier, bgc_verified, certs)').eq('status', 'pending').order('created_at', { ascending: false })
-      const mine = (data || []).filter((m: any) => m.loads?.carrier_id === user.id)
+      // Pending match requests = this carrier's loads an escort has claimed.
+      // Source of truth is loads (status 'pending_match' + matched_escort_id).
+      const { data } = await supabase
+        .from('loads')
+        .select('*, profiles!matched_escort_id(full_name, tier, bgc_verified, certs)')
+        .eq('carrier_id', user.id)
+        .eq('status', 'pending_match')
+        .order('match_requested_at', { ascending: false })
+      const mine = (data || []).map((l: any) => ({
+        id: l.id, load_id: l.id, escort_id: l.matched_escort_id,
+        created_at: l.match_requested_at || l.created_at, profiles: l.profiles, loads: l,
+      }))
       setMatchRequests(mine)
     } else if (tab === 'history') {
       const { data } = await supabase.from('loads').select('*').eq('carrier_id', user.id).in('status', ['filled', 'expired', 'cancelled']).order('created_at', { ascending: false })
@@ -1745,18 +1760,18 @@ function CarrierDashPage({ setPage, user, profile, showToast }: { setPage: (p: P
   }
 
   async function handleAccept(matchId: string, loadId: string, escortId: string) {
-    await supabase.from('load_matches').update({ status: 'confirmed' }).eq('id', matchId)
-    await supabase.from('loads').update({ status: 'filled' }).eq('id', loadId)
-    // PUSH_ESCORT_ACCEPT
-    try { fetch('/api/push/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: escortId, title: 'Match Confirmed!', body: 'A carrier has accepted your request. Login to view contact info.', url: '/' }) }) } catch {}
+    if (!user) return
+    const res = await fetch('/api/loads/match', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ load_id: loadId, action: 'accept', carrier_id: user.id }) })
+    if (!res.ok) { showToast('Could not accept — please try again.', 'rd'); return }
     showToast('Match confirmed! Both parties will receive contact info.', 'gr')
-    try{await fetch('/api/sms/match-confirm',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({matchId,escortId})})}catch(e){}
+    try{await fetch('/api/sms/match-confirm',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({matchId: loadId, escortId})})}catch(e){}
     loadData()
   }
 
   async function handleDecline(matchId: string, loadId: string) {
-    await supabase.from('load_matches').update({ status: 'declined' }).eq('id', matchId)
-    await supabase.from('loads').update({ status: 'active' }).eq('id', loadId)
+    if (!user) return
+    const res = await fetch('/api/loads/match', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ load_id: loadId, action: 'decline', carrier_id: user.id }) })
+    if (!res.ok) { showToast('Could not decline — please try again.', 'rd'); return }
     showToast('Request declined. Load is back on the board.', 'am')
     loadData()
   }
@@ -2655,11 +2670,13 @@ export default function OEHPlatform() {
   }
   async function loadUnreadCount(userId: string, role: string) {
     if (role === 'escort') {
-      const { count } = await supabase.from('load_matches').select('id', { count: 'exact', head: true }).eq('escort_id', userId).eq('status', 'confirmed');
+      // Loads this escort has been confirmed on (carrier accepted -> filled).
+      const { count } = await supabase.from('loads').select('id', { count: 'exact', head: true }).eq('matched_escort_id', userId).eq('status', 'filled');
       setUnreadCount(count || 0);
     } else if (role === 'carrier') {
-      const { data } = await supabase.from('load_matches').select('id, loads!inner(carrier_id)').eq('status', 'pending').eq('loads.carrier_id', userId);
-      setUnreadCount(data?.length || 0);
+      // This carrier's loads awaiting accept/decline.
+      const { count } = await supabase.from('loads').select('id', { count: 'exact', head: true }).eq('carrier_id', userId).eq('status', 'pending_match');
+      setUnreadCount(count || 0);
     }
   }
 
