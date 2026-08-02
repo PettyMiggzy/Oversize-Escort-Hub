@@ -55,19 +55,22 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   try {
     const userId = req.nextUrl.searchParams.get('userId');
-    if (!userId) {
-      return NextResponse.json({ error: 'Missing userId' }, { status: 400 });
-    }
 
     const supabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
 
-    const { data, error } = await supabase
+    // With ?userId → that user's reviews; without → recent reviews (the
+    // general /reviews page fetches with no param and 400'd before).
+    let query = supabase
       .from('reviews')
       .select('*')
-      .eq('reviewee_id', userId);
+      .order('created_at', { ascending: false })
+      .limit(50);
+    if (userId) query = query.eq('reviewee_id', userId);
+
+    const { data, error } = await query;
 
     if (error) throw error;
     return NextResponse.json({ reviews: data });

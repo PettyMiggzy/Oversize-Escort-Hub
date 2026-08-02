@@ -8,22 +8,22 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-03
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
 export async function POST(req: NextRequest) {
-  const { error: __authErr } = await requireAuth()
+  // Derive identity from the session — never trust a body-supplied userId,
+  // or any signed-in user could open another user's Stripe billing portal.
+  const { user, error: __authErr } = await requireAuth()
   if (__authErr) return __authErr
   try {
-    const { userId } = await req.json()
-    if (!userId) return NextResponse.json({ error: 'Missing userId' }, { status: 400 })
+    const userId = user!.id
+    const email = user!.email
+    if (!email) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
-    const { data: authData } = await supabase.auth.admin.getUserById(userId)
-    if (!authData?.user?.email) return NextResponse.json({ error: 'User not found' }, { status: 404 })
-
-    const existing = await stripe.customers.list({ email: authData.user.email, limit: 1 })
+    const existing = await stripe.customers.list({ email, limit: 1 })
     let customerId: string
     if (existing.data.length > 0) {
       customerId = existing.data[0].id
     } else {
       const customer = await stripe.customers.create({
-        email: authData.user.email,
+        email,
         metadata: { userId },
       })
       customerId = customer.id

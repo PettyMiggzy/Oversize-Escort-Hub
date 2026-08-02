@@ -17,7 +17,7 @@ export default function ReviewsPage() {
   async function submitReview(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
-    const res = await fetch("/api/reviews", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+    const res = await fetch("/api/reviews", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ loadId: form.load_id, targetUserId: form.reviewee_id, rating: form.rating, comment: form.comment }) });
     if (res.ok) {
       const data = await res.json();
       setReviews(prev => [data.review, ...prev]);
@@ -35,6 +35,8 @@ export default function ReviewsPage() {
         <form onSubmit={submitReview} className="bg-gray-800 rounded-xl p-6 mb-8 space-y-4">
           <h2 className="text-xl font-semibold">Write a Review</h2>
           <input placeholder="Load ID" value={form.load_id} onChange={e => setForm({...form, load_id: e.target.value})}
+            className="w-full bg-gray-700 rounded-lg px-4 py-2 text-white" />
+          <input placeholder="User ID being reviewed" value={form.reviewee_id} onChange={e => setForm({...form, reviewee_id: e.target.value})}
             className="w-full bg-gray-700 rounded-lg px-4 py-2 text-white" />
           <div className="flex items-center gap-3">
             <label className="text-gray-300">Rating:</label>

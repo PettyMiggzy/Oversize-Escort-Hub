@@ -56,7 +56,18 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  // Only allow same-origin redirects. Resolving against the origin catches
+  // backslash / protocol-relative tricks (e.g. "/\evil.com") that a naive
+  // leading-slash strip would let through as an open redirect.
   const redirect = requestUrl.searchParams.get('redirect')
-  const dest = redirect ? '/' + redirect.replace(/^\/+/, '') : '/dashboard'
+  let dest = '/dashboard'
+  if (redirect) {
+    try {
+      const target = new URL(redirect, requestUrl.origin)
+      if (target.origin === requestUrl.origin) dest = target.pathname + target.search
+    } catch {
+      // malformed redirect — fall back to /dashboard
+    }
+  }
   return NextResponse.redirect(new URL(dest, requestUrl.origin))
 }

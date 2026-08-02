@@ -25,12 +25,13 @@ interface Profile {
 
 interface Load {
   id: string
-  title: string
+  title?: string
   pu_city: string
   pu_state: string
   dl_city: string
   dl_state: string
-  date_needed: string
+  start_date?: string
+  date_needed?: string
   status: string
 }
 
@@ -306,7 +307,7 @@ export function DashboardPageClient() {
     const loadEscort = async () => {
       const { data: acceptedBids } = await supabase
         .from('bids')
-        .select('id, rate, created_at, load_id, status, loads:load_id(id, title, pu_city, pu_state, dl_city, dl_state, date_needed, status)')
+        .select('id, rate, created_at, load_id, status, loads:load_id(id, pu_city, pu_state, dl_city, dl_state, start_date, status)')
         .eq('escort_id', profile.id)
         .eq('status', 'accepted')
         .order('created_at', { ascending: false })
@@ -464,7 +465,7 @@ export function DashboardPageClient() {
                     <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>
                       {load.pu_city}, {load.pu_state} → {load.dl_city}, {load.dl_state}
                     </p>
-                    <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>Needed: {load.date_needed}</p>
+                    <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>Needed: {load.start_date ?? '—'}</p>
                     <div style={{ marginTop: 8 }}>
                       <button onClick={() => handleDownloadInvoice(load.id)} style={{ fontSize: 11, color: '#f0a500', background: 'none', border: '1px solid #f0a500', borderRadius: 4, padding: '3px 10px', cursor: 'pointer' }}>
                         📄 Invoice

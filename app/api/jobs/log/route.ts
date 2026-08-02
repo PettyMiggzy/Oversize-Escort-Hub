@@ -10,7 +10,8 @@ export async function POST(req: NextRequest) {
 
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { loadId, mileage, expenses, notes } = await req.json();
+    // The jobs page sends { load_description, miles, earned, state }.
+    const { load_description, miles, earned, state } = await req.json();
 
     const { data: profile } = await supabase
       .from("profiles")
@@ -34,16 +35,16 @@ export async function POST(req: NextRequest) {
 
     const { data, error } = await supabase.from("job_logs").insert({
       escort_id: user.id,
-      load_id: loadId,
-      mileage,
-      expenses: expenses || [],
-      notes,
+      load_description,
+      miles,
+      earned,
+      state,
       logged_at: new Date().toISOString(),
-    });
+    }).select().single();
 
     if (error) throw error;
 
-    return NextResponse.json({ success: true, jobId: (data as any)?.[0]?.id });
+    return NextResponse.json({ success: true, jobId: data?.id });
   } catch (error) {
     console.error("Job logging error:", error);
     return NextResponse.json({ error: "Job logging failed" }, { status: 500 });
@@ -63,18 +64,15 @@ export async function GET(req: NextRequest) {
       .eq("escort_id", user.id)
       .order("logged_at", { ascending: false });
 
-    const totalMiles = jobs?.reduce((sum, job) => sum + (job.mileage || 0), 0) || 0;
-    const totalExpenses = jobs?.reduce((sum, job) => {
-      const jobExpenses = job.expenses?.reduce((s: number, e: any) => s + (e.amount || 0), 0) || 0;
-      return sum + jobExpenses;
-    }, 0) || 0;
+    const totalMiles = jobs?.reduce((sum, job) => sum + (job.miles || 0), 0) || 0;
+    const totalEarned = jobs?.reduce((sum, job) => sum + (job.earned || 0), 0) || 0;
 
     return NextResponse.json({
       jobs,
       stats: {
         totalJobs: jobs?.length || 0,
         totalMiles,
-        totalExpenses,
+        totalEarned,
         avgPerJob: jobs?.length ? (totalMiles / jobs.length).toFixed(2) : 0,
       },
     });

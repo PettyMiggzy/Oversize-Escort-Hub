@@ -11,7 +11,9 @@ interface Load {
   id: string;
   created_at: string;
   escort_type: string;
-  rate: number;
+  rate?: number;
+  per_mile_rate?: number;
+  day_rate?: number;
   status: string;
   is_external?: boolean;
   pu_state?: string;
@@ -78,7 +80,7 @@ export default function OpenLoadsPage() {
                 </div>
                 <div className="text-right">
                   <p className="text-2xl font-bold text-green-600">
-                    ${load.rate}
+                    ${load.per_mile_rate ?? load.day_rate ?? '—'}
                   </p>
                   <p className="text-xs text-gray-500">per mile</p>
                 </div>
