@@ -112,6 +112,12 @@ function SignInInner() {
   }
 
   async function handleCheckout(priceId: string) {
+    // Block Stripe checkout inside the native app (Apple/Google IAP policy).
+    if (isNativeApp()) {
+      setError('Manage your subscription on oversize-escort-hub.com in your browser — no app-store fees.');
+      openInBrowser('/pricing');
+      return;
+    }
     setLoading(true);
     setError("");
     try {

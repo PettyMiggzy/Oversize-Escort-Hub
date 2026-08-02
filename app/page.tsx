@@ -1662,6 +1662,7 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
           )}
         </div>
       )}
+              {tab === "overview" && (<>
               {/* ⛽ Upside Fuel Cash Back Card */}
               <div style={{ background: "var(--card,#111)", border: "1px solid var(--l1,#222)", borderLeft: "3px solid var(--or,#f60)", borderRadius: 8, padding: 20, marginTop: 16 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
@@ -1696,6 +1697,8 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
               </a>
             ))}
           </div>
+        </div>
+        </>)}
 
           {tab === "zones" && (
             <div style={{ padding: 24 }}>
@@ -1721,7 +1724,6 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
               </div>
             </div>
           )}
-        </div>
       </div>
     </div>
   );
