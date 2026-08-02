@@ -46,7 +46,9 @@ export async function GET(req: NextRequest) {
             company_name: companyName,
             role,
           },
-          { onConflict: 'id', ignoreDuplicates: false }
+          // DO NOTHING on conflict — create the profile only if missing, never
+          // clobber later edits to role/company_name/full_name on re-auth.
+          { onConflict: 'id', ignoreDuplicates: true }
         )
       }
     } catch {

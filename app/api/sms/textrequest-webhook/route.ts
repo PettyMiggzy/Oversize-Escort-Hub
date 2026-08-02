@@ -280,6 +280,7 @@ export async function POST(req: NextRequest) {
         dl_city: d.dlCity,
         dl_state: d.dlState,
         position: pos,
+        escort_type: pos,
         status: 'open',
         per_mile_rate: d.perMileRate,
         day_rate: 500,

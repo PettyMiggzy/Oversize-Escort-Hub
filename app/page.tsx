@@ -1200,6 +1200,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
         dl_city: form.dlCity,
         dl_state: form.dlState.toUpperCase(),
         position: pos,
+        escort_type: pos,
   				pay_term: form.payTerm === "Custom" ? (form.payTermCustom || "Custom") : form.payTerm,
         miles: parseInt(form.miles) || null,
           per_mile_rate: parseFloat(form.rate) || 2.00,
@@ -2135,8 +2136,8 @@ function SignInPage({ setPage, showToast, initialMode = "signup", initialRole = 
         {mode === "signup" && (
           <div style={{ display: "flex", border: "1px solid var(--l1)", borderRadius: 3, overflow: "hidden", marginBottom: 20 }}>
             {(["escort", "carrier", "broker"] as const).map((r) => (
-              <button key={r} onClick={() => setRole(r)} style={{ flex: 1, padding: "10px 0", background: role === r ? (r === "escort" ? "var(--am)" : "var(--or)") : "transparent", color: role === r ? "#000" : "var(--t2)", border: "none", fontFamily: "'DM Mono',monospace", fontSize: 9, letterSpacing: ".12em", textTransform: "uppercase" as const, fontWeight: 700 }}>
-                {r === "escort" ? "Escort / P/EVO" : "Carrier / Operator"}
+              <button key={r} onClick={() => setRole(r)} style={{ flex: 1, padding: "10px 0", background: role === r ? (r === "escort" ? "var(--am)" : r === "carrier" ? "var(--or)" : "var(--bl)") : "transparent", color: role === r ? "#000" : "var(--t2)", border: "none", fontFamily: "'DM Mono',monospace", fontSize: 9, letterSpacing: ".12em", textTransform: "uppercase" as const, fontWeight: 700 }}>
+                {r === "escort" ? "Escort / P/EVO" : r === "carrier" ? "Carrier / Operator" : "Freight Broker"}
               </button>
             ))}
           </div>

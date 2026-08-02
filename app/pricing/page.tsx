@@ -36,7 +36,7 @@ async function startCheckout(priceId: string, setLoading: (v: string) => void, z
 
       if (!user) {
 
-        window.location.href = "/signin?redirect=pricing";
+        window.location.href = "/signin?redirect=/pricing";
 
         return;
 
@@ -192,7 +192,7 @@ export default function PricingPage() {
       let { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         const { data: { user: u } } = await supabase.auth.getUser();
-        if (!u) { window.location.href = '/signin?redirect=pricing'; return; }
+        if (!u) { window.location.href = '/signin?redirect=/pricing'; return; }
       }
       const user = session?.user ?? (await supabase.auth.getUser()).data.user!;
       const res = await fetch('/api/checkout', {

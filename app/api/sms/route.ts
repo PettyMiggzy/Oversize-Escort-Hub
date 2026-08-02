@@ -45,9 +45,13 @@ export async function POST(req: NextRequest) {
     const pu_state = load.pu_state || ''
     const dl_state = load.dl_state || ''
 
+    // Honor STOP opt-outs (compliance) before blasting Pro escorts.
+    const { data: optOuts } = await svc.from('sms_opt_outs').select('phone')
+    const blocked = new Set((optOuts || []).map((o: { phone: string }) => o.phone))
+
     let sent = 0
     for (const escort of proEscorts) {
-      if (!escort.phone) continue
+      if (!escort.phone || blocked.has(escort.phone)) continue
 
       // Check if escort covers pickup state
       const { data: zones } = await svc

@@ -131,7 +131,7 @@ export default async function VerificationPage() {
             <p style={{ color: '#888', fontSize: 14, marginBottom: 20 }}>
               Upload your P/EVO or vehicle verification docs in your OEH profile to get verified.
             </p>
-            <a href="/?page=verification" style={{ background: '#f0a500', color: '#000', fontWeight: 700, fontSize: 14, padding: '12px 24px', borderRadius: 8, textDecoration: 'none' }}>
+            <a href="/verify" style={{ background: '#f0a500', color: '#000', fontWeight: 700, fontSize: 14, padding: '12px 24px', borderRadius: 8, textDecoration: 'none' }}>
               Go to Verification Dashboard →
             </a>
           </div>
