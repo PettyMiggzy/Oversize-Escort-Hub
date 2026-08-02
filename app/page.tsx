@@ -1210,6 +1210,11 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
         notes: form.notes || null,
   				permit_url: permit_url,
         start_date: form.startDate || null,
+        // Boards filter on expires_at (5-min bid window, else 24h). Omitting it
+        // makes bid/open-bid loads never show / show permanently EXPIRED.
+        expires_at: boardType === 'bid'
+          ? new Date(Date.now() + 5 * 60 * 1000).toISOString()
+          : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         status: "open",
         poster_company: profile.company_name,
         poster_rating: profile.rating || null,

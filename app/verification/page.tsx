@@ -31,7 +31,7 @@ export default async function VerificationPage() {
           {user ? (
             <a href="/dashboard" style={{ color: '#f0a500', fontSize: 13, textDecoration: 'none' }}>Dashboard →</a>
           ) : (
-            <a href="/signin?redirect=verification" style={{ background: '#f0a500', color: '#000', padding: '8px 16px', borderRadius: 6, fontSize: 13, fontWeight: 700, textDecoration: 'none' }}>Sign In</a>
+            <a href="/signin?redirect=/verification" style={{ background: '#f0a500', color: '#000', padding: '8px 16px', borderRadius: 6, fontSize: 13, fontWeight: 700, textDecoration: 'none' }}>Sign In</a>
           )}
         </div>
       </div>
@@ -143,7 +143,7 @@ export default async function VerificationPage() {
             <p style={{ color: '#888', fontSize: 14, marginBottom: 20 }}>
               Sign in to submit your certifications and appear as a verified escort on the platform.
             </p>
-            <a href="/signin?redirect=verification" style={{ background: '#f0a500', color: '#000', fontWeight: 700, fontSize: 14, padding: '12px 24px', borderRadius: 8, textDecoration: 'none' }}>
+            <a href="/signin?redirect=/verification" style={{ background: '#f0a500', color: '#000', fontWeight: 700, fontSize: 14, padding: '12px 24px', borderRadius: 8, textDecoration: 'none' }}>
               Sign In to Get Verified →
             </a>
           </div>

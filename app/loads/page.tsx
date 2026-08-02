@@ -111,9 +111,9 @@ export default function OpenLoadsPage() {
                 )}
               </div>
 
-              <button className="mt-4 w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-lg transition">
+              <a href={`/loads/${load.id}`} className="mt-4 block w-full text-center bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-lg transition">
                 View Details
-              </button>
+              </a>
             </div>
           ))}
         </div>

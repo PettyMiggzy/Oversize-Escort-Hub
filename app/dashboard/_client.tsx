@@ -629,7 +629,7 @@ export function DashboardPageClient() {
                           <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>
                             {ld.pu_city || '—'}, {ld.pu_state || ''} → {ld.dl_city || '—'}, {ld.dl_state || ''}
                           </p>
-                          {ld.date_needed && <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>Needed: {ld.date_needed}</p>}
+                          {ld.start_date && <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>Needed: {ld.start_date}</p>}
                         </div>
                         <p style={{ margin: 0, fontWeight: 700, fontSize: '1.25rem', color: ORANGE }}>${Number(bid.rate).toFixed(2)}</p>
                       </div>

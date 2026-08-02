@@ -60,8 +60,8 @@ export default async function EscortProfilePage({ params }: { params: Promise<{ 
         <div style={S.card}>
           <div style={S.name}>{profile.full_name || 'Unnamed Escort'}</div>
           <div style={S.badges}>
-            <span style={S.badge(profile.membership === 'pro' ? '#f0a500' : '#6b7280')}>
-              {profile.membership === 'pro' ? '⭐ Pro' : 'Member'}
+            <span style={S.badge(profile.tier === 'pro' ? '#f0a500' : '#6b7280')}>
+              {profile.tier === 'pro' ? '⭐ Pro' : 'Member'}
             </span>
             {profile.bgc_verified && <span style={{ background: '#16a34a', color: '#fff', fontWeight: 700, fontSize: 13, padding: '4px 12px', borderRadius: 20, display: 'inline-flex', alignItems: 'center', gap: 4 }}>✓ Background Check Verified</span>}
             {profile.role === 'escort' && <span style={S.badge('#3b82f6')}>P/EVO Escort</span>}
