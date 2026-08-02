@@ -717,7 +717,6 @@ export function DashboardPageClient() {
             <div style={{ background: SURFACE, borderRadius: 8, padding: '1rem', border: '1px solid #1e2736' }}>
               <p style={{ margin: 0 }}><span style={{ color: MUTED }}>Name:</span> {profile.full_name || '—'}</p>
               <p style={{ margin: '8px 0 0' }}><span style={{ color: MUTED }}>Role:</span> {profile.role}</p>
-              <a href="/profile" style={{ display: 'inline-block', marginTop: '0.75rem', color: ORANGE, fontSize: '0.875rem' }}>Edit Profile →</a>
             </div>
           </section>
 

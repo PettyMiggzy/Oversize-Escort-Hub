@@ -17,7 +17,7 @@ export default async function EscortProfilePage({ params }: { params: Promise<{ 
   const { data: zones } = await svc.from('escort_availability').select('*').eq('escort_id', id)
   const { data: reviews } = await svc
     .from('reviews')
-    .select('*')
+    .select('*, reviewer:profiles!reviewer_id(full_name)')
     .eq('reviewee_id', id)
     .order('created_at', { ascending: false })
 
@@ -107,7 +107,7 @@ export default async function EscortProfilePage({ params }: { params: Promise<{ 
             {reviews.map((r: any) => (
               <div key={r.id} style={S.reviewCard}>
                 <div style={S.reviewHeader}>
-                  <span style={S.reviewName}>{r.reviewer_name || 'Anonymous'}</span>
+                  <span style={S.reviewName}>{r.reviewer?.full_name || 'Anonymous'}</span>
                   <span style={{ color: '#f0a500' }}>{'★'.repeat(r.rating || 0)}</span>
                   <span style={S.reviewDate}>{r.created_at ? new Date(r.created_at).toLocaleDateString() : ''}</span>
                 </div>

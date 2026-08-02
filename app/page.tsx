@@ -1189,9 +1189,15 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
 				const { data: urlData } = supabase.storage.from("permits").getPublicUrl(upData.path);
 				permit_url = urlData.publicUrl;
 			}
-        // Insert one load card per selected escort position
+        // Escort positions are selected in the merged certTypes grid (Lead,
+        // Chase, High Pole, ...). Post one load per selected position so the
+        // board/SMS escort_type reflects the carrier's actual choice instead of
+        // a hardcoded "Lead". Fall back to a generic "Escort" if none picked.
+        const POSITION_OPTS = ["Lead","Chase","3rd Car","4th Car","High Pole","Rear Steer","Bucket Truck","Route Survey","Flagger"];
+        const selectedPositions = form.certTypes.filter((c: string) => POSITION_OPTS.includes(c));
+        const positionsToPost = selectedPositions.length ? selectedPositions : ["Escort"];
         let firstError = null;
-        for (const pos of form.positions) {
+        for (const pos of positionsToPost) {
           const { error: posErr } = await supabase.from("loads").insert({
         carrier_id: user.id,
         board_type: boardType,
