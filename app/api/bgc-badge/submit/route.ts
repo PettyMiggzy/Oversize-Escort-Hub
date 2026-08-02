@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
       user_id: userId,
       type: "bgc",
       status: "pending",
-      file_url: publicUrl,
+      document_url: publicUrl,
     }).select().single()
     if (certErr) return NextResponse.json({ error: certErr.message }, { status: 500 })
 

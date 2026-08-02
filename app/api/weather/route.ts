@@ -26,7 +26,9 @@ export async function GET(req: NextRequest) {
     const pointData = await pointRes.json()
     const forecastUrl = pointData?.properties?.forecast
     const forecastHourlyUrl = pointData?.properties?.forecastHourly
-    const alertsZone = pointData?.properties?.county
+    // NWS returns county as a full URL (…/zones/county/TXC201); the alerts
+    // endpoint wants the bare zone code.
+    const alertsZone = (pointData?.properties?.county || "").split("/").pop()
 
     // Step 2: Get forecast
     const [forecastRes, alertsRes] = await Promise.all([

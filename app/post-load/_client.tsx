@@ -68,7 +68,7 @@ export function PostLoadPageClient() {
     const fetchSponsored = async () => {
       const { data } = await supabase
         .from('sponsored_zones')
-        .select('escort_id, profiles(id, full_name, membership, bgc_verified, certifications(type, status))')
+        .select('escort_id, profiles(id, full_name, tier, bgc_verified, certifications(type, status))')
         .eq('state', pickupState)
         .eq('active', true)
       if (data && data.length > 0) {

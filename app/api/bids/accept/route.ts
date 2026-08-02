@@ -24,11 +24,23 @@ export async function POST(req: NextRequest) {
     if (load.carrier_id !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     if (load.status !== 'open') return NextResponse.json({ error: 'Load not available' }, { status: 409 })
 
+    // The bid must belong to THIS load; derive the escort from the bid, never
+    // from the request body (prevents matching a load to an escort who never bid).
+    const { data: bid } = await supabase
+      .from('bids')
+      .select('escort_id')
+      .eq('id', bid_id)
+      .eq('load_id', load_id)
+      .single()
+    if (!bid) return NextResponse.json({ error: 'Bid not found for this load' }, { status: 404 })
+    const matchedEscortId = bid.escort_id
+
     // Accept this bid
     const { error: acceptErr } = await supabase
       .from('bids')
       .update({ status: 'accepted' })
       .eq('id', bid_id)
+      .eq('load_id', load_id)
     if (acceptErr) return NextResponse.json({ error: acceptErr.message }, { status: 500 })
 
     // Reject all other bids for this load
@@ -43,7 +55,7 @@ export async function POST(req: NextRequest) {
       .from('loads')
       .update({
         status: 'filled',
-        matched_escort_id: escort_id,
+        matched_escort_id: matchedEscortId,
         match_requested_at: new Date().toISOString(),
         deadhead_destination_city: load.dl_city,
         deadhead_destination_state: load.dl_state,
@@ -54,7 +66,7 @@ export async function POST(req: NextRequest) {
     const { data: escort } = await supabase
       .from('profiles')
       .select('phone, full_name')
-      .eq('id', escort_id)
+      .eq("id", matchedEscortId)
       .single()
 
     if (escort?.phone) {

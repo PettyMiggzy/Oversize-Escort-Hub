@@ -27,6 +27,7 @@ export async function POST(req: NextRequest) {
       .from('bids')
       .update({ status: 'rejected' })
       .eq('id', bid_id)
+      .eq('load_id', load_id) // scope to the load the caller was authorized against
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
     return NextResponse.json({ ok: true })
