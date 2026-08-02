@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
 
   const { data: load } = await supabase
     .from("loads")
-    .select("id, status, matched_escort_id, carrier_id, title, dl_city, dl_state")
+    .select("id, status, matched_escort_id, carrier_id, dl_city, dl_state")
     .eq("id", load_id)
     .single();
 

@@ -46,7 +46,6 @@ export async function POST(req: NextRequest) {
           board_type: 'flat-rate',
           load_type: 'breakdown',
           per_mile_rate: 0,
-          rate: 0,
           notes: 'Breakdown assistance needed',
           expires_at: expires,
           pay_term: 'on_completion',

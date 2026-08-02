@@ -76,7 +76,11 @@ function SignInInner() {
 
   const searchParams = useSearchParams();
   const redirectParam = searchParams.get('redirect');
-  const redirectPath = redirectParam ? '/' + redirectParam.replace(/^\/+/, '') : '/dashboard';
+  // Only accept strict internal paths (single leading slash, no backslash) to
+  // avoid protocol-relative / backslash open-redirects.
+  const redirectPath = (redirectParam && /^\/(?!\/)/.test(redirectParam) && !redirectParam.includes('\\'))
+    ? redirectParam
+    : '/dashboard';
   const roleParamRaw = searchParams.get('role');
   const allowedRoles = ['escort', 'carrier', 'broker', 'fleet_manager'] as const;
   const initialRole = (allowedRoles as readonly string[]).includes(roleParamRaw ?? '')

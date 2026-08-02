@@ -15,6 +15,11 @@ export async function POST(req: NextRequest) {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     const userId = user.id
 
+    // Payment gate — mirror /api/bgc: the BGC badge is a paid product.
+    const { data: prof } = await authed.from("profiles").select("bgc_paid, bgc_verified").eq("id", userId).single()
+    if (prof?.bgc_verified) return NextResponse.json({ error: "Already verified" }, { status: 400 })
+    if (!prof?.bgc_paid) return NextResponse.json({ error: "Payment required before upload" }, { status: 402 })
+
     const formData = await req.formData()
     // The client sends the field as "pdf"; accept "file" too for robustness.
     const file = (formData.get("pdf") ?? formData.get("file")) as File | null

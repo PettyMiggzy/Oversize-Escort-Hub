@@ -11,10 +11,15 @@ export default function FleetSearchPage() {
   async function search(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const res = await fetch(`/api/fleet-search?q=${encodeURIComponent(query)}`);
-    const data = await res.json();
-    setResults(data.vehicles ?? []);
-    setLoading(false);
+    try {
+      const res = await fetch(`/api/vehicle-search?q=${encodeURIComponent(query)}`);
+      const data = await res.json().catch(() => ({}));
+      setResults(data.vehicles ?? []);
+    } catch {
+      setResults([]);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

@@ -1675,7 +1675,7 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
           <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 16, letterSpacing: ".06em" }}>🧰 MY TOOLS</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(160px,1fr))", gap: 10 }}>
             {[
-              { icon: "🗺️", label: "Deadhead Minimizer", href: "/deadhead" },
+              { icon: "🗺️", label: "Deadhead Minimizer", href: "/deadhead", soon: true },
               { icon: "📋", label: "Permit Directory", href: "/tools/permits" },
               { icon: "📄", label: "Invoice Generator", href: "/tools/invoice", soon: true },
               { icon: "💰", label: "Expense Tracker", href: "/tools/expenses", soon: true },
@@ -1827,7 +1827,7 @@ function CarrierDashPage({ setPage, user, profile, showToast }: { setPage: (p: P
                         <td style={{ fontWeight: 500 }}>{l.pu_city}, {l.pu_state} → {l.dl_city}, {l.dl_state}</td>
                         <td className="mo" style={{ fontSize: 10 }}>{l.start_date ? new Date(l.start_date).toLocaleDateString() : '—'}</td>
                         <td>{l.position}</td>
-                        <td style={{ fontSize: 10 }}>{(l.certs_required || []).slice(0, 3).join(', ')}{(l.certs_required || []).length > 3 ? '...' : ''}</td>
+                        <td style={{ fontSize: 10 }}>{(l.cert_types || []).slice(0, 3).join(', ')}{(l.cert_types || []).length > 3 ? '...' : ''}</td>
                         <td className="mo" style={{ fontSize: 10 }}>{l.pay_type}</td>
                         <td style={{ color: 'var(--gr)', fontWeight: 600 }}>{l.per_mile_rate ? `$${l.per_mile_rate}/mi` : l.day_rate ? `$${l.day_rate}/day` : '—'}</td>
                         <td><span className="chip ch-gr" style={{ fontSize: 8 }}>ACTIVE</span></td>
@@ -2399,7 +2399,7 @@ function DeadheadPage({ setPage, profile }: any) {
                     {results.map((load: any, i: number) => (
                       <div key={i} style={S.resultCard}>
                         <p style={{ margin: 0, fontWeight: 700 }}>{load.pu_city}, {load.pu_state} → {load.dl_city}, {load.dl_state}</p>
-                        {load.rate_per_mile && <p style={{ color: "#00a8e8", margin: "4px 0 0", fontSize: 13 }}>${load.rate_per_mile}/mi</p>}
+                        {load.per_mile_rate && <p style={{ color: "#00a8e8", margin: "4px 0 0", fontSize: 13 }}>${load.per_mile_rate}/mi</p>}
                         {load.boards?.length > 1 && <p style={{ color: "#666", fontSize: 11, marginTop: 4 }}>Also on: {load.boards.filter((b: string) => b !== "flat_rate").join(" · ")}</p>}
                       </div>
                     ))}
@@ -2455,7 +2455,7 @@ function DeadheadPage({ setPage, profile }: any) {
                       group.loads.map((load: any, j: number) => (
                         <div key={j} style={S.resultCard}>
                           <p style={{ margin: 0, fontWeight: 700, fontSize: 14 }}>{load.pu_city}, {load.pu_state} → {load.dl_city}, {load.dl_state}</p>
-                          {load.rate_per_mile && <p style={{ color: "#00a8e8", margin: "4px 0 0", fontSize: 13 }}>${load.rate_per_mile}/mi</p>}
+                          {load.per_mile_rate && <p style={{ color: "#00a8e8", margin: "4px 0 0", fontSize: 13 }}>${load.per_mile_rate}/mi</p>}
                           <button style={S.shareBtn} onClick={() => {
                             const link = `${window.location.origin}/loads/${load.id}`
                             navigator.clipboard?.writeText(link).then(() => alert("Load link copied! Share with " + (group.escort.name || "escort") + " so they can confirm from their account."))
