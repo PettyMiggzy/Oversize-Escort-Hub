@@ -23,12 +23,16 @@ export async function POST(req: NextRequest) {
     const { data: profiles, error } = await query
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
+    // Honor STOP replies: never blast anyone who opted out (compliance).
+    const { data: optOuts } = await supabase.from('sms_opt_outs').select('phone')
+    const blocked = new Set((optOuts || []).map((o: { phone: string }) => o.phone))
+
     const accountId = process.env.TEXTREQUEST_ACCOUNT_ID
     const apiKey = process.env.TEXTREQUEST_API_KEY
     let sent = 0
 
     for (const p of (profiles || [])) {
-      if (!p.phone) continue
+      if (!p.phone || blocked.has(p.phone)) continue
       try {
         await fetch(`https://app.textrequest.com/api/v2/accounts/${accountId}/messages`, {
           method: 'POST',

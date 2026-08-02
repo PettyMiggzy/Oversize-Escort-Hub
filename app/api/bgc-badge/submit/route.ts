@@ -1,7 +1,6 @@
-import { createBrowserClient } from "@supabase/ssr"
-import { cookies } from "next/headers"
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { createClient as createServerClient } from "@/lib/supabase/server"
 
 const svc = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -10,11 +9,17 @@ const svc = createClient(
 
 export async function POST(req: NextRequest) {
   try {
-    const formData = await req.formData()
-    const file = formData.get("file") as File | null
-    const userId = formData.get("userId") as string | null
+    // Derive the user from the session, not the request body.
+    const authed = await createServerClient()
+    const { data: { user } } = await authed.auth.getUser()
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const userId = user.id
 
-    if (!file || !userId) return NextResponse.json({ error: "missing file or userId" }, { status: 400 })
+    const formData = await req.formData()
+    // The client sends the field as "pdf"; accept "file" too for robustness.
+    const file = (formData.get("pdf") ?? formData.get("file")) as File | null
+
+    if (!file) return NextResponse.json({ error: "missing file" }, { status: 400 })
     if (file.size > 10 * 1024 * 1024) return NextResponse.json({ error: "File exceeds 10 MB" }, { status: 400 })
 
     // Upload to permits bucket

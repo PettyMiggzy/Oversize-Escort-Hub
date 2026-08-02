@@ -7,6 +7,35 @@ export const dynamic = 'force-dynamic'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
+// GET /api/bgc — current BGC badge status for the signed-in user.
+// The /bgc page fetches this on load; without it the page always shows "none".
+export async function GET() {
+  const supabase = await createServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ status: 'none' })
+
+  const { data: prof } = await supabase
+    .from('profiles')
+    .select('bgc_verified, bgc_pending')
+    .eq('id', user.id)
+    .single()
+  const { data: cert } = await supabase
+    .from('certifications')
+    .select('status, created_at')
+    .eq('user_id', user.id)
+    .eq('type', 'bgc')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  let status: 'none' | 'pending' | 'approved' | 'rejected' = 'none'
+  if (prof?.bgc_verified) status = 'approved'
+  else if (cert?.status === 'rejected') status = 'rejected'
+  else if (prof?.bgc_pending || cert?.status === 'pending') status = 'pending'
+
+  return NextResponse.json({ status, submitted_at: cert?.created_at })
+}
+
 export async function POST(req: NextRequest) {
   // Auth via session
   const supabase = await createServerClient()

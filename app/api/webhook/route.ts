@@ -15,7 +15,9 @@ const PRICE_TO_TIER: Record<string, string> = {
   [STRIPE_PRICE_IDS.FLEET_STARTER]: 'fleet_starter',
   [STRIPE_PRICE_IDS.FLEET_PLUS]: 'fleet_plus',
   [STRIPE_PRICE_IDS.FLEET_PRO]: 'fleet_pro',
-  [STRIPE_PRICE_IDS.SPONSORED_ZONE]: 'sponsored_zone',
+  // NOTE: SPONSORED_ZONE is intentionally NOT here — it is a one-time purchase
+  // handled by the SPONSORED_PRICE branch below. Mapping it to a "tier" would
+  // corrupt profiles.tier on any subscription.* event.
 }
 
 const BGC_PRICE = 'price_1TF0EILmfugPCRbAvM6Q5rhW'

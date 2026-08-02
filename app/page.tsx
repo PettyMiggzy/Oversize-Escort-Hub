@@ -1116,7 +1116,9 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
   // NOTE: All hooks must run unconditionally before any early returns below,
   // otherwise React throws "Rendered fewer hooks than expected" when the
   // user/profile props change between renders (Rules of Hooks).
-  const [boardType, setBoardType] = useState<"flat" | "bid" | "open">("flat");
+  // Canonical board_type values must match what the boards filter on
+  // (flat-rate / bid / open-bid) or posted loads never appear on any board.
+  const [boardType, setBoardType] = useState<"flat-rate" | "bid" | "open-bid">("flat-rate");
   const [form, setForm] = useState({
     puCity: "", puState: "", dlCity: "", dlState: "",
     miles: "", rate: "2.00", dayRate: "500", positions: ["Lead"], payTerm: "FastPay", payTermCustom: "",
@@ -1254,7 +1256,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
         </div>
       )}
       <div style={{ display: "flex", gap: 10, marginBottom: 28 }}>
-        {([["flat", "var(--gr)", "Flat Rate", "First to respond wins"], ["bid", "var(--am)", "5-Min Bid", "5-min price competition"], ["open", "var(--bl)", "Open Bid", "You pick the escort"]] as const).map(([type, c, label, desc]) => (
+        {([["flat-rate", "var(--gr)", "Flat Rate", "First to respond wins"], ["bid", "var(--am)", "5-Min Bid", "5-min price competition"], ["open-bid", "var(--bl)", "Open Bid", "You pick the escort"]] as const).map(([type, c, label, desc]) => (
           <div key={type} className="card" style={{ flex: 1, borderTop: "2px solid " + c, cursor: "pointer", opacity: boardType === type ? 1 : 0.5 }} onClick={() => setBoardType(type)}>
             <div className="bb" style={{ fontSize: 14, color: c, marginBottom: 4 }}>{label}</div>
             <div className="mo" style={{ fontSize: 9, color: "var(--t2)" }}>{desc}</div>
@@ -1427,7 +1429,7 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
     async function fetchReferrals() {
         const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
-                const { data } = await supabase.from('referrals').select('*').eq('referred_by', user.id).order('created_at', { ascending: false });
+                const { data } = await supabase.from('referrals').select('*').eq('referrer_id', user.id).order('created_at', { ascending: false });
                     setReferralData(data || []);
                       }
 
@@ -2295,11 +2297,15 @@ function DeadheadPage({ setPage, profile }: any) {
     if (!location.trim()) return
     setSearching(true); setError(""); setResults([])
     try {
-      // Geocode with Nominatim then fetch nearby loads
+      // /api/loads only implements POST; query open loads directly instead.
       const [city, state] = location.split(",").map(s => s.trim())
-      const res = await fetch(`/api/loads?board=flat_rate`)
-      const data = await res.json()
-      const nearby = (data.loads ?? []).filter((l: any) =>
+      const { data: loadsData } = await supabase
+        .from('loads')
+        .select('*')
+        .eq('status', 'open')
+        .order('created_at', { ascending: false })
+        .limit(100)
+      const nearby = (loadsData ?? []).filter((l: any) =>
         l.pu_state?.toLowerCase() === (state || city)?.toLowerCase()
       ).slice(0, 10)
       setResults(nearby)

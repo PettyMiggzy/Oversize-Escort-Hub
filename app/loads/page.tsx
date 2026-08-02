@@ -31,7 +31,7 @@ export default function OpenLoadsPage() {
         const { data, error } = await supabase
           .from("loads")
           .select("*")
-          .eq("board_type", "open")
+          .eq("board_type", "open-bid")
           .eq("status", "open")
           .order("created_at", { ascending: false });
 

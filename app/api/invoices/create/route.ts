@@ -14,25 +14,34 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Member tier required" }, { status: 403 });
     }
 
-    const { carrierId, amount, description, dueDate, items } = await req.json();
+    // Accept the fields the invoices page actually sends (load_id, amount,
+    // recipient_email) plus the older superset for backward-compat.
+    const body = await req.json();
+    const { load_id, recipient_email, carrierId, amount, description, dueDate, items } = body;
 
-    const { data, error } = await supabase.from("invoices").insert({
-      escort_id: user.id,
-      carrier_id: carrierId,
-      amount,
-      description,
-      due_date: dueDate,
-      items: items || [],
-      status: "draft",
-      created_at: new Date().toISOString(),
-    });
+    const { data, error } = await supabase
+      .from("invoices")
+      .insert({
+        escort_id: user.id,
+        carrier_id: carrierId ?? null,
+        load_id: load_id ?? null,
+        recipient_email: recipient_email ?? null,
+        amount,
+        description: description ?? null,
+        due_date: dueDate ?? null,
+        items: items || [],
+        status: "draft",
+        created_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
 
     if (error) throw error;
 
     return NextResponse.json({
       success: true,
-      invoiceId: (data as any)?.[0]?.id,
-      downloadUrl: `/api/invoices/${(data as any)?.[0]?.id}/pdf`,
+      invoiceId: data?.id,
+      downloadUrl: `/api/invoices/${data?.id}/pdf`,
     });
   } catch (error) {
     console.error("Invoice creation error:", error);
