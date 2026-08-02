@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { requireAdmin } from '@/lib/api-auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,6 +21,9 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  // Admin-only fan-out: creates a notification for an arbitrary user_id.
+  const { error: authErr } = await requireAdmin()
+  if (authErr) return authErr
   const supabase = await createClient()
   const { user_id, message } = await req.json()
   if (!user_id || !message) return NextResponse.json({ error: 'Missing fields' }, { status: 400 })

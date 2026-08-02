@@ -7,16 +7,18 @@ const svc = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-export default async function EscortProfilePage({ params }: { params: { id: string } }) {
-  const { data: profile } = await svc.from('profiles').select('*').eq('id', params.id).single()
+export default async function EscortProfilePage({ params }: { params: Promise<{ id: string }> }) {
+  // Next.js 16: params is a Promise and must be awaited before use.
+  const { id } = await params
+  const { data: profile } = await svc.from('profiles').select('*').eq('id', id).single()
   if (!profile) notFound()
 
-  const { data: certs } = await svc.from('certifications').select('*').eq('user_id', params.id)
-  const { data: zones } = await svc.from('escort_availability').select('*').eq('escort_id', params.id)
+  const { data: certs } = await svc.from('certifications').select('*').eq('user_id', id)
+  const { data: zones } = await svc.from('escort_availability').select('*').eq('escort_id', id)
   const { data: reviews } = await svc
     .from('reviews')
-    .select('*')
-    .eq('reviewee_id', params.id)
+    .select('*, reviewer:profiles!reviewer_id(full_name)')
+    .eq('reviewee_id', id)
     .order('created_at', { ascending: false })
 
   const avgRating = reviews && reviews.length > 0
@@ -58,8 +60,8 @@ export default async function EscortProfilePage({ params }: { params: { id: stri
         <div style={S.card}>
           <div style={S.name}>{profile.full_name || 'Unnamed Escort'}</div>
           <div style={S.badges}>
-            <span style={S.badge(profile.membership === 'pro' ? '#f0a500' : '#6b7280')}>
-              {profile.membership === 'pro' ? '⭐ Pro' : 'Member'}
+            <span style={S.badge(profile.tier === 'pro' ? '#f0a500' : '#6b7280')}>
+              {profile.tier === 'pro' ? '⭐ Pro' : 'Member'}
             </span>
             {profile.bgc_verified && <span style={{ background: '#16a34a', color: '#fff', fontWeight: 700, fontSize: 13, padding: '4px 12px', borderRadius: 20, display: 'inline-flex', alignItems: 'center', gap: 4 }}>✓ Background Check Verified</span>}
             {profile.role === 'escort' && <span style={S.badge('#3b82f6')}>P/EVO Escort</span>}
@@ -105,7 +107,7 @@ export default async function EscortProfilePage({ params }: { params: { id: stri
             {reviews.map((r: any) => (
               <div key={r.id} style={S.reviewCard}>
                 <div style={S.reviewHeader}>
-                  <span style={S.reviewName}>{r.reviewer_name || 'Anonymous'}</span>
+                  <span style={S.reviewName}>{r.reviewer?.full_name || 'Anonymous'}</span>
                   <span style={{ color: '#f0a500' }}>{'★'.repeat(r.rating || 0)}</span>
                   <span style={S.reviewDate}>{r.created_at ? new Date(r.created_at).toLocaleDateString() : ''}</span>
                 </div>

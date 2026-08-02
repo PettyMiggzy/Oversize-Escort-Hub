@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     // Fetch the new load
     const { data: load } = await supabase
       .from('loads')
-      .select('id, pu_city, pu_state, dl_city, dl_state, escort_type, rate, status')
+      .select('id, pu_city, pu_state, dl_city, dl_state, escort_type, per_mile_rate, status')
       .eq('id', load_id)
       .single()
 
@@ -76,9 +76,9 @@ export async function POST(req: NextRequest) {
     // Fetch Pro/Fleet profiles
     const { data: profiles } = await supabase
       .from('profiles')
-      .select('id, phone, membership, role')
+      .select('id, phone, tier, role')
       .in('id', escortIds)
-      .or('membership.eq.pro,role.eq.fleet')
+      .or('tier.eq.pro,tier.eq.fleet_starter,tier.eq.fleet_plus,tier.eq.fleet_pro,role.eq.fleet')
 
     if (!profiles?.length) return NextResponse.json({ notified: 0 })
 
@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
       const profile = profiles.find((p) => p.id === match.matched_escort_id)
       if (!profile) continue
 
-      const msg = `🚛 Deadhead opportunity near your drop zone: ${load.escort_type} needed. ${load.pu_city}, ${load.pu_state} → ${load.dl_city}, ${load.dl_state}. Rate: $${load.rate}. You have 5 minutes to claim: oversize-escort-hub.com/loads/${load.id}`
+      const msg = `🚛 Deadhead opportunity near your drop zone: ${load.escort_type} needed. ${load.pu_city}, ${load.pu_state} → ${load.dl_city}, ${load.dl_state}. Rate: $${load.per_mile_rate}. You have 5 minutes to claim: oversize-escort-hub.com/loads/${load.id}`
 
       // SMS
       if (profile.phone) await sendSMS(profile.phone, msg)

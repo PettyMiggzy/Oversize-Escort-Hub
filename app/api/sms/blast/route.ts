@@ -7,11 +7,8 @@ export async function POST(req: NextRequest) {
   if (__authErr) return __authErr
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    const { data: adminProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-    if (adminProfile?.role !== 'admin') return NextResponse.json({ error: 'Admin only' }, { status: 403 })
-
+    // requireAdmin() above already authorized (role admin OR admin email); no
+    // redundant role re-check (which wrongly 403'd email-based admins).
     const { message, audience } = await req.json()
     if (!message || message.length > 160) return NextResponse.json({ error: 'Invalid message' }, { status: 400 })
 
@@ -23,12 +20,16 @@ export async function POST(req: NextRequest) {
     const { data: profiles, error } = await query
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
+    // Honor STOP replies: never blast anyone who opted out (compliance).
+    const { data: optOuts } = await supabase.from('sms_opt_outs').select('phone')
+    const blocked = new Set((optOuts || []).map((o: { phone: string }) => o.phone))
+
     const accountId = process.env.TEXTREQUEST_ACCOUNT_ID
     const apiKey = process.env.TEXTREQUEST_API_KEY
     let sent = 0
 
     for (const p of (profiles || [])) {
-      if (!p.phone) continue
+      if (!p.phone || blocked.has(p.phone)) continue
       try {
         await fetch(`https://app.textrequest.com/api/v2/accounts/${accountId}/messages`, {
           method: 'POST',

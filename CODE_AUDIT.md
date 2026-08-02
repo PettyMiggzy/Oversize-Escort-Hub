@@ -295,6 +295,77 @@ Removed from the repo in Round 2 (`cloudflare-workers/` deleted). Fully retiring
 it also requires disconnecting/deleting the `oehscraper` Worker in the Cloudflare
 dashboard — that integration lives outside the repo and can't be changed here.
 
+---
+
+# Round 4 — Deep multi-agent audit (11 finders + adversarial verify)
+
+Ran a fan-out audit across every subsystem (each finding independently verified).
+Fixed 21 confirmed, previously-unknown functional bugs. `tsc` + `next build` pass.
+
+## Round 4 — FIXED
+**Checkout / payments**
+- `lib/stripe-utils.ts`: `SPONSORED_ZONE` wasn't in `ONE_TIME_PRICES` → its checkout
+  was created in *subscription* mode. Added it (one-time).
+- `app/api/webhook/route.ts`: `SPONSORED_ZONE` was in `PRICE_TO_TIER` → a sponsored
+  purchase could overwrite `profiles.tier` to `'sponsored_zone'`. Removed it.
+- `app/api/bgc-badge/submit/route.ts` + `app/bgc-badge/page.tsx`: the form sent the
+  file as `pdf` with no `userId`, the route read `file`+`userId` → **every BGC badge
+  submission 400'd**. Route now derives the user from the session and accepts `pdf`.
+- `app/api/bgc-badge/approve/route.ts`: had **no auth** — anyone could approve any
+  cert and set `bgc_verified`. Now `requireAdmin()`.
+- `app/api/bgc/route.ts`: added the `GET` the `/bgc` page calls (was 405 → status
+  always showed "none").
+
+**Boards / loads display**
+- Homepage post form wrote `board_type` `flat`/`open`; boards filter
+  `flat-rate`/`open-bid` → flat & open loads never appeared. Canonicalized
+  (`app/page.tsx`). Also `app/loads/page.tsx` filtered `open` → `open-bid`.
+- Load-detail + bid-board showed `load.rate`/`escort_qty`/`date_needed` — real
+  columns are `per_mile_rate`/`escort_count`/`start_date`. Fixed
+  (`app/loads/[id]/page.tsx`, `app/bid-board/_client.tsx`).
+- `app/api/fleet-search/route.ts`: selected `rate_per_mile` → `per_mile_rate`.
+
+**Auth / session**
+- `components/SiteHeader.tsx`: read auth via the localStorage `supabase` singleton
+  → logged-in users always saw the signed-out header. Switched to the cookie-aware
+  browser client.
+- `app/api/push/subscribe/route.ts`: POST required a body `userId` the client never
+  sent (→ 400) and there was no DELETE (unsubscribe → 405). Rewrote: derive user
+  from session, add DELETE.
+- `app/review/[id]/page.tsx`: signin redirect used `?next=` but signin reads
+  `?redirect=` → user never returned to the review. Fixed.
+
+**Data / queries**
+- `app/find-escorts/page.tsx`: selected/filtered `membership` (nonexistent) → the
+  escort query errored and **no escorts listed**. Changed to `tier`. Also sponsored
+  filter `zone` → `state`.
+- `app/api/deadhead/route.ts`: filtered escorts on `membership` and read `load.rate`
+  → now `tier` + `per_mile_rate`.
+- `app/page.tsx` referral loader queried `referrals.referred_by` (a *profiles*
+  column) → `referrer_id`. Return-load search hit `GET /api/loads` (405) → queries
+  loads directly.
+- `app/api/invoices/create/route.ts`: read `{carrierId,…}` but the page sends
+  `{load_id,amount,recipient_email}`, and the insert had no `.select()` (id always
+  undefined). Aligned the payload + added `.select()`.
+- `app/api/sms/blast/route.ts`: ignored `sms_opt_outs` → users who texted STOP still
+  got admin blasts. Now excluded (compliance).
+
+## Round 4 — DEFERRED (need the schema check; not changed)
+Run `supabase/verify_schema.sql` (now extended) and tell me which spelling exists:
+- **`loads.pay_type` vs `pay_term`** — writers use `pay_term`, readers use `pay_type`,
+  so posted loads don't show their pay terms. Can't fix safely without knowing the
+  real column (guessing risks breaking the load insert).
+- **`profiles.availability_states` vs the `escort_availability` table** — push
+  broadcast reads the former, SMS/board coverage uses the latter (two stores).
+- **`loads` status `cancelled`** — `escort/breakdown` writes it on protocol-disable;
+  the migration's CHECK only lists `open/pending_match/filled/expired`. If the live
+  CHECK doesn't allow `cancelled`, that write silently fails. (Left as-is because
+  `cancelled` is used as a valid status elsewhere — likely the live CHECK allows it.)
+
+## Note
+13 of the 42 raw findings were matching-subsystem bugs already fixed in Round 3 —
+the audit ran against a branch predating that merge. Skipped those.
+
 ## Files changed in this audit
 - **Round 1** — Deleted: junk root files, `build_summary.txt`, `postcss.config.mjs`,
   `tailwind.config.js`. Modified: `app/page.tsx`, `app/loads/[id]/page.tsx`,

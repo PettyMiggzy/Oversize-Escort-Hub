@@ -51,7 +51,15 @@ WITH expected(table_name, column_name) AS (
     ('loads','start_date'), ('loads','expires_at'),
     -- reviews
     ('reviews','load_id'), ('reviews','reviewer_id'), ('reviews','reviewee_id'),
-    ('reviews','rating'), ('reviews','body')
+    ('reviews','rating'), ('reviews','body'),
+    -- AMBIGUOUS — the code spells these two ways in different files. Whichever
+    -- of each pair comes back 'exists' is the real one; tell Claude which so the
+    -- other spelling can be corrected in code:
+    ('loads','pay_type'), ('loads','pay_term'),
+    ('profiles','membership'),
+    ('profiles','availability_states'),
+    ('invoices','load_id'), ('invoices','recipient_email'),
+    ('sponsored_zones','state'), ('escort_availability','state')
 )
 SELECT
   e.table_name || '.' || e.column_name AS column_path,

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { requireAdmin } from "@/lib/api-auth"
 
 const svc = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -8,6 +9,10 @@ const svc = createClient(
 
 export async function POST(req: NextRequest) {
   try {
+    // Admin-only: approving a cert flips profiles.bgc_verified for a user.
+    const { error: authErr } = await requireAdmin()
+    if (authErr) return authErr
+
     const { certificationId, action } = await req.json()
     if (!certificationId || !action) return NextResponse.json({ error: "certificationId and action required" }, { status: 400 })
 

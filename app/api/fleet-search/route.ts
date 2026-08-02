@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
             // Query loads within ~150 miles (roughly 2.5 degrees lat/lon)
             const { data: nearbyLoads } = await supabase
               .from('loads')
-              .select('id, pu_city, pu_state, dl_city, dl_state, rate_per_mile, status, board_type')
+              .select('id, pu_city, pu_state, dl_city, dl_state, per_mile_rate, status, board_type')
               .eq('status', 'open')
               .neq('status', 'filled')
 

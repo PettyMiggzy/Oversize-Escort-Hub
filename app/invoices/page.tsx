@@ -10,7 +10,7 @@ export default function InvoicesPage() {
   const [form, setForm] = useState({ load_id: "", amount: "", recipient_email: "" });
 
   useEffect(() => {
-    fetch("/api/invoices").then(r => r.json()).then(d => { setInvoices(d.invoices ?? []); setLoading(false); });
+    fetch("/api/invoices/create").then(r => r.json()).then(d => { setInvoices(d.invoices ?? []); setLoading(false); });
   }, []);
 
   async function createInvoice(e: React.FormEvent) {

@@ -76,7 +76,11 @@ function SignInInner() {
 
   const searchParams = useSearchParams();
   const redirectParam = searchParams.get('redirect');
-  const redirectPath = redirectParam ? '/' + redirectParam.replace(/^\/+/, '') : '/dashboard';
+  // Only accept strict internal paths (single leading slash, no backslash) to
+  // avoid protocol-relative / backslash open-redirects.
+  const redirectPath = (redirectParam && /^\/(?!\/)/.test(redirectParam) && !redirectParam.includes('\\'))
+    ? redirectParam
+    : '/dashboard';
   const roleParamRaw = searchParams.get('role');
   const allowedRoles = ['escort', 'carrier', 'broker', 'fleet_manager'] as const;
   const initialRole = (allowedRoles as readonly string[]).includes(roleParamRaw ?? '')
@@ -108,6 +112,12 @@ function SignInInner() {
   }
 
   async function handleCheckout(priceId: string) {
+    // Block Stripe checkout inside the native app (Apple/Google IAP policy).
+    if (isNativeApp()) {
+      setError('Manage your subscription on oversize-escort-hub.com in your browser — no app-store fees.');
+      openInBrowser('/pricing');
+      return;
+    }
     setLoading(true);
     setError("");
     try {

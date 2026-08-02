@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 
 const NAV = [
   { label: "Flat Rate",     href: "/flat-rate" },
@@ -14,6 +14,9 @@ const NAV = [
 ];
 
 export default function SiteHeader() {
+  // Use the cookie-aware browser client so the header sees the SSR session
+  // (the plain localStorage supabase singleton never sees the cookie login).
+  const [supabase] = useState(() => createClient());
   const [open, setOpen] = useState(false);
   const [userProfile, setUserProfile] = useState<{ name?: string; avatar?: string | null } | null>(null);
   const [windowWidth, setWindowWidth] = useState(1200);

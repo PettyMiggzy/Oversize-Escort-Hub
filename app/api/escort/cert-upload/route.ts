@@ -26,18 +26,22 @@ export async function POST(req: NextRequest) {
 
     if (uploadError) throw uploadError;
 
-    const { data, error } = await supabase.from("escort_certs").insert({
+    const { data: urlData } = supabase.storage.from("documents").getPublicUrl(`certs/${filename}`);
+
+    // Insert into `certifications` — the table every consumer reads (admin
+    // approval queue, escort profile, find-escorts). status 'pending' + a
+    // non-'bgc' type match the admin queue filter.
+    const { data, error } = await supabase.from("certifications").insert({
       user_id: user.id,
-      cert_type: certType,
-      pdf_path: `certs/${filename}`,
-      expiry_date: expiryDate,
-      status: "pending_approval",
-      uploaded_at: new Date().toISOString(),
-    });
+      type: certType,
+      status: "pending",
+      document_url: urlData.publicUrl,
+      created_at: new Date().toISOString(),
+    }).select().single();
 
     if (error) throw error;
 
-    return NextResponse.json({ success: true, certId: (data as any)?.[0]?.id });
+    return NextResponse.json({ success: true, certId: data?.id });
   } catch (error) {
     console.error("Cert upload error:", error);
     return NextResponse.json({ error: "Upload failed" }, { status: 500 });
@@ -57,8 +61,8 @@ export async function PUT(req: NextRequest) {
 
     if (approved) {
       await supabase
-        .from("escort_certs")
-        .update({ status: "approved", approved_at: new Date().toISOString() })
+        .from("certifications")
+        .update({ status: "approved" })
         .eq("id", certId);
 
       return NextResponse.json({ success: true });

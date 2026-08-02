@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
 
-interface WeatherData { temperature: number; description: string; windSpeed: number; alerts: string[]; }
+interface WeatherAlert { event?: string; headline?: string; severity?: string }
+interface WeatherData { current?: { temp?: number; wind?: number; short?: string }; alerts?: WeatherAlert[]; }
 
 export default function WeatherPage() {
   const [coords, setCoords] = useState({ lat: "", lng: "" });
@@ -11,7 +12,7 @@ export default function WeatherPage() {
   async function fetchWeather(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const res = await fetch(`/api/weather?lat=${coords.lat}&lng=${coords.lng}`);
+    const res = await fetch(`/api/weather?lat=${coords.lat}&lon=${coords.lng}`);
     const data = await res.json();
     setWeather(data);
     setLoading(false);
@@ -47,14 +48,14 @@ export default function WeatherPage() {
         {weather && (
           <div className="bg-gray-800 rounded-xl p-6 space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-blue-900/30 rounded-lg p-4"><p className="text-gray-400 text-sm">Temperature</p><p className="text-2xl font-bold">{weather.temperature}°F</p></div>
-              <div className="bg-blue-900/30 rounded-lg p-4"><p className="text-gray-400 text-sm">Wind Speed</p><p className="text-2xl font-bold">{weather.windSpeed} mph</p></div>
+              <div className="bg-blue-900/30 rounded-lg p-4"><p className="text-gray-400 text-sm">Temperature</p><p className="text-2xl font-bold">{weather.current?.temp ?? '—'}°F</p></div>
+              <div className="bg-blue-900/30 rounded-lg p-4"><p className="text-gray-400 text-sm">Wind</p><p className="text-2xl font-bold">{weather.current?.wind ?? '—'} mph</p></div>
             </div>
-            <p className="text-gray-300">{weather.description}</p>
-            {weather.alerts?.length > 0 && (
+            <p className="text-gray-300">{weather.current?.short}</p>
+            {(weather.alerts?.length ?? 0) > 0 && (
               <div className="bg-red-900/30 border border-red-600/50 rounded-lg p-4">
                 <p className="text-red-400 font-semibold mb-2">⚠️ Active Alerts</p>
-                {weather.alerts.map((a, i) => <p key={i} className="text-red-300 text-sm">{a}</p>)}
+                {weather.alerts!.map((a, i) => <p key={i} className="text-red-300 text-sm">{a.event}{a.headline ? `: ${a.headline}` : ''}</p>)}
               </div>
             )}
           </div>

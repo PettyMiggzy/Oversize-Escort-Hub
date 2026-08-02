@@ -4,16 +4,19 @@ import { useState } from "react";
 export default function EscortCertPage() {
   const [file, setFile] = useState<File | null>(null);
   const [certType, setCertType] = useState("pilot_car");
+  const [expiryDate, setExpiryDate] = useState("");
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!file) return;
+    if (!file || !expiryDate) { setStatus("Error: select a file and expiry date"); return; }
     setLoading(true);
+    // Field names must match /api/escort/cert-upload: pdf, certType, expiryDate.
     const formData = new FormData();
-    formData.append("cert", file);
-    formData.append("cert_type", certType);
+    formData.append("pdf", file);
+    formData.append("certType", certType);
+    formData.append("expiryDate", expiryDate);
     const res = await fetch("/api/escort/cert-upload", { method: "POST", body: formData });
     const data = await res.json();
     setLoading(false);
@@ -41,6 +44,11 @@ export default function EscortCertPage() {
             <label className="block text-sm font-medium mb-2">Certificate (PDF)</label>
             <input type="file" accept=".pdf,.jpg,.png" onChange={e => setFile(e.target.files?.[0] ?? null)}
               className="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-orange-600 file:text-white hover:file:bg-orange-700" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Expiry Date</label>
+            <input type="date" value={expiryDate} onChange={e => setExpiryDate(e.target.value)}
+              className="w-full bg-gray-700 rounded-lg px-4 py-2 text-white" />
           </div>
           {status && <p className={status.startsWith("✓") ? "text-green-400" : "text-red-400"}>{status}</p>}
           <button type="submit" disabled={!file || loading}

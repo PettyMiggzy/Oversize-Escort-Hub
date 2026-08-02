@@ -16,6 +16,7 @@ const PRICE_IDS = {
 
 const ONE_TIME_PRICES: string[] = [
   PRICE_IDS.BGC_BADGE,
+  PRICE_IDS.SPONSORED_ZONE,
   'price_1TF0D4LmfugPCRbAd4hMO22R',
   'price_1TF0DiLmfugPCRbAPWsN2K5x',
 ]

@@ -1,6 +1,7 @@
 import { sendEmail } from '@/lib/email';
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { createClient as createServerClient } from "@/lib/supabase/server";
 
 export const dynamic = 'force-dynamic'
 
@@ -8,6 +9,20 @@ const svc = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
+
+// GET /api/dd214 — veteran-discount status for the signed-in user.
+// The /dd214 page fetches this on load; without it the page always showed "none".
+export async function GET() {
+  const supabase = await createServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ status: "none" });
+
+  const { data: prof } = await supabase.from("profiles").select("dd214_pending").eq("id", user.id).single();
+  const { data: disc } = await supabase.from("veteran_discounts").select("id").eq("user_id", user.id).maybeSingle();
+
+  const status = disc ? "approved" : ((prof as any)?.dd214_pending ? "pending" : "none");
+  return NextResponse.json({ status, discount_active: !!disc });
+}
 
 export async function POST(req: NextRequest) {
   const formData = await req.formData();

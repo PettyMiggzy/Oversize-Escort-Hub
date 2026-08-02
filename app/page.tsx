@@ -18,7 +18,7 @@ type Profile = {
   email: string | null;
   phone: string | null;
   state: string | null;
-  p_evo_verified: boolean;
+  pevo_verified: boolean;
   bgc_verified: boolean;
   vehicle_verified: boolean;
   admin_verified: boolean;
@@ -1116,7 +1116,9 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
   // NOTE: All hooks must run unconditionally before any early returns below,
   // otherwise React throws "Rendered fewer hooks than expected" when the
   // user/profile props change between renders (Rules of Hooks).
-  const [boardType, setBoardType] = useState<"flat" | "bid" | "open">("flat");
+  // Canonical board_type values must match what the boards filter on
+  // (flat-rate / bid / open-bid) or posted loads never appear on any board.
+  const [boardType, setBoardType] = useState<"flat-rate" | "bid" | "open-bid">("flat-rate");
   const [form, setForm] = useState({
     puCity: "", puState: "", dlCity: "", dlState: "",
     miles: "", rate: "2.00", dayRate: "500", positions: ["Lead"], payTerm: "FastPay", payTermCustom: "",
@@ -1187,9 +1189,15 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
 				const { data: urlData } = supabase.storage.from("permits").getPublicUrl(upData.path);
 				permit_url = urlData.publicUrl;
 			}
-        // Insert one load card per selected escort position
+        // Escort positions are selected in the merged certTypes grid (Lead,
+        // Chase, High Pole, ...). Post one load per selected position so the
+        // board/SMS escort_type reflects the carrier's actual choice instead of
+        // a hardcoded "Lead". Fall back to a generic "Escort" if none picked.
+        const POSITION_OPTS = ["Lead","Chase","3rd Car","4th Car","High Pole","Rear Steer","Bucket Truck","Route Survey","Flagger"];
+        const selectedPositions = form.certTypes.filter((c: string) => POSITION_OPTS.includes(c));
+        const positionsToPost = selectedPositions.length ? selectedPositions : ["Escort"];
         let firstError = null;
-        for (const pos of form.positions) {
+        for (const pos of positionsToPost) {
           const { error: posErr } = await supabase.from("loads").insert({
         carrier_id: user.id,
         board_type: boardType,
@@ -1198,6 +1206,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
         dl_city: form.dlCity,
         dl_state: form.dlState.toUpperCase(),
         position: pos,
+        escort_type: pos,
   				pay_term: form.payTerm === "Custom" ? (form.payTermCustom || "Custom") : form.payTerm,
         miles: parseInt(form.miles) || null,
           per_mile_rate: parseFloat(form.rate) || 2.00,
@@ -1208,6 +1217,11 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
         notes: form.notes || null,
   				permit_url: permit_url,
         start_date: form.startDate || null,
+        // Boards filter on expires_at (5-min bid window, else 24h). Omitting it
+        // makes bid/open-bid loads never show / show permanently EXPIRED.
+        expires_at: boardType === 'bid'
+          ? new Date(Date.now() + 5 * 60 * 1000).toISOString()
+          : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         status: "open",
         poster_company: profile.company_name,
         poster_rating: profile.rating || null,
@@ -1254,7 +1268,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
         </div>
       )}
       <div style={{ display: "flex", gap: 10, marginBottom: 28 }}>
-        {([["flat", "var(--gr)", "Flat Rate", "First to respond wins"], ["bid", "var(--am)", "5-Min Bid", "5-min price competition"], ["open", "var(--bl)", "Open Bid", "You pick the escort"]] as const).map(([type, c, label, desc]) => (
+        {([["flat-rate", "var(--gr)", "Flat Rate", "First to respond wins"], ["bid", "var(--am)", "5-Min Bid", "5-min price competition"], ["open-bid", "var(--bl)", "Open Bid", "You pick the escort"]] as const).map(([type, c, label, desc]) => (
           <div key={type} className="card" style={{ flex: 1, borderTop: "2px solid " + c, cursor: "pointer", opacity: boardType === type ? 1 : 0.5 }} onClick={() => setBoardType(type)}>
             <div className="bb" style={{ fontSize: 14, color: c, marginBottom: 4 }}>{label}</div>
             <div className="mo" style={{ fontSize: 9, color: "var(--t2)" }}>{desc}</div>
@@ -1427,7 +1441,7 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
     async function fetchReferrals() {
         const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
-                const { data } = await supabase.from('referrals').select('*').eq('referred_by', user.id).order('created_at', { ascending: false });
+                const { data } = await supabase.from('referrals').select('*').eq('referrer_id', user.id).order('created_at', { ascending: false });
                     setReferralData(data || []);
                       }
 
@@ -1576,7 +1590,7 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
             <div className="bb" style={{ fontSize: 24, marginBottom: 20 }}>CERTIFICATIONS</div>
             <div style={{ display: "grid", gap: 10 }}>
               {[
-                { name: "P/EVO Verified", verified: profile?.p_evo_verified, color: "var(--gr)" },
+                { name: "P/EVO Verified", verified: profile?.pevo_verified, color: "var(--gr)" },
                 { name: "Vehicle Verified", verified: profile?.vehicle_verified, color: "var(--bl)" },
                 { name: "Background Checked", verified: profile?.bgc_verified, color: "var(--am)" },
                 { name: "Admin Verified", verified: profile?.admin_verified, color: "var(--or)" },
@@ -1594,7 +1608,7 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
                 </div>
               ))}
             </div>
-                    <div className="card" style={{ marginTop: 20 }}><div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Upload Certification Document</div><p className="mo" style={{ fontSize: 11, color: 'var(--t2)', marginBottom: 12 }}>Accepted: PDF, JPG, PNG. Max 10MB. Stored securely.</p><input type="file" accept=".pdf,.jpg,.jpeg,.png" style={{ marginBottom: 10 }} onChange={async (e) => { const file = e.target.files?.[0]; if (!file || !profile?.id) return; const ext = file.name.split('.').pop(); const path = `certs/${profile.id}/${Date.now()}.${ext}`; const { error: upErr } = await supabase.storage.from('pevo-certs').upload(path, file, { upsert: true }); if (upErr) { alert('Upload failed: ' + upErr.message); return; } const { data: urlData } = supabase.storage.from('pevo-certs').getPublicUrl(path); await supabase.from('profiles').update({ bgc_document_url: urlData.publicUrl }).eq('id', profile.id); alert('Certificate uploaded!'); }} /></div>
+                    <div className="card" style={{ marginTop: 20 }}><div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Upload Certification Document</div><p className="mo" style={{ fontSize: 11, color: 'var(--t2)', marginBottom: 12 }}>Accepted: PDF, JPG, PNG. Max 10MB. Stored securely.</p><input type="file" accept=".pdf,.jpg,.jpeg,.png" style={{ marginBottom: 10 }} onChange={async (e) => { const file = e.target.files?.[0]; if (!file || !profile?.id) return; const ext = file.name.split('.').pop(); const path = `certs/${profile.id}/${Date.now()}.${ext}`; const { error: upErr } = await supabase.storage.from('pevo-certs').upload(path, file, { upsert: true }); if (upErr) { alert('Upload failed: ' + upErr.message); return; } const { data: urlData } = supabase.storage.from('pevo-certs').getPublicUrl(path); await supabase.from('certifications').insert({ user_id: profile.id, type: 'pevo', status: 'pending', document_url: urlData.publicUrl, created_at: new Date().toISOString() }); alert('Certificate uploaded! Pending review.'); }} /></div>
           </>
         )}
 {tab === "dispute" && (
@@ -1654,6 +1668,7 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
           )}
         </div>
       )}
+              {tab === "overview" && (<>
               {/* ⛽ Upside Fuel Cash Back Card */}
               <div style={{ background: "var(--card,#111)", border: "1px solid var(--l1,#222)", borderLeft: "3px solid var(--or,#f60)", borderRadius: 8, padding: 20, marginTop: 16 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
@@ -1673,7 +1688,7 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
           <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 16, letterSpacing: ".06em" }}>🧰 MY TOOLS</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(160px,1fr))", gap: 10 }}>
             {[
-              { icon: "🗺️", label: "Deadhead Minimizer", href: "/deadhead" },
+              { icon: "🗺️", label: "Deadhead Minimizer", href: "/deadhead", soon: true },
               { icon: "📋", label: "Permit Directory", href: "/tools/permits" },
               { icon: "📄", label: "Invoice Generator", href: "/tools/invoice", soon: true },
               { icon: "💰", label: "Expense Tracker", href: "/tools/expenses", soon: true },
@@ -1688,6 +1703,8 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
               </a>
             ))}
           </div>
+        </div>
+        </>)}
 
           {tab === "zones" && (
             <div style={{ padding: 24 }}>
@@ -1713,7 +1730,6 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
               </div>
             </div>
           )}
-        </div>
       </div>
     </div>
   );
@@ -1743,7 +1759,7 @@ function CarrierDashPage({ setPage, user, profile, showToast }: { setPage: (p: P
       // Source of truth is loads (status 'pending_match' + matched_escort_id).
       const { data } = await supabase
         .from('loads')
-        .select('*, profiles!matched_escort_id(full_name, tier, bgc_verified, certs)')
+        .select('*, profiles!matched_escort_id(full_name, tier, bgc_verified, cert_types)')
         .eq('carrier_id', user.id)
         .eq('status', 'pending_match')
         .order('match_requested_at', { ascending: false })
@@ -1825,7 +1841,7 @@ function CarrierDashPage({ setPage, user, profile, showToast }: { setPage: (p: P
                         <td style={{ fontWeight: 500 }}>{l.pu_city}, {l.pu_state} → {l.dl_city}, {l.dl_state}</td>
                         <td className="mo" style={{ fontSize: 10 }}>{l.start_date ? new Date(l.start_date).toLocaleDateString() : '—'}</td>
                         <td>{l.position}</td>
-                        <td style={{ fontSize: 10 }}>{(l.certs_required || []).slice(0, 3).join(', ')}{(l.certs_required || []).length > 3 ? '...' : ''}</td>
+                        <td style={{ fontSize: 10 }}>{(l.cert_types || []).slice(0, 3).join(', ')}{(l.cert_types || []).length > 3 ? '...' : ''}</td>
                         <td className="mo" style={{ fontSize: 10 }}>{l.pay_type}</td>
                         <td style={{ color: 'var(--gr)', fontWeight: 600 }}>{l.per_mile_rate ? `$${l.per_mile_rate}/mi` : l.day_rate ? `$${l.day_rate}/day` : '—'}</td>
                         <td><span className="chip ch-gr" style={{ fontSize: 8 }}>ACTIVE</span></td>
@@ -1856,7 +1872,7 @@ function CarrierDashPage({ setPage, user, profile, showToast }: { setPage: (p: P
                         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                           <span className={`chip ${m.profiles?.tier === 'pro' ? 'ch-am' : 'ch-dim'}`} style={{ fontSize: 8 }}>{(m.profiles?.tier || 'member').toUpperCase()}</span>
                           {m.profiles?.bgc_verified && <span className="chip ch-gr" style={{ fontSize: 8 }}>✓ BGC</span>}
-                          {(m.profiles?.certs || []).slice(0, 3).map((c: string) => (
+                          {(m.profiles?.cert_types || []).slice(0, 3).map((c: string) => (
                             <span key={c} className="chip ch-dim" style={{ fontSize: 8 }}>{c}</span>
                           ))}
                         </div>
@@ -2128,8 +2144,8 @@ function SignInPage({ setPage, showToast, initialMode = "signup", initialRole = 
         {mode === "signup" && (
           <div style={{ display: "flex", border: "1px solid var(--l1)", borderRadius: 3, overflow: "hidden", marginBottom: 20 }}>
             {(["escort", "carrier", "broker"] as const).map((r) => (
-              <button key={r} onClick={() => setRole(r)} style={{ flex: 1, padding: "10px 0", background: role === r ? (r === "escort" ? "var(--am)" : "var(--or)") : "transparent", color: role === r ? "#000" : "var(--t2)", border: "none", fontFamily: "'DM Mono',monospace", fontSize: 9, letterSpacing: ".12em", textTransform: "uppercase" as const, fontWeight: 700 }}>
-                {r === "escort" ? "Escort / P/EVO" : "Carrier / Operator"}
+              <button key={r} onClick={() => setRole(r)} style={{ flex: 1, padding: "10px 0", background: role === r ? (r === "escort" ? "var(--am)" : r === "carrier" ? "var(--or)" : "var(--bl)") : "transparent", color: role === r ? "#000" : "var(--t2)", border: "none", fontFamily: "'DM Mono',monospace", fontSize: 9, letterSpacing: ".12em", textTransform: "uppercase" as const, fontWeight: 700 }}>
+                {r === "escort" ? "Escort / P/EVO" : r === "carrier" ? "Carrier / Operator" : "Freight Broker"}
               </button>
             ))}
           </div>
@@ -2295,11 +2311,15 @@ function DeadheadPage({ setPage, profile }: any) {
     if (!location.trim()) return
     setSearching(true); setError(""); setResults([])
     try {
-      // Geocode with Nominatim then fetch nearby loads
+      // /api/loads only implements POST; query open loads directly instead.
       const [city, state] = location.split(",").map(s => s.trim())
-      const res = await fetch(`/api/loads?board=flat_rate`)
-      const data = await res.json()
-      const nearby = (data.loads ?? []).filter((l: any) =>
+      const { data: loadsData } = await supabase
+        .from('loads')
+        .select('*')
+        .eq('status', 'open')
+        .order('created_at', { ascending: false })
+        .limit(100)
+      const nearby = (loadsData ?? []).filter((l: any) =>
         l.pu_state?.toLowerCase() === (state || city)?.toLowerCase()
       ).slice(0, 10)
       setResults(nearby)
@@ -2393,7 +2413,7 @@ function DeadheadPage({ setPage, profile }: any) {
                     {results.map((load: any, i: number) => (
                       <div key={i} style={S.resultCard}>
                         <p style={{ margin: 0, fontWeight: 700 }}>{load.pu_city}, {load.pu_state} → {load.dl_city}, {load.dl_state}</p>
-                        {load.rate_per_mile && <p style={{ color: "#00a8e8", margin: "4px 0 0", fontSize: 13 }}>${load.rate_per_mile}/mi</p>}
+                        {load.per_mile_rate && <p style={{ color: "#00a8e8", margin: "4px 0 0", fontSize: 13 }}>${load.per_mile_rate}/mi</p>}
                         {load.boards?.length > 1 && <p style={{ color: "#666", fontSize: 11, marginTop: 4 }}>Also on: {load.boards.filter((b: string) => b !== "flat_rate").join(" · ")}</p>}
                       </div>
                     ))}
@@ -2449,7 +2469,7 @@ function DeadheadPage({ setPage, profile }: any) {
                       group.loads.map((load: any, j: number) => (
                         <div key={j} style={S.resultCard}>
                           <p style={{ margin: 0, fontWeight: 700, fontSize: 14 }}>{load.pu_city}, {load.pu_state} → {load.dl_city}, {load.dl_state}</p>
-                          {load.rate_per_mile && <p style={{ color: "#00a8e8", margin: "4px 0 0", fontSize: 13 }}>${load.rate_per_mile}/mi</p>}
+                          {load.per_mile_rate && <p style={{ color: "#00a8e8", margin: "4px 0 0", fontSize: 13 }}>${load.per_mile_rate}/mi</p>}
                           <button style={S.shareBtn} onClick={() => {
                             const link = `${window.location.origin}/loads/${load.id}`
                             navigator.clipboard?.writeText(link).then(() => alert("Load link copied! Share with " + (group.escort.name || "escort") + " so they can confirm from their account."))
@@ -2784,8 +2804,8 @@ export default function OEHPlatform() {
         {page === "admin" && <AdminPage setPage={setPage} user={user} profile={activeProfile} />}
               {page === "available" && <AvailabilityBoard setPage={setPage} profile={activeProfile} />}
       <Footer setPage={setPage} />
-      {reviewPrompt && (<div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}><div className="card" style={{ maxWidth:440, width:'100%', padding:28 }}><div style={{ fontSize:18, fontWeight:700, marginBottom:8 }}>⭐ How was your experience?</div><div style={{ fontSize:13, color:'var(--t2)', marginBottom:16 }}>Leave a review for {reviewPrompt.targetName}</div><div style={{ display:'flex', gap:8, marginBottom:16 }}>{[1,2,3,4,5].map(n => (<button key={n} onClick={() => setReviewRating(n)} style={{ fontSize:24, background:'none', border:'none', cursor:'pointer', opacity: n <= reviewRating ? 1 : 0.3 }}>⭐</button>))}</div><textarea value={reviewText} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setReviewText(e.target.value)} placeholder="Optional written review (500 chars max)" maxLength={500} style={{ width:'100%', minHeight:80, padding:10, borderRadius:6, border:'1px solid var(--l2)', background:'var(--bg)', color:'var(--t1)', fontSize:13, resize:'vertical', marginBottom:16 }} /><div style={{ display:'flex', gap:10 }}><button className="btn btn-or" disabled={reviewSubmitting} onClick={async () => { setReviewSubmitting(true); await fetch('/api/reviews', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ load_id: reviewPrompt.loadId, target_id: reviewPrompt.targetId, rating: reviewRating, text: reviewText }) }); setReviewSubmitting(false); setReviewPrompt(null); setReviewRating(5); setReviewText(''); showToast('Thanks for your review!', 'gr') }}>{reviewSubmitting ? 'Submitting…' : 'Submit Review'}</button><button className="btn" onClick={() => setReviewPrompt(null)}>Skip</button></div></div></div>)}
-      {reviewPrompt && (<div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}><div className="card" style={{ maxWidth:440, width:'100%', padding:28 }}><div style={{ fontSize:18, fontWeight:700, marginBottom:8 }}>How was your experience?</div><div style={{ fontSize:13, color:'var(--t2)', marginBottom:16 }}>Leave a review for {reviewPrompt.targetName}</div><div style={{ display:'flex', gap:8, marginBottom:16 }}>{[1,2,3,4,5].map(n => (<button key={n} onClick={() => setReviewRating(n)} style={{ fontSize:24, background:'none', border:'none', cursor:'pointer', opacity: n <= reviewRating ? 1 : 0.3 }}>*</button>))}</div><textarea value={reviewText} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setReviewText(e.target.value)} placeholder="Optional written review (500 chars max)" maxLength={500} style={{ width:'100%', minHeight:80, padding:10, borderRadius:6, border:'1px solid var(--l2)', background:'var(--bg)', color:'var(--t1)', fontSize:13, resize:'vertical', marginBottom:16 }} /><div style={{ display:'flex', gap:10 }}><button className="btn btn-or" disabled={reviewSubmitting} onClick={async () => { setReviewSubmitting(true); await fetch('/api/reviews', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ load_id: reviewPrompt.loadId, target_id: reviewPrompt.targetId, rating: reviewRating, text: reviewText }) }); setReviewSubmitting(false); setReviewPrompt(null); setReviewRating(5); setReviewText(''); showToast('Thanks for your review!', 'gr') }}>{reviewSubmitting ? 'Submitting...' : 'Submit Review'}</button><button className="btn" onClick={() => setReviewPrompt(null)}>Skip</button></div></div></div>)} {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+      {reviewPrompt && (<div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}><div className="card" style={{ maxWidth:440, width:'100%', padding:28 }}><div style={{ fontSize:18, fontWeight:700, marginBottom:8 }}>⭐ How was your experience?</div><div style={{ fontSize:13, color:'var(--t2)', marginBottom:16 }}>Leave a review for {reviewPrompt.targetName}</div><div style={{ display:'flex', gap:8, marginBottom:16 }}>{[1,2,3,4,5].map(n => (<button key={n} onClick={() => setReviewRating(n)} style={{ fontSize:24, background:'none', border:'none', cursor:'pointer', opacity: n <= reviewRating ? 1 : 0.3 }}>⭐</button>))}</div><textarea value={reviewText} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setReviewText(e.target.value)} placeholder="Optional written review (500 chars max)" maxLength={500} style={{ width:'100%', minHeight:80, padding:10, borderRadius:6, border:'1px solid var(--l2)', background:'var(--bg)', color:'var(--t1)', fontSize:13, resize:'vertical', marginBottom:16 }} /><div style={{ display:'flex', gap:10 }}><button className="btn btn-or" disabled={reviewSubmitting} onClick={async () => { setReviewSubmitting(true); await fetch('/api/reviews', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ loadId: reviewPrompt.loadId, targetUserId: reviewPrompt.targetId, rating: reviewRating, comment: reviewText }) }); setReviewSubmitting(false); setReviewPrompt(null); setReviewRating(5); setReviewText(''); showToast('Thanks for your review!', 'gr') }}>{reviewSubmitting ? 'Submitting…' : 'Submit Review'}</button><button className="btn" onClick={() => setReviewPrompt(null)}>Skip</button></div></div></div>)}
+      {reviewPrompt && (<div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}><div className="card" style={{ maxWidth:440, width:'100%', padding:28 }}><div style={{ fontSize:18, fontWeight:700, marginBottom:8 }}>How was your experience?</div><div style={{ fontSize:13, color:'var(--t2)', marginBottom:16 }}>Leave a review for {reviewPrompt.targetName}</div><div style={{ display:'flex', gap:8, marginBottom:16 }}>{[1,2,3,4,5].map(n => (<button key={n} onClick={() => setReviewRating(n)} style={{ fontSize:24, background:'none', border:'none', cursor:'pointer', opacity: n <= reviewRating ? 1 : 0.3 }}>*</button>))}</div><textarea value={reviewText} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setReviewText(e.target.value)} placeholder="Optional written review (500 chars max)" maxLength={500} style={{ width:'100%', minHeight:80, padding:10, borderRadius:6, border:'1px solid var(--l2)', background:'var(--bg)', color:'var(--t1)', fontSize:13, resize:'vertical', marginBottom:16 }} /><div style={{ display:'flex', gap:10 }}><button className="btn btn-or" disabled={reviewSubmitting} onClick={async () => { setReviewSubmitting(true); await fetch('/api/reviews', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ loadId: reviewPrompt.loadId, targetUserId: reviewPrompt.targetId, rating: reviewRating, comment: reviewText }) }); setReviewSubmitting(false); setReviewPrompt(null); setReviewRating(5); setReviewText(''); showToast('Thanks for your review!', 'gr') }}>{reviewSubmitting ? 'Submitting...' : 'Submit Review'}</button><button className="btn" onClick={() => setReviewPrompt(null)}>Skip</button></div></div></div>)} {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
     </>
   );
 }

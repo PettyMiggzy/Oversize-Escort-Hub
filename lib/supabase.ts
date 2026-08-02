@@ -19,7 +19,7 @@ export type Profile = {
   bio: string | null
   vehicle: string | null
   states_licensed: string[] | null
-  p_evo_verified: boolean
+  pevo_verified: boolean
   bgc_verified: boolean
   vehicle_verified: boolean
   admin_verified: boolean
