@@ -59,8 +59,13 @@ export default function LoadDetailPage() {
   const submitBid = async () => {
     if (!currentUser || !bidRate) return
     setBidStatus('Submitting...')
-    const { error } = await supabase.from('bids').insert({ load_id: id, escort_id: currentUser.id, rate: parseFloat(bidRate) })
-    if (error) { setBidStatus('Error: ' + error.message); return }
+    const res = await fetch('/api/bids', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ load_id: id, rate: parseFloat(bidRate) }),
+    })
+    const result = await res.json().catch(() => ({} as any))
+    if (!res.ok) { setBidStatus('Error: ' + (result.error || 'Could not place the bid')); return }
     setBidStatus('Bid placed successfully!')
     const { data: b } = await supabase.from('bids').select('*').eq('load_id', id).order('rate', { ascending: false })
     setBids(b || [])

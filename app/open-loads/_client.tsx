@@ -118,12 +118,13 @@ export function OpenLoadsBoardClient() {
   const submitBid = async () => {
     if (!bidModal || !userId || !bidRate) return
     setBidStatus('Submitting...')
-    const { error } = await supabase.from('bids').insert({
-      load_id: bidModal.loadId,
-      escort_id: userId,
-      rate: parseFloat(bidRate)
+    const res = await fetch('/api/bids', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ load_id: bidModal.loadId, rate: parseFloat(bidRate) }),
     })
-    if (error) { setBidStatus('Error: ' + error.message); return }
+    const result = await res.json().catch(() => ({} as any))
+    if (!res.ok) { setBidStatus('Error: ' + (result.error || 'Could not place the bid')); return }
     setBidStatus('Bid placed!')
     await fetchLoads()
     setTimeout(() => { setBidModal(null); setBidStatus(''); setBidRate('') }, 1500)

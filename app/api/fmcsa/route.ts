@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 // FMCSA QCMobile API — free key required, set FMCSA_API_KEY in env
 // Docs: https://mobile.fmcsa.dot.gov/qc/services/carriers/{dotNumber}?webKey={key}
 export async function GET(req: NextRequest) {
-  const dot = req.nextUrl.searchParams.get('dot')
+  const dot = req.nextUrl.searchParams.get('dot')?.trim()
   if (!dot) return NextResponse.json({ error: 'dot param required' }, { status: 400 })
   if (!/^\d{1,8}$/.test(dot)) return NextResponse.json({ error: 'dot must be a number' }, { status: 400 })
   const apiKey = process.env.FMCSA_API_KEY

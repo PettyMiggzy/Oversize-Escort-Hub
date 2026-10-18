@@ -57,7 +57,11 @@ export async function POST(req: NextRequest) {
       .update({ status: 'accepted' })
       .eq('id', bid_id)
       .eq('load_id', load_id)
-    if (acceptErr) return NextResponse.json({ error: 'Could not accept the bid' }, { status: 500 })
+    if (acceptErr) {
+      // put the load back so the carrier can try again
+      await supabase.from('loads').update({ status: 'open', matched_escort_id: null, match_requested_at: null }).eq('id', load_id).eq('matched_escort_id', escort_id)
+      return NextResponse.json({ error: 'Could not accept the bid' }, { status: 500 })
+    }
 
     await supabase
       .from('bids')

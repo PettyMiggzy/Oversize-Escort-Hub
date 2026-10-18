@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import { isAdminEmail } from "@/lib/supabase";
 
 const TRIAL_MAX_JOBS = 5;
 
@@ -24,7 +25,7 @@ export async function POST(req: NextRequest) {
 
     // the trial cap covers everyone without a paid plan (a profile's tier can also read 'free')
     const tier = (profile as any)?.tier;
-    if (!tier || tier === "trial" || tier === "free") {
+    if ((!tier || tier === "trial" || tier === "free") && !isAdminEmail(user.email)) {
       const { count } = await supabase
         .from("job_logs")
         .select("id", { count: "exact" })

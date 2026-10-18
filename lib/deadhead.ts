@@ -52,7 +52,7 @@ export async function notifyDeadhead(load_id: string) {
 
     const { data: load } = await supabase
       .from('loads')
-      .select('id, pu_city, pu_state, dl_city, dl_state, escort_type, per_mile_rate, status, deadhead_notified_at')
+      .select('id, pu_city, pu_state, dl_city, dl_state, escort_type, per_mile_rate, status, board_type, deadhead_notified_at')
       .eq('id', load_id)
       .single()
 
@@ -116,7 +116,9 @@ export async function notifyDeadhead(load_id: string) {
       notified++
     }
 
-    if (notified > 0) {
+    // The boards hide a load for 5 minutes after this stamp. A bid-board load closes after 5 minutes, so
+    // stamping it would hide it for its whole life: those escorts are told, but the load is not held back.
+    if (notified > 0 && load.board_type !== 'bid') {
       await supabase.from('loads').update({ deadhead_notified_at: new Date().toISOString() }).eq('id', load_id)
     }
 

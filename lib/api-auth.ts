@@ -22,7 +22,8 @@ export async function requireAdmin() {
 export function requireCron(req: Request) {
   const auth = req.headers.get('authorization')
   // an unset CRON_SECRET must never make "Bearer undefined" a valid login
-  if (!process.env.CRON_SECRET || auth !== `Bearer ${process.env.CRON_SECRET}`) {
+  const secret = process.env.CRON_SECRET
+  if (!secret || (auth !== `Bearer ${secret}` && req.headers.get('x-cron-secret') !== secret)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   return null
