@@ -51,7 +51,7 @@ export default function AdminPage() {
       // Load users
       const { data: usersData } = await supabase
         .from('profiles')
-        .select('id, full_name, email, role, tier, bgc_verified, created_at, suspended, phone, stripe_customer_id, tier_updated_at, sms_opt_in')
+        .select('id, full_name, email, role, tier, bgc_verified, pevo_verified, created_at, suspended, phone, stripe_customer_id, tier_updated_at, sms_opt_in')
         .order('created_at', { ascending: false })
       setUsers(usersData || [])
 
@@ -88,6 +88,13 @@ export default function AdminPage() {
     // Fetch Loads
     supabase.from('loads').select('*').order('created_at', {ascending: false}).then(({data}: {data: any}) => setLoadsList(data || []))
   }, [])
+
+  const setUserFields = async (userId: string, fields: { tier?: string; role?: string; pevo_verified?: boolean; bgc_verified?: boolean }) => {
+    const res = await fetch('/api/admin/set-user', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, ...fields }) })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) { alert('Could not save: ' + (data.error || res.status)); return }
+    setUsers(prev => prev.map(u => u.id === userId ? { ...u, ...fields } : u))
+  }
 
   const suspendUser = async (userId: string, suspended: boolean) => {
     await supabase.from('profiles').update({ suspended: !suspended }).eq('id', userId)
@@ -269,7 +276,17 @@ export default function AdminPage() {
                             ID: {u.id}<br />
                             Phone: {u.phone ?? '—'}<br />
                             Stripe Customer: {u.stripe_customer_id ?? '—'}<br />
-                            Tier: {u.tier ?? '—'} | BGC Verified: {String(u.bgc_verified)}<br />
+                            Tier: {u.tier ?? '—'} | BGC Verified: {String(u.bgc_verified)} | P/EVO Verified: {String(!!u.pevo_verified)}<br />
+                            <div style={{ marginTop: 10, display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }} onClick={e => e.stopPropagation()}>
+                              <label>Plan:{' '}
+                                <select style={{ ...btn, cursor: 'pointer' }} value={u.tier ?? ''} onChange={e => setUserFields(u.id, { tier: e.target.value })}>
+                                  {!u.tier && <option value="">—</option>}
+                                  {['free', 'trial', 'member', 'pro', 'carrier_member', 'fleet_starter', 'fleet_plus', 'fleet_pro'].map(t => <option key={t} value={t}>{t}</option>)}
+                                </select>
+                              </label>
+                              <label><input type="checkbox" checked={!!u.pevo_verified} onChange={e => setUserFields(u.id, { pevo_verified: e.target.checked })} /> P/EVO verified</label>
+                              <label><input type="checkbox" checked={!!u.bgc_verified} onChange={e => setUserFields(u.id, { bgc_verified: e.target.checked })} /> BGC verified</label>
+                            </div>
                           </td>
                         </tr>
                       )}

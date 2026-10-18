@@ -1577,7 +1577,7 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
             <div className="bb" style={{ fontSize: 24, marginBottom: 20 }}>CERTIFICATIONS</div>
             <div style={{ display: "grid", gap: 10 }}>
               {[
-                { name: "P/EVO Verified", verified: profile?.p_evo_verified, color: "var(--gr)" },
+                { name: "P/EVO Verified", verified: profile?.p_evo_verified || (profile as any)?.pevo_verified, color: "var(--gr)" },
                 { name: "Vehicle Verified", verified: profile?.vehicle_verified, color: "var(--bl)" },
                 { name: "Background Checked", verified: profile?.bgc_verified, color: "var(--am)" },
                 { name: "Admin Verified", verified: profile?.admin_verified, color: "var(--or)" },
