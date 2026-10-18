@@ -62,6 +62,7 @@ export default function SiteFooter() {
           <Link className="hover:text-white" href="/terms">Terms</Link>
           <Link className="hover:text-white" href="/privacy">Privacy</Link>
           <Link className="hover:text-white" href="/conduct">Code of Conduct</Link>
+          <Link className="hover:text-white" href="/delete-account">Delete account</Link>
         </div>
       </div>
     </footer>

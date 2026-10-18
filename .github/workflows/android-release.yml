@@ -1,0 +1,38 @@
+# Builds the signed Android App Bundle (.aab) for Google Play, in the cloud, so no Android Studio is needed.
+# Run it from GitHub: Actions > "Android release" > Run workflow. When it finishes, download the "oeh-release-aab"
+# file from the run's page and upload it in Play Console (Release > Production or Internal testing).
+name: Android release
+on:
+  workflow_dispatch:
+    inputs:
+      version_name:
+        description: "Version shown to users (for example 1.0.1)"
+        required: true
+        default: "1.0"
+permissions:
+  contents: read
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci
+      - name: Copy the web fallback page into the Android project
+        run: npx cap sync android
+      - name: Build the signed bundle
+        working-directory: android
+        run: ./gradlew bundleRelease -PversionCode=${{ github.run_number }} -PversionName=${{ inputs.version_name }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: oeh-release-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error

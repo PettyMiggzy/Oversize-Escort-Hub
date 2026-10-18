@@ -493,6 +493,7 @@ function Nav({ page, setPage, user, profile, onSignOut, unreadCount = 0, setSign
                     <button className="drawer-link" onClick={() => { setPage('admin'); closeDrawer(); }}>Admin</button>
                   )}
                   <button className="drawer-signout" onClick={() => { onSignOut(); closeDrawer(); }}>SIGN OUT</button>
+                  <a className="drawer-link" href="/delete-account" style={{ display: "block", marginTop: 8, fontSize: 11, opacity: 0.7 }}>Delete my account</a>
                 </>
               ) : (
                 <button className="btn btn-or btn-sm" style={{ width: "100%" }} onClick={() => { setSigninMode("signup"); setPage("signin"); closeDrawer(); }}>GET STARTED</button>

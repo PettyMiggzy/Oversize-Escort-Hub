@@ -123,7 +123,7 @@ export default function PrivacyPolicy() {
           <ul style={{ ...s.ul }}>
             <li style={{ ...s.li }}>The right to access the personal information we hold about you</li>
             <li style={{ ...s.li }}>The right to correct inaccurate or incomplete information</li>
-            <li style={{ ...s.li }}>The right to request deletion of your personal information</li>
+            <li style={{ ...s.li }}>The right to request deletion of your personal information. You can delete your account yourself at any time at <a href="/delete-account" style={{ color: "#f90" }}>oversize-escort-hub.com/delete-account</a></li>
             <li style={{ ...s.li }}>The right to opt out of marketing communications at any time</li>
             <li style={{ ...s.li }}>The right to data portability where technically feasible</li>
           </ul>
