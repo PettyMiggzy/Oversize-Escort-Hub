@@ -40,7 +40,7 @@ const PLANS: Plan[] = [
       "Unlimited load postings",
       "Priority listing in search",
       "BGC Badge included",
-      "SMS job alerts",
+      "SMS job alerts (coming soon)",
       "Push notifications",
       "Veteran discount eligible",
     ],

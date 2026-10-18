@@ -147,6 +147,8 @@ export default function AdminPage() {
   }
 
   const sendBlast = async () => {
+    return // SMS is coming soon: the server refuses blasts until it is switched on
+    // eslint-disable-next-line no-unreachable
     if (!smsMsg.trim()) return
     setSmsSending(true)
     setSmsResult('')
@@ -528,7 +530,7 @@ export default function AdminPage() {
         {/* SMS Blast Tab */}
         {activeTab === 'sms' && (
           <div>
-            <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>SMS Blast</h2>
+            <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>SMS Blast — Coming soon</h2>
             <div style={card}>
               <div style={{ marginBottom: 16 }}>
                 <label style={{ display: 'block', fontSize: 12, color: '#9ca3af', marginBottom: 6, fontWeight: 600 }}>AUDIENCE</label>
@@ -555,10 +557,10 @@ export default function AdminPage() {
               </div>
               <button
                 onClick={sendBlast}
-                disabled={smsSending || !smsMsg.trim()}
+                disabled
                 style={{ background: smsSending ? '#1e3a5f' : '#f60', color: '#fff', border: 'none', borderRadius: 6, padding: '10px 24px', fontWeight: 700, cursor: smsSending ? 'not-allowed' : 'pointer' }}
               >
-                {smsSending ? 'Sending...' : 'Send Blast'}
+                Coming soon
               </button>
               {smsResult && <p style={{ marginTop: 12, fontSize: 13, color: smsResult.startsWith('Error') ? '#ef4444' : '#22c55e' }}>{smsResult}</p>}
             </div>

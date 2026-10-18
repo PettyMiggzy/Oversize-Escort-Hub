@@ -4,6 +4,7 @@ import { useState, Suspense, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { isNativeApp, openInBrowser, WEB_HOST } from '@/lib/native';
 import { useSearchParams } from 'next/navigation';
+import { safeRedirectPath } from '@/lib/security';
 
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap');
@@ -76,7 +77,7 @@ function SignInInner() {
 
   const searchParams = useSearchParams();
   const redirectParam = searchParams.get('redirect');
-  const redirectPath = redirectParam ? '/' + redirectParam.replace(/^\/+/, '') : '/dashboard';
+  const redirectPath = safeRedirectPath(redirectParam);
   const roleParamRaw = searchParams.get('role');
   const allowedRoles = ['escort', 'carrier', 'broker', 'fleet_manager'] as const;
   const initialRole = (allowedRoles as readonly string[]).includes(roleParamRaw ?? '')

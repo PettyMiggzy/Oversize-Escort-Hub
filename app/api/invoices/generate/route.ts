@@ -7,7 +7,7 @@ import { requireAuth } from '@/lib/api-auth'
 export const dynamic = 'force-dynamic'
 
 export async function POST(req: NextRequest) {
-  const { error: __authErr } = await requireAuth()
+  const { user, error: __authErr } = await requireAuth()
   if (__authErr) return __authErr
   try {
     const { load_id } = await req.json()
@@ -22,6 +22,10 @@ export async function POST(req: NextRequest) {
       .single()
 
     if (!load) return NextResponse.json({ error: 'Load not found' }, { status: 404 })
+    // only the two people on the load may print its invoice (it carries the carrier's contact details)
+    if (load.carrier_id !== user!.id && load.matched_escort_id !== user!.id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
 
     const doc = new jsPDF()
 

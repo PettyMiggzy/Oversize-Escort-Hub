@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@/lib/supabase/server'
+import { STRIPE_PRICE_IDS } from '@/lib/stripe-utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,8 +14,11 @@ export async function POST(req: NextRequest) {
   const { session_id } = await req.json().catch(() => ({}))
   if (!session_id) return NextResponse.json({ error: 'session_id required' }, { status: 400 })
   try {
-    const session = await stripe.checkout.sessions.retrieve(session_id)
-    const ok = session.payment_status === 'paid'
+    const session = await stripe.checkout.sessions.retrieve(session_id, { expand: ['line_items'] })
+    // must be this user's paid BGC purchase, not any other paid checkout (a Member plan, say)
+    const boughtBgc = session.metadata?.type === 'bgc'
+      && !!session.line_items?.data.some((li) => li.price?.id === STRIPE_PRICE_IDS.BGC_BADGE)
+    const ok = session.payment_status === 'paid' && boughtBgc
       && (session.metadata?.userId === user.id || session.client_reference_id === user.id)
     if (!ok) return NextResponse.json({ paid: false }, { status: 200 })
     // Trust webhook to flip bgc_paid; fall back to direct flip if webhook lagged.
@@ -24,6 +28,7 @@ export async function POST(req: NextRequest) {
     }
     return NextResponse.json({ paid: true })
   } catch (e: any) {
-    return NextResponse.json({ error: e?.message || 'Stripe error' }, { status: 500 })
+    console.error('[bgc verify-session]', e)
+    return NextResponse.json({ error: 'Could not check the payment' }, { status: 500 })
   }
 }

@@ -1,5 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse, after } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { notifyProEscorts } from '@/lib/notify-pro'
+import { notifyDeadhead } from '@/lib/deadhead'
 
 export async function POST(request: NextRequest) {
   try {
@@ -44,20 +46,21 @@ export async function POST(request: NextRequest) {
       .select()
       .single()
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) {
+      console.error('Error inserting load:', error)
+      return NextResponse.json({ error: 'Could not post the load' }, { status: 500 })
+    }
 
+    // after() keeps the work running once the response is sent (a plain un-awaited fetch is frozen with the
+    // serverless function, so Pro early-access alerts could silently never go out)
     if (data?.id) {
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-      fetch(`${baseUrl}/api/deadhead`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ load_id: data.id }),
-      }).catch(() => {})
-      fetch(`${baseUrl}/api/loads/notify-pro`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ load_id: data.id, pu_state: pickupState, dl_state: destinationState }),
-      }).catch(() => {})
+      const loadId = data.id as string
+      after(async () => {
+        await Promise.allSettled([
+          notifyDeadhead(loadId),
+          notifyProEscorts({ load_id: loadId, pu_state: pickupState, dl_state: destinationState }),
+        ])
+      })
     }
 
     return NextResponse.json(data, { status: 201 })

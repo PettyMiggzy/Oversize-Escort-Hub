@@ -280,8 +280,8 @@ export default function PricingPage() {
             <PriceHeader label="Pro" price="$29.99" period="/mo" highlight />
             <Features items={[
               "Instant load access — 60s head start over Member",
-              "SMS alerts when loads drop",
-              "SMS load posting",
+              "SMS alerts when loads drop (coming soon)",
+              "SMS load posting (coming soon)",
               "Deadhead Minimizer",
               "Escort Availability Board",
               "First cert verification free",

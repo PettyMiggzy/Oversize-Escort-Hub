@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { requireAuth } from "@/lib/api-auth";
 
 
 export const dynamic = 'force-dynamic'
@@ -9,9 +10,12 @@ const supabase = createClient(
 );
 
 export async function POST(req: NextRequest) {
-  const { load_id, action, carrier_id } = await req.json();
+  const { user, error: authErr } = await requireAuth();
+  if (authErr) return authErr;
+  const carrier_id = user!.id;
+  const { load_id, action } = await req.json();
   // action: "accept" | "decline"
-  if (!load_id || !action || !carrier_id) {
+  if (!load_id || !action) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   }
 
@@ -37,7 +41,7 @@ export async function POST(req: NextRequest) {
     ]);
 
     // Close load permanently
-    await supabase.from("loads").update({ status: "filled", deadhead_destination_city: load.dl_city, deadhead_destination_state: load.dl_state }).eq("id", load_id);
+    await supabase.from("loads").update({ status: "filled", deadhead_destination_city: load.dl_city, deadhead_destination_state: load.dl_state }).eq("id", load_id).eq("status", "pending_match");
 
     // Notify escort
     const { data: escortProfile } = await supabase
@@ -64,7 +68,7 @@ export async function POST(req: NextRequest) {
       status: "open",
       matched_escort_id: null,
       match_requested_at: null,
-    }).eq("id", load_id);
+    }).eq("id", load_id).eq("status", "pending_match");
 
     // Notify escort of decline
     const { data: escortProfile } = await supabase

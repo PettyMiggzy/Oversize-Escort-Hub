@@ -7,11 +7,17 @@ import { NextRequest, NextResponse } from "next/server"
 export const dynamic = 'force-dynamic'
 export async function GET(req: NextRequest) {
   const lat = req.nextUrl.searchParams.get("lat")
-  const lon = req.nextUrl.searchParams.get("lon")
+  // the weather page sends "lng"; other callers send "lon"
+  const lon = req.nextUrl.searchParams.get("lon") ?? req.nextUrl.searchParams.get("lng")
   const city = req.nextUrl.searchParams.get("city")
 
   if (!lat || !lon) {
     return NextResponse.json({ error: "Provide lat and lon parameters" }, { status: 400 })
+  }
+
+  // numbers only: they are placed in the NWS URL path
+  if (!Number.isFinite(Number(lat)) || !Number.isFinite(Number(lon)) || Math.abs(Number(lat)) > 90 || Math.abs(Number(lon)) > 180) {
+    return NextResponse.json({ error: "lat and lon must be numbers" }, { status: 400 })
   }
 
   try {
@@ -27,6 +33,7 @@ export async function GET(req: NextRequest) {
     const forecastUrl = pointData?.properties?.forecast
     const forecastHourlyUrl = pointData?.properties?.forecastHourly
     const alertsZone = pointData?.properties?.county
+    if (!forecastUrl) return NextResponse.json({ error: "No forecast for this location", lat, lon }, { status: 200 })
 
     // Step 2: Get forecast
     const [forecastRes, alertsRes] = await Promise.all([
@@ -71,6 +78,7 @@ export async function GET(req: NextRequest) {
       alerts,
     })
   } catch (e) {
-    return NextResponse.json({ error: "NWS API error", detail: String(e) }, { status: 200 })
+    console.error("[weather]", e)
+    return NextResponse.json({ error: "NWS API error" }, { status: 200 })
   }
 }

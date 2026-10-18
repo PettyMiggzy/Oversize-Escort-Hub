@@ -23,14 +23,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const { error } = await supabase
+    const { data: rejected, error } = await supabase
       .from('bids')
       .update({ status: 'rejected' })
       .eq('id', bid_id)
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      .eq('load_id', load_id)
+      .eq('status', 'pending')
+      .select('id')
+    if (error) return NextResponse.json({ error: 'Could not reject the bid' }, { status: 500 })
+    if (!rejected?.length) return NextResponse.json({ error: 'Bid not found' }, { status: 404 })
 
     return NextResponse.json({ ok: true })
   } catch (err: any) {
-    return NextResponse.json({ error: err?.message || 'Server error' }, { status: 500 })
+    return NextResponse.json({ error: 'Server error' }, { status: 500 })
   }
 }

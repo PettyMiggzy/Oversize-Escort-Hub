@@ -8,25 +8,26 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-03
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
 export async function POST(req: NextRequest) {
-  const { error: __authErr } = await requireAuth()
+  const { user, error: __authErr } = await requireAuth()
   if (__authErr) return __authErr
   try {
-    const { userId } = await req.json()
-    if (!userId) return NextResponse.json({ error: 'Missing userId' }, { status: 400 })
+    // always the signed-in user's own billing portal, never an id from the request body
+    const userId = user!.id
+    if (!user!.email) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
-    const { data: authData } = await supabase.auth.admin.getUserById(userId)
-    if (!authData?.user?.email) return NextResponse.json({ error: 'User not found' }, { status: 404 })
-
-    const existing = await stripe.customers.list({ email: authData.user.email, limit: 1 })
-    let customerId: string
-    if (existing.data.length > 0) {
-      customerId = existing.data[0].id
-    } else {
-      const customer = await stripe.customers.create({
-        email: authData.user.email,
-        metadata: { userId },
-      })
-      customerId = customer.id
+    const { data: prof } = await supabase.from('profiles').select('stripe_customer_id').eq('id', userId).single()
+    let customerId: string | undefined = prof?.stripe_customer_id ?? undefined
+    if (!customerId) {
+      const existing = await stripe.customers.list({ email: user!.email, limit: 1 })
+      if (existing.data.length > 0) {
+        customerId = existing.data[0].id
+      } else {
+        const customer = await stripe.customers.create({
+          email: user!.email,
+          metadata: { userId },
+        })
+        customerId = customer.id
+      }
     }
 
     const session = await stripe.billingPortal.sessions.create({
@@ -37,6 +38,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url: session.url })
   } catch (err: any) {
     console.error('[portal] error:', err)
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ error: 'Could not open the billing portal' }, { status: 500 })
   }
 }

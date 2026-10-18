@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { requireAdmin } from '@/lib/api-auth'
+import { SMS_ENABLED, smsComingSoon } from '@/lib/features'
 
 export async function POST(req: NextRequest) {
+  if (!SMS_ENABLED) return smsComingSoon()
   const { error: __authErr } = await requireAdmin()
   if (__authErr) return __authErr
   try {
@@ -30,12 +32,14 @@ export async function POST(req: NextRequest) {
     for (const p of (profiles || [])) {
       if (!p.phone) continue
       try {
-        await fetch(`https://app.textrequest.com/api/v2/accounts/${accountId}/messages`, {
+        const { data: optOut } = await supabase.from('sms_opt_outs').select('id').eq('phone', p.phone).maybeSingle()
+        if (optOut) continue
+        const res = await fetch(`https://app.textrequest.com/api/v2/accounts/${accountId}/messages`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey! },
           body: JSON.stringify({ contact_phone: p.phone, message })
         })
-        sent++
+        if (res.ok) sent++
       } catch (_) {}
     }
 

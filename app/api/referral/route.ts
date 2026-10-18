@@ -11,10 +11,9 @@ const supabase = createClient(
 
 // GET /api/referral?user_id=xxx — get or create referral link for user
 export async function GET(req: NextRequest) {
-  const { error: __authErr } = await requireAuth()
+  const { user, error: __authErr } = await requireAuth()
   if (__authErr) return __authErr
-  const userId = req.nextUrl.searchParams.get("user_id");
-  if (!userId) return NextResponse.json({ error: "user_id required" }, { status: 400 });
+  const userId = user!.id;
 
   let { data: profile } = await supabase
     .from("profiles")
@@ -49,8 +48,11 @@ export async function GET(req: NextRequest) {
 
 // POST /api/referral — track when a referred user signs up
 export async function POST(req: NextRequest) {
-  const { ref_code, new_user_id } = await req.json();
-  if (!ref_code || !new_user_id) {
+  const { user, error: __authErr } = await requireAuth()
+  if (__authErr) return __authErr
+  const new_user_id = user!.id;
+  const { ref_code } = await req.json();
+  if (!ref_code || typeof ref_code !== "string") {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   }
 
@@ -62,6 +64,11 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (!referrer) return NextResponse.json({ error: "Invalid referral code" }, { status: 404 });
+  if (referrer.id === new_user_id) return NextResponse.json({ error: "You can't refer yourself" }, { status: 400 });
+
+  // one referral per new user
+  const { data: me } = await supabase.from("profiles").select("referred_by").eq("id", new_user_id).single();
+  if (me?.referred_by) return NextResponse.json({ ok: true, already: true });
 
   // Create referral record
   await supabase.from("referrals").insert({

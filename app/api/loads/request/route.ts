@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
 import { createClient as createServerSupabase } from "@/lib/supabase/server";
+import { escortAccess, claimRefusal } from "@/lib/access-server";
 
 export const dynamic = 'force-dynamic'
 
@@ -25,16 +26,22 @@ export async function POST(req: NextRequest) {
   // Check load is open
   const { data: load, error: le } = await supabase
     .from("loads")
-    .select("id, status, carrier_id")
+    .select("id, status, carrier_id, created_at")
     .eq("id", load_id)
     .single();
   if (le || !load) return NextResponse.json({ error: "Load not found" }, { status: 404 });
   if (load.status !== "open") {
     return NextResponse.json({ error: "Load is not available" }, { status: 409 });
   }
+  if (load.carrier_id === escort_id) {
+    return NextResponse.json({ error: "You cannot claim your own load" }, { status: 403 });
+  }
+  // the plan rules (free locked out, Members after the Pro head start) are decided here, not only in the browser
+  const refusal = claimRefusal(await escortAccess(authed, user), load.created_at);
+  if (refusal) return NextResponse.json({ error: refusal }, { status: 403 });
 
   // Mark pending_match with 1-hour expiry handled by cron
-  const { error: ue } = await supabase
+  const { data: claimed, error: ue } = await supabase
     .from("loads")
     .update({
       status: "pending_match",
@@ -42,9 +49,12 @@ export async function POST(req: NextRequest) {
       match_requested_at: new Date().toISOString(),
     })
     .eq("id", load_id)
-    .eq("status", "open");
+    .eq("status", "open")
+    .select("id");
 
-  if (ue) return NextResponse.json({ error: ue.message }, { status: 500 });
+  if (ue) return NextResponse.json({ error: "Could not claim the load" }, { status: 500 });
+  // two escorts racing for one load: only the one whose update matched a row has it
+  if (!claimed?.length) return NextResponse.json({ error: "Load is not available" }, { status: 409 });
 
   // Notify carrier via push
   const { data: carrierProfile } = await supabase

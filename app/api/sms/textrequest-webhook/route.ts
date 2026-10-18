@@ -1,6 +1,9 @@
 import { createHmac } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { SMS_ENABLED } from '@/lib/features'
+import { escapeHtml } from '@/lib/security'
+import { safeEqual } from '@/lib/security-server'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,16 +12,15 @@ const svc = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-// verifySignature: true=valid, false=invalid, null=cannot verify (skip).
-function verifySignature(body: string, signature: string | null): boolean | null {
+// A text may post a load as the carrier whose phone number it claims, so an unsigned or wrongly signed
+// request is refused: with no secret set, or no signature header, nothing is processed.
+function verifySignature(body: string, signature: string | null): boolean {
   const secret = process.env.TEXTREQUEST_WEBHOOK_SECRET
-  if (!secret) return null
-  if (!signature) return null
+  if (!secret || !signature) return false
   try {
-    const expected = createHmac('sha256', secret).update(body).digest('hex')
-    return expected === signature
+    return safeEqual(createHmac('sha256', secret).update(body).digest('hex'), signature.trim().toLowerCase())
   } catch {
-    return null
+    return false
   }
 }
 
@@ -195,12 +197,12 @@ async function sendTextRequestReply(toPhone: string, body: string) {
 }
 
 export async function POST(req: NextRequest) {
+  // SMS is coming soon: answer 200 so the provider doesn't retry, and do nothing.
+  if (!SMS_ENABLED) return NextResponse.json({ ok: true, ignored: 'sms_coming_soon' })
   const rawBody = await req.text()
   const sig = req.headers.get('x-textrequest-signature')
 
-  // Signature verification — only 401 when we CAN verify AND sig is wrong.
-  const sigResult = verifySignature(rawBody, sig)
-  if (sigResult === false) {
+  if (!verifySignature(rawBody, sig)) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
   }
 
@@ -345,9 +347,9 @@ export async function POST(req: NextRequest) {
         }
         if (carrierEmail) {
           const profAny = prof as { full_name?: string; company_name?: string } | null
-          const greeting = profAny?.full_name || profAny?.company_name || 'Carrier'
+          const greeting = escapeHtml(profAny?.full_name || profAny?.company_name || 'Carrier')
           const rows = insertedIds
-            .map((id, i) => `<li>${d.positions[i]} — Load ID <code>${id}</code></li>`)
+            .map((id, i) => `<li>${escapeHtml(d.positions[i])} — Load ID <code>${escapeHtml(id)}</code></li>`)
             .join('')
           await fetch('https://api.resend.com/emails', {
             method: 'POST',
@@ -359,7 +361,7 @@ export async function POST(req: NextRequest) {
               from: 'OEH Loads <noreply@oversize-escort-hub.com>',
               to: carrierEmail,
               subject: `OEH: ${insertedIds.length > 1 ? insertedIds.length + ' loads' : 'Load'} posted — ${d.puCity} ${d.puState} → ${d.dlCity} ${d.dlState}`,
-              html: `<p>Hi ${greeting},</p><p>Your SMS load post was confirmed:</p><ul><li><strong>Board:</strong> ${d.boardType}</li><li><strong>Pickup:</strong> ${d.puCity}, ${d.puState}</li><li><strong>Drop:</strong> ${d.dlCity}, ${d.dlState}</li><li><strong>Date:</strong> ${d.startDate}</li><li><strong>Rate:</strong> $${d.perMileRate}/mi</li></ul><p><strong>Positions:</strong></p><ul>${rows}</ul><p>View on the board: <a href="https://oversize-escort-hub.com/${d.boardType === 'flat-rate' ? 'flat-rate' : d.boardType === 'bid' ? 'bid-board' : 'open-loads'}">oversize-escort-hub.com</a></p>`,
+              html: `<p>Hi ${greeting},</p><p>Your SMS load post was confirmed:</p><ul><li><strong>Board:</strong> ${d.boardType}</li><li><strong>Pickup:</strong> ${escapeHtml(d.puCity)}, ${escapeHtml(d.puState)}</li><li><strong>Drop:</strong> ${escapeHtml(d.dlCity)}, ${escapeHtml(d.dlState)}</li><li><strong>Date:</strong> ${d.startDate}</li><li><strong>Rate:</strong> $${d.perMileRate}/mi</li></ul><p><strong>Positions:</strong></p><ul>${rows}</ul><p>View on the board: <a href="https://oversize-escort-hub.com/${d.boardType === 'flat-rate' ? 'flat-rate' : d.boardType === 'bid' ? 'bid-board' : 'open-loads'}">oversize-escort-hub.com</a></p>`,
             }),
           })
         }

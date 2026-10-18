@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import webpush from 'web-push'
-import { requireAuth } from '@/lib/api-auth'
+import { requireAdmin } from '@/lib/api-auth'
 
 
 export const dynamic = 'force-dynamic'
 export async function POST(req: NextRequest) {
-  const { error: __authErr } = await requireAuth()
+  // an operator tool: a push to any user with any words
+  const { error: __authErr } = await requireAdmin()
   if (__authErr) return __authErr
   try {
     if (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
@@ -23,6 +24,7 @@ export async function POST(req: NextRequest) {
     await webpush.sendNotification(row.subscription, JSON.stringify({ title, body, url }))
     return NextResponse.json({ ok: true })
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 })
+    console.error('[push send]', e)
+    return NextResponse.json({ error: 'Could not send the push' }, { status: 500 })
   }
 }

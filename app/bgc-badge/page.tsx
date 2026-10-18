@@ -13,12 +13,13 @@ export default function BGCBadgePage() {
     if (!file) return;
     setLoading(true);
     const formData = new FormData();
-    formData.append("pdf", file);
-    const res = await fetch("/api/bgc-badge/submit", { method: "POST", body: formData });
-    const data = await res.json();
+    formData.append("file", file);
+    const res = await fetch("/api/bgc", { method: "POST", body: formData });
+    const data = await res.json().catch(() => ({}));
     setLoading(false);
-    if (res.ok) setStatus("✓ Background check submitted! ID: " + data.submissionId);
-    else setStatus("Error: " + data.error);
+    if (res.ok) setStatus("✓ Background check submitted. We will review it shortly.");
+    else if (res.status === 402) setStatus("Error: the background check fee is paid first. Start from the Verify page.");
+    else setStatus("Error: " + (data.error || "Submission failed"));
   }
 
   return (

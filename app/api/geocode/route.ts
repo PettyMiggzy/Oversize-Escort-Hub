@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { requireAuth } from "@/lib/api-auth"
 
 // Nominatim Geocoding — free, no key required
 // Docs: https://nominatim.openstreetmap.org/ui/about.html
@@ -7,6 +8,9 @@ import { NextRequest, NextResponse } from "next/server"
 
 export const dynamic = 'force-dynamic'
 export async function GET(req: NextRequest) {
+  // signed-in users only: Nominatim allows one request a second, and a public proxy would get this server blocked
+  const { error: authErr } = await requireAuth()
+  if (authErr) return authErr
   const city = req.nextUrl.searchParams.get("city")
   const state = req.nextUrl.searchParams.get("state")
   const q = req.nextUrl.searchParams.get("q")
@@ -40,6 +44,7 @@ export async function GET(req: NextRequest) {
       query,
     })
   } catch (e) {
-    return NextResponse.json({ error: "Geocoding error", detail: String(e) }, { status: 200 })
+    console.error("[geocode]", e)
+    return NextResponse.json({ error: "Geocoding error" }, { status: 200 })
   }
 }

@@ -10,7 +10,11 @@ export async function POST(req: NextRequest) {
 
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { loadId, mileage, expenses, notes } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const loadId = typeof body.loadId === "string" ? body.loadId : null;
+    const mileage = Number.isFinite(Number(body.mileage)) && Number(body.mileage) >= 0 ? Number(body.mileage) : 0;
+    const expenses = Array.isArray(body.expenses) ? body.expenses.slice(0, 100) : [];
+    const notes = typeof body.notes === "string" ? body.notes.slice(0, 2000) : null;
 
     const { data: profile } = await supabase
       .from("profiles")
@@ -18,7 +22,9 @@ export async function POST(req: NextRequest) {
       .eq("id", user.id)
       .single();
 
-    if ((profile as any)?.tier === "trial") {
+    // the trial cap covers everyone without a paid plan (a profile's tier can also read 'free')
+    const tier = (profile as any)?.tier;
+    if (!tier || tier === "trial" || tier === "free") {
       const { count } = await supabase
         .from("job_logs")
         .select("id", { count: "exact" })
@@ -36,14 +42,14 @@ export async function POST(req: NextRequest) {
       escort_id: user.id,
       load_id: loadId,
       mileage,
-      expenses: expenses || [],
+      expenses,
       notes,
       logged_at: new Date().toISOString(),
-    });
+    }).select("id").single();
 
     if (error) throw error;
 
-    return NextResponse.json({ success: true, jobId: (data as any)?.[0]?.id });
+    return NextResponse.json({ success: true, jobId: data?.id });
   } catch (error) {
     console.error("Job logging error:", error);
     return NextResponse.json({ error: "Job logging failed" }, { status: 500 });
@@ -65,7 +71,7 @@ export async function GET(req: NextRequest) {
 
     const totalMiles = jobs?.reduce((sum, job) => sum + (job.mileage || 0), 0) || 0;
     const totalExpenses = jobs?.reduce((sum, job) => {
-      const jobExpenses = job.expenses?.reduce((s: number, e: any) => s + (e.amount || 0), 0) || 0;
+      const jobExpenses = Array.isArray(job.expenses) && job.expenses.reduce((s: number, e: any) => s + (e.amount || 0), 0) || 0;
       return sum + jobExpenses;
     }, 0) || 0;
 

@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { loadId, targetUserId, rating, comment } = body;
 
-    if (!loadId || !targetUserId || typeof rating !== 'number') {
+    if (!loadId || !targetUserId || typeof rating !== 'number' || !Number.isFinite(rating) || rating < 1 || rating > 5) {
       return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
     }
 
@@ -26,12 +26,28 @@ export async function POST(req: NextRequest) {
       .eq('id', userId)
       .single();
 
-    const email = profile?.email ?? user.email ?? '';
+    // the account's own (verified) email, not a profile column
+    const email = user.email ?? '';
     const role = profile?.role;
 
     const hasAccess = await checkTierAccess(userId, email, 'member', role);
     if (!hasAccess) {
       return NextResponse.json({ error: 'Upgrade to access reviews' }, { status: 403 });
+    }
+
+    if (targetUserId === userId) {
+      return NextResponse.json({ error: 'You cannot review yourself' }, { status: 400 });
+    }
+
+    // only the two people on a load can review each other for it
+    const { data: load } = await authed
+      .from('loads')
+      .select('carrier_id, matched_escort_id')
+      .eq('id', loadId)
+      .single();
+    const pair = [load?.carrier_id, load?.matched_escort_id];
+    if (!load || !pair.includes(userId) || !pair.includes(targetUserId)) {
+      return NextResponse.json({ error: 'You can only review someone you worked a load with' }, { status: 403 });
     }
 
     const { data, error } = await authed
@@ -41,7 +57,7 @@ export async function POST(req: NextRequest) {
         reviewer_id: userId,
         reviewee_id: targetUserId,
         rating,
-        body: comment ?? null,
+        body: typeof comment === 'string' ? comment.slice(0, 2000) : null,
       });
 
     if (error) throw error;

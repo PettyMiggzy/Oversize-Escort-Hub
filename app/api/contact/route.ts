@@ -1,30 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
+import { escapeHtml } from '@/lib/security'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
+const text = (v: unknown, max: number) => (typeof v === 'string' ? v.trim().slice(0, max) : '')
+
 export async function POST(req: NextRequest) {
   try {
-    const { name, email, subject, message } = await req.json()
+    const body = await req.json().catch(() => ({}))
+    const name = text(body.name, 120)
+    const email = text(body.email, 200)
+    const subject = text(body.subject, 200)
+    const message = text(body.message, 5000)
     if (!name || !email || !message) return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
+    if (!/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(email)) return NextResponse.json({ error: 'That email address doesn’t look right' }, { status: 400 })
+
+    // a subject or name with a line break must never become a mail header
+    const oneLine = (s: string) => s.replace(/[\r\n]+/g, ' ')
 
     await resend.emails.send({
       from: 'OEH Contact <noreply@oversize-escort-hub.com>',
       to: 'support@oversize-escort-hub.com',
-      subject: `[OEH Contact] ${subject || 'General Inquiry'} - from ${name}`,
+      replyTo: email,
+      subject: `[OEH Contact] ${oneLine(subject) || 'General Inquiry'} - from ${oneLine(name)}`,
       html: `
         <h2>New Contact Form Submission</h2>
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Subject:</strong> ${subject || 'General Inquiry'}</p>
+        <p><strong>Name:</strong> ${escapeHtml(name)}</p>
+        <p><strong>Email:</strong> ${escapeHtml(email)}</p>
+        <p><strong>Subject:</strong> ${escapeHtml(subject) || 'General Inquiry'}</p>
         <p><strong>Message:</strong></p>
-        <p>${message.replace(/\n/g, '<br>')}</p>
+        <p>${escapeHtml(message).replace(/\n/g, '<br>')}</p>
       `,
     })
 
     return NextResponse.json({ success: true })
   } catch (err: any) {
     console.error('[contact] error:', err)
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ error: 'Could not send your message' }, { status: 500 })
   }
 }

@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireAdmin } from '@/lib/api-auth'
+import { SMS_ENABLED, smsComingSoon } from '@/lib/features'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(req: NextRequest) {
+  if (!SMS_ENABLED) return smsComingSoon()
+  const { error: authErr } = await requireAdmin()
+  if (authErr) return authErr
   const { userId, status } = await req.json()
     if (!userId || !status) return NextResponse.json({ ok: false }, { status: 400 })
       const svc = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)

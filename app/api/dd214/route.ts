@@ -1,6 +1,8 @@
 import { sendEmail } from '@/lib/email';
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { requireAuth } from '@/lib/api-auth';
+import { DOC_TYPES, escapeHtml, safeFileName } from '@/lib/security';
 
 export const dynamic = 'force-dynamic'
 
@@ -9,25 +11,48 @@ const svc = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+// GET: the signed-in user's own DD-214 / veteran discount status (what /dd214 shows)
+export async function GET() {
+  const { user, error: authErr } = await requireAuth();
+  if (authErr) return authErr;
+
+  const [{ data: profile }, { data: discount }] = await Promise.all([
+    svc.from("profiles").select("dd214_pending").eq("id", user!.id).single(),
+    svc.from("veteran_discounts").select("created_at").eq("user_id", user!.id).limit(1),
+  ]);
+
+  if (discount?.length) return NextResponse.json({ status: "approved", discount_active: true });
+  if ((profile as any)?.dd214_pending) return NextResponse.json({ status: "pending" });
+  return NextResponse.json({ status: "none" });
+}
+
 export async function POST(req: NextRequest) {
+  const { user, error: authErr } = await requireAuth();
+  if (authErr) return authErr;
+  const userId = user!.id;
+
   const formData = await req.formData();
   const file = formData.get("file") as File | null;
-  const userId = formData.get("user_id") as string;
-  const email = formData.get("email") as string;
 
-  if (!file || !userId) {
-    return NextResponse.json({ error: "Missing file or user_id" }, { status: 400 });
+  if (!file) {
+    return NextResponse.json({ error: "Missing file" }, { status: 400 });
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    return NextResponse.json({ error: "File exceeds 10 MB" }, { status: 400 });
+  }
+  if (!DOC_TYPES.includes(file.type)) {
+    return NextResponse.json({ error: "Upload a PDF or an image" }, { status: 400 });
   }
 
-  // Upload to Supabase Storage
+  // Upload to Supabase Storage, under the user's own folder
   const bytes = await file.arrayBuffer();
-  const path = `dd214/${userId}_${Date.now()}_${file.name}`;
+  const path = `dd214/${userId}/${Date.now()}_${safeFileName(file.name)}`;
 
   const { error: upErr } = await svc.storage.from("verification-docs").upload(path, Buffer.from(bytes), {
     contentType: file.type, upsert: false,
   });
 
-  if (upErr) return NextResponse.json({ error: upErr.message }, { status: 500 });
+  if (upErr) return NextResponse.json({ error: "Upload failed" }, { status: 500 });
 
   const { data: { publicUrl } } = svc.storage.from("verification-docs").getPublicUrl(path);
 
@@ -46,9 +71,9 @@ export async function POST(req: NextRequest) {
             </div>
             <div style="padding:24px;">
               <h2 style="color:#ff6600;">New DD-214 Submission</h2>
-              <p><strong>User ID:</strong> ${userId}</p>
-              <p><strong>Email:</strong> ${email ?? "unknown"}</p>
-              <p><strong>Document:</strong> <a href="${publicUrl}">${file.name}</a></p>
+              <p><strong>User ID:</strong> ${escapeHtml(userId)}</p>
+              <p><strong>Email:</strong> ${escapeHtml(user!.email ?? "unknown")}</p>
+              <p><strong>Document:</strong> <a href="${escapeHtml(publicUrl)}">${escapeHtml(file.name)}</a></p>
               <p>Review and approve in the admin panel.</p>
             </div>
           </div>
@@ -57,5 +82,5 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  return NextResponse.json({ ok: true, url: publicUrl });
+  return NextResponse.json({ ok: true });
 }

@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function GET(req: NextRequest) {
   const dot = req.nextUrl.searchParams.get('dot')
   if (!dot) return NextResponse.json({ error: 'dot param required' }, { status: 400 })
+  if (!/^\d{1,8}$/.test(dot)) return NextResponse.json({ error: 'dot must be a number' }, { status: 400 })
   const apiKey = process.env.FMCSA_API_KEY
   if (!apiKey) {
     // No key configured — return unverified gracefully

@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { isAdminEmail } from '@/lib/supabase'
+import { requireAuth } from '@/lib/api-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -13,14 +14,16 @@ const HOURLY_LIMIT = 3
 const DAILY_ADMIN_THRESHOLD = 20
 
 export async function POST(req: NextRequest) {
+  const { user, error: authErr } = await requireAuth()
+  if (authErr) return authErr
   try {
     const body = await req.json()
-    const { userId, escorts } = body as {
-      userId: string
+    const userId = user!.id
+    const { escorts } = body as {
       escorts: Array<{ name: string; phone: string; city: string; state: string; available: boolean }>
     }
-    if (!userId || !escorts?.length) {
-      return NextResponse.json({ error: 'userId and escorts required' }, { status: 400 })
+    if (!Array.isArray(escorts) || !escorts.length) {
+      return NextResponse.json({ error: 'escorts required' }, { status: 400 })
     }
     if (escorts.length > 5) {
       return NextResponse.json({ error: 'Fleet Manager supports up to 5 escort slots' }, { status: 400 })
@@ -33,8 +36,7 @@ export async function POST(req: NextRequest) {
       .eq('id', userId)
       .single()
     // Admin email bypass
-    const { data: { user: authUser } } = await supabase.auth.admin.getUserById(userId)
-    const userEmail = authUser?.email
+    const userEmail = user!.email
     if (!profile || (profile.tier !== 'pro' && profile.tier !== 'fleet_pro' && !isAdminEmail(userEmail))) {
       return NextResponse.json({ error: 'Fleet Manager is a Pro-only feature' }, { status: 403 })
     }
@@ -49,6 +51,13 @@ export async function POST(req: NextRequest) {
     if ((hourlyCount ?? 0) >= HOURLY_LIMIT) {
       return NextResponse.json({ error: 'Rate limit: 3 fleet searches per hour. Try again shortly.' }, { status: 429 })
     }
+
+    // Log the search now, before the slow work, so parallel requests can't all slip under the hourly limit
+    await supabase.from('fleet_searches').insert({
+      user_id: userId,
+      escort_count: escorts.length,
+      created_at: new Date().toISOString(),
+    })
 
     // Check daily count for admin flagging
     const todayStart = new Date()
@@ -76,7 +85,7 @@ export async function POST(req: NextRequest) {
             // Query loads within ~150 miles (roughly 2.5 degrees lat/lon)
             const { data: nearbyLoads } = await supabase
               .from('loads')
-              .select('id, pu_city, pu_state, dl_city, dl_state, rate_per_mile, status, board_type')
+              .select('id, pu_city, pu_state, dl_city, dl_state, per_mile_rate, status, board_type')
               .eq('status', 'open')
               .neq('status', 'filled')
 
@@ -100,25 +109,19 @@ export async function POST(req: NextRequest) {
         })
     )
 
-    // Log the fleet search
-    await supabase.from('fleet_searches').insert({
-      user_id: userId,
-      escort_count: escorts.length,
-      created_at: new Date().toISOString(),
-    })
-
-    // Flag for admin if over daily threshold
-    const flagForAdmin = ((dailyCount ?? 0) + 1) >= DAILY_ADMIN_THRESHOLD
+    // Flag for admin if over daily threshold (dailyCount was read after this search was logged)
+    const flagForAdmin = (dailyCount ?? 0) >= DAILY_ADMIN_THRESHOLD
     if (flagForAdmin) {
       await supabase.from('admin_flags').insert({
         user_id: userId,
-        reason: `Fleet Manager: ${(dailyCount ?? 0) + 1} searches today (threshold: ${DAILY_ADMIN_THRESHOLD})`,
+        reason: `Fleet Manager: ${dailyCount ?? 0} searches today (threshold: ${DAILY_ADMIN_THRESHOLD})`,
         created_at: new Date().toISOString(),
       })
     }
 
     return NextResponse.json({ results, flagged: flagForAdmin })
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 })
+    console.error('[fleet-search]', e)
+    return NextResponse.json({ error: 'Search failed' }, { status: 500 })
   }
 }

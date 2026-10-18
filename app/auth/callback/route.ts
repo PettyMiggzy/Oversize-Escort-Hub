@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { safeRedirectPath } from '@/lib/security'
 
 export async function GET(req: NextRequest) {
   const requestUrl = new URL(req.url)
@@ -27,7 +28,7 @@ export async function GET(req: NextRequest) {
 
     // Ensure a profiles row exists for this user. Pulls signup metadata
     // (full_name, company_name, role) from auth.users.raw_user_meta_data.
-    // Idempotent: onConflict('id') so re-confirms / sign-ins are safe.
+    // Created once: an existing row is left alone, so a later sign-in never resets a name or demotes a role.
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
@@ -46,7 +47,7 @@ export async function GET(req: NextRequest) {
             company_name: companyName,
             role,
           },
-          { onConflict: 'id', ignoreDuplicates: false }
+          { onConflict: 'id', ignoreDuplicates: true }
         )
       }
     } catch {
@@ -57,6 +58,7 @@ export async function GET(req: NextRequest) {
   }
 
   const redirect = requestUrl.searchParams.get('redirect')
-  const dest = redirect ? '/' + redirect.replace(/^\/+/, '') : '/dashboard'
+  // a path on this site only ("/\evil.com" and "//evil.com" are not)
+  const dest = safeRedirectPath(redirect)
   return NextResponse.redirect(new URL(dest, requestUrl.origin))
 }

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireAuth } from '@/lib/api-auth'
+import { SMS_ENABLED, smsComingSoon } from '@/lib/features'
 
 const svc = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -9,14 +11,18 @@ const svc = createClient(
 async function sendSMS(phone: string, body: string) {
   const apiKey = process.env.TEXTREQUEST_API_KEY!
   const accountId = process.env.TEXTREQUEST_ACCOUNT_ID!
-  await fetch(`https://api.textrequest.com/api/v3/Messages`, {
+  const res = await fetch(`https://api.textrequest.com/api/v3/Messages`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-Api-Key': apiKey },
     body: JSON.stringify({ AccountId: accountId, Contact: { PhoneNumber: phone }, Body: body })
   })
+  if (!res.ok) throw new Error(`TextRequest ${res.status}`)
 }
 
 export async function POST(req: NextRequest) {
+  if (!SMS_ENABLED) return smsComingSoon()
+  const { user, error: authErr } = await requireAuth()
+  if (authErr) return authErr
   try {
     const { loadId } = await req.json()
     if (!loadId) return NextResponse.json({ error: 'loadId required' }, { status: 400 })
@@ -28,6 +34,7 @@ export async function POST(req: NextRequest) {
       .eq('id', loadId)
       .eq('board_type', 'bid')
       .eq('status', 'open')
+      .eq('carrier_id', user!.id)
       .single()
 
     if (!load) return NextResponse.json({ sent: 0 })
@@ -48,6 +55,8 @@ export async function POST(req: NextRequest) {
     let sent = 0
     for (const escort of proEscorts) {
       if (!escort.phone) continue
+      const { data: optOut } = await svc.from('sms_opt_outs').select('id').eq('phone', escort.phone).maybeSingle()
+      if (optOut) continue
 
       // Check if escort covers pickup state
       const { data: zones } = await svc

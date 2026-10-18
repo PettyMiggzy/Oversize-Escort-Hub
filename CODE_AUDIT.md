@@ -305,3 +305,48 @@ dashboard — that integration lives outside the repo and can't be changed here.
   `app/api/checkout/route.ts`, `app/api/webhook/route.ts`, `app/api/loads/request/route.ts`,
   `app/api/bids/accept/route.ts`, `app/api/bids/route.ts`, `app/api/fleet-search/route.ts`,
   `app/api/loads/notify-pro/route.ts`, `app/api/sms/route.ts`, `lib/email.ts`
+
+---
+
+## Audit 2 (2026-10-18): API security pass, SMS switched to "coming soon"
+
+Checks run: `npx tsc --noEmit` clean; `next build` clean (with placeholder env vars); `eslint` 248 errors (was 260), none
+rules-of-hooks or undefined names; built app started and the changed routes called (see below).
+
+**SMS is off.** `lib/features.ts` `SMS_ENABLED` (env `SMS_ENABLED=true` turns it on; unset = off). Off: no text is
+sent or accepted, `/api/sms/*` answers 503 "coming soon" (the inbound webhook answers 200 and ignores), the pages and the
+admin tab say "coming soon". Terms/privacy SMS text is unchanged (needed for 10DLC).
+Before turning it on: set `TEXTREQUEST_WEBHOOK_SECRET` (an unsigned inbound text is now refused with 401; before, a
+request with no signature header was processed and could post a load as any carrier's phone number).
+
+**Fixed (all were open to anyone or to any signed-in user):**
+- `/api/portal`: any user could open another user's Stripe billing portal (id from the body). Now the session user's own.
+- `/api/checkout`: user id came from the body (one purchase could change another user's plan); only known prices accepted.
+- `/api/loads/match`, `/api/loads/[id]` PATCH, `/api/deadhead`, `/api/loads/notify-pro`, `/api/sms/*`: no login at all
+  (contact details leaked, loads rewritten, texts/pushes spent). Now session + ownership (or `CRON_SECRET` for operator calls).
+- `/api/verify-doc`, `/api/dd214`, `/api/verify-upload`, `/api/contact`, DD-214 submit: no login or id from the body,
+  unescaped HTML in staff email, no file type check. Fixed. The legacy `/api/bgc-badge/*` pair (no login, could approve its
+  own badge, and its page posted the wrong field) is removed; `/bgc-badge` now uses `/api/bgc`.
+- `/api/push/subscribe`, `/api/push/send`, `/api/push/broadcast`, `/api/notify` POST, `/api/referral`: acted on ids from the
+  body. Fixed (broadcast now builds its text from the caller's own load).
+- `/api/fleet-search`: Pro feature open to anyone who knew a user id; also queried a column that does not exist.
+- `/api/bids*`: accept/reject did not tie the bid to the load; GET leaked every bid; POST ignored the plan rules, expiry
+  and self-bids. `/api/loads/request` ignored the plan rules and could be claimed twice.
+- `/api/bgc/verify-session`: any paid checkout (e.g. a Member plan) set `bgc_paid`.
+- `/api/invoices/*`: any user could print a load's invoice (carrier phone/email) or invoice any user; the invoices page
+  posted other fields than the route read, and fetched `/api/invoices`, which did not exist.
+- Open redirect after sign-in (`?redirect=\evil.com`), profile name/role reset on every sign-in, `membership`
+  (non-existent column; real one is `tier`) in deadhead alerts, `rate` (real: `per_mile_rate`), the match hold never
+  expiring (cron now releases `pending_match` after an hour), Pro alerts launched with an un-awaited fetch
+  (now `after()`), weather page sending `lng` where the route wanted `lon`.
+- Security headers added (`X-Frame-Options`, `nosniff`, `Referrer-Policy`).
+
+**Still open / needs the owner (not verifiable from code):**
+- Row Level Security for `profiles`, `loads`, `bids`, `notifications`, `certifications` is not in the repo. The admin page
+  and the app write `profiles` (role, bgc_verified, suspended) straight from the browser: confirm users cannot update their own
+  `tier`, `role`, `bgc_*`, `*_verified`, `suspended` columns.
+- Buckets `verification-docs`, `permits`, `bgc-submissions` are read through public URLs: ID, DD-214 and background-check
+  documents should be private with signed links.
+- The Member push (5 minutes after posting) is still triggered by the poster's browser; a closed tab skips it. A server-side
+  schedule needs a `loads.members_notified_at` column.
+- Hard-coded admin emails in `lib/supabase.ts`, `lib/tier-access.ts`, `notify-pro`: move to `role` only.

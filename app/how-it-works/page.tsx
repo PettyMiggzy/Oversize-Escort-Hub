@@ -17,7 +17,7 @@ export default function HowItWorks() {
       steps: [
         { num: 1, desc: 'Create free account' },
         { num: 2, desc: 'Complete profile — certs, availability zones, BGC badge' },
-        { num: 3, desc: 'Browse board or get Pro SMS alerts' },
+        { num: 3, desc: 'Browse the board (Pro: instant access; SMS alerts coming soon)' },
         { num: 4, desc: 'Click a load matching your certs' },
         { num: 5, desc: 'Confirm requirements — load held for you' },
         { num: 6, desc: 'Carrier reviews your profile and accepts' },

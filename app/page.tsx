@@ -87,7 +87,7 @@ const SEED_ESCORTS = [
 const TIERS = [
   { id: "trial", name: "Free Trial", price: 0, sub: "30 days · one per device", color: "#6e7a88", features: ["View load board (no contact info)", "Search escorts directory", "30-day limit", "No bidding · no alerts"], daily: null, popular: false, carrierPro: null },
   { id: "member", name: "Member", price: 19.99, sub: "per month", color: "#3d8ef8", features: ["Full bidding on all boards", "Email alerts on new loads", "60s after Pro on bid board", "In-platform messaging", "Multi-state load filters"], daily: 1.99, popular: false, carrierPro: null },
-  { id: "pro", name: "Pro", price: 29.99, sub: "per month", color: "#f5a200", features: ["SMS instant on bid loads (60s head start)", "Deadhead Minimizer + return load feed", "I'm Available broadcast", "Deadhead calculator + savings dashboard", "Invoice generator", "First cert verification free"], daily: 4.99, popular: true, carrierPro: null },];
+  { id: "pro", name: "Pro", price: 29.99, sub: "per month", color: "#f5a200", features: ["Instant access to bid loads (60s head start)", "SMS alerts (coming soon)", "Deadhead Minimizer + return load feed", "I'm Available broadcast", "Deadhead calculator + savings dashboard", "Invoice generator", "First cert verification free"], daily: 4.99, popular: true, carrierPro: null },];
 
 // ─── STYLES ──────────────────────────────────────────────────────────────────
 
@@ -385,7 +385,7 @@ function Toast({ msg, type, onClose }: { msg: string; type: "gr" | "rd" | "am"; 
 function Ticker() {
   const items = [
     { dot: "dot-gr", text: "Platform launching · Be an early member · $2.00/mi standard rate" },
-    { dot: "dot-am", text: "BID BOARD LIVE · 5-Min bids · Pro gets SMS instant · Member gets 60s delay" },
+    { dot: "dot-am", text: "BID BOARD LIVE · 5-Min bids · Pro gets instant access · Member gets 60s delay" },
     { dot: "dot-gr", text: "Verified P/EVO escorts · Background checked · Vehicle verified · Admin approved" },
     { dot: "dot-or", text: "OPEN BID BOARD · 24-72h window · Post your pitch · Carrier picks the best fit" },
     { dot: "dot-gr", text: "Standard rates: $2.00/mi or $500/day · $100 overnight · $250 no-go fee" },
@@ -698,7 +698,7 @@ function HomePage({ setPage, user, profile, setSigninMode, setPendingRole }: { s
         <div className="bid-strip">
           <div className="bid-live">5-Min Bid Board</div>
           <div style={{ width: 1, height: 18, background: "var(--l1)" }} />
-          <div className="mo" style={{ fontSize: 10, color: "var(--t2)", flex: 1 }}>Loads close on timer · fill · or cancel — Pro SMS instant · Member 60s delay</div>
+          <div className="mo" style={{ fontSize: 10, color: "var(--t2)", flex: 1 }}>Loads close on timer · fill · or cancel — Pro instant access · Member 60s delay</div>
           <button className="bid-cta" onClick={() => window.location.href = "/bid-board"}>View Live Board →</button>
         </div>
         <div className="hero hero-carrier">
@@ -737,7 +737,7 @@ function HomePage({ setPage, user, profile, setSigninMode, setPendingRole }: { s
       <div className="bid-strip">
         <div className="bid-live">5-Min Bid Board</div>
         <div style={{ width: 1, height: 18, background: "var(--l1)" }} />
-        <div className="mo" style={{ fontSize: 10, color: "var(--t2)", flex: 1 }}>Loads close on timer · fill · or cancel — Pro SMS instant · Member 60s delay</div>
+        <div className="mo" style={{ fontSize: 10, color: "var(--t2)", flex: 1 }}>Loads close on timer · fill · or cancel — Pro instant access · Member 60s delay</div>
         <button className="bid-cta" onClick={() => window.location.href = "/bid-board"}>View Live Board →</button>
       </div>
       <div className="hero hero-escort">
@@ -922,9 +922,9 @@ function FeatureSection({ setPage }: { setPage: (p: Page) => void }) {
       </div>
       <div className="feat-grid">
         {[
-          { c: "var(--am)", t: "5-Min Bid Board", d: "Industry first. Closes on timer, carrier fills it, or carrier cancels. Pro gets SMS instantly, Members see it 60 seconds later." },
+          { c: "var(--am)", t: "5-Min Bid Board", d: "Industry first. Closes on timer, carrier fills it, or carrier cancels. Pro gets instant access, Members see it 60 seconds later." },
           { c: "var(--gr)", t: "Verified P/EVO Escorts", d: "4-tier trust ladder: P/EVO cert, vehicle verified, background check, admin verified. Fraudulent listings cannot exist here." },
-          { c: "var(--am)", t: "Deadhead Minimizer", d: "Return load feed sorted toward home state. Pre-arrival SMS. I'm Available broadcast. Every empty mile is money left on the table." },
+          { c: "var(--am)", t: "Deadhead Minimizer", d: "Return load feed sorted toward home state. Pre-arrival SMS alerts are coming soon. I'm Available broadcast. Every empty mile is money left on the table." },
           { c: "var(--or)", t: "Carrier Pay Score (Public)", d: "Pay speed, communication, load accuracy, no-go fee history — all public. 4.9 fills in minutes. 2.8 sits on the board." },
           { c: "var(--bl)", t: "Open Bid Board", d: "24-72h window. Carrier reviews all bids, picks whoever they want. Escorts attach a personal pitch to every bid." },
           { c: "var(--gr)", t: "Two-Way Reviews", d: "Escorts rate carriers: pay speed, professionalism, accuracy. Carriers rate escorts: reliability, skill, communication." },
@@ -1550,7 +1550,7 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
             {profile?.tier !== "pro" ? (
               <div style={{ background: "rgba(245,162,0,.07)", border: "1px solid rgba(245,162,0,.2)", borderRadius: 4, padding: 24, textAlign: "center" }}>
                 <div className="bb" style={{ fontSize: 28, color: "var(--am)", marginBottom: 8 }}>PRO FEATURE</div>
-                <p className="mo" style={{ fontSize: 11, color: "var(--t2)", marginBottom: 16 }}>Return load feed, pre-arrival SMS alerts, deadhead savings dashboard</p>
+                <p className="mo" style={{ fontSize: 11, color: "var(--t2)", marginBottom: 16 }}>Return load feed, deadhead savings dashboard (pre-arrival SMS alerts coming soon)</p>
                 <button className="btn btn-am" onClick={() => { window.location.href = '/pricing'; }}>Upgrade to Pro — $29.99/mo →</button>
               </div>
 ) : (
@@ -1700,7 +1700,7 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
               </div>
               <div className="card" style={{ marginBottom: 24 }}>
                 <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>📍 Load Alert States</div>
-                <div style={{ fontSize: 12, color: 'var(--t2)', marginBottom: 12 }}>Select states you run. SMS alerts only for these states. Leave blank for ALL loads.</div>
+                <div style={{ fontSize: 12, color: 'var(--t2)', marginBottom: 12 }}>Select states you run. Alerts only for these states (SMS alerts coming soon). Leave blank for ALL loads.</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>{US_STATES_ALL.map((st: string) => { const sel = notifStates.includes(st); return (<button key={st} onClick={async () => { const { data: { user } } = await supabase.auth.getUser(); if (!user) return; const cur: string[] = ((profile?.notification_states as string[]) || []); const next = sel ? cur.filter((s: string) => s !== st) : [...cur, st]; await supabase.from('profiles').update({ notification_states: next }).eq('id', user.id); setNotifStates(next); }} style={{ padding:'4px 10px', borderRadius:4, fontSize:11, fontWeight:600, border: sel ? '2px solid #ff6600' : '1px solid var(--l2)', background: sel ? '#ff6600' : 'var(--card)', color: sel ? '#fff' : 'var(--t1)', cursor:'pointer' }}>{st}</button>); })}</div>
                 <div style={{ fontSize:11, color:'var(--t3)' }}>{notifStates.length === 0 ? 'All states (default)' : notifStates.join(', ')}</div>
               </div>
@@ -1928,10 +1928,9 @@ function CarrierDashPage({ setPage, user, profile, showToast }: { setPage: (p: P
           </div>
           {/* SMS Post Instructions */}
           <div style={{ background: "var(--p2,#1a1a1a)", border: "1px solid var(--l1,#222)", borderLeft: "3px solid var(--or,#f60)", borderRadius: 8, padding: "14px 16px" }}>
-            <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 6 }}>📱 SMS Load Posting</div>
+            <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 6 }}>📱 SMS Load Posting — Coming soon</div>
             <p style={{ fontSize: 11, color: "var(--t2,#888)", lineHeight: 1.7, margin: 0 }}>
-              Text your load to our number. Format:<br/>
-              <code style={{ fontSize: 10, color: "var(--or,#f60)", background: "#1a1a1a", padding: "2px 6px", borderRadius: 3 }}>OEH [TYPE] pickup [CITY] [STATE] destination [CITY] [STATE] [DATE] [RATE]</code>
+              Posting a load by text message is coming soon. Until then, post your load from this dashboard.
             </p>
           </div>
         </div>
@@ -2236,7 +2235,7 @@ function ToolsPage({ setPage, profile }: { setPage: (p: any) => void; profile: a
     { page: "cb-radio", icon: "📻", title: "CB Radio Reference", desc: "Standard CB channels by state and highway", badge: "ALL" },
     { page: "fuel-calc", icon: "⛽", title: "Fuel Cost Estimator", desc: "Current diesel prices and trip fuel cost estimate", badge: "MEMBER" },
     { page: "per-diem", icon: "💰", title: "Per Diem Calculator", desc: "IRS standard rates for tax deductions", badge: "MEMBER" },
-    { page: "cert-tracker", icon: "🏅", title: "Cert Expiry Tracker", desc: "Track cert expiry with 30-day SMS alerts", badge: "ALL" },
+    { page: "cert-tracker", icon: "🏅", title: "Cert Expiry Tracker", desc: "Track cert expiry dates (SMS reminders coming soon)", badge: "ALL" },
     { page: "factoring", icon: "💳", title: "Invoice Factoring", desc: "Get paid fast via partner factoring network", badge: "SOON" },
   ];
   const badgeColor: Record<string, string> = { MEMBER: "var(--gr)", PRO: "var(--or)", ALL: "var(--am)", SOON: "var(--t3)" };
@@ -2267,7 +2266,7 @@ function ToolsPage({ setPage, profile }: { setPage: (p: any) => void; profile: a
 function InvoicePage({ setPage, user, profile }: any) { return <Stub title="Invoice Generator" icon="🧾" desc="Create professional invoices, track payment status, and send directly to carriers. Export to PDF for your records." back="tools" setPage={setPage} />; }
 function ExpensesPage({ setPage, user, profile }: any) { return <Stub title="Expense & Job Tracker" icon="📊" desc="Log jobs and expenses. Track fuel, lodging, equipment. Export CSV or PDF at tax time." back="tools" setPage={setPage} />; }
 function JobHistoryPage({ setPage }: any) { return <Stub title="Job History" icon="📋" desc="View all completed loads, earnings per job, and carrier history. Syncs automatically from OEH load board." back="tools" setPage={setPage} />; }
-function PermitHubPage({ setPage, user, profile }: any) { return <Stub title="Permit Hub" icon="📄" desc="Carriers upload permits to your load. You get an instant SMS the moment they upload — even if it happens 6am day of load." back="tools" setPage={setPage} />; }
+function PermitHubPage({ setPage, user, profile }: any) { return <Stub title="Permit Hub" icon="📄" desc="Carriers upload permits to your load. Upload notifications by SMS are coming soon." back="tools" setPage={setPage} />; }
 function DeadheadPage({ setPage, profile }: any) {
   const isPro = profile?.subscription_tier === "pro"
   const [mode, setMode] = useState<"single" | "fleet">("single")
@@ -2473,7 +2472,7 @@ function StateReqsPage({ setPage }: any) { return <Stub title="State Escort Requ
 function WeatherPage({ setPage }: any) { return <Stub title="Weather Alerts" icon="⛅" desc="Check weather and alerts along your route. Critical for wide loads — wind advisories, winter storms, visibility warnings." back="tools" setPage={setPage} />; }
 function FuelCalcPage({ setPage }: any) { return <Stub title="Fuel Cost Estimator" icon="⛽" desc="Estimate trip fuel cost with current diesel prices. Enter miles and MPG to see what the job really costs." back="tools" setPage={setPage} />; }
 function PerDiemPage({ setPage }: any) { return <Stub title="Per Diem Calculator" icon="💰" desc="IRS standard per diem rate for transportation workers is $69/day (80% deductible). Calculate your annual tax deduction." back="tools" setPage={setPage} />; }
-function CertTrackerPage({ setPage, profile }: any) { return <Stub title="Cert Expiry Tracker" icon="🏅" desc="Track all your cert expiry dates. Get a 30-day SMS reminder before any cert lapses. Never lose a job because of an expired cert." back="tools" setPage={setPage} />; }
+function CertTrackerPage({ setPage, profile }: any) { return <Stub title="Cert Expiry Tracker" icon="🏅" desc="Track all your cert expiry dates. SMS reminders before a cert lapses are coming soon. Never lose a job because of an expired cert." back="tools" setPage={setPage} />; }
 function FactoringPage({ setPage }: any) { return <Stub title="Invoice Factoring" icon="💳" desc="Get paid within 24 hours. We are finalizing partnerships with RTS Financial, Triumph Business Capital, and OTR Solutions." back="tools" setPage={setPage} />; }
 
 // ─── CB RADIO (has real content) ──────────────────────────────────────────────
