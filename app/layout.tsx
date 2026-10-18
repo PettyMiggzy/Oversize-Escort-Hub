@@ -2,7 +2,6 @@ import './globals.css'
 import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 import PushInit from './components/PushInit'
-import AppIntro from '@/components/AppIntro'
 
 export const viewport = {
   width: 'device-width',
@@ -123,7 +122,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body style={{ margin: 0 }}>{children}<AppIntro /><Analytics /></body>
+      <body style={{ margin: 0 }}>{children}<Analytics /></body>
     </html>
   );
 }
