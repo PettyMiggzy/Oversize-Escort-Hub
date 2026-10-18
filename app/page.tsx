@@ -327,7 +327,9 @@ footer{background:var(--p1);border-top:1px solid var(--l1);padding:40px 24px 24p
 .esc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 .ob-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 
-.role-picker-active{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);padding:40px 24px;overflow-y:auto;}
+.role-picker-active{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;background:var(--bg);padding:40px 24px;overflow-y:auto;}
+/* centred when there is room, scrolls from the top when there is not (justify-content:center would clip the top on a short screen) */
+.role-picker-active::before,.role-picker-active::after{content:"";flex:1 0 0;}
 .role-card{background:var(--p1);border-radius:4px;padding:36px 28px;cursor:pointer;transition:background .15s;flex:1}
 .role-card:hover{background:rgba(255,255,255,.03)}
 .role-bar{background:var(--p2);border-bottom:1px solid var(--l1);padding:6px 24px;display:flex;align-items:center;gap:12px}
@@ -512,7 +514,7 @@ function Footer({ setPage }: { setPage: (p: Page) => void }) {
       <div className="footer-grid">
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-            <img src="/logo.png" alt="OEH" style={{ width: 28, height: 28, objectFit: "contain" }} />
+            <img src="/logo.png" alt="OEH" style={{ width: 48, height: 48, objectFit: "contain" }} />
             <span className="bb" style={{ fontSize: 14, letterSpacing: ".06em" }}>Oversize Escort Hub</span>
           </div>
           <p style={{ fontSize: 12, color: "var(--t2)", lineHeight: 1.75, maxWidth: 230 }}>
@@ -613,9 +615,9 @@ function HomePage({ setPage, user, profile, setSigninMode, setPendingRole }: { s
           New to OEH? <a href="/how-it-works" style={{ color: '#f0a500', fontWeight: 600, textDecoration: 'none' }}>See How It Works →</a>
         </div>
         {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 32 }}>
-          <img src="/logo.png" alt="OEH" style={{ width: 40, height: 40, objectFit: 'contain' }} />
-          <span className="bb" style={{ fontSize: 18, letterSpacing: '.08em' }}>OVERSIZE ESCORT HUB</span>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, marginBottom: 28 }}>
+          <img src="/logo-3d.png" alt="Oversize Escort Hub" style={{ width: 'min(320px, 70vw)', height: 'auto' }} />
+          <span className="bb" style={{ fontSize: 16, letterSpacing: '.12em', color: 'var(--t2)' }}>OVERSIZE ESCORT HUB</span>
         </div>
         <div className="bb" style={{ fontSize: 52, textAlign: "center", marginBottom: 6 }}>WHO ARE YOU?</div>
         <p className="mo" style={{ fontSize: 11, color: "var(--t2)", marginBottom: 48, letterSpacing: ".12em", textTransform: "uppercase" }}>Select your role to get started</p>
@@ -2119,7 +2121,7 @@ function SignInPage({ setPage, showToast, initialMode = "signup", initialRole = 
     <div className="signin-wrap">
       <div className="signin-box">
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 24 }}>
-          <img src="/logo.png" alt="OEH" style={{ width: 36, height: 36, objectFit: "contain" }} />
+          <img src="/logo.png" alt="OEH" style={{ width: 52, height: 52, objectFit: "contain" }} />
           <div>
             <div className="bb" style={{ fontSize: 20 }}>{mode === "signup" ? "Start Free Trial" : "Welcome Back"}</div>
             <div className="mo" style={{ fontSize: 9, color: "var(--t2)", letterSpacing: ".1em" }}>OVERSIZE ESCORT HUB</div>

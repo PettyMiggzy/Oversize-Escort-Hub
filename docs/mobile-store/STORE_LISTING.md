@@ -93,6 +93,13 @@ Demo account (carrier): [OWNER: email]  password: [OWNER: password]
 
 Users can delete their account in the app: menu > "Delete my account".
 
+## Ready-made images (in docs/mobile-store/assets/)
+
+- play-icon-512.png: Google Play app icon (512x512)
+- play-feature-graphic-1024x500.png: Google Play feature graphic
+- appstore-icon-1024.png: App Store icon (1024x1024, no transparency)
+The app's own launcher icons and splash screens already use the same 3D logo.
+
 ## Screenshots needed
 
 Phone portrait, at least 4 each (Play 1080x1920 or larger; App Store 6.7-inch 1290x2796 and 6.5-inch 1284x2778):
@@ -101,7 +108,7 @@ Phone portrait, at least 4 each (Play 1080x1920 or larger; App Store 6.7-inch 12
 3. Escort dashboard (jobs, earnings)
 4. Profile with verification badges
 5. Post-a-load form (carrier)
-Also for Play: a 512x512 icon and a 1024x500 feature graphic.
+The 512x512 icon and 1024x500 feature graphic for Play are ready (see above); phone screenshots still have to be taken from the app.
 
 ## Still needed from the owner
 

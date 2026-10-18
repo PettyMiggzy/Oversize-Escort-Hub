@@ -52,10 +52,9 @@ export default function ComingSoonPage() {
           <Image
             src="/logo.png"
             alt="Oversize Escort Hub"
-            width={96}
-            height={96}
+            width={140}
+            height={140}
             priority
-            style={{ borderRadius: 12 }}
           />
         </div>
 
