@@ -1200,6 +1200,9 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
 			}
         // Insert one load card per selected escort position
         let firstError = null;
+        const expires_at = boardType === "bid"
+          ? new Date(Date.now() + 5 * 60 * 1000).toISOString()
+          : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
         for (const pos of form.positions) {
           const { error: posErr } = await supabase.from("loads").insert({
         carrier_id: user.id,
@@ -1220,6 +1223,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
         notes: form.notes || null,
   				permit_url: permit_url,
         start_date: form.startDate || null,
+        expires_at,
         status: "open",
         poster_company: profile.company_name,
         poster_rating: profile.rating || null,
