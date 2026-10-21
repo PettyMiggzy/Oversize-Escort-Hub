@@ -39,7 +39,7 @@ type Load = {
   id: string;
   created_at: string;
   carrier_id: string;
-  board_type: "flat" | "bid" | "open";
+  board_type: "flat-rate" | "bid" | "open-bid";
   pu_city: string;
   pu_state: string;
   dl_city: string;
@@ -67,9 +67,9 @@ type Load = {
 // ─── SEED DATA (shown until real loads exist) ────────────────────────────────
 
 const SEED_LOADS: Load[] = [
-  { id: "seed-1", created_at: new Date().toISOString(), carrier_id: "seed", board_type: "flat", pu_city: "Jacksonville", pu_state: "FL", dl_city: "Montgomery", dl_state: "AL", miles: 344, position: "Lead", pay_type: "FastPay", status: "open", per_mile_rate: 2.00, day_rate: 500, overnight_fee: 100, no_go_fee: 250, requires_p_evo: true, requires_witpac: false, requires_ny_cert: false, requires_twic: false, notes: null, start_date: null, poster_company: "Sunshine State Oversize", poster_rating: 4.8, poster_jobs: 47, isSample: true },
-  { id: "seed-2", created_at: new Date().toISOString(), carrier_id: "seed", board_type: "flat", pu_city: "Houston", pu_state: "TX", dl_city: "Oklahoma City", dl_state: "OK", miles: 488, position: "Rear", pay_type: "7-Day", status: "open", per_mile_rate: 2.00, day_rate: 500, overnight_fee: 100, no_go_fee: 250, requires_p_evo: true, requires_witpac: false, requires_ny_cert: false, requires_twic: false, notes: null, start_date: null, poster_company: "Gulf Coast Transport LLC", poster_rating: 4.6, poster_jobs: 112, isSample: true },
-  { id: "seed-3", created_at: new Date().toISOString(), carrier_id: "seed", board_type: "flat", pu_city: "Bakersfield", pu_state: "CA", dl_city: "Las Vegas", dl_state: "NV", miles: 280, position: "Lead+Rear", pay_type: "10-Day", status: "open", per_mile_rate: 2.00, day_rate: 500, overnight_fee: 100, no_go_fee: 250, requires_p_evo: true, requires_witpac: true, requires_ny_cert: false, requires_twic: false, notes: null, start_date: null, poster_company: "Desert Wind Transport", poster_rating: 4.7, poster_jobs: 83, isSample: true },
+  { id: "seed-1", created_at: new Date().toISOString(), carrier_id: "seed", board_type: "flat-rate", pu_city: "Jacksonville", pu_state: "FL", dl_city: "Montgomery", dl_state: "AL", miles: 344, position: "Lead", pay_type: "FastPay", status: "open", per_mile_rate: 2.00, day_rate: 500, overnight_fee: 100, no_go_fee: 250, requires_p_evo: true, requires_witpac: false, requires_ny_cert: false, requires_twic: false, notes: null, start_date: null, poster_company: "Sunshine State Oversize", poster_rating: 4.8, poster_jobs: 47, isSample: true },
+  { id: "seed-2", created_at: new Date().toISOString(), carrier_id: "seed", board_type: "flat-rate", pu_city: "Houston", pu_state: "TX", dl_city: "Oklahoma City", dl_state: "OK", miles: 488, position: "Rear", pay_type: "7-Day", status: "open", per_mile_rate: 2.00, day_rate: 500, overnight_fee: 100, no_go_fee: 250, requires_p_evo: true, requires_witpac: false, requires_ny_cert: false, requires_twic: false, notes: null, start_date: null, poster_company: "Gulf Coast Transport LLC", poster_rating: 4.6, poster_jobs: 112, isSample: true },
+  { id: "seed-3", created_at: new Date().toISOString(), carrier_id: "seed", board_type: "flat-rate", pu_city: "Bakersfield", pu_state: "CA", dl_city: "Las Vegas", dl_state: "NV", miles: 280, position: "Lead+Rear", pay_type: "10-Day", status: "open", per_mile_rate: 2.00, day_rate: 500, overnight_fee: 100, no_go_fee: 250, requires_p_evo: true, requires_witpac: true, requires_ny_cert: false, requires_twic: false, notes: null, start_date: null, poster_company: "Desert Wind Transport", poster_rating: 4.7, poster_jobs: 83, isSample: true },
 ];
 
 const SEED_BID_LOADS = [
@@ -1125,7 +1125,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
   // NOTE: All hooks must run unconditionally before any early returns below,
   // otherwise React throws "Rendered fewer hooks than expected" when the
   // user/profile props change between renders (Rules of Hooks).
-  const [boardType, setBoardType] = useState<"flat" | "bid" | "open">("flat");
+  const [boardType, setBoardType] = useState<"flat-rate" | "bid" | "open-bid">("flat-rate");
   const [form, setForm] = useState({
     puCity: "", puState: "", dlCity: "", dlState: "",
     miles: "", rate: "2.00", dayRate: "500", positions: ["Lead"], payTerm: "FastPay", payTermCustom: "",
@@ -1263,7 +1263,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
         </div>
       )}
       <div style={{ display: "flex", gap: 10, marginBottom: 28 }}>
-        {([["flat", "var(--gr)", "Flat Rate", "First to respond wins"], ["bid", "var(--am)", "5-Min Bid", "5-min price competition"], ["open", "var(--bl)", "Open Bid", "You pick the escort"]] as const).map(([type, c, label, desc]) => (
+        {([["flat-rate", "var(--gr)", "Flat Rate", "First to respond wins"], ["bid", "var(--am)", "5-Min Bid", "5-min price competition"], ["open-bid", "var(--bl)", "Open Bid", "You pick the escort"]] as const).map(([type, c, label, desc]) => (
           <div key={type} className="card" style={{ flex: 1, borderTop: "2px solid " + c, cursor: "pointer", opacity: boardType === type ? 1 : 0.5 }} onClick={() => setBoardType(type)}>
             <div className="bb" style={{ fontSize: 14, color: c, marginBottom: 4 }}>{label}</div>
             <div className="mo" style={{ fontSize: 9, color: "var(--t2)" }}>{desc}</div>
@@ -2277,7 +2277,7 @@ function ExpensesPage({ setPage, user, profile }: any) { return <Stub title="Exp
 function JobHistoryPage({ setPage }: any) { return <Stub title="Job History" icon="📋" desc="View all completed loads, earnings per job, and carrier history. Syncs automatically from OEH load board." back="tools" setPage={setPage} />; }
 function PermitHubPage({ setPage, user, profile }: any) { return <Stub title="Permit Hub" icon="📄" desc="Carriers upload permits to your load. Upload notifications by SMS are coming soon." back="tools" setPage={setPage} />; }
 function DeadheadPage({ setPage, profile }: any) {
-  const isPro = profile?.subscription_tier === "pro"
+  const isPro = profile?.tier === "pro" || profile?.tier === "fleet_pro"
   const [mode, setMode] = useState<"single" | "fleet">("single")
   const [location, setLocation] = useState("")
   const [searching, setSearching] = useState(false)
@@ -2303,13 +2303,16 @@ function DeadheadPage({ setPage, profile }: any) {
     if (!location.trim()) return
     setSearching(true); setError(""); setResults([])
     try {
-      // Geocode with Nominatim then fetch nearby loads
       const [city, state] = location.split(",").map(s => s.trim())
-      const res = await fetch(`/api/loads?board=flat_rate`)
-      const data = await res.json()
-      const nearby = (data.loads ?? []).filter((l: any) =>
-        l.pu_state?.toLowerCase() === (state || city)?.toLowerCase()
-      ).slice(0, 10)
+      const stateCode = (state || city || "").toUpperCase()
+      const { data: loads } = await supabase
+        .from("loads")
+        .select("id, pu_city, pu_state, dl_city, dl_state, per_mile_rate, status, board_type")
+        .eq("board_type", "flat-rate")
+        .eq("status", "open")
+        .ilike("pu_state", stateCode)
+        .limit(10)
+      const nearby = loads ?? []
       setResults(nearby)
       if (!nearby.length) setError("No return loads found near your location. Check back soon.")
     } catch (e: any) {
@@ -2401,8 +2404,7 @@ function DeadheadPage({ setPage, profile }: any) {
                     {results.map((load: any, i: number) => (
                       <div key={i} style={S.resultCard}>
                         <p style={{ margin: 0, fontWeight: 700 }}>{load.pu_city}, {load.pu_state} → {load.dl_city}, {load.dl_state}</p>
-                        {load.rate_per_mile && <p style={{ color: "#00a8e8", margin: "4px 0 0", fontSize: 13 }}>${load.rate_per_mile}/mi</p>}
-                        {load.boards?.length > 1 && <p style={{ color: "#666", fontSize: 11, marginTop: 4 }}>Also on: {load.boards.filter((b: string) => b !== "flat_rate").join(" · ")}</p>}
+                        {load.per_mile_rate != null && <p style={{ color: "#00a8e8", margin: "4px 0 0", fontSize: 13 }}>${load.per_mile_rate}/mi</p>}
                       </div>
                     ))}
                   </div>
@@ -2457,7 +2459,7 @@ function DeadheadPage({ setPage, profile }: any) {
                       group.loads.map((load: any, j: number) => (
                         <div key={j} style={S.resultCard}>
                           <p style={{ margin: 0, fontWeight: 700, fontSize: 14 }}>{load.pu_city}, {load.pu_state} → {load.dl_city}, {load.dl_state}</p>
-                          {load.rate_per_mile && <p style={{ color: "#00a8e8", margin: "4px 0 0", fontSize: 13 }}>${load.rate_per_mile}/mi</p>}
+                          {load.per_mile_rate != null && <p style={{ color: "#00a8e8", margin: "4px 0 0", fontSize: 13 }}>${load.per_mile_rate}/mi</p>}
                           <button style={S.shareBtn} onClick={() => {
                             const link = `${window.location.origin}/loads/${load.id}`
                             navigator.clipboard?.writeText(link).then(() => alert("Load link copied! Share with " + (group.escort.name || "escort") + " so they can confirm from their account."))
@@ -2792,8 +2794,8 @@ export default function OEHPlatform() {
         {page === "admin" && <AdminPage setPage={setPage} user={user} profile={activeProfile} />}
               {page === "available" && <AvailabilityBoard setPage={setPage} profile={activeProfile} />}
       <Footer setPage={setPage} />
-      {reviewPrompt && (<div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}><div className="card" style={{ maxWidth:440, width:'100%', padding:28 }}><div style={{ fontSize:18, fontWeight:700, marginBottom:8 }}>⭐ How was your experience?</div><div style={{ fontSize:13, color:'var(--t2)', marginBottom:16 }}>Leave a review for {reviewPrompt.targetName}</div><div style={{ display:'flex', gap:8, marginBottom:16 }}>{[1,2,3,4,5].map(n => (<button key={n} onClick={() => setReviewRating(n)} style={{ fontSize:24, background:'none', border:'none', cursor:'pointer', opacity: n <= reviewRating ? 1 : 0.3 }}>⭐</button>))}</div><textarea value={reviewText} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setReviewText(e.target.value)} placeholder="Optional written review (500 chars max)" maxLength={500} style={{ width:'100%', minHeight:80, padding:10, borderRadius:6, border:'1px solid var(--l2)', background:'var(--bg)', color:'var(--t1)', fontSize:13, resize:'vertical', marginBottom:16 }} /><div style={{ display:'flex', gap:10 }}><button className="btn btn-or" disabled={reviewSubmitting} onClick={async () => { setReviewSubmitting(true); await fetch('/api/reviews', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ load_id: reviewPrompt.loadId, target_id: reviewPrompt.targetId, rating: reviewRating, text: reviewText }) }); setReviewSubmitting(false); setReviewPrompt(null); setReviewRating(5); setReviewText(''); showToast('Thanks for your review!', 'gr') }}>{reviewSubmitting ? 'Submitting…' : 'Submit Review'}</button><button className="btn" onClick={() => setReviewPrompt(null)}>Skip</button></div></div></div>)}
-      {reviewPrompt && (<div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}><div className="card" style={{ maxWidth:440, width:'100%', padding:28 }}><div style={{ fontSize:18, fontWeight:700, marginBottom:8 }}>How was your experience?</div><div style={{ fontSize:13, color:'var(--t2)', marginBottom:16 }}>Leave a review for {reviewPrompt.targetName}</div><div style={{ display:'flex', gap:8, marginBottom:16 }}>{[1,2,3,4,5].map(n => (<button key={n} onClick={() => setReviewRating(n)} style={{ fontSize:24, background:'none', border:'none', cursor:'pointer', opacity: n <= reviewRating ? 1 : 0.3 }}>*</button>))}</div><textarea value={reviewText} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setReviewText(e.target.value)} placeholder="Optional written review (500 chars max)" maxLength={500} style={{ width:'100%', minHeight:80, padding:10, borderRadius:6, border:'1px solid var(--l2)', background:'var(--bg)', color:'var(--t1)', fontSize:13, resize:'vertical', marginBottom:16 }} /><div style={{ display:'flex', gap:10 }}><button className="btn btn-or" disabled={reviewSubmitting} onClick={async () => { setReviewSubmitting(true); await fetch('/api/reviews', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ load_id: reviewPrompt.loadId, target_id: reviewPrompt.targetId, rating: reviewRating, text: reviewText }) }); setReviewSubmitting(false); setReviewPrompt(null); setReviewRating(5); setReviewText(''); showToast('Thanks for your review!', 'gr') }}>{reviewSubmitting ? 'Submitting...' : 'Submit Review'}</button><button className="btn" onClick={() => setReviewPrompt(null)}>Skip</button></div></div></div>)} {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+      {reviewPrompt && (<div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}><div className="card" style={{ maxWidth:440, width:'100%', padding:28 }}><div style={{ fontSize:18, fontWeight:700, marginBottom:8 }}>⭐ How was your experience?</div><div style={{ fontSize:13, color:'var(--t2)', marginBottom:16 }}>Leave a review for {reviewPrompt.targetName}</div><div style={{ display:'flex', gap:8, marginBottom:16 }}>{[1,2,3,4,5].map(n => (<button key={n} onClick={() => setReviewRating(n)} style={{ fontSize:24, background:'none', border:'none', cursor:'pointer', opacity: n <= reviewRating ? 1 : 0.3 }}>⭐</button>))}</div><textarea value={reviewText} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setReviewText(e.target.value)} placeholder="Optional written review (500 chars max)" maxLength={500} style={{ width:'100%', minHeight:80, padding:10, borderRadius:6, border:'1px solid var(--l2)', background:'var(--bg)', color:'var(--t1)', fontSize:13, resize:'vertical', marginBottom:16 }} /><div style={{ display:'flex', gap:10 }}><button className="btn btn-or" disabled={reviewSubmitting} onClick={async () => { setReviewSubmitting(true); await fetch('/api/reviews', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ loadId: reviewPrompt.loadId, targetUserId: reviewPrompt.targetId, rating: reviewRating, comment: reviewText }) }); setReviewSubmitting(false); setReviewPrompt(null); setReviewRating(5); setReviewText(''); showToast('Thanks for your review!', 'gr') }}>{reviewSubmitting ? 'Submitting…' : 'Submit Review'}</button><button className="btn" onClick={() => setReviewPrompt(null)}>Skip</button></div></div></div>)}
+      {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
     </>
   );
 }

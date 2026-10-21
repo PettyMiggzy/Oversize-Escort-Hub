@@ -33,7 +33,7 @@ export default function ReviewPage() {
     async function init() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
-        router.replace(`/signin?next=/review/${loadId}`)
+        router.replace(`/signin?redirect=/review/${loadId}`)
         return
       }
       // Must be an escort

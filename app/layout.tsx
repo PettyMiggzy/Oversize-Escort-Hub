@@ -122,7 +122,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body style={{ margin: 0 }}>{children}<Analytics /></body>
+      <body style={{ margin: 0 }}><PushInit />{children}<Analytics /></body>
     </html>
   );
 }

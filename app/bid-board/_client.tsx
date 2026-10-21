@@ -11,7 +11,7 @@ interface Load {
   pu_state: string;
   dl_city: string;
   dl_state: string;
-  rate: number;
+  per_mile_rate: number | null;
   escort_type: string;
   created_at: string;
   status: string;
@@ -139,7 +139,7 @@ export function BidBoardClient() {
               </div>
               <div>
                 <div style={{ fontSize: 22, fontWeight: 800, color: '#f0a500', marginBottom: 4 }}>
-                  {load.rate != null ? `$${Number(load.rate).toLocaleString()}` : 'Rate TBD'}
+                  {load.per_mile_rate != null ? `$${Number(load.per_mile_rate).toLocaleString()}/mi` : 'Rate TBD'}
                 </div>
                 {timers[load.id] === 'EXPIRED' ? (
                 <span

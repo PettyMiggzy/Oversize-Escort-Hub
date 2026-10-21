@@ -46,7 +46,6 @@ export async function POST(req: NextRequest) {
           board_type: 'flat-rate',
           load_type: 'breakdown',
           per_mile_rate: 0,
-          rate: 0,
           notes: 'Breakdown assistance needed',
           expires_at: expires,
           pay_term: 'on_completion',
@@ -58,7 +57,8 @@ export async function POST(req: NextRequest) {
     }
     return NextResponse.json({ ok: true, enabled, breakdown_load_id: null })
   } else {
-    // Cancel the most recent open breakdown load posted by this user as carrier.
+    // Expire the most recent open breakdown load posted by this user as carrier.
+    // Status CHECK is open|pending_match|filled|expired — 'cancelled' is invalid.
     const { data: openBd } = await supabase
       .from('loads')
       .select('id')
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
       .limit(1)
       .maybeSingle()
     if (openBd?.id) {
-      await supabase.from('loads').update({ status: 'cancelled' }).eq('id', openBd.id)
+      await supabase.from('loads').update({ status: 'expired' }).eq('id', openBd.id)
     }
     return NextResponse.json({ ok: true, enabled, cancelled_load_id: openBd?.id ?? null })
   }

@@ -450,7 +450,7 @@ export default function AdminPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
               <h2 style={{ fontSize: 16, fontWeight: 600 }}>All Loads ({loadsList.filter((l: any) => !loadsStatusFilter || l.status === loadsStatusFilter).length})</h2>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {[['', 'All'], ['open', 'Open'], ['filled', 'Filled'], ['expired', 'Expired'], ['cancelled', 'Cancelled']].map(([val, label]) => (
+                {[['', 'All'], ['open', 'Open'], ['pending_match', 'Pending'], ['filled', 'Filled'], ['expired', 'Expired']].map(([val, label]) => (
                   <button
                     key={val || 'all'}
                     onClick={() => setLoadsStatusFilter(val)}

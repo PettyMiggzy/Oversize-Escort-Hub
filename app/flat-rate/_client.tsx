@@ -43,7 +43,7 @@ interface Load {
 interface SponsoredProfile {
   id: string;
   full_name?: string | null;
-  membership?: string | null;
+  tier?: string | null;
   bgc_verified?: boolean | null;
   rating?: number | null;
   certifications?: { type: string; status: string }[] | null;
@@ -151,7 +151,7 @@ export function FlatRateBoardClient() {
         const supabase = createClient();
         const { data } = await supabase
           .from('sponsored_zones')
-          .select('escort_id, profiles(id, full_name, membership, bgc_verified, rating, certifications(type, status))')
+          .select('escort_id, profiles(id, full_name, tier, bgc_verified, rating, certifications(type, status))')
           .eq('state', stateFilter)
           .eq('active', true);
         if (data && data.length > 0) {
@@ -323,10 +323,8 @@ export function FlatRateBoardClient() {
                             </div>
                             <div style={{ textAlign: 'left', minWidth: undefined }}>
                               <div style={{ fontSize: 22, fontWeight: 800, color: '#f0a500', marginBottom: 4 }}>
-                                {load.per_mile_rate
+                                {load.per_mile_rate != null
                                   ? `$${load.per_mile_rate}/mi`
-                                  : load.rate
-                                  ? `$${load.rate}/mi`
                                   : 'Negotiable'}
                               </div>
                               <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 12 }}>

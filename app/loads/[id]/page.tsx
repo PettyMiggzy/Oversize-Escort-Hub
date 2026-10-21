@@ -103,11 +103,11 @@ export default function LoadDetailPage() {
           {[
             ['Route', `${load.pu_city}, ${load.pu_state} → ${load.dl_city}, ${load.dl_state}`],
             ['Escort Type', load.escort_type],
-            ['Escort Qty', load.escort_qty ?? 1],
+            ['Escort Qty', load.escort_count ?? 1],
             ['Load Type', load.load_type],
             ['Board Type', load.board_type],
-            ['Rate', `$${load.rate}`],
-            ['Date Needed', load.date_needed ?? '—'],
+            ['Rate', load.per_mile_rate != null ? `$${load.per_mile_rate}/mi` : '—'],
+            ['Date Needed', load.start_date ?? '—'],
             ['Posted', new Date(load.created_at).toLocaleDateString()],
           ].map(([k, v]) => (
             <div key={String(k)} style={row}>

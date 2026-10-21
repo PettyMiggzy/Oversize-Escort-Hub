@@ -218,7 +218,7 @@ export function OpenLoadsBoardClient() {
                 <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 12 }}>
                   <div>
                     <div style={{ fontSize: 11, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Posted Rate</div>
-                    <div style={{ fontSize: 18, fontWeight: 800, color: '#f0a500' }}>${load.rate != null ? Number(load.rate).toLocaleString() : 'TBD'}</div>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: '#f0a500' }}>${load.per_mile_rate != null ? Number(load.per_mile_rate).toLocaleString() : 'TBD'}</div>
                   </div>
                   <div>
                     <div style={{ fontSize: 11, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Highest Bid</div>
@@ -237,7 +237,7 @@ export function OpenLoadsBoardClient() {
                   }}>Sign In to Bid</a>
                 ) : accessLevel === 'instant' ? (
                   <button
-                    onClick={() => { setBidModal({ loadId: load.id, loadRate: load.rate }); setBidRate('') }}
+                    onClick={() => { setBidModal({ loadId: load.id, loadRate: load.per_mile_rate }); setBidRate('') }}
                     style={{
                       background: '#f0a500', color: '#000', border: 'none', borderRadius: 6,
                       padding: '8px 20px', fontWeight: 700, fontSize: 13, cursor: 'pointer', width: '100%'
@@ -262,7 +262,7 @@ export function OpenLoadsBoardClient() {
                     }
                     return (
                       <button
-                        onClick={() => { setBidModal({ loadId: load.id, loadRate: load.rate }); setBidRate('') }}
+                        onClick={() => { setBidModal({ loadId: load.id, loadRate: load.per_mile_rate }); setBidRate('') }}
                         style={{
                           background: '#f0a500', color: '#000', border: 'none', borderRadius: 6,
                           padding: '8px 20px', fontWeight: 700, fontSize: 13, cursor: 'pointer', width: '100%'

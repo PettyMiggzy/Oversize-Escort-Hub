@@ -11,7 +11,7 @@ interface Load {
   id: string;
   created_at: string;
   escort_type: string;
-  rate: number;
+  per_mile_rate: number | null;
   status: string;
   is_external?: boolean;
   pu_state?: string;
@@ -31,7 +31,7 @@ export default function OpenLoadsPage() {
         const { data, error } = await supabase
           .from("loads")
           .select("*")
-          .eq("board_type", "open")
+          .eq("board_type", "open-bid")
           .eq("status", "open")
           .order("created_at", { ascending: false });
 
@@ -78,7 +78,7 @@ export default function OpenLoadsPage() {
                 </div>
                 <div className="text-right">
                   <p className="text-2xl font-bold text-green-600">
-                    ${load.rate}
+                    {load.per_mile_rate != null ? `$${load.per_mile_rate}` : "TBD"}
                   </p>
                   <p className="text-xs text-gray-500">per mile</p>
                 </div>

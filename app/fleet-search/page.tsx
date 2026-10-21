@@ -1,48 +1,28 @@
 "use client";
-import { useState } from "react";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import SiteHeader from "@/components/SiteHeader";
 
-interface Vehicle { id: string; make: string; model: string; year: number; vin: string; status: string; }
-
+/** Fleet search lives in the Deadhead Minimizer (Pro). This route used to call a
+ *  non-existent GET /api/fleet-search for vehicle VIN lookup — that stub is gone. */
 export default function FleetSearchPage() {
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState<Vehicle[]>([]);
-  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
-  async function search(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    const res = await fetch(`/api/fleet-search?q=${encodeURIComponent(query)}`);
-    const data = await res.json();
-    setResults(data.vehicles ?? []);
-    setLoading(false);
-  }
+  useEffect(() => {
+    router.replace("/pricing");
+  }, [router]);
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-2">🚛 Fleet Search</h1>
-        <p className="text-gray-400 mb-8">Search oversize transport vehicles and equipment</p>
-        <form onSubmit={search} className="flex gap-3 mb-8">
-          <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search by make, model, VIN, or state..."
-            className="flex-1 bg-gray-800 rounded-xl px-4 py-3 text-white border border-gray-700 focus:border-blue-500 outline-none" />
-          <button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold px-6 py-3 rounded-xl">
-            {loading ? "Searching..." : "Search"}
-          </button>
-        </form>
-        <div className="space-y-3">
-          {results.map(v => (
-            <div key={v.id} className="bg-gray-800 rounded-xl p-4 flex items-center justify-between hover:bg-gray-750">
-              <div>
-                <p className="font-semibold">{v.year} {v.make} {v.model}</p>
-                <p className="text-gray-400 text-sm font-mono">VIN: {v.vin}</p>
-              </div>
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${v.status === "active" ? "bg-green-900 text-green-300" : "bg-gray-700 text-gray-300"}`}>
-                {v.status}
-              </span>
-            </div>
-          ))}
-          {results.length === 0 && !loading && query && <p className="text-gray-400 text-center py-8">No vehicles found for &ldquo;{query}&rdquo;</p>}
-        </div>
+    <div style={{ minHeight: "100vh", background: "#060b16", color: "#e5e7eb" }}>
+      <SiteHeader />
+      <div style={{ maxWidth: 560, margin: "48px auto", padding: "0 24px", textAlign: "center" }}>
+        <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 12 }}>Fleet Manager</h1>
+        <p style={{ color: "#9ca3af", marginBottom: 24 }}>
+          Fleet load search is part of the Deadhead Minimizer on Pro. Redirecting to pricing…
+        </p>
+        <a href="/pricing" style={{ color: "#f0a500", fontWeight: 700 }}>
+          View Pro plans →
+        </a>
       </div>
     </div>
   );

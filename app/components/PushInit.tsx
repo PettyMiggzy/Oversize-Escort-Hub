@@ -1,5 +1,6 @@
 'use client'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4)
@@ -10,7 +11,22 @@ function urlBase64ToUint8Array(base64String: string) {
   return outputArray
 }
 
-export default function PushInit({ userId }: { userId?: string | null }) {
+export default function PushInit({ userId: userIdProp }: { userId?: string | null }) {
+  const [sessionUserId, setSessionUserId] = useState<string | null>(userIdProp ?? null)
+  const userId = userIdProp ?? sessionUserId
+
+  useEffect(() => {
+    if (userIdProp) return
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setSessionUserId(user?.id ?? null)
+    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSessionUserId(session?.user?.id ?? null)
+    })
+    return () => subscription.unsubscribe()
+  }, [userIdProp])
+
   useEffect(() => {
     if (!userId || typeof window === 'undefined' || !('serviceWorker' in navigator) || !('PushManager' in window)) return
     const run = async () => {

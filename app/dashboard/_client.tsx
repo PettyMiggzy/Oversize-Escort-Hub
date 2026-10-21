@@ -12,7 +12,6 @@ const TEXT = '#e2e8f0'
 const MUTED = '#6b7280'
 
 interface Profile {
-  membership?: string;
   tier?: string;
   email?: string;
   id: string
@@ -25,13 +24,22 @@ interface Profile {
 
 interface Load {
   id: string
-  title: string
   pu_city: string
   pu_state: string
   dl_city: string
   dl_state: string
-  date_needed: string
+  start_date: string | null
   status: string
+  per_mile_rate?: number | null
+  escort_type?: string | null
+}
+
+function loadLabel(load: { pu_city?: string | null; pu_state?: string | null; dl_city?: string | null; dl_state?: string | null } | null | undefined) {
+  if (!load) return 'Load'
+  const from = [load.pu_city, load.pu_state].filter(Boolean).join(', ')
+  const to = [load.dl_city, load.dl_state].filter(Boolean).join(', ')
+  if (from && to) return `${from} → ${to}`
+  return from || to || 'Load'
 }
 
 interface Match {
@@ -306,7 +314,7 @@ export function DashboardPageClient() {
     const loadEscort = async () => {
       const { data: acceptedBids } = await supabase
         .from('bids')
-        .select('id, rate, created_at, load_id, status, loads:load_id(id, title, pu_city, pu_state, dl_city, dl_state, date_needed, status)')
+        .select('id, rate, created_at, load_id, status, loads:load_id(id, pu_city, pu_state, dl_city, dl_state, start_date, status)')
         .eq('escort_id', profile.id)
         .eq('status', 'accepted')
         .order('created_at', { ascending: false })
@@ -380,7 +388,7 @@ export function DashboardPageClient() {
 
   const isCarrier = profile.role === 'carrier' || profile.role === 'admin'
   const isEscort = profile.role === 'escort' || profile.role === 'pro' || (profile as any).tier === 'pro'
-  const isPro = profile.tier === 'pro' || profile.membership === 'pro' || profile.role === 'pro'
+  const isPro = profile.tier === 'pro' || profile.tier === 'fleet_pro' || profile.role === 'pro'
 
   return (
     <div style={{ minHeight: '100vh', background: BG, color: TEXT, padding: '2rem' }}>
@@ -460,11 +468,11 @@ export function DashboardPageClient() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {loads.map(load => (
                   <div key={load.id} style={{ background: SURFACE, borderRadius: 8, padding: '1rem', border: '1px solid #1e2736' }}>
-                    <p style={{ margin: 0, fontWeight: 600 }}>{load.title || 'Load'}</p>
+                    <p style={{ margin: 0, fontWeight: 600 }}>{loadLabel(load)}</p>
                     <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>
                       {load.pu_city}, {load.pu_state} → {load.dl_city}, {load.dl_state}
                     </p>
-                    <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>Needed: {load.date_needed}</p>
+                    <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>Needed: {load.start_date || '—'}</p>
                     <div style={{ marginTop: 8 }}>
                       <button onClick={() => handleDownloadInvoice(load.id)} style={{ fontSize: 11, color: '#f0a500', background: 'none', border: '1px solid #f0a500', borderRadius: 4, padding: '3px 10px', cursor: 'pointer' }}>
                         📄 Invoice
@@ -499,7 +507,7 @@ export function DashboardPageClient() {
                             )}
                           </p>
                           <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>
-                            {load ? (load.title || 'Load') + ' — ' + load.pu_city + ', ' + load.pu_state + ' → ' + load.dl_city + ', ' + load.dl_state : 'Load'}
+                            {load ? loadLabel(load) : 'Load'}
                           </p>
                           {prof.rating != null && (
                             <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>★ {Number(prof.rating).toFixed(1)}</p>
@@ -540,7 +548,7 @@ export function DashboardPageClient() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {matches.map(match => (
                   <div key={match.id} style={{ background: SURFACE, borderRadius: 8, padding: '1rem', border: '1px solid #1e2736' }}>
-                    <p style={{ margin: 0, fontWeight: 600 }}>{match.loads?.title || 'Load'}</p>
+                    <p style={{ margin: 0, fontWeight: 600 }}>{loadLabel(match.loads)}</p>
                     {match.loads && (
                       <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>
                         {match.loads.pu_city}, {match.loads.pu_state} → {match.loads.dl_city}, {match.loads.dl_state}
@@ -577,7 +585,7 @@ export function DashboardPageClient() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {completedLoads.map(load => (
                   <div key={load.id} style={{ background: SURFACE, borderRadius: 8, padding: '1rem', border: '1px solid #1e2736', opacity: 0.75 }}>
-                    <p style={{ margin: 0, fontWeight: 600 }}>{load.title || 'Load'}</p>
+                    <p style={{ margin: 0, fontWeight: 600 }}>{loadLabel(load)}</p>
                     <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>
                       {load.pu_city}, {load.pu_state} → {load.dl_city}, {load.dl_state}
                     </p>
@@ -624,11 +632,11 @@ export function DashboardPageClient() {
                     <div key={bid.id} style={{ background: SURFACE, borderRadius: 8, padding: '1rem', border: '1px solid #1e2736' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
                         <div>
-                          <p style={{ margin: 0, fontWeight: 600 }}>{ld.title || 'Load'}</p>
+                          <p style={{ margin: 0, fontWeight: 600 }}>{loadLabel(ld)}</p>
                           <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>
                             {ld.pu_city || '—'}, {ld.pu_state || ''} → {ld.dl_city || '—'}, {ld.dl_state || ''}
                           </p>
-                          {ld.date_needed && <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>Needed: {ld.date_needed}</p>}
+                          {ld.start_date && <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>Needed: {ld.start_date}</p>}
                         </div>
                         <p style={{ margin: 0, fontWeight: 700, fontSize: '1.25rem', color: ORANGE }}>${Number(bid.rate).toFixed(2)}</p>
                       </div>
@@ -788,19 +796,19 @@ export function DashboardPageClient() {
       )}
 
       {/* Deadhead Opportunities - Pro/Fleet only */}
-      {(profile?.membership === 'pro' || profile?.tier === 'pro' || profile?.role === 'fleet' || isAdminEmail(profile?.email)) && deadheadOpps.length > 0 && (
+      {(profile?.tier === 'pro' || profile?.tier === 'fleet_pro' || profile?.role === 'fleet' || isAdminEmail(profile?.email)) && deadheadOpps.length > 0 && (
         <section style={{ marginTop: '2rem' }}>
           <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#f59e0b', marginBottom: '1rem' }}>🚛 Deadhead Opportunities</h2>
           {deadheadOpps.map((load: any) => (
             <div key={load.id} style={{ background: '#1e2736', borderRadius: 8, padding: '1rem', marginBottom: '0.75rem', border: '1px solid #334155' }}>
               <p style={{ margin: 0, fontWeight: 600 }}>{load.pu_city}, {load.pu_state} → {load.dl_city}, {load.dl_state}</p>
-              <p style={{ margin: '0.25rem 0 0', color: '#94a3b8', fontSize: '0.875rem' }}>${load.rate} &bull; {load.escort_type}</p>
+              <p style={{ margin: '0.25rem 0 0', color: '#94a3b8', fontSize: '0.875rem' }}>${load.per_mile_rate ?? '—'}{load.per_mile_rate != null ? '/mi' : ''} &bull; {load.escort_type}</p>
               <a href={`/loads/${load.id}`} style={{ color: '#f59e0b', fontSize: '0.875rem', display: 'inline-block', marginTop: '0.5rem' }}>Claim load →</a>
             </div>
           ))}
         </section>
       )}
-      {(profile?.membership !== 'pro' && profile?.tier !== 'pro' && profile?.role !== 'fleet' && !isAdminEmail(profile?.email)) && isEscort && (
+      {(profile?.tier !== 'pro' && profile?.tier !== 'fleet_pro' && profile?.role !== 'fleet' && !isAdminEmail(profile?.email)) && isEscort && (
         <section style={{ marginTop: '2rem', padding: '1rem', background: '#1e2736', borderRadius: 8, border: '1px solid #334155' }}>
           <p style={{ margin: 0, color: '#94a3b8' }}>🚛 <strong style={{ color: '#f59e0b' }}>Deadhead Opportunities</strong> — available to Pro and Fleet members. <a href="/pricing" style={{ color: '#f59e0b' }}>Upgrade to Pro</a></p>
         </section>

@@ -3,11 +3,11 @@ import { useState, useEffect } from "react";
 
 type JobLog = {
   id: string;
-  load_description: string;
-  miles: number;
-  earned: number;
+  notes: string | null;
+  mileage: number;
+  expenses: { amount?: number; label?: string }[] | null;
   logged_at: string;
-  state: string;
+  load_id: string | null;
 };
 
 export default function JobsPage() {
@@ -17,8 +17,8 @@ export default function JobsPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [form, setForm] = useState({
-    load_description: "",
-    miles: "",
+    notes: "",
+    mileage: "",
     earned: "",
     state: "",
   });
@@ -37,14 +37,25 @@ export default function JobsPage() {
     setError("");
     setSuccess("");
     try {
+      const earned = Number(form.earned);
+      const notes = [
+        form.notes.trim(),
+        form.state ? `State: ${form.state}` : "",
+        Number.isFinite(earned) && earned > 0 ? `Earned: $${earned}` : "",
+      ]
+        .filter(Boolean)
+        .join(" | ");
+
       const res = await fetch("/api/jobs/log", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          load_description: form.load_description,
-          miles: Number(form.miles),
-          earned: Number(form.earned),
-          state: form.state,
+          mileage: Number(form.mileage),
+          notes,
+          expenses:
+            Number.isFinite(earned) && earned > 0
+              ? [{ label: "earned", amount: earned }]
+              : [],
         }),
       });
       const data = await res.json();
@@ -52,8 +63,10 @@ export default function JobsPage() {
         setError(data.error ?? "Failed to log job.");
       } else {
         setSuccess("Job logged successfully!");
-        setForm({ load_description: "", miles: "", earned: "", state: "" });
-        setJobs((prev) => [data, ...prev]);
+        setForm({ notes: "", mileage: "", earned: "", state: "" });
+        // refresh list from API shape
+        const refreshed = await fetch("/api/jobs/log").then((r) => r.json());
+        setJobs(refreshed.jobs ?? []);
       }
     } catch {
       setError("Network error.");
@@ -62,8 +75,15 @@ export default function JobsPage() {
     }
   }
 
-  const totalMiles = jobs.reduce((s, j) => s + (j.miles ?? 0), 0);
-  const totalEarned = jobs.reduce((s, j) => s + (j.earned ?? 0), 0);
+  const totalMiles = jobs.reduce((s, j) => s + (j.mileage ?? 0), 0);
+  const totalEarned = jobs.reduce((s, j) => {
+    const earned = Array.isArray(j.expenses)
+      ? j.expenses
+          .filter((e) => e?.label === "earned")
+          .reduce((a, e) => a + (e.amount || 0), 0)
+      : 0;
+    return s + earned;
+  }, 0);
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
@@ -73,7 +93,6 @@ export default function JobsPage() {
           Track completed loads, mileage, and earnings.
         </p>
 
-        {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mb-8">
           {[
             { label: "Total Jobs", value: jobs.length },
@@ -93,16 +112,15 @@ export default function JobsPage() {
           ))}
         </div>
 
-        {/* Log form */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
           <h2 className="font-semibold text-gray-900 mb-4">Log a Completed Load</h2>
           <form onSubmit={handleLog} className="space-y-4">
             <input
               required
               placeholder="Load description (e.g., Wide load — I-40 NM to AZ)"
-              value={form.load_description}
+              value={form.notes}
               onChange={(e) =>
-                setForm((f) => ({ ...f, load_description: e.target.value }))
+                setForm((f) => ({ ...f, notes: e.target.value }))
               }
               className="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -112,9 +130,9 @@ export default function JobsPage() {
                 type="number"
                 min="0"
                 placeholder="Miles"
-                value={form.miles}
+                value={form.mileage}
                 onChange={(e) =>
-                  setForm((f) => ({ ...f, miles: e.target.value }))
+                  setForm((f) => ({ ...f, mileage: e.target.value }))
                 }
                 className="border rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
@@ -142,12 +160,8 @@ export default function JobsPage() {
               />
             </div>
 
-            {error && (
-              <p className="text-sm text-red-600">{error}</p>
-            )}
-            {success && (
-              <p className="text-sm text-green-600">{success}</p>
-            )}
+            {error && <p className="text-sm text-red-600">{error}</p>}
+            {success && <p className="text-sm text-green-600">{success}</p>}
 
             <button
               type="submit"
@@ -159,7 +173,6 @@ export default function JobsPage() {
           </form>
         </div>
 
-        {/* History */}
         <div className="bg-white rounded-xl shadow-sm p-6">
           <h2 className="font-semibold text-gray-900 mb-4">Job History</h2>
           {loading ? (
@@ -174,27 +187,34 @@ export default function JobsPage() {
             </p>
           ) : (
             <div className="space-y-3">
-              {jobs.map((j) => (
-                <div
-                  key={j.id}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                >
-                  <div>
-                    <p className="text-sm font-medium text-gray-800">
-                      {j.load_description}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {j.state} · {j.miles?.toLocaleString()} mi ·{" "}
-                      {j.logged_at
-                        ? new Date(j.logged_at).toLocaleDateString()
-                        : ""}
-                    </p>
+              {jobs.map((j) => {
+                const earned = Array.isArray(j.expenses)
+                  ? j.expenses
+                      .filter((e) => e?.label === "earned")
+                      .reduce((a, e) => a + (e.amount || 0), 0)
+                  : 0;
+                return (
+                  <div
+                    key={j.id}
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-gray-800">
+                        {j.notes || "Job"}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {j.mileage?.toLocaleString()} mi ·{" "}
+                        {j.logged_at
+                          ? new Date(j.logged_at).toLocaleDateString()
+                          : ""}
+                      </p>
+                    </div>
+                    <span className="text-sm font-semibold text-green-700">
+                      ${earned.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </span>
                   </div>
-                  <span className="text-sm font-semibold text-green-700">
-                    ${j.earned?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

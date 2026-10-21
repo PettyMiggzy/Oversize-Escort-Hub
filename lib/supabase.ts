@@ -42,7 +42,7 @@ export type Load = {
   miles: number | null
   position: string
   pay_type: string | null
-  status: 'open' | 'filled' | 'expired' | 'cancelled'
+  status: 'open' | 'pending_match' | 'filled' | 'expired'
   per_mile_rate: number
   day_rate: number
   overnight_fee: number

@@ -28,9 +28,9 @@ export default function FindEscortsPage() {
     // Base query: profiles where role=escort
     let q = supabase
       .from("profiles")
-      .select("id, full_name, membership, bgc_verified")
+      .select("id, full_name, tier, bgc_verified")
       .eq("role", "escort")
-    if (memberFilter === "pro") q = q.eq("membership", "pro")
+    if (memberFilter === "pro") q = q.eq("tier", "pro")
     if (memberFilter === "bgc") q = q.eq("bgc_verified", true)
     const { data: profileData } = await q
 
@@ -67,11 +67,11 @@ export default function FindEscortsPage() {
     // Always fetch sponsored escorts — filter by zone if selected, else show top 6 nationally
       let sponsoredQuery = supabase
         .from("sponsored_zones")
-        .select("escort_id, created_at, profiles(id, full_name, membership, bgc_verified)")
+        .select("escort_id, created_at, profiles(id, full_name, tier, bgc_verified)")
         .eq("active", true)
         .order("created_at", { ascending: false })
         .limit(6)
-      if (stateFilter) sponsoredQuery = sponsoredQuery.eq("zone", stateFilter)
+      if (stateFilter) sponsoredQuery = sponsoredQuery.eq("state", stateFilter)
       const { data: sponsoredZones } = await sponsoredQuery
       if (sponsoredZones && sponsoredZones.length > 0) {
         const sponsoredProfiles = sponsoredZones
@@ -138,7 +138,7 @@ export default function FindEscortsPage() {
                   <div style={S.cardName}>{e.full_name || "Unnamed"}</div>
                   <div style={S.badges}>
                     <span style={S.badge("#f0a500")}>Sponsored</span>
-                    <span style={S.badge(e.membership === "pro" ? "#f0a500" : "#6b7280")}>{e.membership === "pro" ? "Pro" : "Member"}</span>
+                    <span style={S.badge(e.tier === "pro" ? "#f0a500" : "#6b7280")}>{e.tier === "pro" ? "Pro" : "Member"}</span>
                     {e.bgc_verified && <span style={S.badge("#22c55e")}>✓ BGC</span>}
                   </div>
                   <button style={S.btn}>View Profile</button>
@@ -157,7 +157,7 @@ export default function FindEscortsPage() {
               <div key={e.id} style={S.card} onClick={() => router.push(`/escorts/${e.id}`)}>
                 <div style={S.cardName}>{e.full_name || "Unnamed"}</div>
                 <div style={S.badges}>
-                  <span style={S.badge(e.membership === "pro" ? "#f0a500" : "#6b7280")}>{e.membership === "pro" ? "⭐ Pro" : "Member"}</span>
+                  <span style={S.badge(e.tier === "pro" ? "#f0a500" : "#6b7280")}>{e.tier === "pro" ? "⭐ Pro" : "Member"}</span>
                   {e.bgc_verified && <span style={S.badge("#22c55e")}>✓ BGC</span>}
                 </div>
                 {e.zones.length > 0 && (
