@@ -1439,7 +1439,7 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
     async function fetchReferrals() {
         const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
-                const { data } = await supabase.from('referrals').select('*').eq('referred_by', user.id).order('created_at', { ascending: false });
+                const { data } = await supabase.from('referrals').select('*').eq('referrer_id', user.id).order('created_at', { ascending: false });
                     setReferralData(data || []);
                       }
 
