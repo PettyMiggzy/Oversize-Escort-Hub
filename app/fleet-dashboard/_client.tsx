@@ -32,7 +32,7 @@ export function FleetDashboardPageClient() {
     // Fleet escorts with profile join
     const { data: escorts } = await supabase
       .from('fleet_escorts')
-      .select('*, profiles!fleet_escorts_escort_id_fkey(full_name, tier, bgc_verified, phone, zones, job_status, rating)')
+      .select('*, profiles!fleet_escorts_escort_id_fkey(full_name, tier, bgc_verified, phone, rating)')
       .eq('fleet_manager_id', uid)
     setFleetEscorts(escorts || [])
 
