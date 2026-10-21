@@ -1,13 +1,10 @@
 "use client"
 import { useEffect, useState } from "react"
-import { createClient } from "@supabase/supabase-js"
+import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import SiteHeader from "@/components/SiteHeader"
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+const supabase = createClient()
 
 const US_STATES = ["AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"]
 
@@ -67,7 +64,7 @@ export default function FindEscortsPage() {
     // Always fetch sponsored escorts — filter by zone if selected, else show top 6 nationally
       let sponsoredQuery = supabase
         .from("sponsored_zones")
-        .select("escort_id, created_at, profiles(id, full_name, tier, bgc_verified)")
+        .select("user_id, created_at, profiles:user_id(id, full_name, tier, bgc_verified)")
         .eq("active", true)
         .order("created_at", { ascending: false })
         .limit(6)

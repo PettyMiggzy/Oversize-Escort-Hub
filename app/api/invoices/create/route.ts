@@ -41,6 +41,7 @@ export async function POST(req: NextRequest) {
     const { data, error } = await supabase.from("invoices").insert({
       escort_id: user.id,
       carrier_id: load.carrier_id,
+      load_id,
       amount,
       description,
       due_date: dueDate,

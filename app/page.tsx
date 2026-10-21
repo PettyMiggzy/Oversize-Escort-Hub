@@ -1,8 +1,10 @@
 "use client";
 import PushInit from './components/PushInit'
 import { useState, useEffect, useRef } from "react";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
+
+const supabase = createClient();
 
 // ─── TYPES ───────────────────────────────────────────────────────────────────
 
@@ -1207,6 +1209,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
         dl_city: form.dlCity,
         dl_state: form.dlState.toUpperCase(),
         position: pos,
+        escort_type: pos,
   				pay_term: form.payTerm === "Custom" ? (form.payTermCustom || "Custom") : form.payTerm,
         miles: parseInt(form.miles) || null,
           per_mile_rate: parseFloat(form.rate) || 2.00,
@@ -1752,7 +1755,7 @@ function CarrierDashPage({ setPage, user, profile, showToast }: { setPage: (p: P
       // Source of truth is loads (status 'pending_match' + matched_escort_id).
       const { data } = await supabase
         .from('loads')
-        .select('*, profiles!matched_escort_id(full_name, tier, bgc_verified, certs)')
+        .select('*, profiles!matched_escort_id(full_name, tier, bgc_verified)')
         .eq('carrier_id', user.id)
         .eq('status', 'pending_match')
         .order('match_requested_at', { ascending: false })
@@ -1762,7 +1765,7 @@ function CarrierDashPage({ setPage, user, profile, showToast }: { setPage: (p: P
       }))
       setMatchRequests(mine)
     } else if (tab === 'history') {
-      const { data } = await supabase.from('loads').select('*').eq('carrier_id', user.id).in('status', ['filled', 'expired', 'cancelled']).order('created_at', { ascending: false })
+      const { data } = await supabase.from('loads').select('*').eq('carrier_id', user.id).in('status', ['filled', 'expired']).order('created_at', { ascending: false })
       setHistoryLoads(data || [])
     }
     setLoading(false)
@@ -2612,8 +2615,11 @@ function AvailabilityBoard({ setPage, profile }: { setPage: (p: Page) => void; p
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     async function load() {
-      const { data } = await supabase.from('escort_availability').select('*, profiles(full_name, company_name, states_licensed, vehicle, rating, total_jobs, cert_types)').eq('is_available', true).order('updated_at', { ascending: false });
-      setAvails(data || []);
+      const { data } = await supabase
+        .from('escort_availability')
+        .select('*, profiles!escort_id(full_name, company_name, states_licensed, vehicle, rating, total_jobs, is_available)')
+        .order('created_at', { ascending: false });
+      setAvails((data || []).filter((a: any) => a.profiles?.is_available !== false));
       setLoading(false);
     }
     load();

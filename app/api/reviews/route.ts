@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createBrowserClient } from '@supabase/ssr';
 import { createClient as createServerSupabase } from '@/lib/supabase/server';
 import { checkTierAccess } from '@/lib/tier-access';
 
@@ -75,10 +74,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Missing userId' }, { status: 400 });
     }
 
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+    const supabase = await createServerSupabase();
 
     const { data, error } = await supabase
       .from('reviews')
