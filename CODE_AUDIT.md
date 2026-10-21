@@ -350,3 +350,23 @@ request with no signature header was processed and could post a load as any carr
 - The Member push (5 minutes after posting) is still triggered by the poster's browser; a closed tab skips it. A server-side
   schedule needs a `loads.members_notified_at` column.
 - Hard-coded admin emails in `lib/supabase.ts`, `lib/tier-access.ts`, `notify-pro`: move to `role` only.
+
+---
+
+# Audit 3 (2026-10-21): full re-audit to 2 clean passes
+
+Branch: `cursor/audit-fixes-b8c2`. Verified with `npx tsc --noEmit` after each batch. Ended with **two consecutive clean
+audit passes** (no remaining high-confidence runtime bugs in scope).
+
+**Fixed this round:**
+- Canonical `board_type` (`flat-rate`/`bid`/`open-bid`) on SPA post-load + `/loads` filter; SPA inserts set `expires_at` + `escort_type`
+- `profiles.tier` everywhere (drop `membership` / `subscription_tier`); `sponsored_zones.user_id` + `state` joins
+- Load display columns: `per_mile_rate` / `start_date` / `escort_count`; match select drops nonexistent `title`
+- Reviews / jobs / escort-cert / weather / FMCSA / referral client↔API field alignment; review sign-in uses `?redirect=`
+- Breakdown cancel → `expired`; BGC GET status; check-trial service role; reviews GET server client
+- Cookie Supabase client on homepage SPA, SiteHeader, UserAvatar, available, find-escorts, loads page
+- PushInit in root layout; push subscribe `DELETE`; account delete `fleet_escorts` by `fleet_manager_id`/`escort_id`
+- Fleet dashboard select without nonexistent `zones`/`job_status`; fleet-search stub redirected; invoice inserts `load_id`
+- Deleted dead `lib/auth-utils.ts` and `lib/sms.ts`
+
+**Still owner-only (unchanged):** RLS on profiles/loads, private doc buckets, server-side member push schedule, admin email allowlist → `role`.
