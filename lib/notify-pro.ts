@@ -38,7 +38,7 @@ export async function notifyProEscorts({ load_id, zone, cert_type, pu_state, dl_
     .from('profiles')
     .select('id, full_name, phone, availability_states')
     .in('tier', ['pro', 'fleet_starter', 'fleet_plus', 'fleet_pro'])
-    .eq('role', 'escort')
+    .in('role', ['escort', 'fleet_manager'])
 
   if (cert_type) query = query.contains('cert_types', [cert_type])
 

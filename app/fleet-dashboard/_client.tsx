@@ -9,6 +9,7 @@ export function FleetDashboardPageClient() {
   const [loading, setLoading] = useState(true)
   const [fleetEscorts, setFleetEscorts] = useState<any[]>([])
   const [activeLoads, setActiveLoads] = useState<any[]>([])
+  const [deadheadOpps, setDeadheadOpps] = useState<any[]>([])
   const [addEmail, setAddEmail] = useState('')
   const [addStatus, setAddStatus] = useState('')
   const [userId, setUserId] = useState<string | null>(null)
@@ -46,6 +47,18 @@ export function FleetDashboardPageClient() {
         .not('status', 'eq', 'expired')
       setActiveLoads(loads || [])
     }
+
+    // Deadhead exclusive window (boards hide these for 5 minutes)
+    const since = new Date(Date.now() - 5 * 60 * 1000).toISOString()
+    const { data: dhLoads } = await supabase
+      .from('loads')
+      .select('id, pu_city, pu_state, dl_city, dl_state, per_mile_rate, escort_type, deadhead_notified_at')
+      .eq('status', 'open')
+      .not('deadhead_notified_at', 'is', null)
+      .gte('deadhead_notified_at', since)
+      .order('deadhead_notified_at', { ascending: false })
+      .limit(20)
+    setDeadheadOpps(dhLoads || [])
   }
 
   const addEscort = async () => {
@@ -88,6 +101,20 @@ export function FleetDashboardPageClient() {
     <div style={{ minHeight: '100vh', background: bg, color: '#fff' }}>
       <main style={{ maxWidth: 900, margin: '0 auto', padding: '40px 24px' }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 24 }}>Fleet Dashboard</h1>
+
+        {deadheadOpps.length > 0 && (
+          <div style={{ ...card, borderColor: '#f59e0b' }}>
+            <h2 style={{ fontSize: 16, fontWeight: 600, color: '#f59e0b', marginBottom: 12 }}>🚛 Deadhead Opportunities</h2>
+            <p style={{ fontSize: 12, color: '#9ca3af', marginBottom: 12 }}>Exclusive 5-minute window — claim before Members see these loads.</p>
+            {deadheadOpps.map((load: any) => (
+              <div key={load.id} style={{ background: '#0a0f1a', borderRadius: 8, padding: 12, marginBottom: 8, border: '1px solid #1e3a5f' }}>
+                <p style={{ margin: 0, fontWeight: 600 }}>{load.pu_city}, {load.pu_state} → {load.dl_city}, {load.dl_state}</p>
+                <p style={{ margin: '4px 0 0', color: '#9ca3af', fontSize: 13 }}>${load.per_mile_rate ?? '—'}{load.per_mile_rate != null ? '/mi' : ''} · {load.escort_type}</p>
+                <a href={`/loads/${load.id}`} style={{ color: '#f59e0b', fontSize: 13, display: 'inline-block', marginTop: 6 }}>Claim load →</a>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Fleet Escorts */}
         <div style={card}>

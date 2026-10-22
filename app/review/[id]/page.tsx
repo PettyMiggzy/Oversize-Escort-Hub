@@ -42,7 +42,7 @@ export default function ReviewPage() {
         .select('role')
         .eq('id', user.id)
         .single()
-      if (profile?.role !== 'escort') {
+      if (profile?.role !== 'escort' && profile?.role !== 'fleet_manager') {
         if (!cancelled) {
           setErr('Only escorts can leave a review for a carrier.')
           setLoading(false)
