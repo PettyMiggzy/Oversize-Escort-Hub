@@ -1198,12 +1198,16 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
 				const { data: urlData } = supabase.storage.from("permits").getPublicUrl(upData.path);
 				permit_url = urlData.publicUrl;
 			}
-        // Insert one load card per selected escort position
+        // Positions come from the shared cert/escort-type checkboxes (Lead/Chase/…).
+        // form.positions is stale — derive from the selected position-like options.
+        const POSITION_OPTS = new Set(["Lead","Chase","3rd Car","4th Car","High Pole","Rear Steer","Bucket Truck","Route Survey","Flagger"])
+        const selectedPositions = (form.certTypes as string[]).filter((t) => POSITION_OPTS.has(t))
+        const positionsToPost = selectedPositions.length ? selectedPositions : ["Lead"]
         let firstError = null;
         const expires_at = boardType === "bid"
           ? new Date(Date.now() + 5 * 60 * 1000).toISOString()
           : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-        for (const pos of form.positions) {
+        for (const pos of positionsToPost) {
           const { error: posErr } = await supabase.from("loads").insert({
         carrier_id: user.id,
         board_type: boardType,
@@ -1246,7 +1250,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
           .eq('carrier_id', user.id)
           .eq('status', 'open')
           .order('created_at', { ascending: false })
-          .limit(form.positions.length || 1)
+          .limit(positionsToPost.length || 1)
         for (const row of recent || []) {
           fetch('/api/loads/after-create', {
             method: 'POST',
