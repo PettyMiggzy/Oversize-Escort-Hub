@@ -70,14 +70,26 @@ export async function POST(req: NextRequest) {
 
   const { data: { publicUrl } } = svc.storage.from('bgc-submissions').getPublicUrl(path)
 
-  await svc.from('profiles').update({ bgc_pending: true, bgc_document_url: publicUrl }).eq('id', user.id)
-  await svc.from('certifications').insert({
+  const { error: profErr } = await svc
+    .from('profiles')
+    .update({ bgc_pending: true, bgc_document_url: publicUrl })
+    .eq('id', user.id)
+  if (profErr) {
+    console.error('[bgc] profile update', profErr)
+    return NextResponse.json({ error: 'Could not mark pending' }, { status: 500 })
+  }
+
+  const { error: certErr } = await svc.from('certifications').insert({
     user_id: user.id,
     type: 'bgc',
     status: 'pending',
     document_url: publicUrl,
     created_at: new Date().toISOString(),
   })
+  if (certErr) {
+    console.error('[bgc] certifications insert', certErr)
+    return NextResponse.json({ error: 'Could not create review row' }, { status: 500 })
+  }
 
   // Notify verify@ for manual review
   try {

@@ -27,12 +27,19 @@ export async function POST(req: NextRequest) {
   // Check load is open
   const { data: load, error: le } = await supabase
     .from("loads")
-    .select("id, status, carrier_id, created_at, deadhead_notified_at")
+    .select("id, status, carrier_id, created_at, deadhead_notified_at, board_type, expires_at")
     .eq("id", load_id)
     .single();
   if (le || !load) return NextResponse.json({ error: "Load not found" }, { status: 404 });
   if (load.status !== "open") {
     return NextResponse.json({ error: "Load is not available" }, { status: 409 });
+  }
+  // Claim is for flat-rate boards only — bid boards use /api/bids
+  if (load.board_type === "bid" || load.board_type === "open-bid" || load.board_type === "open") {
+    return NextResponse.json({ error: "This load is on the bid board — place a bid instead" }, { status: 409 });
+  }
+  if (load.expires_at && Date.parse(load.expires_at) <= Date.now()) {
+    return NextResponse.json({ error: "This load has expired" }, { status: 409 });
   }
   if (load.carrier_id === escort_id) {
     return NextResponse.json({ error: "You cannot claim your own load" }, { status: 403 });

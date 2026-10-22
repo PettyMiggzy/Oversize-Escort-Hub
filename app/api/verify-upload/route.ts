@@ -20,17 +20,29 @@ export async function POST(req: Request) {
     const certType = t === 1 ? 'pevo' : 'vehicle'
     const bucket = t === 1 ? 'pevo-certs' : 'vehicle-docs'
 
+    const svc = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    // Same paywall as /api/escort/cert-upload for P/EVO cert review
+    if (certType === 'pevo') {
+      const { data: prof } = await svc
+        .from('profiles')
+        .select('pevo_paid')
+        .eq('id', userId)
+        .maybeSingle()
+      if (!prof?.pevo_paid) {
+        return NextResponse.json({ error: 'Purchase P/EVO cert review before uploading' }, { status: 402 })
+      }
+    }
+
     // Prefer the public URL / path the client just uploaded (includes timestamp).
     // Fall back only when older clients omit them.
     const path =
       typeof storagePath === 'string' && storagePath.startsWith(`${userId}/`)
         ? storagePath.slice(0, 400)
         : `${userId}/${String(fileName || 'upload').slice(0, 200)}`
-
-    const svc = createServiceClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
 
     let docUrl =
       typeof documentUrl === 'string' && documentUrl.startsWith('http')

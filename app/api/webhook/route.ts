@@ -117,11 +117,16 @@ export async function POST(req: NextRequest) {
       console.error('[stripe webhook] unknown priceId on checkout.session.completed', { priceId, sessionId: session.id })
       return NextResponse.json({ received: true })
     }
-    const { error: tierErr } = await supabase.from('profiles').update({
+    const profilePatch: Record<string, unknown> = {
       tier,
       stripe_customer_id: (session.customer as string) ?? null,
       stripe_subscription_id: (session.subscription as string) ?? null,
-    }).eq('id', userId)
+    }
+    // Fleet subscriptions unlock Fleet Dashboard, which is gated on role
+    if (tier === 'fleet_starter' || tier === 'fleet_plus' || tier === 'fleet_pro') {
+      profilePatch.role = 'fleet_manager'
+    }
+    const { error: tierErr } = await supabase.from('profiles').update(profilePatch).eq('id', userId)
     if (tierErr) return writeFailed('tier update', tierErr)
 
     return NextResponse.json({ received: true })
@@ -180,11 +185,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ received: true })
     }
 
-    const { error } = await supabase.from('profiles').update({
-      tier: PRICE_TO_TIER[priceId],
+    const tier = PRICE_TO_TIER[priceId]
+    const profilePatch: Record<string, unknown> = {
+      tier,
       stripe_subscription_id: sub.id,
       stripe_customer_id: sub.customer as string,
-    }).eq('id', userId)
+    }
+    if (tier === 'fleet_starter' || tier === 'fleet_plus' || tier === 'fleet_pro') {
+      profilePatch.role = 'fleet_manager'
+    }
+    const { error } = await supabase.from('profiles').update(profilePatch).eq('id', userId)
     if (error) return writeFailed('subscription sync tier update', error)
   }
 
