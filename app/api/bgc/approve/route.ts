@@ -31,19 +31,21 @@ export async function POST(req: NextRequest) {
     if (upErr) return NextResponse.json({ error: upErr.message }, { status: 500 })
 
     if (cert.type === 'bgc' && cert.user_id) {
-      await svc
+      const { error: badgeErr } = await svc
         .from('profiles')
         .update({ bgc_verified: true, bgc_pending: false })
         .eq('id', cert.user_id)
+      if (badgeErr) return NextResponse.json({ error: badgeErr.message }, { status: 500 })
     }
 
     const _ct = (cert.type || '').toString().toLowerCase()
     const _isPevo = cert.type === 'pevo' || cert.type === 'p_evo' || _ct.includes('pevo') || _ct.includes('p/evo')
     if (_isPevo && cert.user_id) {
-      await svc
+      const { error: pevoErr } = await svc
         .from('profiles')
         .update({ pevo_verified: true })
         .eq('id', cert.user_id)
+      if (pevoErr) return NextResponse.json({ error: pevoErr.message }, { status: 500 })
     }
 
     return NextResponse.json({ ok: true })

@@ -1238,6 +1238,23 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
     if (error) {
       showToast("Error posting load: " + error.message, "rd");
     } else {
+      // Fire the same Pro early-access + deadhead hooks as POST /api/loads
+      try {
+        const { data: recent } = await supabase
+          .from('loads')
+          .select('id')
+          .eq('carrier_id', user.id)
+          .eq('status', 'open')
+          .order('created_at', { ascending: false })
+          .limit(form.positions.length || 1)
+        for (const row of recent || []) {
+          fetch('/api/loads/after-create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ load_id: row.id }),
+          }).catch(() => {})
+        }
+      } catch {}
       // SMS_BLAST_HOOK
           try {
             fetch('/api/sms', { method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -1534,10 +1551,10 @@ function EscortDashPage({ setPage, profile, showToast }: { setPage: (p: Page) =>
                 <div style={{ background: "rgba(245,162,0,.07)", border: "1px solid rgba(245,162,0,.2)", borderRadius: 3, padding: 14, marginBottom: 12 }}>
                   <div className="mo" style={{ fontSize: 10, color: "var(--am)", marginBottom: 8 }}>Broadcast your availability to carriers with loads near you</div>
                   <button className="btn btn-am btn-sm" style={{ width: "100%" }} onClick={() => {
-                    if (profile?.tier === "pro" || profile?.tier === "fleet_pro") window.location.href = '/available';
+                    if (["pro", "fleet_starter", "fleet_plus", "fleet_pro"].includes(profile?.tier || "")) window.location.href = '/available';
                     else window.location.href = '/pricing';
                   }}>
-                    {profile?.tier === "pro" || profile?.tier === "fleet_pro" ? "ACTIVATE BROADCAST" : "🔒 PRO FEATURE"}
+                    {["pro", "fleet_starter", "fleet_plus", "fleet_pro"].includes(profile?.tier || "") ? "ACTIVATE BROADCAST" : "🔒 PRO FEATURE"}
                   </button>
                 </div>
                 <div className="mo" style={{ fontSize: 9, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--t2)", marginBottom: 8 }}>Breakdown Protocol</div>
@@ -2309,7 +2326,7 @@ function ExpensesPage({ setPage, user, profile }: any) { return <Stub title="Exp
 function JobHistoryPage({ setPage }: any) { return <Stub title="Job History" icon="📋" desc="View all completed loads, earnings per job, and carrier history. Syncs automatically from OEH load board." back="tools" setPage={setPage} />; }
 function PermitHubPage({ setPage, user, profile }: any) { return <Stub title="Permit Hub" icon="📄" desc="Carriers upload permits to your load. Upload notifications by SMS are coming soon." back="tools" setPage={setPage} />; }
 function DeadheadPage({ setPage, profile }: any) {
-  const isPro = profile?.tier === "pro" || profile?.tier === "fleet_pro"
+  const isPro = ["pro", "fleet_starter", "fleet_plus", "fleet_pro"].includes(profile?.tier || "")
   const [mode, setMode] = useState<"single" | "fleet">("single")
   const [location, setLocation] = useState("")
   const [searching, setSearching] = useState(false)
@@ -2843,7 +2860,7 @@ export default function OEHPlatform() {
         {page === "admin" && <AdminPage setPage={setPage} user={user} profile={activeProfile} />}
               {page === "available" && <AvailabilityBoard setPage={setPage} profile={activeProfile} />}
       <Footer setPage={setPage} />
-      {reviewPrompt && (<div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}><div className="card" style={{ maxWidth:440, width:'100%', padding:28 }}><div style={{ fontSize:18, fontWeight:700, marginBottom:8 }}>⭐ How was your experience?</div><div style={{ fontSize:13, color:'var(--t2)', marginBottom:16 }}>Leave a review for {reviewPrompt.targetName}</div><div style={{ display:'flex', gap:8, marginBottom:16 }}>{[1,2,3,4,5].map(n => (<button key={n} onClick={() => setReviewRating(n)} style={{ fontSize:24, background:'none', border:'none', cursor:'pointer', opacity: n <= reviewRating ? 1 : 0.3 }}>⭐</button>))}</div><textarea value={reviewText} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setReviewText(e.target.value)} placeholder="Optional written review (500 chars max)" maxLength={500} style={{ width:'100%', minHeight:80, padding:10, borderRadius:6, border:'1px solid var(--l2)', background:'var(--bg)', color:'var(--t1)', fontSize:13, resize:'vertical', marginBottom:16 }} /><div style={{ display:'flex', gap:10 }}><button className="btn btn-or" disabled={reviewSubmitting} onClick={async () => { setReviewSubmitting(true); await fetch('/api/reviews', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ loadId: reviewPrompt.loadId, targetUserId: reviewPrompt.targetId, rating: reviewRating, comment: reviewText }) }); setReviewSubmitting(false); setReviewPrompt(null); setReviewRating(5); setReviewText(''); showToast('Thanks for your review!', 'gr') }}>{reviewSubmitting ? 'Submitting…' : 'Submit Review'}</button><button className="btn" onClick={() => setReviewPrompt(null)}>Skip</button></div></div></div>)}
+      {reviewPrompt && (<div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}><div className="card" style={{ maxWidth:440, width:'100%', padding:28 }}><div style={{ fontSize:18, fontWeight:700, marginBottom:8 }}>⭐ How was your experience?</div><div style={{ fontSize:13, color:'var(--t2)', marginBottom:16 }}>Leave a review for {reviewPrompt.targetName}</div><div style={{ display:'flex', gap:8, marginBottom:16 }}>{[1,2,3,4,5].map(n => (<button key={n} onClick={() => setReviewRating(n)} style={{ fontSize:24, background:'none', border:'none', cursor:'pointer', opacity: n <= reviewRating ? 1 : 0.3 }}>⭐</button>))}</div><textarea value={reviewText} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setReviewText(e.target.value)} placeholder="Optional written review (500 chars max)" maxLength={500} style={{ width:'100%', minHeight:80, padding:10, borderRadius:6, border:'1px solid var(--l2)', background:'var(--bg)', color:'var(--t1)', fontSize:13, resize:'vertical', marginBottom:16 }} /><div style={{ display:'flex', gap:10 }}><button className="btn btn-or" disabled={reviewSubmitting} onClick={async () => { setReviewSubmitting(true); const __revRes = await fetch('/api/reviews', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ loadId: reviewPrompt.loadId, targetUserId: reviewPrompt.targetId, rating: reviewRating, comment: reviewText }) }); setReviewSubmitting(false); if (!__revRes.ok) { const __d = await __revRes.json().catch(() => ({})); showToast(__d.error || 'Could not submit review', 'rd'); return; } setReviewPrompt(null); setReviewRating(5); setReviewText(''); showToast('Thanks for your review!', 'gr') }}>{reviewSubmitting ? 'Submitting…' : 'Submit Review'}</button><button className="btn" onClick={() => setReviewPrompt(null)}>Skip</button></div></div></div>)}
       {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
     </>
   );

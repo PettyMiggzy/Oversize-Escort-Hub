@@ -38,13 +38,34 @@ export async function POST(_req: NextRequest) {
   if (done.has(load.id)) return NextResponse.json({ sent: 0, reason: 'already_sent' })
   done.add(load.id)
 
-  const { data: escorts } = await svc
+  const puState = String(load.pu_state).toUpperCase()
+
+  // Members who listed this state on profiles.availability_states OR escort_availability
+  const { data: byProfile } = await svc
     .from('profiles')
     .select('id')
     .eq('role', 'escort')
     .eq('tier', 'member')
-    .contains('availability_states', [load.pu_state])
-  if (!escorts || escorts.length === 0) return NextResponse.json({ sent: 0 })
+    .contains('availability_states', [puState])
+
+  const { data: byTable } = await svc
+    .from('escort_availability')
+    .select('escort_id')
+    .eq('state', puState)
+
+  const memberIds = new Set((byProfile || []).map((e: { id: string }) => e.id))
+  const availEscortIds = [...new Set((byTable || []).map((r: any) => r.escort_id).filter(Boolean))]
+  if (availEscortIds.length) {
+    const { data: memberAvail } = await svc
+      .from('profiles')
+      .select('id')
+      .eq('role', 'escort')
+      .eq('tier', 'member')
+      .in('id', availEscortIds)
+    for (const m of memberAvail || []) memberIds.add(m.id)
+  }
+
+  if (memberIds.size === 0) return NextResponse.json({ sent: 0 })
 
   const rate = load.per_mile_rate ? `$${load.per_mile_rate}/mi` : ''
   const payload = JSON.stringify({
@@ -53,7 +74,7 @@ export async function POST(_req: NextRequest) {
     url: '/',
   })
 
-  const ids = escorts.map((e: { id: string }) => e.id)
+  const ids = [...memberIds]
   const { data: subs } = await svc.from('push_subscriptions').select('subscription').in('user_id', ids)
   let sent = 0
   for (const row of subs ?? []) {

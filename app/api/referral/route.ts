@@ -71,15 +71,17 @@ export async function POST(req: NextRequest) {
   if (me?.referred_by) return NextResponse.json({ ok: true, already: true });
 
   // Create referral record
-  await supabase.from("referrals").insert({
+  const { error: refErr } = await supabase.from("referrals").insert({
     referrer_id: referrer.id,
     referred_id: new_user_id,
     status: "converted",
     converted_at: new Date().toISOString(),
   });
+  if (refErr) return NextResponse.json({ error: "Could not record referral" }, { status: 500 });
 
   // Mark referred_by on new user
-  await supabase.from("profiles").update({ referred_by: referrer.id }).eq("id", new_user_id);
+  const { error: profErr } = await supabase.from("profiles").update({ referred_by: referrer.id }).eq("id", new_user_id);
+  if (profErr) return NextResponse.json({ error: "Could not update profile" }, { status: 500 });
 
   return NextResponse.json({ ok: true });
 }

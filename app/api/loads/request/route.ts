@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
 import { createClient as createServerSupabase } from "@/lib/supabase/server";
 import { escortAccess, claimRefusal } from "@/lib/access-server";
+import { sendWebPushToUser } from "@/lib/push";
 
 export const dynamic = 'force-dynamic'
 
@@ -56,21 +57,12 @@ export async function POST(req: NextRequest) {
   // two escorts racing for one load: only the one whose update matched a row has it
   if (!claimed?.length) return NextResponse.json({ error: "Load is not available" }, { status: 409 });
 
-  // Notify carrier via push
-  const { data: carrierProfile } = await supabase
-    .from("profiles")
-    .select("push_token")
-    .eq("id", load.carrier_id)
-    .single();
-
-  if (carrierProfile?.push_token) {
-    await supabase.from("push_queue").insert({
-      token: carrierProfile.push_token,
-      title: "New Match Request",
-      body: `An escort has requested your load. Tap to accept or decline.`,
-      data: { load_id, escort_id, type: "match_request" },
-    });
-  }
+  await sendWebPushToUser(load.carrier_id, {
+    title: "New Match Request",
+    body: "An escort has requested your load. Tap to accept or decline.",
+    url: "/dashboard",
+    data: { load_id, escort_id, type: "match_request" },
+  });
 
   return NextResponse.json({ ok: true });
 }

@@ -53,13 +53,16 @@ export default function AvailabilityPage() {
   async function save() {
     if (!userId) return
     setSaving(true)
+    const states = Array.from(selected)
     // Delete all existing zones
     await supabase.from("escort_availability").delete().eq("escort_id", userId)
     // Insert selected zones
-    if (selected.size > 0) {
-      const rows = Array.from(selected).map(state => ({ escort_id: userId, state }))
+    if (states.length > 0) {
+      const rows = states.map(state => ({ escort_id: userId, state }))
       await supabase.from("escort_availability").insert(rows)
     }
+    // Keep profiles.availability_states in sync (Member push broadcast reads it)
+    await supabase.from("profiles").update({ availability_states: states }).eq("id", userId)
     setSaving(false)
     setSaved(true)
   }

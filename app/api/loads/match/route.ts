@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { requireAuth } from "@/lib/api-auth";
+import { sendWebPushToUser } from "@/lib/push";
 
 
 export const dynamic = 'force-dynamic'
@@ -51,21 +52,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Load is no longer pending" }, { status: 409 });
     }
 
-    // Notify escort
-    const { data: escortProfile } = await supabase
-      .from("profiles")
-      .select("push_token")
-      .eq("id", load.matched_escort_id)
-      .single();
-
-    if (escortProfile?.push_token) {
-      await supabase.from("push_queue").insert({
-        token: escortProfile.push_token,
-        title: "Match Accepted!",
-        body: `${carrierP?.full_name ?? "Carrier"}: ${carrierP?.phone ?? carrierP?.email ?? "—"}`,
-        data: { load_id, type: "match_accepted", carrier_contact: carrierP },
-      });
-    }
+    await sendWebPushToUser(load.matched_escort_id, {
+      title: "Match Accepted!",
+      body: `${carrierP?.full_name ?? "Carrier"}: ${carrierP?.phone ?? carrierP?.email ?? "—"}`,
+      url: `/loads/${load_id}`,
+      data: { load_id, type: "match_accepted", carrier_contact: carrierP },
+    });
 
     return NextResponse.json({ ok: true, action: "accepted", escort_contact: escortP, carrier_contact: carrierP });
   }
@@ -86,21 +78,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Load is no longer pending" }, { status: 409 });
     }
 
-    // Notify escort of decline
-    const { data: escortProfile } = await supabase
-      .from("profiles")
-      .select("push_token")
-      .eq("id", load.matched_escort_id)
-      .single();
-
-    if (escortProfile?.push_token) {
-      await supabase.from("push_queue").insert({
-        token: escortProfile.push_token,
-        title: "Match Declined",
-        body: "The carrier has passed on your request. Keep looking — the load is back on the board.",
-        data: { load_id, type: "match_declined" },
-      });
-    }
+    await sendWebPushToUser(load.matched_escort_id, {
+      title: "Match Declined",
+      body: "The carrier has passed on your request. Keep looking — the load is back on the board.",
+      url: `/loads/${load_id}`,
+      data: { load_id, type: "match_declined" },
+    });
 
     return NextResponse.json({ ok: true, action: "declined" });
   }

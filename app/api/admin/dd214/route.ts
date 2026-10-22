@@ -58,12 +58,20 @@ export async function POST(req: NextRequest) {
     .select('id')
   if (!done?.length) return NextResponse.json({ error: 'Already decided' }, { status: 409 })
 
-  await client.from('veteran_discounts').insert({
+  const { error: discErr } = await client.from('veteran_discounts').insert({
     user_id: sub.user_id,
     discount_percentage: 30,
     created_at: new Date().toISOString(),
   })
-  await client.from('profiles').update({ dd214_pending: false }).eq('id', sub.user_id)
+  if (discErr) {
+    console.error('[admin/dd214] veteran_discounts insert', discErr)
+    return NextResponse.json({ error: 'Could not create veteran discount' }, { status: 500 })
+  }
+  const { error: profErr } = await client.from('profiles').update({ dd214_pending: false }).eq('id', sub.user_id)
+  if (profErr) {
+    console.error('[admin/dd214] profile update', profErr)
+    return NextResponse.json({ error: 'Discount saved but profile update failed' }, { status: 500 })
+  }
 
   // If they already subscribe, attach the forever coupon so renewals get 30% off.
   const { data: prof } = await client

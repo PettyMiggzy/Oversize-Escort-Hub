@@ -94,6 +94,10 @@ export function DashboardPageClient() {
         setLoading(false)
         return
       }
+      if (prof.role === 'fleet_manager') {
+        router.replace('/fleet-dashboard')
+        return
+      }
       setProfile(prof)
 
       const { count } = await supabase
@@ -153,7 +157,7 @@ export function DashboardPageClient() {
       // (boards hide these; Pro/Fleet see them here).
       const deadheadTiers = new Set(['pro', 'fleet_starter', 'fleet_plus', 'fleet_pro'])
       if (
-        (prof.role === 'escort' || prof.role === 'fleet') &&
+        (prof.role === 'escort' || prof.role === 'fleet_manager') &&
         (deadheadTiers.has(prof.tier) || isAdminEmail(prof.email))
       ) {
         const since = new Date(Date.now() - 5 * 60 * 1000).toISOString()
@@ -792,11 +796,17 @@ export function DashboardPageClient() {
                 disabled={dhSubmitting || !dhCity || !dhState}
                 onClick={async () => {
                   setDhSubmitting(true)
-                  await fetch(`/api/loads/${deadheadModal.loadId}`, {
+                  const res = await fetch(`/api/loads/${deadheadModal.loadId}`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ deadhead_destination_city: dhCity, deadhead_destination_state: dhState }),
                   })
+                  if (!res.ok) {
+                    const d = await res.json().catch(() => ({}))
+                    setActionMsg(d.error || 'Could not save deadhead destination')
+                    setDhSubmitting(false)
+                    return
+                  }
                   setDeadheadModal(null)
                   setDhCity('')
                   setDhState('')
@@ -817,7 +827,7 @@ export function DashboardPageClient() {
       {/* Deadhead Opportunities - Pro/Fleet only (5-minute exclusive window) */}
       {(() => {
         const dhOk = ['pro', 'fleet_starter', 'fleet_plus', 'fleet_pro'].includes(profile?.tier || '')
-          || profile?.role === 'fleet'
+          || profile?.role === 'fleet_manager'
           || isAdminEmail(profile?.email)
         if (dhOk && deadheadOpps.length > 0) {
           return (

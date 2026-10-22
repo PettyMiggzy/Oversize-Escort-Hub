@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireCron } from '@/lib/api-auth'
+import { sendWebPushToUser } from '@/lib/push'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
@@ -40,15 +41,12 @@ export async function GET(req: Request) {
     if (!reErr) {
       for (const load of held) {
         if (!load.matched_escort_id) continue
-        const { data: ep } = await supabase.from('profiles').select('push_token').eq('id', load.matched_escort_id).single()
-        if (ep?.push_token) {
-          await supabase.from('push_queue').insert({
-            token: ep.push_token,
-            title: 'Match Expired',
-            body: 'The carrier did not respond in time. The load is back on the board.',
-            data: { load_id: load.id, type: 'match_expired' },
-          })
-        }
+        await sendWebPushToUser(load.matched_escort_id, {
+          title: 'Match Expired',
+          body: 'The carrier did not respond in time. The load is back on the board.',
+          url: `/loads/${load.id}`,
+          data: { load_id: load.id, type: 'match_expired' },
+        })
       }
     }
   }

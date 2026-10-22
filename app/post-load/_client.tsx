@@ -110,6 +110,12 @@ export function PostLoadPageClient() {
       })
       const data = await res.json()
       if (res.ok) {
+        // Member web-push after the Pro early-access window (broadcast enforces the 5-min gate)
+        try {
+          setTimeout(() => {
+            fetch('/api/push/broadcast', { method: 'POST' }).catch(() => {})
+          }, 5 * 60 * 1000)
+        } catch {}
         router.push('/dashboard')
       } else {
         alert(data.error || 'Failed to post load.')

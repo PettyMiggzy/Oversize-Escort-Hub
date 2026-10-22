@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { SMS_ENABLED } from '@/lib/features'
+import { sendWebPushToUsers } from '@/lib/push'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -23,51 +24,68 @@ async function sendSMS(phone: string, body: string): Promise<boolean> {
 
 type NotifyProInput = { load_id: string; zone?: string; cert_type?: string; pu_state?: string; dl_state?: string }
 
-// Pro early access: queues a push to matching Pro escorts the moment a load posts (they see it before Members).
+// Pro early access: queues a push to matching Pro/Fleet escorts the moment a load posts.
 // Called by the server from app/api/loads/route.ts, never from a browser.
 export async function notifyProEscorts({ load_id, zone, cert_type, pu_state, dl_state }: NotifyProInput) {
   if (!load_id) return { error: 'load_id required' }
 
   const { data: load } = await supabase.from('loads').select('*').eq('id', load_id).single()
 
-  const stateFilter = zone || pu_state || null
+  const stateFilter = (zone || pu_state || '').toUpperCase() || null
 
-  // Instant-claim tiers (mirrors lib/board-access INSTANT_TIERS) all get the
-  // early-access push — not only profiles.tier === 'pro'.
+  // Instant-claim tiers (mirrors lib/board-access INSTANT_TIERS)
   let query = supabase
     .from('profiles')
-    .select('id, push_token, full_name, phone')
+    .select('id, full_name, phone, availability_states')
     .in('tier', ['pro', 'fleet_starter', 'fleet_plus', 'fleet_pro'])
     .eq('role', 'escort')
-    .not('push_token', 'is', null)
 
-  if (stateFilter) query = query.eq('state', stateFilter)
   if (cert_type) query = query.contains('cert_types', [cert_type])
 
   const { data: proEscorts } = await query
-  // Also include admin-email escorts
+
+  // Coverage: prefer profiles.availability_states; also include escort_availability rows
+  let coveredIds: Set<string> | null = null
+  if (stateFilter) {
+    coveredIds = new Set<string>()
+    for (const e of proEscorts || []) {
+      const states = (e.availability_states as string[] | null) || []
+      if (states.map((s) => String(s).toUpperCase()).includes(stateFilter)) {
+        coveredIds.add(e.id)
+      }
+    }
+    const { data: availRows } = await supabase
+      .from('escort_availability')
+      .select('escort_id')
+      .eq('state', stateFilter)
+    for (const row of availRows || []) {
+      if (row.escort_id) coveredIds.add(row.escort_id)
+    }
+  }
+
+  const filteredPros = (proEscorts || []).filter((e) => !coveredIds || coveredIds.has(e.id))
+
   const { data: adminEscorts } = await supabase
     .from('profiles')
-    .select('id, email, push_token, phone')
+    .select('id, email, phone')
     .eq('role', 'escort')
     .in('email', ['brian@precisionpilotservices.com', 'bahmed3170@gmail.com'])
-  const allEscorts = [...(proEscorts || []), ...(adminEscorts || [])].filter(
+
+  const allEscorts = [...filteredPros, ...(adminEscorts || [])].filter(
     (v, i, a) => a.findIndex((x: any) => x.id === v.id) === i
   )
   if (!allEscorts.length) return { notified: 0, tier: 'pro' }
 
-  const inserts = allEscorts
-    .filter((e: any) => e.push_token)
-    .map((e: any) => ({
-      token: e.push_token,
+  const sent = await sendWebPushToUsers(
+    allEscorts.map((e) => e.id),
+    {
       title: '⭐ Pro Early Access — New Load',
       body: 'A new load just posted. You have a 5-minute exclusive window before Members see it. Tap to view.',
+      url: `/loads/${load_id}`,
       data: { load_id, type: 'pro_early_access' },
-    }))
+    }
+  )
 
-  if (inserts.length) await supabase.from('push_queue').insert(inserts)
-
-  // Texts stay off until SMS is switched on (see lib/features.ts)
   let smsSent = 0
   if (load && SMS_ENABLED) {
     const puCity = load.pu_city || ''
@@ -84,5 +102,5 @@ export async function notifyProEscorts({ load_id, zone, cert_type, pu_state, dl_
     }
   }
 
-  return { ok: true, notified: allEscorts.length, sms: smsSent, tier: 'pro' }
+  return { ok: true, notified: allEscorts.length, pushed: sent, sms: smsSent, tier: 'pro' }
 }
