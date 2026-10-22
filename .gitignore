@@ -33,6 +33,12 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# Android release signing (never commit)
+*.keystore
+*.jks
+android/oeh-release.keystore
+android/keystore.properties
+
 # vercel
 .vercel
 

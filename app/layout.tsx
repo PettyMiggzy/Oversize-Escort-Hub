@@ -61,12 +61,9 @@ export const metadata: Metadata = {
     images: ["/og-image.png"],
     creator: "@OversizeEscort",
   },
-  alternates: {
-    canonical: "https://www.oversize-escort-hub.com",
-  },
-  verification: {
-    google: "oversize-escort-hub-google-verify",
-  },
+  // Do NOT set a sitewide homepage canonical here — that would make every
+  // route claim / as canonical. Per-page alternates.canonical (or Next's
+  // metadataBase + path) should win instead.
   category: "Transportation & Logistics",
 };
 
@@ -78,7 +75,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="canonical" href="https://www.oversize-escort-hub.com" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -88,11 +84,6 @@ export default function RootLayout({
               name: "Oversize Escort Hub",
               url: "https://www.oversize-escort-hub.com",
               description: "The #1 marketplace for oversize load carriers and verified P/EVO pilot car escorts.",
-              potentialAction: {
-                "@type": "SearchAction",
-                target: "https://www.oversize-escort-hub.com?search={search_term_string}",
-                "query-input": "required name=search_term_string",
-              },
             }),
           }}
         />

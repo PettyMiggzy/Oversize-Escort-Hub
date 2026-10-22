@@ -117,4 +117,7 @@ The 512x512 icon and 1024x500 feature graphic for Play are ready (see above); ph
 - Native push notifications need a Firebase project and its google-services.json (the web push used on the site does not work inside the app).
 - Apple often rejects apps that are only a website in a wrapper (guideline 4.2): the reviewer notes above, push alerts and the
   document/photo upload from the phone camera are the usual way through.
-- Back up android/oeh-release.keystore and its password; turn on Play App Signing.
+- Back up `android/oeh-release.keystore` privately (it is gitignored). Set `OEH_KEYSTORE_PASSWORD`, `OEH_KEY_PASSWORD`,
+  and optional `OEH_KEYSTORE_PATH` / `OEH_KEY_ALIAS` in CI — never commit passwords. Turn on Play App Signing.
+
+See also: [STORE_READINESS.md](./STORE_READINESS.md) for the prioritized A1 gap list.

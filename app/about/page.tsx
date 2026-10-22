@@ -4,6 +4,7 @@ import SiteHeader from '@/components/SiteHeader'
 export const metadata: Metadata = {
   title: 'About',
   description: 'Founded by Brian Ahmed, OEH connects oversize carriers with licensed, verified P/EVO escorts across the US.',
+  alternates: { canonical: '/about' },
   openGraph: {
     title: 'About | Oversize Escort Hub',
     description: 'Founded by Brian Ahmed, OEH connects oversize carriers with licensed, verified P/EVO escorts.',

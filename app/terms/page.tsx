@@ -5,6 +5,7 @@ import SiteHeader from '@/components/SiteHeader';
 export const metadata: Metadata = {
   title: 'Terms of Service',
   description: 'Read the Terms of Service for Oversize Escort Hub.',
+  alternates: { canonical: '/terms' },
   openGraph: {
     title: 'Terms of Service | Oversize Escort Hub',
     description: 'Read the Terms of Service for Oversize Escort Hub.',
