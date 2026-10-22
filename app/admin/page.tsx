@@ -3,7 +3,7 @@ import { useState, useEffect, Fragment } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { isAdminEmail } from '@/lib/supabase'
 
-const TABS = ['users', 'bgc', 'certs', 'verification', 'sponsored', 'disputes', 'loads', 'revenue', 'sms']
+const TABS = ['users', 'bgc', 'certs', 'verification', 'dd214', 'sponsored', 'disputes', 'loads', 'revenue', 'sms']
 
 export default function AdminPage() {
   const supabase = createClient()
@@ -32,6 +32,8 @@ export default function AdminPage() {
   const [certsQueue, setCertsQueue] = useState<any[]>([])
   // Verification Queue
   const [verificationQueue, setVerificationQueue] = useState<any[]>([])
+  // DD-214 Queue
+  const [dd214Queue, setDd214Queue] = useState<any[]>([])
   // Sponsored Zones
   const [sponsoredZonesList, setSponsoredZonesList] = useState<any[]>([])
   // Disputes
@@ -81,6 +83,8 @@ export default function AdminPage() {
     supabase.from('certifications').select('*, profiles(full_name, email)').neq('type', 'bgc').eq('status', 'pending').then(({data}) => setCertsQueue(data || []))
     // Fetch Verification queue
     supabase.from('certifications').select('*, profiles(full_name, email)').eq('status', 'pending').then(({data}) => setVerificationQueue(data || []))
+    // Fetch DD-214 queue
+    fetch('/api/admin/dd214').then(r => r.json()).then(d => setDd214Queue(d.submissions || [])).catch(() => setDd214Queue([]))
     // Fetch Sponsored Zones
     supabase.from('sponsored_zones').select('*, profiles(full_name, email)').then(({data}: {data: any}) => setSponsoredZonesList(data || []))
     // Fetch Disputes
@@ -204,7 +208,7 @@ export default function AdminPage() {
         <div style={{ display: 'flex', gap: 4, marginBottom: 24, borderBottom: '1px solid #1e3a5f', paddingBottom: 0 }}>
           {TABS.map(t => (
             <button key={t} onClick={() => setActiveTab(t)} style={{ background: 'none', border: 'none', color: activeTab === t ? '#f60' : '#9ca3af', fontSize: 14, fontWeight: activeTab === t ? 700 : 400, padding: '8px 16px', cursor: 'pointer', borderBottom: activeTab === t ? '2px solid #f60' : '2px solid transparent' }}>
-              {t === 'bgc' ? 'BGC' : t === 'sms' ? 'SMS Blast' : t.charAt(0).toUpperCase() + t.slice(1)}
+              {t === 'bgc' ? 'BGC' : t === 'sms' ? 'SMS Blast' : t === 'dd214' ? 'DD-214' : t.charAt(0).toUpperCase() + t.slice(1)}
             </button>
           ))}
         </div>
@@ -393,6 +397,50 @@ export default function AdminPage() {
         )}
 
         {/* Sponsored Tab */}
+        {activeTab === 'dd214' && (
+          <div style={card}>
+            <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>DD-214 Queue ({dd214Queue.length})</h2>
+            {dd214Queue.length === 0 ? (
+              <p style={{ color: '#9ca3af', fontSize: 13 }}>No pending DD-214 submissions.</p>
+            ) : (
+              <div style={{ display: 'grid', gap: 12 }}>
+                {dd214Queue.map((s: any) => {
+                  const prof = s.profiles || {}
+                  return (
+                    <div key={s.id} style={{ background: '#0f1a2e', border: '1px solid #1e3a5f', borderRadius: 8, padding: 14, display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                      <div>
+                        <div style={{ fontWeight: 600 }}>{prof.full_name || s.user_id}</div>
+                        <div style={{ color: '#9ca3af', fontSize: 12 }}>{prof.email || ''}</div>
+                        {(s.document_url || s.pdf_path) && (
+                          <a href={s.document_url || '#'} target="_blank" rel="noreferrer" style={{ color: '#60a5fa', fontSize: 12 }}>View document</a>
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button
+                          onClick={async () => {
+                            const res = await fetch('/api/admin/dd214', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ submissionId: s.id, approved: true }) })
+                            if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.error || 'Approve failed'); return }
+                            setDd214Queue(prev => prev.filter(x => x.id !== s.id))
+                          }}
+                          style={{ background: '#22c55e', color: '#000', border: 'none', borderRadius: 6, padding: '8px 14px', fontWeight: 700, cursor: 'pointer' }}
+                        >Approve</button>
+                        <button
+                          onClick={async () => {
+                            const res = await fetch('/api/admin/dd214', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ submissionId: s.id, approved: false }) })
+                            if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.error || 'Reject failed'); return }
+                            setDd214Queue(prev => prev.filter(x => x.id !== s.id))
+                          }}
+                          style={{ background: 'transparent', color: '#ef4444', border: '1px solid #ef4444', borderRadius: 6, padding: '8px 14px', fontWeight: 600, cursor: 'pointer' }}
+                        >Reject</button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
         {activeTab === 'sponsored' && (
           <div style={card}>
             <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Sponsored Zones</h2>

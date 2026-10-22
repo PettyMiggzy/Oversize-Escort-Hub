@@ -16,13 +16,24 @@ export async function GET() {
   const { user, error: authErr } = await requireAuth();
   if (authErr) return authErr;
 
-  const [{ data: profile }, { data: discount }] = await Promise.all([
+  const [{ data: profile }, { data: discount }, { data: pendingSub }] = await Promise.all([
     svc.from("profiles").select("dd214_pending").eq("id", user!.id).single(),
     svc.from("veteran_discounts").select("created_at").eq("user_id", user!.id).limit(1),
+    svc.from("dd214_submissions").select("id, status").eq("user_id", user!.id).eq("status", "pending").limit(1),
   ]);
 
   if (discount?.length) return NextResponse.json({ status: "approved", discount_active: true });
-  if ((profile as any)?.dd214_pending) return NextResponse.json({ status: "pending" });
+  if (pendingSub?.length || (profile as any)?.dd214_pending) {
+    return NextResponse.json({ status: "pending" });
+  }
+  const { data: rejected } = await svc
+    .from("dd214_submissions")
+    .select("id")
+    .eq("user_id", user!.id)
+    .eq("status", "rejected")
+    .order("submitted_at", { ascending: false })
+    .limit(1);
+  if (rejected?.length) return NextResponse.json({ status: "rejected" });
   return NextResponse.json({ status: "none" });
 }
 
@@ -44,7 +55,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Upload a PDF or an image" }, { status: 400 });
   }
 
-  // Upload to Supabase Storage, under the user's own folder
   const bytes = await file.arrayBuffer();
   const path = `dd214/${userId}/${Date.now()}_${safeFileName(file.name)}`;
 
@@ -56,19 +66,27 @@ export async function POST(req: NextRequest) {
 
   const { data: { publicUrl } } = svc.storage.from("verification-docs").getPublicUrl(path);
 
-  // Mark pending in profiles + create submission row (approve path reads dd214_submissions)
-  await svc.from("profiles").update({ dd214_pending: true, dd214_url: publicUrl } as any).eq("id", userId);
-  await svc.from("dd214_submissions").insert({
+  const { error: profErr } = await svc.from("profiles").update({ dd214_pending: true, dd214_url: publicUrl } as any).eq("id", userId);
+  if (profErr) {
+    console.error('[dd214] profile update', profErr);
+    return NextResponse.json({ error: "Could not mark pending" }, { status: 500 });
+  }
+
+  const { error: subErr } = await svc.from("dd214_submissions").insert({
     user_id: userId,
     pdf_path: path,
     document_url: publicUrl,
     status: "pending",
     submitted_at: new Date().toISOString(),
   });
+  if (subErr) {
+    console.error('[dd214] submission insert', subErr);
+    return NextResponse.json({ error: "Could not create submission" }, { status: 500 });
+  }
 
   if (process.env.RESEND_API_KEY) {
-
-    await sendEmail({to: "verify@oversize-escort-hub.com",
+    await sendEmail({
+      to: "verify@oversize-escort-hub.com",
       subject: `DD-214 Submission — User ${userId}`,
       html: `
         <div style="font-family:sans-serif;background:#f4f4f4;padding:20px;">

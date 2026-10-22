@@ -31,6 +31,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unknown product' }, { status: 400 });
     }
 
+    // Sponsored zone one-time buy requires a state or the webhook inserts nothing
+    if (priceId === STRIPE_PRICE_IDS.SPONSORED_ZONE) {
+      const z = typeof zone === 'string' ? zone.trim().toUpperCase() : ''
+      if (!z || z.length < 2) {
+        return NextResponse.json({ error: 'Pick a sponsored zone (state)' }, { status: 400 })
+      }
+    }
+
     // Carriers cannot check out for subscriptions
     const origin = req.headers.get('origin') || 'https://oversize-escort-hub.com';
     const successUrl = `${process.env.NEXT_PUBLIC_APP_URL || origin}/dashboard?upgraded=true`;
@@ -42,7 +50,7 @@ export async function POST(req: NextRequest) {
       successUrl,
       cancelUrl,
       email,
-      zone
+      typeof zone === 'string' ? zone.trim().toUpperCase() : zone
     );
 
     return NextResponse.json({

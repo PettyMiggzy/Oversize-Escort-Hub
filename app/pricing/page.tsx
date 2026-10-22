@@ -9,7 +9,7 @@ const PRICES = {
   pro:            "price_1TF021LmfugPCRbA7CGgLhC0",
   fleet_starter:  process.env.NEXT_PUBLIC_FLEET_STARTER_PRICE_ID || "price_1TMUvjLmfugPCRbAa1HHd7f3",
   fleet_plus:     process.env.NEXT_PUBLIC_FLEET_PLUS_PRICE_ID    || "price_1TMUwaLmfugPCRbAxwDBbslg",
-  fleet_pro:      "price_1TMT9fLmfugPCRbA0Tu65Ui0",
+  fleet_pro:      process.env.NEXT_PUBLIC_FLEET_PRO_PRICE_ID || "price_1TMT9fLmfugPCRbA0Tu65Ui0",
   pevo_member:    "price_1TF0D4LmfugPCRbAd4hMO22R",
   pevo_pro:       "price_1TF0DiLmfugPCRbAPWsN2K5x",
   bgc:            "price_1TF0EILmfugPCRbAvM6Q5rhW",
@@ -365,6 +365,7 @@ export default function PricingPage() {
             <CTA label="Buy Review" onClick={() => startCheckout(PRICES.pevo_pro, setLoading)} loading={loading === PRICES.pevo_pro} />
           </Card>
           <Card>
+            <div id="sponsored" />
             <PriceHeader label="Sponsored Zone" price="$29.99" period="/mo" />
             <Features items={[
               "Featured at top of Find Escorts",
