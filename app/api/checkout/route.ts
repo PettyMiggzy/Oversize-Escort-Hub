@@ -7,14 +7,15 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { email: bodyEmail, priceId: rawPriceId, zone } = body;
 
-    // A signed-in buyer is identified by the session, never by an id in the request: a body id would let one
-    // person's purchase change another user's plan. Before sign-up (no session) the plan is matched by email.
+    // Buyer must be signed in so the webhook can set profiles.tier / flags on a real account.
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    const userId = user?.id ?? null;
-    const email = user?.email ?? (typeof bodyEmail === 'string' ? bodyEmail.trim().slice(0, 200) : undefined);
+    if (!user) {
+      return NextResponse.json({ error: 'Sign in before checkout' }, { status: 401 });
+    }
+    const userId = user.id;
+    const email = user.email ?? (typeof bodyEmail === 'string' ? bodyEmail.trim().slice(0, 200) : undefined);
 
-    // priceId always required; userId/email optional for pre-signup anonymous checkout
     if (!rawPriceId) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
@@ -36,7 +37,7 @@ export async function POST(req: NextRequest) {
     const cancelUrl = `${process.env.NEXT_PUBLIC_APP_URL || origin}/pricing`;
 
     const session = await createCheckoutSession(
-      userId || null,
+      userId,
       priceId,
       successUrl,
       cancelUrl,

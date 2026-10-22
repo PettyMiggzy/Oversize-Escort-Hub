@@ -16,7 +16,7 @@ type Profile = {
   full_name: string | null;
   company_name: string | null;
   role: "escort" | "carrier" | "admin" | "fleet_manager";
-  tier: "free" | "member" | "pro" | "carrier_member";
+  tier: "free" | "trial" | "member" | "pro" | "carrier_member" | "fleet_starter" | "fleet_plus" | "fleet_pro";
   email: string | null;
   phone: string | null;
   state: string | null;
@@ -1379,7 +1379,7 @@ function PostLoadPage({ setPage, user, profile, showToast }: {
 
 
 
-function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; profile: Profile | null }) {
+function EscortDashPage({ setPage, profile, showToast }: { setPage: (p: Page) => void; profile: Profile | null; showToast?: (msg: string, type: "gr" | "rd" | "am") => void }) {
   const [tab, setTab] = useState("overview");
   const [myLoads, setMyLoads] = useState<Load[]>([]);
   const [myJobs, setMyJobs] = useState<any[]>([]);
@@ -1523,12 +1523,19 @@ function EscortDashPage({ setPage, profile }: { setPage: (p: Page) => void; prof
                 <div className="mo" style={{ fontSize: 9, letterSpacing: ".12em", textTransform: "uppercase", color: "var(--t2)", marginBottom: 12 }}>I&apos;m Available</div>
                 <div style={{ background: "rgba(245,162,0,.07)", border: "1px solid rgba(245,162,0,.2)", borderRadius: 3, padding: 14, marginBottom: 12 }}>
                   <div className="mo" style={{ fontSize: 10, color: "var(--am)", marginBottom: 8 }}>Broadcast your availability to carriers with loads near you</div>
-                  <button className="btn btn-am btn-sm" style={{ width: "100%" }} onClick={() => { window.location.href = '/pricing'; }}>
-                    {profile?.tier === "pro" ? "ACTIVATE BROADCAST" : "🔒 PRO FEATURE"}
+                  <button className="btn btn-am btn-sm" style={{ width: "100%" }} onClick={() => {
+                    if (profile?.tier === "pro" || profile?.tier === "fleet_pro") window.location.href = '/available';
+                    else window.location.href = '/pricing';
+                  }}>
+                    {profile?.tier === "pro" || profile?.tier === "fleet_pro" ? "ACTIVATE BROADCAST" : "🔒 PRO FEATURE"}
                   </button>
                 </div>
                 <div className="mo" style={{ fontSize: 9, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--t2)", marginBottom: 8 }}>Breakdown Protocol</div>
-                <button className="btn btn-sm" style={{ width: "100%", background: "rgba(255,53,53,.1)", color: "var(--rd)", border: "1px solid rgba(255,53,53,.2)" }}>🚨 ACTIVATE BREAKDOWN PROTOCOL</button>
+                <button className="btn btn-sm" style={{ width: "100%", background: "rgba(255,53,53,.1)", color: "var(--rd)", border: "1px solid rgba(255,53,53,.2)" }} onClick={async () => {
+                  const res = await fetch('/api/escort/breakdown', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled: true }) })
+                  if (res.ok) showToast?.('Breakdown protocol activated', 'gr')
+                  else showToast?.('Could not activate breakdown protocol', 'rd')
+                }}>🚨 ACTIVATE BREAKDOWN PROTOCOL</button>
               </div>
             </div>
                         <div className="card" style={{ marginTop: 16 }}><div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Referral Rewards</div><p className="mo" style={{ fontSize: 11, color: 'var(--t2)', marginBottom: 10 }}>Earn 1 free month of Pro for every escort you refer who signs up and joins.</p>{referralData.length === 0 ? (<div style={{ fontSize: 11, color: 'var(--t2)' }}>No referrals yet. Share your link to start earning!</div>) : (<div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>{referralData.map((r: any) => (<div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, padding: '4px 0', borderBottom: '1px solid var(--t4)' }}><span>{r.referred_email || r.referred_id}</span><span className="chip ch-gr" style={{ fontSize: 9 }}>{r.referral_credit_months || 1} mo credit</span></div>))}</div>)}</div>
@@ -2023,14 +2030,11 @@ function VerificationPage() {
   async function handleStripe() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setMsg('Please sign in first.'); return }
-    const res = await fetch('/api/checkout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ priceId: 'price_1TF0EILmfugPCRbAvM6Q5rhW', userId: user.id, redirectPath: '/verify?success=bgc' })
-    })
-    const { url } = await res.json()
-    if (url) window['location']['href'] = url
-    else setMsg('Checkout failed. Please try again.')
+    const res = await fetch('/api/bgc-checkout', { method: 'POST' })
+    const data = await res.json()
+    if (data.url) window.location.href = data.url
+    else if (data.alreadyPaid) setMsg('Already paid — upload your BGC document.')
+    else setMsg(data.error || 'Checkout failed. Please try again.')
   }
 
   const tiers = [
@@ -2543,14 +2547,30 @@ function AdminPage({ setPage, user, profile }: any) {
                                     ]);
                                         setAdminStats({ users: u.count || 0, members: m.count || 0, pro: p.count || 0, loads: l.count || 0 });
                                           }
-  async function approveBgc(id: string) {
-    await supabase.from('profiles').update({ bgc_verified: true, bgc_pending: false }).eq('id', id)
-    try{await fetch('/api/sms/bgc-status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:id,status:'approved'})})}catch(e){}
+  async function approveBgc(userId: string) {
+    // Prefer cert API so certifications + profile stay in sync; fall back to set-user.
+    const { data: certs } = await supabase.from('certifications').select('id').eq('user_id', userId).eq('type', 'bgc').eq('status', 'pending')
+    if (certs && certs.length > 0) {
+      for (const c of certs) {
+        await fetch('/api/bgc/approve', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cert_id: c.id }) })
+      }
+    } else {
+      await fetch('/api/admin/set-user', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, bgc_verified: true }) })
+      await supabase.from('profiles').update({ bgc_pending: false }).eq('id', userId)
+    }
+    try { await fetch('/api/sms/bgc-status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, status: 'approved' }) }) } catch {}
     fetchBgcQueue()
   }
-  async function denyBgc(id: string) {
-    await supabase.from('profiles').update({ bgc_pending: false }).eq('id', id)
-    try{await fetch('/api/sms/bgc-status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:id,status:'denied'})})}catch(e){}
+  async function denyBgc(userId: string) {
+    const { data: certs } = await supabase.from('certifications').select('id').eq('user_id', userId).eq('type', 'bgc').eq('status', 'pending')
+    if (certs && certs.length > 0) {
+      for (const c of certs) {
+        await fetch('/api/bgc/reject', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cert_id: c.id }) })
+      }
+    } else {
+      await supabase.from('profiles').update({ bgc_pending: false }).eq('id', userId)
+    }
+    try { await fetch('/api/sms/bgc-status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, status: 'denied' }) }) } catch {}
     fetchBgcQueue()
   }
   useEffect(() => { fetchBgcQueue(); fetchAdminStats(); }, [])
@@ -2581,14 +2601,12 @@ function AdminPage({ setPage, user, profile }: any) {
         ))}
       </div>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
-        {["Users","BGC Queue","Certs Queue","Revenue","Refunds","Loads","SMS Blast","Settings"].map(t => (
-          <button key={t} className="btn btn-ghost btn-sm" style={{ fontSize: 11 }}>{t}</button>
-        ))}
+        <a href="/admin" className="btn btn-am btn-sm" style={{ fontSize: 11, textDecoration: 'none' }}>Open Full Admin →</a>
       </div>
       <div className="card" style={{ padding: 32, textAlign: "center" }}>
-        <p style={{ color: "var(--t2)", fontSize: 13 }}>Full admin functionality — user management, BGC approvals, cert verification, refunds, revenue dashboard — building now.</p>
+        <p style={{ color: "var(--t2)", fontSize: 13 }}>Quick BGC queue below. For users, certs, loads, and revenue use the full admin panel.</p>
         <div style={{ background: "rgba(249,115,22,0.08)", border: "1px solid rgba(249,115,22,0.2)", borderRadius: 8, padding: "14px 24px", marginTop: 20, display: "inline-block" }}>
-          <span className="mo" style={{ fontSize: 10, color: "var(--or)" }}>BUILDING NOW — AVAILABLE SOON</span>
+          <span className="mo" style={{ fontSize: 10, color: "var(--or)" }}>QUICK BGC QUEUE</span>
         {/* BGC QUEUE */}
         <div style={{ marginTop: 24 }}>
         <div className="bb" style={{ fontSize: 15, marginBottom: 12, cursor: 'pointer' }} onClick={() => { setBgcTab(!bgcTab); fetchBgcQueue() }}>📋 BGC Submissions {bgcTab ? '▲' : '▼'}</div>
@@ -2800,7 +2818,7 @@ export default function OEHPlatform() {
       {page === "escprofile" && <EscProfilePage setPage={setPage} />}
       {page === "postload" && <PostLoadPage setPage={setPage} user={user} profile={activeProfile} showToast={showToast} />}
         {page === "dashboard-c" && <CarrierDashPage setPage={setPage} user={user} profile={activeProfile} showToast={showToast} />}
-        {page === "dashboard-e" && <EscortDashPage setPage={setPage} profile={activeProfile} />}
+        {page === "dashboard-e" && <EscortDashPage setPage={setPage} profile={activeProfile} showToast={showToast} />}
         {page === "admin" && <AdminPage setPage={setPage} user={user} profile={activeProfile} />}
               {page === "available" && <AvailabilityBoard setPage={setPage} profile={activeProfile} />}
       <Footer setPage={setPage} />

@@ -56,8 +56,15 @@ export async function POST(req: NextRequest) {
 
   const { data: { publicUrl } } = svc.storage.from("verification-docs").getPublicUrl(path);
 
-  // Mark pending in profiles
+  // Mark pending in profiles + create submission row (approve path reads dd214_submissions)
   await svc.from("profiles").update({ dd214_pending: true, dd214_url: publicUrl } as any).eq("id", userId);
+  await svc.from("dd214_submissions").insert({
+    user_id: userId,
+    pdf_path: path,
+    document_url: publicUrl,
+    status: "pending",
+    submitted_at: new Date().toISOString(),
+  });
 
   if (process.env.RESEND_API_KEY) {
 

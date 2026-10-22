@@ -9,13 +9,14 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-03
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
 // Derived from shared STRIPE_PRICE_IDS so all routes agree on price -> tier mapping
+// Subscription prices only — one-time products (BGC, sponsored zone, cert review)
+// must never appear here or subscription.* events would overwrite profiles.tier.
 const PRICE_TO_TIER: Record<string, string> = {
   [STRIPE_PRICE_IDS.P_EVO_MEMBER]: 'member',
   [STRIPE_PRICE_IDS.P_EVO_PRO]: 'pro',
   [STRIPE_PRICE_IDS.FLEET_STARTER]: 'fleet_starter',
   [STRIPE_PRICE_IDS.FLEET_PLUS]: 'fleet_plus',
   [STRIPE_PRICE_IDS.FLEET_PRO]: 'fleet_pro',
-  [STRIPE_PRICE_IDS.SPONSORED_ZONE]: 'sponsored_zone',
 }
 
 const BGC_PRICE = 'price_1TF0EILmfugPCRbAvM6Q5rhW'
