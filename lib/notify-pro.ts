@@ -32,10 +32,12 @@ export async function notifyProEscorts({ load_id, zone, cert_type, pu_state, dl_
 
   const stateFilter = zone || pu_state || null
 
+  // Instant-claim tiers (mirrors lib/board-access INSTANT_TIERS) all get the
+  // early-access push — not only profiles.tier === 'pro'.
   let query = supabase
     .from('profiles')
     .select('id, push_token, full_name, phone')
-    .eq('tier', 'pro')
+    .in('tier', ['pro', 'fleet_starter', 'fleet_plus', 'fleet_pro'])
     .eq('role', 'escort')
     .not('push_token', 'is', null)
 

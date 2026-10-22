@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createCheckoutSession, STRIPE_PRICE_IDS } from '@/lib/stripe-utils';
+import { createClient as createServiceClient } from '@supabase/supabase-js';
+import { createCheckoutSession, getVeteranCouponId, STRIPE_PRICE_IDS } from '@/lib/stripe-utils';
 import { createClient } from '@/lib/supabase/server';
 
 export async function POST(req: NextRequest) {
@@ -39,7 +40,30 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Carriers cannot check out for subscriptions
+    // Approved DD-214 veterans get 30% off subscription checkouts
+    let couponId: string | undefined
+    const oneTime = [
+      STRIPE_PRICE_IDS.BGC_BADGE,
+      STRIPE_PRICE_IDS.SPONSORED_ZONE,
+      STRIPE_PRICE_IDS.PEVO_MEMBER_REVIEW,
+      STRIPE_PRICE_IDS.PEVO_PRO_REVIEW,
+    ].includes(priceId)
+    if (!oneTime) {
+      const svc = createServiceClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      )
+      const { data: vet } = await svc
+        .from('veteran_discounts')
+        .select('discount_percentage')
+        .eq('user_id', userId)
+        .limit(1)
+      if (vet?.length) {
+        const pct = Number(vet[0].discount_percentage) || 30
+        couponId = await getVeteranCouponId(pct)
+      }
+    }
+
     const origin = req.headers.get('origin') || 'https://oversize-escort-hub.com';
     const successUrl = `${process.env.NEXT_PUBLIC_APP_URL || origin}/dashboard?upgraded=true`;
     const cancelUrl = `${process.env.NEXT_PUBLIC_APP_URL || origin}/pricing`;
@@ -50,7 +74,8 @@ export async function POST(req: NextRequest) {
       successUrl,
       cancelUrl,
       email,
-      typeof zone === 'string' ? zone.trim().toUpperCase() : zone
+      typeof zone === 'string' ? zone.trim().toUpperCase() : zone,
+      couponId ? { couponId } : undefined
     );
 
     return NextResponse.json({

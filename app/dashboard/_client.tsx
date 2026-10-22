@@ -149,6 +149,25 @@ export function DashboardPageClient() {
         setCompletedLoads(done ?? [])
       }
 
+      // Deadhead exclusive window: open loads stamped within the last 5 minutes
+      // (boards hide these; Pro/Fleet see them here).
+      const deadheadTiers = new Set(['pro', 'fleet_starter', 'fleet_plus', 'fleet_pro'])
+      if (
+        (prof.role === 'escort' || prof.role === 'fleet') &&
+        (deadheadTiers.has(prof.tier) || isAdminEmail(prof.email))
+      ) {
+        const since = new Date(Date.now() - 5 * 60 * 1000).toISOString()
+        const { data: dhLoads } = await supabase
+          .from('loads')
+          .select('id, pu_city, pu_state, dl_city, dl_state, per_mile_rate, escort_type, deadhead_notified_at')
+          .eq('status', 'open')
+          .not('deadhead_notified_at', 'is', null)
+          .gte('deadhead_notified_at', since)
+          .order('deadhead_notified_at', { ascending: false })
+          .limit(20)
+        setDeadheadOpps(dhLoads ?? [])
+      }
+
       setLoading(false)
     }
     init()
@@ -795,24 +814,34 @@ export function DashboardPageClient() {
         </div>
       )}
 
-      {/* Deadhead Opportunities - Pro/Fleet only */}
-      {(profile?.tier === 'pro' || profile?.tier === 'fleet_pro' || profile?.role === 'fleet' || isAdminEmail(profile?.email)) && deadheadOpps.length > 0 && (
-        <section style={{ marginTop: '2rem' }}>
-          <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#f59e0b', marginBottom: '1rem' }}>🚛 Deadhead Opportunities</h2>
-          {deadheadOpps.map((load: any) => (
-            <div key={load.id} style={{ background: '#1e2736', borderRadius: 8, padding: '1rem', marginBottom: '0.75rem', border: '1px solid #334155' }}>
-              <p style={{ margin: 0, fontWeight: 600 }}>{load.pu_city}, {load.pu_state} → {load.dl_city}, {load.dl_state}</p>
-              <p style={{ margin: '0.25rem 0 0', color: '#94a3b8', fontSize: '0.875rem' }}>${load.per_mile_rate ?? '—'}{load.per_mile_rate != null ? '/mi' : ''} &bull; {load.escort_type}</p>
-              <a href={`/loads/${load.id}`} style={{ color: '#f59e0b', fontSize: '0.875rem', display: 'inline-block', marginTop: '0.5rem' }}>Claim load →</a>
-            </div>
-          ))}
-        </section>
-      )}
-      {(profile?.tier !== 'pro' && profile?.tier !== 'fleet_pro' && profile?.role !== 'fleet' && !isAdminEmail(profile?.email)) && isEscort && (
-        <section style={{ marginTop: '2rem', padding: '1rem', background: '#1e2736', borderRadius: 8, border: '1px solid #334155' }}>
-          <p style={{ margin: 0, color: '#94a3b8' }}>🚛 <strong style={{ color: '#f59e0b' }}>Deadhead Opportunities</strong> — available to Pro and Fleet members. <a href="/pricing" style={{ color: '#f59e0b' }}>Upgrade to Pro</a></p>
-        </section>
-      )}
+      {/* Deadhead Opportunities - Pro/Fleet only (5-minute exclusive window) */}
+      {(() => {
+        const dhOk = ['pro', 'fleet_starter', 'fleet_plus', 'fleet_pro'].includes(profile?.tier || '')
+          || profile?.role === 'fleet'
+          || isAdminEmail(profile?.email)
+        if (dhOk && deadheadOpps.length > 0) {
+          return (
+            <section style={{ marginTop: '2rem' }}>
+              <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#f59e0b', marginBottom: '1rem' }}>🚛 Deadhead Opportunities</h2>
+              {deadheadOpps.map((load: any) => (
+                <div key={load.id} style={{ background: '#1e2736', borderRadius: 8, padding: '1rem', marginBottom: '0.75rem', border: '1px solid #334155' }}>
+                  <p style={{ margin: 0, fontWeight: 600 }}>{load.pu_city}, {load.pu_state} → {load.dl_city}, {load.dl_state}</p>
+                  <p style={{ margin: '0.25rem 0 0', color: '#94a3b8', fontSize: '0.875rem' }}>${load.per_mile_rate ?? '—'}{load.per_mile_rate != null ? '/mi' : ''} &bull; {load.escort_type}</p>
+                  <a href={`/loads/${load.id}`} style={{ color: '#f59e0b', fontSize: '0.875rem', display: 'inline-block', marginTop: '0.5rem' }}>Claim load →</a>
+                </div>
+              ))}
+            </section>
+          )
+        }
+        if (!dhOk && isEscort) {
+          return (
+            <section style={{ marginTop: '2rem', padding: '1rem', background: '#1e2736', borderRadius: 8, border: '1px solid #334155' }}>
+              <p style={{ margin: 0, color: '#94a3b8' }}>🚛 <strong style={{ color: '#f59e0b' }}>Deadhead Opportunities</strong> — available to Pro and Fleet members. <a href="/pricing" style={{ color: '#f59e0b' }}>Upgrade to Pro</a></p>
+            </section>
+          )
+        }
+        return null
+      })()}
     </div>
   )
 }

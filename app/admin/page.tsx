@@ -475,15 +475,18 @@ export default function AdminPage() {
               <p style={{ color: '#9ca3af', fontSize: 13 }}>No open disputes.</p>
             ) : (
               <div style={{ display: 'grid', gap: 12 }}>
-                {disputesList.map((d: any) => (
+                {disputesList.map((d: any) => {
+                  const body = d.message || d.description || d.subject || d.title || ''
+                  return (
                   <div key={d.id} style={{ background: '#0f1a2e', border: '1px solid #1e3a5f', borderRadius: 8, padding: 14 }}>
-                    <div style={{ fontWeight: 600, fontSize: 15 }}>{d.subject || d.title || 'Dispute #' + d.id}</div>
-                    <div style={{ color: '#9ca3af', fontSize: 12, marginTop: 4 }}>Status: {d.status || 'open'} • Opened: {d.created_at ? new Date(d.created_at).toLocaleString() : '-'}</div>
-                    {d.description && (
-                      <div style={{ color: '#e2e8f0', fontSize: 13, marginTop: 8, whiteSpace: 'pre-wrap' }}>{d.description}</div>
+                    <div style={{ fontWeight: 600, fontSize: 15 }}>{d.subject || d.title || 'Dispute #' + String(d.id).slice(0, 8)}</div>
+                    <div style={{ color: '#9ca3af', fontSize: 12, marginTop: 4 }}>Status: {d.status || 'open'} • Opened: {d.created_at ? new Date(d.created_at).toLocaleString() : '-'}{d.job_id ? ` • Job: ${d.job_id}` : ''}</div>
+                    {body && (
+                      <div style={{ color: '#e2e8f0', fontSize: 13, marginTop: 8, whiteSpace: 'pre-wrap' }}>{body}</div>
                     )}
                   </div>
-                ))}
+                  )
+                })}
               </div>
             )}
           </div>
@@ -558,7 +561,7 @@ export default function AdminPage() {
                 { label: 'Pro Escorts', value: revenue.pro ?? 0, sub: `$${((revenue.pro ?? 0) * 29.99).toFixed(2)}/mo` },
                 { label: 'Fleet Pro', value: revenue.fleetPro ?? 0, sub: `$${((revenue.fleetPro ?? 0) * 99.99).toFixed(2)}/mo` },
                 { label: 'BGC Badges', value: revenue.bgcCount ?? 0, sub: 'one-time $9.99' },
-                { label: 'Sponsored Zones', value: revenue.zoneCount ?? 0, sub: `$${((revenue.zoneCount ?? 0) * 29.99).toFixed(2)}/mo` },
+                { label: 'Sponsored Zones', value: revenue.zoneCount ?? 0, sub: `$${((revenue.zoneCount ?? 0) * 29.99).toFixed(2)} active` },
                 { label: 'Est. MRR', value: `$${revenue.mrr ?? '0.00'}`, sub: 'monthly recurring', accent: true },
               ].map(item => (
                 <div key={item.label} style={{ background: '#0f1a2e', border: `1px solid ${item.accent ? '#f60' : '#1e3a5f'}`, borderRadius: 8, padding: '14px 16px' }}>

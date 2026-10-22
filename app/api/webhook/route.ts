@@ -42,6 +42,12 @@ async function resolveUserId(
   return null
 }
 
+/** Fail the webhook (non-2xx) so Stripe retries when a paid write does not land. */
+function writeFailed(label: string, error: { message?: string } | null) {
+  console.error(`[stripe webhook] ${label}`, error)
+  return NextResponse.json({ error: label }, { status: 500 })
+}
+
 export async function POST(req: NextRequest) {
   const body = await req.text()
   const sig = req.headers.get('stripe-signature')!
@@ -66,12 +72,14 @@ export async function POST(req: NextRequest) {
       console.error('[stripe webhook] could not resolve userId/priceId', {
         metaUserId, clientRef, email, priceId, sessionId: session.id,
       })
+      // Unknown buyer — ACK so Stripe does not retry forever; ops must reconcile.
       return NextResponse.json({ received: true })
     }
 
     // BGC one-time purchase
     if (priceId === BGC_PRICE) {
-      await supabase.from('profiles').update({ bgc_paid: true }).eq('id', userId)
+      const { error } = await supabase.from('profiles').update({ bgc_paid: true }).eq('id', userId)
+      if (error) return writeFailed('bgc_paid update', error)
       return NextResponse.json({ received: true })
     }
 
@@ -79,12 +87,15 @@ export async function POST(req: NextRequest) {
     if (priceId === SPONSORED_PRICE) {
       const zone = (session.metadata?.zone as string | undefined) ?? null
       if (zone) {
-        await supabase.from('sponsored_zones').insert({
+        const { error } = await supabase.from('sponsored_zones').insert({
           user_id: userId,
           state: zone,
           active: true,
           expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         })
+        if (error) return writeFailed('sponsored_zones insert', error)
+      } else {
+        console.error('[stripe webhook] sponsored zone missing metadata.zone', { sessionId: session.id })
       }
       return NextResponse.json({ received: true })
     }
@@ -93,7 +104,8 @@ export async function POST(req: NextRequest) {
     // subscription tier or stripe_subscription_id (this is a payment-mode
     // session with no subscription).
     if (priceId === STRIPE_PRICE_IDS.PEVO_MEMBER_REVIEW || priceId === STRIPE_PRICE_IDS.PEVO_PRO_REVIEW) {
-      await supabase.from('profiles').update({ pevo_paid: true }).eq('id', userId)
+      const { error } = await supabase.from('profiles').update({ pevo_paid: true }).eq('id', userId)
+      if (error) return writeFailed('pevo_paid update', error)
       return NextResponse.json({ received: true })
     }
 
@@ -105,11 +117,12 @@ export async function POST(req: NextRequest) {
       console.error('[stripe webhook] unknown priceId on checkout.session.completed', { priceId, sessionId: session.id })
       return NextResponse.json({ received: true })
     }
-    await supabase.from('profiles').update({
+    const { error: tierErr } = await supabase.from('profiles').update({
       tier,
       stripe_customer_id: (session.customer as string) ?? null,
       stripe_subscription_id: (session.subscription as string) ?? null,
     }).eq('id', userId)
+    if (tierErr) return writeFailed('tier update', tierErr)
 
     return NextResponse.json({ received: true })
   }
@@ -117,7 +130,8 @@ export async function POST(req: NextRequest) {
   // ── customer.subscription.deleted ─────────────────────────────────────
   if (event.type === 'customer.subscription.deleted') {
     const sub = event.data.object as Stripe.Subscription
-    await supabase.from('profiles').update({ tier: 'trial' }).eq('stripe_subscription_id', sub.id)
+    const { error } = await supabase.from('profiles').update({ tier: 'trial' }).eq('stripe_subscription_id', sub.id)
+    if (error) return writeFailed('subscription deleted tier update', error)
     return NextResponse.json({ received: true })
   }
 
@@ -166,11 +180,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ received: true })
     }
 
-    await supabase.from('profiles').update({
+    const { error } = await supabase.from('profiles').update({
       tier: PRICE_TO_TIER[priceId],
       stripe_subscription_id: sub.id,
       stripe_customer_id: sub.customer as string,
     }).eq('id', userId)
+    if (error) return writeFailed('subscription sync tier update', error)
   }
 
   return NextResponse.json({ received: true })

@@ -8,7 +8,7 @@ export function BoardAdSidebar() {
           <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 6 }}>Get Featured Here</div>
           <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 12 }}>Your profile shown to carriers in your zone. BGC badge displayed. Direct contact unlocked.</div>
           <div style={{ background: '#f0a500', color: '#000', borderRadius: 6, padding: '8px 0', textAlign: 'center', fontWeight: 700, fontSize: 13 }}>
-            $29.99/mo — Get Started
+            $29.99 / 30 days — Get Started
           </div>
         </div>
       </a>

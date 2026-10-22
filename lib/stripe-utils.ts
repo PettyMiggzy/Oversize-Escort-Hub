@@ -21,13 +21,32 @@ const ONE_TIME_PRICES: string[] = [
   'price_1TF0DiLmfugPCRbAPWsN2K5x',
 ]
 
+/** Stable Stripe coupon for approved DD-214 veterans (created once, reused). */
+export async function getVeteranCouponId(percentOff: number = 30): Promise<string> {
+  const id = `oeh_veteran_${percentOff}`
+  try {
+    const existing = await stripe.coupons.retrieve(id)
+    if (!existing.valid) throw new Error('invalid')
+    return existing.id
+  } catch {
+    const created = await stripe.coupons.create({
+      id,
+      percent_off: percentOff,
+      duration: 'forever',
+      name: `OEH Veteran ${percentOff}%`,
+    })
+    return created.id
+  }
+}
+
 export async function createCheckoutSession(
   userId: string | null,
   priceId: string,
   successUrl: string,
   cancelUrl: string,
   customerEmail?: string,
-  zone?: string
+  zone?: string,
+  options?: { couponId?: string }
 ) {
   const isOneTime = ONE_TIME_PRICES.includes(priceId)
 
@@ -54,6 +73,10 @@ export async function createCheckoutSession(
     // dropped or rewritten by an extension.
     ...(userId ? { client_reference_id: userId } : {}),
     ...(customerEmail ? { customer_email: customerEmail } : {}),
+    // Veteran DD-214 discount — subscriptions only (never stack on one-time SKUs)
+    ...(!isOneTime && options?.couponId
+      ? { discounts: [{ coupon: options.couponId }] }
+      : {}),
   }
 
   return stripe.checkout.sessions.create(params)

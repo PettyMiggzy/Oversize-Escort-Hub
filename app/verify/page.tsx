@@ -270,7 +270,7 @@ export default function VerifyPage() {
               <div>
                 <div style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 8 }}>SPONSORED ZONE</div>
                 <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>State Sponsorship</h2>
-                <div style={{ fontSize: 32, fontWeight: 800, color: '#ff6600' }}>$29.99<span style={{ fontSize: 14, color: '#9ca3af' }}>/mo</span></div>
+                <div style={{ fontSize: 32, fontWeight: 800, color: '#ff6600' }}>$29.99<span style={{ fontSize: 14, color: '#9ca3af' }}>/30 days</span></div>
               </div>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {['1 carrier per state', 'Top of load list', 'Sponsored badge', 'Exclusive placement'].map(f => (

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+import Stripe from 'stripe'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { requireAdmin } from '@/lib/api-auth'
+import { getVeteranCouponId } from '@/lib/stripe-utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -62,6 +64,24 @@ export async function POST(req: NextRequest) {
     created_at: new Date().toISOString(),
   })
   await client.from('profiles').update({ dd214_pending: false }).eq('id', sub.user_id)
+
+  // If they already subscribe, attach the forever coupon so renewals get 30% off.
+  const { data: prof } = await client
+    .from('profiles')
+    .select('stripe_subscription_id')
+    .eq('id', sub.user_id)
+    .maybeSingle()
+  if (prof?.stripe_subscription_id && process.env.STRIPE_SECRET_KEY) {
+    try {
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2026-03-25.dahlia' })
+      const coupon = await getVeteranCouponId(30)
+      await stripe.subscriptions.update(prof.stripe_subscription_id, {
+        discounts: [{ coupon }],
+      })
+    } catch (err) {
+      console.error('[admin/dd214] could not attach veteran coupon to subscription', err)
+    }
+  }
 
   return NextResponse.json({ ok: true })
 }

@@ -366,7 +366,7 @@ export default function PricingPage() {
           </Card>
           <Card>
             <div id="sponsored" />
-            <PriceHeader label="Sponsored Zone" price="$29.99" period="/mo" />
+            <PriceHeader label="Sponsored Zone" price="$29.99" period="/30 days" />
             <Features items={[
               "Featured at top of Find Escorts",
               "Highlighted badge",

@@ -40,8 +40,16 @@ export async function POST(req: NextRequest) {
       supabase.from("profiles").select("full_name, phone, email").eq("id", load.matched_escort_id).single(),
     ]);
 
-    // Close load permanently
-    await supabase.from("loads").update({ status: "filled", deadhead_destination_city: load.dl_city, deadhead_destination_state: load.dl_state }).eq("id", load_id).eq("status", "pending_match");
+    // Close load permanently — confirm the row still flipped (cron/race safe)
+    const { data: filled, error: fillErr } = await supabase
+      .from("loads")
+      .update({ status: "filled", deadhead_destination_city: load.dl_city, deadhead_destination_state: load.dl_state })
+      .eq("id", load_id)
+      .eq("status", "pending_match")
+      .select("id");
+    if (fillErr || !filled?.length) {
+      return NextResponse.json({ error: "Load is no longer pending" }, { status: 409 });
+    }
 
     // Notify escort
     const { data: escortProfile } = await supabase
@@ -64,11 +72,19 @@ export async function POST(req: NextRequest) {
 
   if (action === "decline") {
     // Reopen load
-    await supabase.from("loads").update({
-      status: "open",
-      matched_escort_id: null,
-      match_requested_at: null,
-    }).eq("id", load_id).eq("status", "pending_match");
+    const { data: reopened, error: reopenErr } = await supabase
+      .from("loads")
+      .update({
+        status: "open",
+        matched_escort_id: null,
+        match_requested_at: null,
+      })
+      .eq("id", load_id)
+      .eq("status", "pending_match")
+      .select("id");
+    if (reopenErr || !reopened?.length) {
+      return NextResponse.json({ error: "Load is no longer pending" }, { status: 409 });
+    }
 
     // Notify escort of decline
     const { data: escortProfile } = await supabase

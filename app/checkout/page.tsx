@@ -172,11 +172,11 @@ export default function CheckoutPage() {
         </div>
 
         <p className="mt-4 text-center text-xs text-gray-400">
-          Veteran? After subscribing, upload your DD-214 at{" "}
+          Veteran? Upload your DD-214 at{" "}
           <a href="/dd214" className="underline">
             /dd214
           </a>{" "}
-          to apply your 30% discount.
+          before checkout — approved accounts get 30% off automatically.
         </p>
       </div>
     </div>

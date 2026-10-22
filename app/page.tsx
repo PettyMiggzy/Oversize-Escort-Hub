@@ -1433,7 +1433,17 @@ function EscortDashPage({ setPage, profile, showToast }: { setPage: (p: Page) =>
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     setDisputeLoading(true);
-    await supabase.from('disputes').insert({ escort_id: user.id, job_id: disputeJobId || null, message: disputeMsg, status: 'open' });
+    const { error } = await supabase.from('disputes').insert({
+      escort_id: user.id,
+      job_id: disputeJobId || null,
+      message: disputeMsg,
+      status: 'open',
+    });
+    if (error) {
+      alert('Could not submit dispute: ' + error.message);
+      setDisputeLoading(false);
+      return;
+    }
     setDisputeMsg('');
     setDisputeJobId('');
     setDisputeLoading(false);
@@ -2017,12 +2027,23 @@ function VerificationPage() {
     const path = `${user.id}/${Date.now()}-${file.name}`
     const { error: upErr } = await supabase.storage.from(bucket).upload(path, file, { upsert: true })
     if (upErr) { setMsg('Upload failed: ' + upErr.message); setUploading(false); return }
-    const subject = tier === 1 ? 'Tier 1 P/EVO Cert Submission' : 'Tier 2 Vehicle Submission'
-    await fetch('/api/verify-upload', {
+    const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path)
+    const res = await fetch('/api/verify-upload', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: user.id, tier, subject, fileName: file.name })
+      body: JSON.stringify({
+        tier,
+        fileName: file.name,
+        storagePath: path,
+        documentUrl: urlData.publicUrl,
+      })
     })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      setMsg('Upload failed: ' + (data.error || res.statusText))
+      setUploading(false)
+      return
+    }
     setMsg('✅ Submitted! Admin will review within 48 hours.')
     setUploading(false)
   }

@@ -8,7 +8,8 @@ export async function POST(req: Request) {
   const { user, error: authErr } = await requireAuth()
   if (authErr) return authErr
   try {
-    const { tier, fileName } = await req.json()
+    const body = await req.json()
+    const { tier, fileName, storagePath, documentUrl } = body
     // the page sends tier as the number 1 or 2; anything else is refused
     const t = Number(tier)
     if (t !== 1 && t !== 2) {
@@ -19,24 +20,45 @@ export async function POST(req: Request) {
     const certType = t === 1 ? 'pevo' : 'vehicle'
     const bucket = t === 1 ? 'pevo-certs' : 'vehicle-docs'
 
-    // Create a pending row so admin Certs/Verification queues can approve in-app
-    // (email alone left submissions invisible to the admin UI).
+    // Prefer the public URL / path the client just uploaded (includes timestamp).
+    // Fall back only when older clients omit them.
+    const path =
+      typeof storagePath === 'string' && storagePath.startsWith(`${userId}/`)
+        ? storagePath.slice(0, 400)
+        : `${userId}/${String(fileName || 'upload').slice(0, 200)}`
+
     const svc = createServiceClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
-    await svc.from('certifications').insert({
+
+    let docUrl =
+      typeof documentUrl === 'string' && documentUrl.startsWith('http')
+        ? documentUrl.slice(0, 1000)
+        : ''
+    if (!docUrl) {
+      const { data: urlData } = svc.storage.from(bucket).getPublicUrl(path)
+      docUrl = urlData.publicUrl
+    }
+
+    // Create a pending row so admin Certs/Verification queues can approve in-app
+    // (email alone left submissions invisible to the admin UI).
+    const { error: insertErr } = await svc.from('certifications').insert({
       user_id: userId,
       type: certType,
       status: 'pending',
-      document_url: `${bucket}/${userId}/${String(fileName || 'upload').slice(0, 200)}`,
+      document_url: docUrl,
       created_at: new Date().toISOString(),
     })
+    if (insertErr) {
+      console.error('[verify-upload] certifications insert', insertErr)
+      return NextResponse.json({ error: 'Could not create review row' }, { status: 500 })
+    }
 
     await sendEmail({
       to: 'verify@oversize-escort-hub.com',
       subject,
-      html: `<p><strong>Tier ${t} Verification Submission</strong></p><p>User ID: ${escapeHtml(userId)}</p><p>File: ${escapeHtml(String(fileName || 'N/A').slice(0, 200))}</p><p>Bucket: ${bucket}/${escapeHtml(userId)}/</p><p>Submitted: ${new Date().toISOString()}</p>`,
+      html: `<p><strong>Tier ${t} Verification Submission</strong></p><p>User ID: ${escapeHtml(userId)}</p><p>File: ${escapeHtml(String(fileName || 'N/A').slice(0, 200))}</p><p>Path: ${escapeHtml(bucket)}/${escapeHtml(path)}</p><p>Submitted: ${new Date().toISOString()}</p>`,
     })
     return NextResponse.json({ ok: true })
   } catch (err: any) {
