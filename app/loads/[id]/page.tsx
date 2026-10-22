@@ -17,6 +17,8 @@ export default function LoadDetailPage() {
   const [bids, setBids] = useState<any[]>([])
   const [bidRate, setBidRate] = useState('')
   const [bidStatus, setBidStatus] = useState('')
+  const [claimStatus, setClaimStatus] = useState('')
+  const [claiming, setClaiming] = useState(false)
   const [loading, setLoading] = useState(true)
 
   const supabase = createClient()
@@ -71,17 +73,38 @@ export default function LoadDetailPage() {
     setBids(b || [])
   }
 
+  const submitClaim = async () => {
+    if (!currentUser || claiming) return
+    setClaiming(true)
+    setClaimStatus('')
+    const res = await fetch('/api/loads/request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ load_id: id }),
+    })
+    const result = await res.json().catch(() => ({} as any))
+    setClaiming(false)
+    if (!res.ok) {
+      setClaimStatus('Error: ' + (result.error || 'Could not claim load'))
+      return
+    }
+    setClaimStatus('Claim sent — awaiting carrier approval.')
+    const { data: loadData } = await supabase.from('loads').select('*').eq('id', id).single()
+    setLoad(loadData)
+  }
+
   if (loading) return <div style={{ background: '#0a0f1a', minHeight: '100vh', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>
   if (!load) return <div style={{ background: '#0a0f1a', minHeight: '100vh', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Load not found.</div>
 
   const isCarrier = userProfile?.role === 'carrier'
   const isEscort = userProfile?.role === 'escort'
-  const isPro = userProfile?.tier === 'pro' || userProfile?.tier === 'fleet_pro' || isAdminEmail(currentUser?.email)
+  const isAdmin = isAdminEmail(currentUser?.email)
   const isMatchedEscort = currentUser && load.matched_escort_id === currentUser.id
   const isOwnerCarrier = currentUser && load.carrier_id === currentUser.id
   const isMatched = load.status === 'filled'
   const canSeeFull = isMatched && (isMatchedEscort || isOwnerCarrier)
   const isBidType = load.board_type === 'bid' || load.board_type === 'open-bid'
+  const isFlatClaimable = !isBidType && load.status === 'open' && isEscort
 
   const card = { background: '#0f1a2e', border: '1px solid #1e3a5f', borderRadius: 10, padding: '20px 24px', marginBottom: 16 }
   const row = { display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(30,58,95,0.4)' } as React.CSSProperties
@@ -154,9 +177,44 @@ export default function LoadDetailPage() {
           </div>
         )}
 
+        {/* Flat-rate claim (deadhead / Pro push links land here) */}
+        {isFlatClaimable && (() => {
+          const level = getAccessLevel(userProfile?.tier, isAdmin)
+          if (level === 'none') {
+            return (
+              <div style={card}>
+                <h2 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Claim this Load</h2>
+                <p style={{ fontSize: 13, color: '#9ca3af', marginBottom: 12 }}>Claiming requires a paid escort plan.</p>
+                <Link href="/pricing" style={{ display: 'inline-block', background: '#f60', color: '#fff', borderRadius: 6, padding: '10px 20px', fontWeight: 700, fontSize: 13, textDecoration: 'none' }}>Upgrade to Member →</Link>
+              </div>
+            )
+          }
+          const dhUntil = load.deadhead_notified_at
+            ? Date.parse(load.deadhead_notified_at) + 5 * 60 * 1000
+            : 0
+          const dhLocked = level !== 'instant' && dhUntil > now
+          const secondsLeft = dhLocked
+            ? Math.max(0, Math.ceil((dhUntil - now) / 1000))
+            : level === 'delayed' ? secondsUntilClaimable(load.created_at, now) : 0
+          const locked = secondsLeft > 0
+          return (
+            <div style={card}>
+              <h2 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Claim this Load</h2>
+              <button
+                onClick={submitClaim}
+                disabled={locked || claiming}
+                style={{ background: locked || claiming ? '#374151' : '#f60', color: '#fff', border: 'none', borderRadius: 6, padding: '10px 20px', fontWeight: 700, cursor: locked || claiming ? 'not-allowed' : 'pointer' }}
+              >
+                {claiming ? 'Claiming…' : locked ? `Available in ${secondsLeft}s...` : 'Claim Load'}
+              </button>
+              {claimStatus && <p style={{ fontSize: 12, color: claimStatus.startsWith('Error') ? '#ef4444' : '#22c55e', marginTop: 8 }}>{claimStatus}</p>}
+            </div>
+          )
+        })()}
+
         {/* Bid form: tier-gated for escorts on bid loads */}
         {isBidType && isEscort && load.status === 'open' && (() => {
-          const level = getAccessLevel(userProfile?.tier, isAdminEmail(currentUser?.email))
+          const level = getAccessLevel(userProfile?.tier, isAdmin)
           if (level === 'none') {
             return (
               <div style={card}>

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { escortAccess, claimRefusal } from '@/lib/access-server'
+import { escortClaimant, claimRefusal } from '@/lib/access-server'
 
 export const dynamic = 'force-dynamic'
 
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
     // Verify load exists and is open + on the bid board
     const { data: load, error: loadErr } = await supabase
       .from('loads')
-      .select('id, status, board_type, carrier_id, created_at, expires_at')
+      .select('id, status, board_type, carrier_id, created_at, expires_at, deadhead_notified_at')
       .eq('id', load_id)
       .single()
     if (loadErr || !load) {
@@ -79,8 +79,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Load is not biddable' }, { status: 409 })
     }
 
-    // The plan rules (free locked out, Members after the Pro head start) are decided here, not only in the browser
-    const refusal = claimRefusal(await escortAccess(supabase, user), load.created_at)
+    const claimant = await escortClaimant(supabase, user)
+    if (!claimant.ok) return NextResponse.json({ error: claimant.error }, { status: 403 })
+    const refusal = claimRefusal(claimant.level, load.created_at, load.deadhead_notified_at)
     if (refusal) return NextResponse.json({ error: refusal }, { status: 403 })
 
     // One live bid per escort per load

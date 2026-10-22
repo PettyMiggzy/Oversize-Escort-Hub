@@ -86,8 +86,22 @@ export function PostLoadPageClient() {
       alert('Please fill all required fields.')
       return
     }
+    if (positions.length === 0) {
+      alert('Select at least one escort position.')
+      return
+    }
     setSubmitting(true)
     try {
+      let permitUrl: string | null = null
+      if (permitFile) {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) { alert('Please sign in.'); setSubmitting(false); return }
+        const path = `permits/${user.id}/${Date.now()}_${permitFile.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`
+        const { error: upErr } = await supabase.storage.from('permits').upload(path, permitFile, { upsert: true })
+        if (upErr) { alert('Permit upload failed: ' + upErr.message); setSubmitting(false); return }
+        const { data: urlData } = supabase.storage.from('permits').getPublicUrl(path)
+        permitUrl = urlData.publicUrl
+      }
       const expiresAt = boardType === 'bid'
       ? new Date(Date.now() + 5 * 60 * 1000).toISOString()
       : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
@@ -106,6 +120,7 @@ export function PostLoadPageClient() {
           rate: rate,
           notes,
           expiresAt,
+          permitUrl,
         }),
       })
       const data = await res.json()

@@ -12,11 +12,15 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { pickupCity, pickupState, destinationCity, destinationState,
             escortType, escort_count, boardType, loadType, rate, notes,
-            dateNeeded, expiresAt, cert_types, pay_term } = body
+            dateNeeded, expiresAt, cert_types, pay_term, permitUrl } = body
 
     if (!pickupCity || !pickupState || !destinationCity || !destinationState || !escortType || !boardType) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
+    const permit_url =
+      typeof permitUrl === 'string' && permitUrl.startsWith('http')
+        ? permitUrl.slice(0, 1000)
+        : null
 
     const expires = boardType === 'bid'
     ? new Date(Date.now() + 5 * 60 * 1000).toISOString()
@@ -40,7 +44,7 @@ export async function POST(request: NextRequest) {
         expires_at: expires,
         cert_types: cert_types || [],
         pay_term: pay_term || 'on_completion',
-        permit_url: null,
+        permit_url,
         status: 'open',
       }])
       .select()

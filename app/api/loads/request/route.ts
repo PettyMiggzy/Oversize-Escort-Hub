@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
 import { createClient as createServerSupabase } from "@/lib/supabase/server";
-import { escortAccess, claimRefusal } from "@/lib/access-server";
+import { escortClaimant, claimRefusal } from "@/lib/access-server";
 import { sendWebPushToUser } from "@/lib/push";
 
 export const dynamic = 'force-dynamic'
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
   // Check load is open
   const { data: load, error: le } = await supabase
     .from("loads")
-    .select("id, status, carrier_id, created_at")
+    .select("id, status, carrier_id, created_at, deadhead_notified_at")
     .eq("id", load_id)
     .single();
   if (le || !load) return NextResponse.json({ error: "Load not found" }, { status: 404 });
@@ -37,8 +37,10 @@ export async function POST(req: NextRequest) {
   if (load.carrier_id === escort_id) {
     return NextResponse.json({ error: "You cannot claim your own load" }, { status: 403 });
   }
-  // the plan rules (free locked out, Members after the Pro head start) are decided here, not only in the browser
-  const refusal = claimRefusal(await escortAccess(authed, user), load.created_at);
+  const claimant = await escortClaimant(authed, user);
+  if (!claimant.ok) return NextResponse.json({ error: claimant.error }, { status: 403 });
+  // plan rules + deadhead exclusive window enforced here, not only in the browser
+  const refusal = claimRefusal(claimant.level, load.created_at, load.deadhead_notified_at);
   if (refusal) return NextResponse.json({ error: refusal }, { status: 403 });
 
   // Mark pending_match with 1-hour expiry handled by cron

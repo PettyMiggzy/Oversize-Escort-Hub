@@ -28,6 +28,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
+    // P/EVO cert review uploads require the pevo paywall purchase first
+    const normalizedType = certType === "p_evo" ? "pevo" : certType;
+    if (normalizedType === "pevo") {
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("pevo_paid")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (!prof?.pevo_paid) {
+        return NextResponse.json({ error: "Purchase P/EVO cert review before uploading" }, { status: 402 });
+      }
+    }
+
     const filename = `cert_${user.id}_${Date.now()}.pdf`;
     const path = `certs/${filename}`;
     const { error: uploadError } = await supabase.storage
@@ -40,7 +53,7 @@ export async function POST(req: NextRequest) {
     const document_url = urlData.publicUrl;
 
     // Admin queues + /api/bgc/approve read certifications (status pending), not escort_certs.
-    const type = certType === "p_evo" ? "pevo" : certType;
+    const type = normalizedType;
     const { data, error } = await supabase
       .from("certifications")
       .insert({
@@ -93,7 +106,13 @@ export async function PUT(req: NextRequest) {
     const ct = (cert?.type || "").toString().toLowerCase();
     const isPevo = ct === "pevo" || ct.includes("pevo") || ct.includes("p/evo");
     if (isPevo && cert?.user_id) {
-      await svc.from("profiles").update({ pevo_verified: true }).eq("id", cert.user_id);
+      const { error: pevoErr } = await svc.from("profiles").update({ pevo_verified: true }).eq("id", cert.user_id);
+      if (pevoErr) throw pevoErr;
+    }
+    const isVehicle = ct === "vehicle" || ct.includes("vehicle");
+    if (isVehicle && cert?.user_id) {
+      const { error: vehErr } = await svc.from("profiles").update({ vehicle_verified: true }).eq("id", cert.user_id);
+      if (vehErr) throw vehErr;
     }
 
     return NextResponse.json({ success: true });

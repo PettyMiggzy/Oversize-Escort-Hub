@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     // a subject or name with a line break must never become a mail header
     const oneLine = (s: string) => s.replace(/[\r\n]+/g, ' ')
 
-    await resend.emails.send({
+    const { error: sendErr } = await resend.emails.send({
       from: 'OEH Contact <noreply@oversize-escort-hub.com>',
       to: 'support@oversize-escort-hub.com',
       replyTo: email,
@@ -33,6 +33,10 @@ export async function POST(req: NextRequest) {
         <p>${escapeHtml(message).replace(/\n/g, '<br>')}</p>
       `,
     })
+    if (sendErr) {
+      console.error('[contact] resend error:', sendErr)
+      return NextResponse.json({ error: 'Could not send your message' }, { status: 500 })
+    }
 
     return NextResponse.json({ success: true })
   } catch (err: any) {

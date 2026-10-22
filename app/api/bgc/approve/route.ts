@@ -48,6 +48,15 @@ export async function POST(req: NextRequest) {
       if (pevoErr) return NextResponse.json({ error: pevoErr.message }, { status: 500 })
     }
 
+    const _isVehicle = cert.type === 'vehicle' || _ct.includes('vehicle')
+    if (_isVehicle && cert.user_id) {
+      const { error: vehErr } = await svc
+        .from('profiles')
+        .update({ vehicle_verified: true })
+        .eq('id', cert.user_id)
+      if (vehErr) return NextResponse.json({ error: vehErr.message }, { status: 500 })
+    }
+
     return NextResponse.json({ ok: true })
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || 'Server error' }, { status: 500 })
