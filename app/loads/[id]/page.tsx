@@ -97,7 +97,7 @@ export default function LoadDetailPage() {
   if (!load) return <div style={{ background: '#0a0f1a', minHeight: '100vh', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Load not found.</div>
 
   const isCarrier = userProfile?.role === 'carrier'
-  const isEscort = userProfile?.role === 'escort'
+  const isEscort = userProfile?.role === 'escort' || userProfile?.role === 'fleet_manager'
   const isAdmin = isAdminEmail(currentUser?.email)
   const isMatchedEscort = currentUser && load.matched_escort_id === currentUser.id
   const isOwnerCarrier = currentUser && load.carrier_id === currentUser.id

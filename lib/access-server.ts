@@ -12,7 +12,8 @@ export type EscortClaimant =
 export async function escortClaimant(supabase: SupabaseClient, user: User): Promise<EscortClaimant> {
   const { data: p } = await supabase.from('profiles').select('tier, role').eq('id', user.id).single()
   const isAdmin = p?.role === 'admin' || isAdminEmail(user.email ?? '')
-  if (!isAdmin && p?.role !== 'escort') {
+  // fleet_manager keeps escort claim/bid rights (fleet plans include Pro escort features)
+  if (!isAdmin && p?.role !== 'escort' && p?.role !== 'fleet_manager') {
     return { ok: false, error: 'Only escorts can claim or bid on loads' }
   }
   return { ok: true, level: getAccessLevel(p?.tier, isAdmin) }

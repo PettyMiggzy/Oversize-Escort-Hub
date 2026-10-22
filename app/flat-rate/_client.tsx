@@ -176,7 +176,7 @@ export function FlatRateBoardClient() {
 
   const handleClaim = async (loadId: string) => {
     if (!userId) { window.location.href = '/signin'; return; }
-    if (userRole !== 'escort') {
+    if (userRole !== 'escort' && userRole !== 'fleet_manager') {
       setClaimError(prev => ({ ...prev, [loadId]: 'Only escorts can claim loads' }));
       return;
     }
