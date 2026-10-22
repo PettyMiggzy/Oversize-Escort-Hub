@@ -370,3 +370,22 @@ audit passes** (no remaining high-confidence runtime bugs in scope).
 - Deleted dead `lib/auth-utils.ts` and `lib/sms.ts`
 
 **Still owner-only (unchanged):** RLS on profiles/loads, private doc buckets, server-side member push schedule, admin email allowlist → `role`.
+
+---
+
+# Audit 4 (2026-10-22): keep auditing → 2 clean passes
+
+Branch: `cursor/audit-fixes-b8c2`. Ended with **CLEAN_PASS_1** and **CLEAN_PASS_2** (independent explore audits).
+
+**Fixed this round (high-confidence runtime):**
+- DD-214 admin queue + status GET; sponsored zone required on checkout; SPA cert → `/api/escort/cert-upload`
+- verify-upload public `document_url` + insert error checks; disputes `message` in admin; match/webhook write checks
+- Veteran 30% Stripe coupon at checkout + on DD-214 approve for existing subs; sponsored labeled `/30 days`
+- Web-push via `push_subscriptions` (retire dead `push_queue`/`push_token` path); Pro notify uses availability coverage
+- Deadhead feed on dashboard + fleet-dashboard; fleet_* early-access + claim/bid as `fleet_manager`
+- Stripe/admin set-user sync `fleet_manager` role; revoke on cancel/downgrade; gate `/fleet-dashboard`
+- Claim on `/loads/[id]`; claim rejects bid boards; deadhead 5-min exclusivity server-side; pevo_paid gates
+- Permit upload on `/post-load`; `/profile` page; contact/BGC/referral/review false-success fixes
+- SPA post-load positions derived from selected Lead/Chase checkboxes
+
+**Still owner-only:** RLS, private buckets, SMS default-off, server-side member-push schedule after 5 minutes.
