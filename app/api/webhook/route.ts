@@ -135,8 +135,20 @@ export async function POST(req: NextRequest) {
   // ── customer.subscription.deleted ─────────────────────────────────────
   if (event.type === 'customer.subscription.deleted') {
     const sub = event.data.object as Stripe.Subscription
-    const { error } = await supabase.from('profiles').update({ tier: 'trial' }).eq('stripe_subscription_id', sub.id)
-    if (error) return writeFailed('subscription deleted tier update', error)
+    // Drop fleet_manager so cancelled buyers lose Fleet Dashboard redirect/access
+    const { data: rows } = await supabase
+      .from('profiles')
+      .select('id, role')
+      .eq('stripe_subscription_id', sub.id)
+    for (const row of rows || []) {
+      const patch: Record<string, unknown> = {
+        tier: 'trial',
+        stripe_subscription_id: null,
+      }
+      if (row.role === 'fleet_manager') patch.role = 'escort'
+      const { error } = await supabase.from('profiles').update(patch).eq('id', row.id)
+      if (error) return writeFailed('subscription deleted tier update', error)
+    }
     return NextResponse.json({ received: true })
   }
 
@@ -193,6 +205,14 @@ export async function POST(req: NextRequest) {
     }
     if (tier === 'fleet_starter' || tier === 'fleet_plus' || tier === 'fleet_pro') {
       profilePatch.role = 'fleet_manager'
+    } else {
+      // Downgrade off a fleet plan — restore escort role if still marked fleet_manager
+      const { data: existing } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .maybeSingle()
+      if (existing?.role === 'fleet_manager') profilePatch.role = 'escort'
     }
     const { error } = await supabase.from('profiles').update(profilePatch).eq('id', userId)
     if (error) return writeFailed('subscription sync tier update', error)
