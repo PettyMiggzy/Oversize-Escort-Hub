@@ -9,6 +9,11 @@ const PROTECTED_ROUTES = [
   '/post-load',
   '/invoices',
   '/jobs',
+  '/admin',
+  '/delete-account',
+  '/available',
+  '/escort-cert',
+  '/verify',
 ]
 
 export async function middleware(req: NextRequest) {

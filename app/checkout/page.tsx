@@ -73,6 +73,13 @@ export default function CheckoutPage() {
     setLoading(true);
     setError("");
     try {
+      const { createClient } = await import("@/lib/supabase/client");
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        window.location.href = `/signin?redirect=${encodeURIComponent("/checkout")}`;
+        return;
+      }
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

@@ -89,7 +89,7 @@ export default function AdminPage() {
     supabase.from('loads').select('*').order('created_at', {ascending: false}).then(({data}: {data: any}) => setLoadsList(data || []))
   }, [])
 
-  const setUserFields = async (userId: string, fields: { tier?: string; role?: string; pevo_verified?: boolean; bgc_verified?: boolean }) => {
+  const setUserFields = async (userId: string, fields: { tier?: string; role?: string; suspended?: boolean; pevo_verified?: boolean; bgc_verified?: boolean }) => {
     const res = await fetch('/api/admin/set-user', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, ...fields }) })
     const data = await res.json().catch(() => ({}))
     if (!res.ok) { alert('Could not save: ' + (data.error || res.status)); return }
@@ -97,8 +97,7 @@ export default function AdminPage() {
   }
 
   const suspendUser = async (userId: string, suspended: boolean) => {
-    await supabase.from('profiles').update({ suspended: !suspended }).eq('id', userId)
-    setUsers(prev => prev.map(u => u.id === userId ? { ...u, suspended: !suspended } : u))
+    await setUserFields(userId, { suspended: !suspended })
   }
 
   const approveBgc = async (certId: string) => {
@@ -148,9 +147,7 @@ export default function AdminPage() {
   }
 
   const changeRole = async (userId: string, role: string) => {
-    const supabase = createClient()
-    await supabase.from('profiles').update({ role }).eq('id', userId)
-    setUsers(prev => prev.map(u => u.id === userId ? { ...u, role } : u))
+    await setUserFields(userId, { role })
   }
 
   const sendBlast = async () => {
@@ -409,9 +406,9 @@ export default function AdminPage() {
                     <div key={z.id} style={{ background: '#0f1a2e', border: '1px solid #1e3a5f', borderRadius: 8, padding: 14 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                         <div>
-                          <div style={{ fontWeight: 600, fontSize: 15 }}>{z.zone_name || z.city || z.region || 'Zone'}</div>
+                          <div style={{ fontWeight: 600, fontSize: 15 }}>{z.state || z.zone_name || 'Zone'}</div>
                           <div style={{ color: '#9ca3af', fontSize: 12 }}>{prof.full_name || z.user_id} {prof.email ? '• ' + prof.email : ''}</div>
-                          <div style={{ color: '#9ca3af', fontSize: 12, marginTop: 4 }}>Status: {z.status || '-'} • Expires: {z.expires_at ? new Date(z.expires_at).toLocaleDateString() : '-'}</div>
+                          <div style={{ color: '#9ca3af', fontSize: 12, marginTop: 4 }}>Status: {z.active === false ? 'inactive' : 'active'} • Expires: {z.expires_at ? new Date(z.expires_at).toLocaleDateString() : '-'}</div>
                         </div>
                       </div>
                     </div>

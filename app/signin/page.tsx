@@ -108,23 +108,12 @@ function SignInInner() {
     return Math.abs(hash).toString(36);
   }
 
-  async function handleCheckout(priceId: string) {
-    setLoading(true);
+  // Plan buttons only select the plan — Stripe runs after the account exists
+  // (anonymous checkout cannot set profiles.tier because the webhook has no user).
+  function selectPaidPlan(next: "member" | "pro") {
+    setPlan(next);
+    setTrialBlocked(false);
     setError("");
-    try {
-      const res = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ priceId }),
-      });
-      const data = await res.json();
-      if (data.url) window.location.href = data.url;
-      else setError(data.error || 'Checkout failed');
-    } catch {
-      setError('Checkout failed');
-    } finally {
-      setLoading(false);
-    }
   }
 
   async function handleTrialSelect() {
@@ -197,7 +186,12 @@ function SignInInner() {
             body: JSON.stringify({ fp }),
           });
         }
-        setSuccess("Check your email to confirm your account, then sign in.");
+        if (role === "escort" && (plan === "member" || plan === "pro")) {
+          setSuccess("Check your email to confirm your account, then sign in — we'll take you to checkout for your plan.");
+          // After confirm+sign-in, pricing is the safe paid path (session required).
+        } else {
+          setSuccess("Check your email to confirm your account, then sign in.");
+        }
       } else {
         // Sign In
         const { data, error: signInError } = await supabase.auth.signInWithPassword({
@@ -328,7 +322,7 @@ function SignInInner() {
                 <button
                   className="btn btn-am"
                   disabled={loading}
-                  onClick={() => handleCheckout("price_1TF00LLmfugPCRbAl6sF0Oup")}
+                  onClick={() => selectPaidPlan("member")}
                 >
                   Member — $19.99/mo
                 </button>
@@ -337,7 +331,7 @@ function SignInInner() {
                   className="btn"
                   style={{ background: "var(--am)", color: "#000", opacity: loading ? 0.5 : 1 }}
                   disabled={loading}
-                  onClick={() => handleCheckout("price_1TF021LmfugPCRbA7CGgLhC0")}
+                  onClick={() => selectPaidPlan("pro")}
                 >
                   Pro — $29.99/mo
                 </button>
@@ -360,7 +354,7 @@ function SignInInner() {
                 <button
                   className="btn btn-am"
                   disabled={loading}
-                  onClick={() => handleCheckout("price_1TF00LLmfugPCRbAl6sF0Oup")}
+                  onClick={() => selectPaidPlan("member")}
                 >
                   Member — $19.99/mo
                 </button>
@@ -368,7 +362,7 @@ function SignInInner() {
                   className="btn"
                   style={{ background: "var(--am)", color: "#000" }}
                   disabled={loading}
-                  onClick={() => handleCheckout("price_1TF021LmfugPCRbA7CGgLhC0")}
+                  onClick={() => selectPaidPlan("pro")}
                 >
                   Pro — $29.99/mo
                 </button>

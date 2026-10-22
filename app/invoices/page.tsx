@@ -7,7 +7,8 @@ export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
-  const [form, setForm] = useState({ load_id: "", amount: "", recipient_email: "" });
+  const [form, setForm] = useState({ load_id: "", amount: "" });
+  const [error, setError] = useState("");
 
   useEffect(() => {
     fetch("/api/invoices").then(r => r.json()).then(d => { setInvoices(d.invoices ?? []); setLoading(false); });
@@ -16,10 +17,22 @@ export default function InvoicesPage() {
   async function createInvoice(e: React.FormEvent) {
     e.preventDefault();
     setCreating(true);
-    const res = await fetch("/api/invoices/create", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+    setError("");
+    const res = await fetch("/api/invoices/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ load_id: form.load_id, amount: Number(form.amount) }),
+    });
     const data = await res.json();
     setCreating(false);
-    if (res.ok) { alert("Invoice created! ID: " + data.invoiceId); setForm({ load_id: "", amount: "", recipient_email: "" }); }
+    if (res.ok) {
+      alert("Invoice created! ID: " + data.invoiceId);
+      setForm({ load_id: "", amount: "" });
+      const refreshed = await fetch("/api/invoices").then(r => r.json());
+      setInvoices(refreshed.invoices ?? []);
+    } else {
+      setError(data.error || "Could not create invoice");
+    }
   }
 
   return (
@@ -32,9 +45,8 @@ export default function InvoicesPage() {
             className="w-full bg-gray-700 rounded-lg px-4 py-2 text-white" />
           <input type="number" placeholder="Amount ($)" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})}
             className="w-full bg-gray-700 rounded-lg px-4 py-2 text-white" />
-          <input type="email" placeholder="Recipient Email" value={form.recipient_email} onChange={e => setForm({...form, recipient_email: e.target.value})}
-            className="w-full bg-gray-700 rounded-lg px-4 py-2 text-white" />
-          <button type="submit" disabled={creating} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg">
+          {error && <p className="text-red-400 text-sm">{error}</p>}
+          <button type="submit" disabled={creating || !form.load_id || !form.amount} className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold px-6 py-2 rounded-lg">
             {creating ? "Creating..." : "Create Invoice"}
           </button>
         </form>

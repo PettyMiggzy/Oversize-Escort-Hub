@@ -1,34 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { isAdminEmail } from '@/lib/supabase'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
+import { requireAdmin } from '@/lib/api-auth'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    if (!isAdminEmail(user.email)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    const { user, error: authErr } = await requireAdmin()
+    if (authErr) return authErr
 
     const { cert_id, reason } = await req.json()
     if (!cert_id) return NextResponse.json({ error: 'Missing cert_id' }, { status: 400 })
 
-    const { data: cert } = await supabase
+    const svc = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    const { data: cert } = await svc
       .from('certifications')
       .select('id, user_id, type')
       .eq('id', cert_id)
       .single()
 
-    const { error: upErr } = await supabase
+    const { error: upErr } = await svc
       .from('certifications')
-      .update({ status: 'rejected', reviewed_at: new Date().toISOString(), reviewed_by: user.id, reject_reason: reason || null })
+      .update({
+        status: 'rejected',
+        reviewed_at: new Date().toISOString(),
+        reviewed_by: user!.id,
+        reject_reason: reason || null,
+      })
       .eq('id', cert_id)
     if (upErr) return NextResponse.json({ error: upErr.message }, { status: 500 })
 
-    // Clear pending flag on profile if it was a BGC
     if (cert?.type === 'bgc' && cert.user_id) {
-      await supabase
+      await svc
         .from('profiles')
         .update({ bgc_pending: false })
         .eq('id', cert.user_id)

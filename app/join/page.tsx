@@ -64,6 +64,14 @@ function JoinPageInner() {
   async function checkout(priceId: string) {
     setLoading(priceId);
     try {
+      // Paid plans must be linked to a signed-in account so the Stripe webhook can set tier.
+      const { createClient } = await import('@/lib/supabase/client');
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        window.location.href = `/signin?redirect=${encodeURIComponent('/join')}`;
+        return;
+      }
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -71,6 +79,7 @@ function JoinPageInner() {
       });
       const data = await res.json();
       if (data.url) window.location.href = data.url;
+      else alert(data.error || 'Checkout failed');
     } catch (e) {
       console.error(e);
     } finally {
@@ -167,14 +176,14 @@ function JoinPageInner() {
                 Advanced tools for serious operators. Priority matching, Deadhead Minimizer, sponsored zones, and more.
               </p>
               <div style={{ borderTop: '1px solid #1e2533', paddingTop: '20px' }}>
-                <div style={{ fontSize: '28px', fontWeight: 800, color: orange }}>$9.99<span style={{ fontSize: '14px', color: '#888', fontWeight: 400 }}>/mo</span></div>
+                <div style={{ fontSize: '28px', fontWeight: 800, color: orange }}>$29.99<span style={{ fontSize: '14px', color: '#888', fontWeight: 400 }}>/mo</span></div>
                 <div style={{ fontSize: '13px', color: '#aaa', marginTop: '4px' }}>All Pro escort features</div>
                 <button
                   style={{ ...btn, background: orange, color: bg }}
                   disabled={loading === 'price_1TF021LmfugPCRbA7CGgLhC0'}
                   onClick={() => checkout('price_1TF021LmfugPCRbA7CGgLhC0')}
                 >
-                  {loading === 'price_1TF021LmfugPCRbA7CGgLhC0' ? 'Redirecting...' : 'Get Escort Pro – $9.99/mo'}
+                  {loading === 'price_1TF021LmfugPCRbA7CGgLhC0' ? 'Redirecting...' : 'Get Escort Pro – $29.99/mo'}
                 </button>
               </div>
             </div>

@@ -37,8 +37,9 @@ export async function POST(req: NextRequest) {
       .single()
     // Admin email bypass
     const userEmail = user!.email
-    if (!profile || (profile.tier !== 'pro' && profile.tier !== 'fleet_pro' && !isAdminEmail(userEmail))) {
-      return NextResponse.json({ error: 'Fleet Manager is a Pro-only feature' }, { status: 403 })
+    const fleetTiers = ['pro', 'fleet_starter', 'fleet_plus', 'fleet_pro']
+    if (!profile || (!fleetTiers.includes(profile.tier) && !isAdminEmail(userEmail))) {
+      return NextResponse.json({ error: 'Fleet Manager is a Pro/Fleet feature' }, { status: 403 })
     }
 
     // Rate limit check — 3 fleet searches per hour

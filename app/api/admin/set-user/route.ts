@@ -7,8 +7,8 @@ export const dynamic = 'force-dynamic'
 const TIERS = ['free', 'trial', 'member', 'pro', 'carrier_member', 'fleet_starter', 'fleet_plus', 'fleet_pro']
 const ROLES = ['escort', 'carrier', 'admin']
 
-// Admin only. Sets one user's plan, role and verification badges (for example the app-store reviewers' accounts).
-// Body: { userId, tier?, role?, pevo_verified?, bgc_verified? }. Nothing else can be set through here.
+// Admin only. Sets one user's plan, role, suspension and verification badges.
+// Body: { userId, tier?, role?, suspended?, pevo_verified?, bgc_verified? }.
 export async function POST(req: NextRequest) {
   const { error: authErr } = await requireAdmin()
   if (authErr) return authErr
@@ -27,12 +27,13 @@ export async function POST(req: NextRequest) {
     if (!ROLES.includes(body.role)) return NextResponse.json({ error: 'Unknown role' }, { status: 400 })
     update.role = body.role
   }
+  if (typeof body.suspended === 'boolean') update.suspended = body.suspended
   if (typeof body.pevo_verified === 'boolean') update.pevo_verified = body.pevo_verified
   if (typeof body.bgc_verified === 'boolean') update.bgc_verified = body.bgc_verified
   if (!Object.keys(update).length) return NextResponse.json({ error: 'Nothing to change' }, { status: 400 })
 
   const svc = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
-  const { data, error } = await svc.from('profiles').update(update).eq('id', userId).select('id, tier, role, pevo_verified, bgc_verified')
+  const { data, error } = await svc.from('profiles').update(update).eq('id', userId).select('id, tier, role, suspended, pevo_verified, bgc_verified')
   if (error) {
     console.error('[admin set-user]', error)
     return NextResponse.json({ error: 'Could not update the user' }, { status: 500 })

@@ -1,5 +1,6 @@
-import { sendEmail } from '@/lib/email';
+import { sendEmail } from '@/lib/email'
 import { NextResponse } from 'next/server'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { requireAuth } from '@/lib/api-auth'
 import { escapeHtml } from '@/lib/security'
 
@@ -15,9 +16,27 @@ export async function POST(req: Request) {
     }
     const userId = user!.id
     const subject = t === 1 ? 'Tier 1 P/EVO Cert Submission' : 'Tier 2 Vehicle Submission'
-    await sendEmail({to: 'verify@oversize-escort-hub.com',
+    const certType = t === 1 ? 'pevo' : 'vehicle'
+    const bucket = t === 1 ? 'pevo-certs' : 'vehicle-docs'
+
+    // Create a pending row so admin Certs/Verification queues can approve in-app
+    // (email alone left submissions invisible to the admin UI).
+    const svc = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+    await svc.from('certifications').insert({
+      user_id: userId,
+      type: certType,
+      status: 'pending',
+      document_url: `${bucket}/${userId}/${String(fileName || 'upload').slice(0, 200)}`,
+      created_at: new Date().toISOString(),
+    })
+
+    await sendEmail({
+      to: 'verify@oversize-escort-hub.com',
       subject,
-      html: `<p><strong>Tier ${t} Verification Submission</strong></p><p>User ID: ${escapeHtml(userId)}</p><p>File: ${escapeHtml(String(fileName || 'N/A').slice(0, 200))}</p><p>Bucket: ${t === 1 ? 'pevo-certs' : 'vehicle-docs'}/${escapeHtml(userId)}/</p><p>Submitted: ${new Date().toISOString()}</p>`,
+      html: `<p><strong>Tier ${t} Verification Submission</strong></p><p>User ID: ${escapeHtml(userId)}</p><p>File: ${escapeHtml(String(fileName || 'N/A').slice(0, 200))}</p><p>Bucket: ${bucket}/${escapeHtml(userId)}/</p><p>Submitted: ${new Date().toISOString()}</p>`,
     })
     return NextResponse.json({ ok: true })
   } catch (err: any) {

@@ -1,37 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { isAdminEmail } from '@/lib/supabase'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
+import { requireAdmin } from '@/lib/api-auth'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    if (!isAdminEmail(user.email)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    const { user, error: authErr } = await requireAdmin()
+    if (authErr) return authErr
 
     const { cert_id } = await req.json()
     if (!cert_id) return NextResponse.json({ error: 'Missing cert_id' }, { status: 400 })
 
-    // Fetch cert to find owner + type
-    const { data: cert, error: cErr } = await supabase
+    const svc = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    const { data: cert, error: cErr } = await svc
       .from('certifications')
       .select('id, user_id, type, status')
       .eq('id', cert_id)
       .single()
     if (cErr || !cert) return NextResponse.json({ error: 'Certification not found' }, { status: 404 })
 
-    // Mark cert approved
-    const { error: upErr } = await supabase
+    const { error: upErr } = await svc
       .from('certifications')
-      .update({ status: 'approved', reviewed_at: new Date().toISOString(), reviewed_by: user.id })
+      .update({ status: 'approved', reviewed_at: new Date().toISOString(), reviewed_by: user!.id })
       .eq('id', cert_id)
     if (upErr) return NextResponse.json({ error: upErr.message }, { status: 500 })
 
-    // If BGC, flip profile flags
     if (cert.type === 'bgc' && cert.user_id) {
-      await supabase
+      await svc
         .from('profiles')
         .update({ bgc_verified: true, bgc_pending: false })
         .eq('id', cert.user_id)
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     const _ct = (cert.type || '').toString().toLowerCase()
     const _isPevo = cert.type === 'pevo' || cert.type === 'p_evo' || _ct.includes('pevo') || _ct.includes('p/evo')
     if (_isPevo && cert.user_id) {
-      await supabase
+      await svc
         .from('profiles')
         .update({ pevo_verified: true })
         .eq('id', cert.user_id)
