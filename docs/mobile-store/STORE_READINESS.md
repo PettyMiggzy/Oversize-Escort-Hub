@@ -14,7 +14,7 @@ Stack: Capacitor 8 → live site (`capacitor.config.ts` `server.url`)
 | Item | Status | Notes |
 | --- | --- | --- |
 | **iOS project** | Missing | No `ios/` directory. Owner must run `npx cap add ios` on a Mac with Xcode, then set the same bundle ID. |
-| **Release keystore security** | Fixed in repo config | Passwords were hardcoded in `android/app/build.gradle`; signing now reads `OEH_KEYSTORE_*` env / gradle props. Keystore is gitignored — owner must keep a private backup of `oeh-release.keystore` + enable Play App Signing. |
+| **Release keystore** | Owner's call: kept in repo | The owner chose to keep the signing keystore in the repo so the GitHub "Android release" workflow can sign without secrets. Enable Play App Signing and keep a private backup of `android/oeh-release.keystore`. To move to secrets later, switch `android/app/build.gradle` to the `OEH_KEYSTORE_*` env variables and add them as repository secrets. |
 | **Phone screenshots** | Missing | Listing kit lists 4–5 required shots; none checked in under `docs/mobile-store/assets/`. |
 | **Demo / App Review accounts** | Owner | Needed in `STORE_LISTING.md` brackets for reviewers. |
 | **Apple 4.2 (web wrapper)** | Risk | App loads the website in a WebView. Mitigations already documented: no IAP (signup/checkout blocked in native via `lib/native.ts`), account deletion URL, review notes. Native push / camera upload still recommended before iOS submit. |
