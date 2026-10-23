@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { isAdminEmail } from '@/lib/supabase'
 import { getAccessLevel, secondsUntilClaimable } from '@/lib/board-access'
+import { withFreeLaunch } from '@/lib/free-launch'
 
 export default function LoadDetailPage() {
   const params = useParams()
@@ -35,7 +36,7 @@ export default function LoadDetailPage() {
       setCurrentUser(user)
       if (user) {
         const { data: p } = await supabase.from('profiles').select('*').eq('id', user.id).single()
-        setUserProfile(p)
+        setUserProfile(withFreeLaunch(p))
       }
 
       const { data: loadData } = await supabase.from('loads').select('*').eq('id', id).single()

@@ -2,6 +2,7 @@
 import SiteHeader from '@/components/SiteHeader'
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { FREE_LAUNCH } from '@/lib/free-launch'
 
 type ProfileFlags = {
   bgc_paid?: boolean
@@ -34,7 +35,7 @@ export default function VerifyPage() {
       .select('bgc_paid, bgc_verified, bgc_pending, pevo_paid, verified_tier')
       .eq('id', uid)
       .single()
-    setFlags(data || {})
+    setFlags(FREE_LAUNCH ? { ...(data || {}), bgc_paid: true, pevo_paid: true } : (data || {}))
   }, [supabase])
 
   useEffect(() => {

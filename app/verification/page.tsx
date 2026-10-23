@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { FREE_LAUNCH } from '@/lib/free-launch'
 
 export const metadata = { title: 'Verify Your Escort Certifications | OEH' }
 
@@ -18,7 +19,7 @@ export default async function VerificationPage() {
   }
 
   const paidTiers = ['member', 'pro', 'fleet_starter', 'fleet_plus', 'fleet_pro']
-  const isPaid = profile?.tier && paidTiers.includes(profile.tier)
+  const isPaid = FREE_LAUNCH || (profile?.tier && paidTiers.includes(profile.tier))
 
   return (
     <div style={{ background: '#0a0a0a', minHeight: '100vh', color: '#fff', fontFamily: 'system-ui, sans-serif' }}>

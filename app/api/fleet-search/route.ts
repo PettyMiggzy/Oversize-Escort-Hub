@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { isAdminEmail } from '@/lib/supabase'
+import { effectiveTier } from '@/lib/free-launch'
 import { requireAuth } from '@/lib/api-auth'
 
 const supabase = createClient(
@@ -38,7 +39,7 @@ export async function POST(req: NextRequest) {
     // Admin email bypass
     const userEmail = user!.email
     const fleetTiers = ['pro', 'fleet_starter', 'fleet_plus', 'fleet_pro']
-    if (!profile || (!fleetTiers.includes(profile.tier) && !isAdminEmail(userEmail))) {
+    if (!profile || (!fleetTiers.includes(effectiveTier(profile.tier, profile.role) ?? '') && !isAdminEmail(userEmail))) {
       return NextResponse.json({ error: 'Fleet Manager is a Pro/Fleet feature' }, { status: 403 })
     }
 

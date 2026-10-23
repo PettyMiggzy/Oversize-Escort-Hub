@@ -3,6 +3,7 @@ import SiteHeader from '@/components/SiteHeader';
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { isNativeApp, openInBrowser, WEB_HOST } from "@/lib/native";
+import { FREE_LAUNCH } from "@/lib/free-launch";
 
 const PRICES = {
   member:         "price_1TF00LLmfugPCRbAl6sF0Oup",
@@ -17,6 +18,11 @@ const PRICES = {
 };
 
 async function startCheckout(priceId: string, setLoading: (v: string) => void, zone?: string) {
+  // While everything is free the plans are not sold; sponsored zones (ads) still are.
+  if (FREE_LAUNCH && priceId !== PRICES.sponsored_zone) {
+    window.location.href = '/signin';
+    return;
+  }
   // Block in-app Stripe checkout to avoid Apple/Google's 30% fee.
   if (isNativeApp()) {
     openInBrowser('/pricing');
@@ -246,6 +252,13 @@ export default function PricingPage() {
         </div>
       )}
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" }}>
+        {FREE_LAUNCH && (
+          <div style={{ background: "rgba(240,165,0,.10)", border: `1px solid ${ORANGE}`, borderRadius: 12, padding: "18px 22px", margin: "0 auto 28px", maxWidth: 760, textAlign: "center" }}>
+            <div style={{ color: ORANGE, fontWeight: 900, fontSize: 20, letterSpacing: ".04em" }}>FREE WHILE WE LAUNCH</div>
+            <p style={{ color: TEXT, fontSize: 15, margin: "8px 0 14px" }}>Every feature is unlocked for every account. No card needed. We will give plenty of notice before any plan costs anything.</p>
+            <a href="/signin" style={{ display: "inline-block", background: ORANGE, color: "#000", fontWeight: 800, borderRadius: 8, padding: "11px 26px", textDecoration: "none" }}>Create your free account</a>
+          </div>
+        )}
         <div style={{ textAlign: "center", marginBottom: 16 }}>
           <h1 style={{ fontSize: 40, fontWeight: 900, margin: 0 }}>Pricing</h1>
           <p style={{ color: MUTED, fontSize: 15, marginTop: 8 }}>Simple plans for escorts, fleets, and carriers.</p>

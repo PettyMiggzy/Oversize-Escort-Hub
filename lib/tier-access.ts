@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { FREE_LAUNCH } from '@/lib/free-launch';
 
 const adminEmails = ['bahmed3170@gmail.com', 'brian@precisionpilotservices.com'];
 
@@ -33,6 +34,12 @@ export async function checkTierAccess(userId: string, email: string, requiredTie
   }
 
   if (!userId) return false;
+
+  // Free launch: every signed-in account has every plan's features
+  if (FREE_LAUNCH) return true;
+
+  // Free launch: every signed-in account has every plan's features
+  if (FREE_LAUNCH) return true;
 
   try {
     const supabase = await createClient();

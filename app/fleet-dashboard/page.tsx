@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { isAdminEmail } from '@/lib/supabase'
+import { effectiveTier } from '@/lib/free-launch'
 import { FleetDashboardPageClient } from './_client'
 
 const FLEET_TIERS = new Set(['fleet_starter', 'fleet_plus', 'fleet_pro'])
@@ -17,7 +18,7 @@ export default async function FleetDashboardPage() {
   const ok =
     isAdminEmail(user.email ?? '') ||
     isAdminEmail(prof?.email) ||
-    (prof?.role === 'fleet_manager' && FLEET_TIERS.has(prof?.tier || ''))
+    (prof?.role === 'fleet_manager' && FLEET_TIERS.has(effectiveTier(prof?.tier, prof?.role) || ''))
   if (!ok) redirect('/pricing')
   return <FleetDashboardPageClient />
 }

@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { SMS_ENABLED } from '@/lib/features'
+import { FREE_LAUNCH } from '@/lib/free-launch'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -76,11 +77,13 @@ export async function notifyDeadhead(load_id: string) {
     const escortIds = [...new Set(activeMatches.map((m) => m.matched_escort_id))]
 
     // Pro and Fleet escorts (the plan is in profiles.tier)
-    const { data: profiles } = await supabase
+    let profileQuery = supabase
       .from('profiles')
       .select('id, phone, tier')
       .in('id', escortIds)
-      .in('tier', ['pro', 'fleet_starter', 'fleet_plus', 'fleet_pro'])
+    // while everything is free, every matched escort is on the instant plan
+    if (!FREE_LAUNCH) profileQuery = profileQuery.in('tier', ['pro', 'fleet_starter', 'fleet_plus', 'fleet_pro'])
+    const { data: profiles } = await profileQuery
 
     if (!profiles?.length) return { notified: 0 }
 

@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { FREE_LAUNCH } from "@/lib/free-launch";
 
 type Plan = {
   id: string;
@@ -105,7 +106,7 @@ export default function CheckoutPage() {
           Choose Your Plan
         </h1>
         <p className="text-gray-600 mb-8">
-          All plans include core platform access. Cancel anytime.
+          {FREE_LAUNCH ? "Everything is free while we launch. Every feature is unlocked for your account, no card needed." : "All plans include core platform access. Cancel anytime."}
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">

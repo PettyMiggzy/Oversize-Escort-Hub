@@ -3,6 +3,7 @@ import PushInit from './components/PushInit'
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
+import { withFreeLaunch } from "@/lib/free-launch";
 
 const supabase = createClient();
 
@@ -2746,7 +2747,7 @@ export default function OEHPlatform() {
 
   async function loadProfile(userId: string) {
     const { data } = await supabase.from("profiles").select("*").eq("id", userId).single();
-    if (data) { setProfile(data as Profile); loadUnreadCount(userId, (data as Profile).role); }
+    if (data) { setProfile(withFreeLaunch(data) as Profile); loadUnreadCount(userId, (data as Profile).role); }
   }
   async function loadUnreadCount(userId: string, role: string) {
     if (role === 'escort') {

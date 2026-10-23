@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { isAdminEmail } from '@/lib/supabase'
 import { getAccessLevel, secondsUntilClaimable, type AccessLevel } from '@/lib/board-access'
+import { effectiveTier } from '@/lib/free-launch'
 import { BoardAdSidebar } from '@/components/BoardAdSidebar';
 
 function TimeRemaining({ expiresAt }: { expiresAt: string }) {
@@ -55,9 +56,9 @@ export function OpenLoadsBoardClient() {
   useEffect(() => {
     const loadUser = async (uid: string, email?: string | null): Promise<boolean> => {
       setUserId(uid)
-      const { data: p } = await supabase.from('profiles').select('tier').eq('id', uid).single()
+      const { data: p } = await supabase.from('profiles').select('tier, role').eq('id', uid).single()
       const admin = isAdminEmail(email)
-      const level = getAccessLevel(p?.tier ?? null, admin)
+      const level = getAccessLevel(effectiveTier(p?.tier, p?.role), admin)
       setAccessLevel(level)
       return level === 'instant'
     }

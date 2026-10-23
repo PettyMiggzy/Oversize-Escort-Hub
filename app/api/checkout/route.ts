@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { createCheckoutSession, getVeteranCouponId, STRIPE_PRICE_IDS } from '@/lib/stripe-utils';
 import { createClient } from '@/lib/supabase/server';
+import { FREE_LAUNCH } from '@/lib/free-launch';
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,6 +31,11 @@ export async function POST(req: NextRequest) {
     // only our own products can be bought here
     if (typeof priceId !== 'string' || !Object.values(STRIPE_PRICE_IDS).includes(priceId)) {
       return NextResponse.json({ error: 'Unknown product' }, { status: 400 });
+    }
+
+    // Free launch: plans and review fees are not sold; only sponsored zones can be bought
+    if (FREE_LAUNCH && priceId !== STRIPE_PRICE_IDS.SPONSORED_ZONE) {
+      return NextResponse.json({ error: 'Everything is free while we launch. No payment needed.' }, { status: 403 });
     }
 
     // Sponsored zone one-time buy requires a state or the webhook inserts nothing

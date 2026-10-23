@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { FREE_LAUNCH } from '@/lib/free-launch'
 
 export const metadata = {
   title: 'How to Become a Pilot Car / P/EVO Escort | OEH',
@@ -17,7 +18,7 @@ export default async function GettingStartedPage() {
       .eq('id', user.id)
       .single()
     const paidTiers = ['member', 'pro', 'fleet_starter', 'fleet_plus', 'fleet_pro']
-    isPaid = !!(profile?.tier && paidTiers.includes(profile.tier))
+    isPaid = FREE_LAUNCH || !!(profile?.tier && paidTiers.includes(profile.tier))
   }
 
   const certs = [

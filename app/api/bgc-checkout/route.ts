@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@/lib/supabase/server'
+import { FREE_LAUNCH } from '@/lib/free-launch'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,6 +12,8 @@ export async function POST(_req: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user || !user.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  if (FREE_LAUNCH) return NextResponse.json({ error: 'Everything is free while we launch. No payment needed.' }, { status: 403 })
 
   // Already paid? Don't create another session.
   const { data: prof } = await supabase.from('profiles').select('bgc_paid, bgc_verified').eq('id', user.id).single()

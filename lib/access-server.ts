@@ -1,6 +1,7 @@
 import type { SupabaseClient, User } from '@supabase/supabase-js'
 import { getAccessLevel, secondsUntilClaimable, type AccessLevel } from '@/lib/board-access'
 import { isAdminEmail } from '@/lib/supabase'
+import { effectiveTier } from '@/lib/free-launch'
 
 const DEADHEAD_EXCLUSIVE_MS = 5 * 60 * 1000
 
@@ -16,7 +17,7 @@ export async function escortClaimant(supabase: SupabaseClient, user: User): Prom
   if (!isAdmin && p?.role !== 'escort' && p?.role !== 'fleet_manager') {
     return { ok: false, error: 'Only escorts can claim or bid on loads' }
   }
-  return { ok: true, level: getAccessLevel(p?.tier, isAdmin) }
+  return { ok: true, level: getAccessLevel(effectiveTier(p?.tier, p?.role), isAdmin) }
 }
 
 /** @deprecated prefer escortClaimant — kept for any stray callers */

@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import { isAdminEmail } from '@/lib/supabase';
 import { getAccessLevel, secondsUntilClaimable } from '@/lib/board-access';
 import { BoardAdSidebar } from '@/components/BoardAdSidebar';
+import { effectiveTier } from '@/lib/free-launch';
 
 const toTitleCase = (str?: string) =>
   str ? str.replace(/\w\S*/g, t => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()) : '';
@@ -88,7 +89,7 @@ export function FlatRateBoardClient() {
         .then(({ data: p }) => {
           const prof = p as { role?: string; tier?: string } | null
           setUserRole(prof?.role ?? null)
-          setUserTier(prof?.tier ?? null)
+          setUserTier(effectiveTier(prof?.tier, prof?.role))
         });
       }
     });
@@ -99,7 +100,7 @@ export function FlatRateBoardClient() {
         .then(({ data: p }) => {
           const prof = p as { role?: string; tier?: string } | null
           setUserRole(prof?.role ?? null)
-          setUserTier(prof?.tier ?? null)
+          setUserTier(effectiveTier(prof?.tier, prof?.role))
         });
       } else {
         setUserId(null);

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import { effectiveTier } from '@/lib/free-launch'
 import { isAdminEmail } from "@/lib/supabase";
 
 const TRIAL_MAX_JOBS = 5;
@@ -19,12 +20,12 @@ export async function POST(req: NextRequest) {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("tier")
+      .select("tier, role")
       .eq("id", user.id)
       .single();
 
     // the trial cap covers everyone without a paid plan (a profile's tier can also read 'free')
-    const tier = (profile as any)?.tier;
+    const tier = effectiveTier((profile as any)?.tier, (profile as any)?.role);
     if ((!tier || tier === "trial" || tier === "free") && !isAdminEmail(user.email)) {
       const { count } = await supabase
         .from("job_logs")

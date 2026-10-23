@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { isAdminEmail } from '@/lib/supabase'
+import { withFreeLaunch } from '@/lib/free-launch'
 const BG = '#060b16'
 const SURFACE = '#0d1117'
 const ORANGE = '#f0a500'
@@ -98,7 +99,7 @@ export function DashboardPageClient() {
         router.replace('/fleet-dashboard')
         return
       }
-      setProfile(prof)
+      setProfile(withFreeLaunch(prof))
 
       const { count } = await supabase
         .from('notifications')

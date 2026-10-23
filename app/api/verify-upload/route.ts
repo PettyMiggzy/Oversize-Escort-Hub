@@ -2,6 +2,7 @@ import { sendEmail } from '@/lib/email'
 import { NextResponse } from 'next/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { requireAuth } from '@/lib/api-auth'
+import { FREE_LAUNCH } from '@/lib/free-launch'
 import { escapeHtml } from '@/lib/security'
 
 export async function POST(req: Request) {
@@ -26,7 +27,7 @@ export async function POST(req: Request) {
     )
 
     // Same paywall as /api/escort/cert-upload for P/EVO cert review
-    if (certType === 'pevo') {
+    if (certType === 'pevo' && !FREE_LAUNCH) {
       const { data: prof } = await svc
         .from('profiles')
         .select('pevo_paid')

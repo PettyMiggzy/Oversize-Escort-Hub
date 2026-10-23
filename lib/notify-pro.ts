@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { SMS_ENABLED } from '@/lib/features'
+import { FREE_LAUNCH } from '@/lib/free-launch'
 import { sendWebPushToUsers } from '@/lib/push'
 
 const supabase = createClient(
@@ -37,9 +38,10 @@ export async function notifyProEscorts({ load_id, zone, cert_type, pu_state, dl_
   let query = supabase
     .from('profiles')
     .select('id, full_name, phone, availability_states')
-    .in('tier', ['pro', 'fleet_starter', 'fleet_plus', 'fleet_pro'])
     .in('role', ['escort', 'fleet_manager'])
 
+  // while everything is free every escort is on the instant plan, so no plan filter
+  if (!FREE_LAUNCH) query = query.in('tier', ['pro', 'fleet_starter', 'fleet_plus', 'fleet_pro'])
   if (cert_type) query = query.contains('cert_types', [cert_type])
 
   const { data: proEscorts } = await query
