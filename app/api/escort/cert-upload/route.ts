@@ -30,7 +30,8 @@ export async function POST(req: NextRequest) {
 
     // P/EVO cert review uploads require the pevo paywall purchase first
     const normalizedType = certType === "p_evo" ? "pevo" : certType;
-    if (normalizedType === "pevo") {
+    const lowered = normalizedType.toLowerCase();
+    if (lowered.includes("pevo") || lowered.includes("p/evo")) {
       const { data: prof } = await supabase
         .from("profiles")
         .select("pevo_paid")

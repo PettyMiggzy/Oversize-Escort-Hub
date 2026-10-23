@@ -10,7 +10,6 @@ const PROTECTED_ROUTES = [
   '/invoices',
   '/jobs',
   '/admin',
-  '/delete-account',
   '/available',
   '/escort-cert',
   '/verify',

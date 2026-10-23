@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
     const permit_url =
-      typeof permitUrl === 'string' && permitUrl.startsWith('http')
+      typeof permitUrl === 'string' && permitUrl.startsWith(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/`)
         ? permitUrl.slice(0, 1000)
         : null
 

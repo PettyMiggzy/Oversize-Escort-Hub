@@ -45,7 +45,7 @@ export async function POST(req: Request) {
         : `${userId}/${String(fileName || 'upload').slice(0, 200)}`
 
     let docUrl =
-      typeof documentUrl === 'string' && documentUrl.startsWith('http')
+      typeof documentUrl === 'string' && documentUrl.startsWith(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/`)
         ? documentUrl.slice(0, 1000)
         : ''
     if (!docUrl) {

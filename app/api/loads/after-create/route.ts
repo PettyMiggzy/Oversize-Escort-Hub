@@ -25,12 +25,18 @@ export async function POST(req: NextRequest) {
   )
   const { data: load } = await svc
     .from('loads')
-    .select('id, carrier_id, pu_state, dl_state')
+    .select('id, carrier_id, pu_state, dl_state, status, created_at')
     .eq('id', loadId)
     .maybeSingle()
   if (!load) return NextResponse.json({ error: 'Load not found' }, { status: 404 })
   if (load.carrier_id !== user.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+  }
+
+  // Only right after posting: a carrier must not be able to re-run the alerts on an old load
+  const age = Date.now() - Date.parse(load.created_at ?? '')
+  if (load.status !== 'open' || !(age >= 0 && age < 5 * 60 * 1000)) {
+    return NextResponse.json({ error: 'Alerts only run just after a load is posted' }, { status: 409 })
   }
 
   const [deadhead, pro] = await Promise.allSettled([
