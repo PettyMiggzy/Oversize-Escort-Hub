@@ -23,11 +23,11 @@ async function startCheckout(priceId: string, setLoading: (v: string) => void, z
     window.location.href = '/signin';
     return;
   }
-  // Block in-app Stripe checkout to avoid Apple/Google's 30% fee.
+  // Purchases are made on the website, not inside the app.
   if (isNativeApp()) {
     openInBrowser('/pricing');
     if (typeof window !== 'undefined') {
-      window.alert('To subscribe, please visit oversize-escort-hub.com in your browser. This keeps your subscription cost lower \u2014 no app store fees passed to you.');
+      window.alert('Please continue on oversize-escort-hub.com in your browser.');
     }
     return;
   }
@@ -187,7 +187,7 @@ export default function PricingPage() {
     if (isNativeApp()) {
       openInBrowser('/pricing');
       if (typeof window !== 'undefined') {
-        window.alert('To subscribe, please visit oversize-escort-hub.com in your browser. This keeps your subscription cost lower \u2014 no app store fees passed to you.');
+        window.alert('Please continue on oversize-escort-hub.com in your browser.');
       }
       return;
     }
@@ -238,8 +238,8 @@ export default function PricingPage() {
           }}
         >
           <div style={{ maxWidth: 720, margin: '0 auto' }}>
-            <strong style={{ color: '#f0a500' }}>Subscribe on the web.</strong>{' '}
-            To keep your subscription cost lower (no app store fees), please visit{' '}
+            <strong style={{ color: '#f0a500' }}>Plans and purchases are on our website.</strong>{' '}
+            Please visit{' '}
             <a
               href={`${WEB_HOST}/pricing`}
               onClick={(e) => { e.preventDefault(); openInBrowser('/pricing'); }}
@@ -247,7 +247,7 @@ export default function PricingPage() {
             >
               oversize-escort-hub.com/pricing
             </a>
-            {' '}in your browser. Your subscription works everywhere — web and app.
+            {' '}in your browser. Your account works everywhere, web and app.
           </div>
         </div>
       )}

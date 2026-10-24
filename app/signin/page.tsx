@@ -160,9 +160,10 @@ function SignInInner() {
   async function handleSubmit() {
     setError("");
     setSuccess("");
-    // Block in-app sign-up to avoid Apple/Google IAP 30% fee funnel.
+    // In the app, new accounts are created on the website; the app signs the account in afterwards.
     if (mode === "signup" && isNativeApp()) {
-      setError("To create your account, visit oversize-escort-hub.com in your browser. This keeps your subscription cost lower \u2014 no app store fees passed to you.");
+      openInBrowser('/signin');
+      setError("Your browser is opening so you can create your account on oversize-escort-hub.com. Come back here and sign in when you are done.");
       return;
     }
     setLoading(true);
@@ -239,8 +240,8 @@ function SignInInner() {
           }}
         >
           <div style={{ maxWidth: 560, margin: '0 auto' }}>
-            <strong style={{ color: '#f0a500' }}>Create your account on the web.</strong>{' '}
-            To keep your subscription cost lower (no app store fees), please visit{' '}
+            <strong style={{ color: '#f0a500' }}>Create your account on our website.</strong>{' '}
+            New accounts are made at{' '}
             <a
               href={`${WEB_HOST}/signin`}
               onClick={(e) => { e.preventDefault(); openInBrowser('/signin'); }}
@@ -248,7 +249,7 @@ function SignInInner() {
             >
               oversize-escort-hub.com
             </a>
-            {' '}in your browser. You can sign in here once your account is created.
+            {' '}in your browser. Once it is created, sign in here with the same email and password.
           </div>
         </div>
       )}

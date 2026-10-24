@@ -1,10 +1,8 @@
 /**
  * Native-app (Capacitor webview) detection helpers.
  *
- * We use these to block in-app sign-up and Stripe checkout on iOS/Android
- * builds so we don't owe Apple/Google 30%. Users create accounts and
- * subscribe on the web; the mobile app then signs them in with the
- * existing account.
+ * In the iOS/Android builds, accounts are created and purchases are made on
+ * the website; the mobile app then signs in with the existing account.
  */
 export const isNativeApp = (): boolean => {
   if (typeof window === 'undefined') return false;
