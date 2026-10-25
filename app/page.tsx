@@ -335,8 +335,6 @@ footer{background:var(--p1);border-top:1px solid var(--l1);padding:40px 24px 24p
 .role-picker-active::before,.role-picker-active::after{content:"";flex:1 0 0;}
 .role-card{background:var(--p1);border-radius:4px;padding:36px 28px;cursor:pointer;transition:background .15s;flex:1}
 .role-card:hover{background:rgba(255,255,255,.03)}
-.role-art{display:block;width:100%;max-width:300px;height:130px;object-fit:contain;margin:-12px auto 14px;filter:drop-shadow(0 14px 14px rgba(0,0,0,.55));transition:transform .25s}
-.role-card:hover .role-art{transform:translateY(-4px) scale(1.04)}
 .role-bar{background:var(--p2);border-bottom:1px solid var(--l1);padding:6px 24px;display:flex;align-items:center;gap:12px}
 
 .form-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--t2);display:block;margin-bottom:6px}
@@ -642,25 +640,21 @@ function HomePage({ setPage, user, profile, setSigninMode, setPendingRole }: { s
           </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, width: "100%", maxWidth: 720 }}>
           <div className="role-card" style={{ border: "2px solid var(--or)" }} onClick={() => { setPendingRole("carrier"); setSigninMode("signup"); setPage("signin"); }}>
-            <img src="/role-carrier.png" alt="" className="role-art" />
             <div className="bb" style={{ fontSize: 34, color: "var(--or)", marginBottom: 10 }}>OVERSIZE CARRIER</div>
             <p style={{ fontSize: 11, color: "var(--t2)", lineHeight: 1.5, marginBottom: 16 }}>Carriers hauling oversize/overweight loads who need permits, escorts, and load boards.</p>
             <div className="mo" style={{ fontSize: 10, color: "var(--or)", letterSpacing: ".1em" }}>POST LOADS · BID BOARD · FIND ESCORTS</div>
           </div>
           <div className="role-card" style={{ border: "2px solid var(--am)" }} onClick={() => { setPendingRole("escort"); setSigninMode("signup"); setPage("signin"); }}>
-            <img src="/role-escort.png" alt="" className="role-art" />
             <div className="bb" style={{ fontSize: 34, color: "var(--am)", marginBottom: 10 }}>PILOT CAR / P/EVO</div>
             <p style={{ fontSize: 11, color: "var(--t2)", lineHeight: 1.5, marginBottom: 16 }}>Pilot car operators and P/EVO escorts looking for loads, routes, and work opportunities.</p>
             <div className="mo" style={{ fontSize: 10, color: "var(--am)", letterSpacing: ".1em" }}>FIND LOADS · DEADHEAD MINIMIZER · BID</div>
           </div>
           <div className="role-card" style={{ border: "2px solid var(--t2)" }} onClick={() => { setPendingRole("broker"); setSigninMode("signup"); setPage("signin"); }}>
-            <img src="/role-broker.png" alt="" className="role-art" />
             <div className="bb" style={{ fontSize: 34, color: "var(--t2)", marginBottom: 10 }}>FREIGHT BROKER</div>
             <p style={{ fontSize: 11, color: "var(--t2)", lineHeight: 1.5, marginBottom: 16 }}>Licensed freight brokers who need verified P/EVO escorts for oversize shipments.</p>
             <div className="mo" style={{ fontSize: 9, color: "var(--t2)", letterSpacing: ".1em" }}>POST LOADS · FIND ESCORTS · MANAGE SHIPMENTS</div>
           </div>
           <div className="role-card" style={{ border: "2px solid #3b82f6" }} onClick={() => window.location.href = "/join?role=fleet"}>
-            <img src="/role-fleet.png" alt="" className="role-art" />
             <div className="bb" style={{ fontSize: 34, color: "#3b82f6", marginBottom: 10 }}>FLEET MANAGER</div>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
               <span style={{ background: "rgba(59,130,246,0.18)", color: "#3b82f6", fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, letterSpacing: 1 }}>PRO REQUIRED</span>
