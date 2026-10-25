@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { SMS_ENABLED } from '@/lib/features'
 import { alertEscortBidAccepted, runAfter } from '@/lib/alerts'
 
@@ -52,8 +53,10 @@ export async function POST(req: NextRequest) {
     if (takeErr) return NextResponse.json({ error: 'Could not accept the bid' }, { status: 500 })
     if (!taken?.length) return NextResponse.json({ error: 'Load not available' }, { status: 409 })
 
-    // Accept this bid, reject the rest
-    const { data: accepted, error: acceptErr } = await supabase
+    // Accept this bid, reject the rest. Bids belong to the escort, so the database gives a carrier no update right on them:
+    // the writes use the service key, after the checks above (this is the load's carrier, and the bid is on this load).
+    const svc = createServiceClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+    const { data: accepted, error: acceptErr } = await svc
       .from('bids')
       .update({ status: 'accepted' })
       .eq('id', bid_id)
@@ -67,7 +70,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Bid not available' }, { status: 409 })
     }
 
-    await supabase
+    await svc
       .from('bids')
       .update({ status: 'rejected' })
       .eq('load_id', load_id)
