@@ -35,6 +35,7 @@ export async function POST(request: NextRequest) {
         dl_city: destinationCity,
         dl_state: destinationState,
         escort_type: escortType,
+        position: escortType,
         escort_count: escort_count || 1,
         board_type: boardType,
         load_type: loadType || 'oversize',
