@@ -25,26 +25,29 @@ Pilot car jobs & escorts
 
 ## Full description
 
-Oversize Escort Hub connects oversize-load carriers with certified pilot car (P/EVO) escorts.
+Oversize Escort Hub is the load board for oversize-load carriers and certified pilot car (P/EVO) escorts. Everything is free while we launch.
 
 FOR ESCORTS
-- Browse flat-rate, open and 5-minute bid boards for escort jobs
-- Pro members see new loads first and get instant alerts
-- Set the states you run and get matched to loads
-- Track jobs, mileage and expenses, and send invoices
+- Browse flat-rate, open-bid and 5-minute bid boards for escort jobs
+- Get email and in-app alerts for new loads in the states you cover
+- Place bids or claim loads and get matched with the carrier
 - Show your certifications, background check and vehicle verification on your profile
-- Use the weather and deadhead tools to plan the trip home
+- Use the Deadhead Minimizer to find return loads near your drop-off, plus the weather tools
+- Track jobs, mileage and expenses, and send invoices
 
-FOR CARRIERS
-- Post a load in minutes and receive bids from verified escorts
-- See each escort's certifications, verification level and reviews
-- Accept the bid you want; contact details are shared only after a match
+FOR CARRIERS AND BROKERS
+- Post a load in minutes and receive bids from escorts
+- Review each escort's certifications, verification level and ratings
+- Accept the bid you want; contact details are shared after a match
+
+FOR FLEETS
+- Manage several escorts in one account
 
 TRUST
-- Four-step verification: P/EVO certificate, vehicle, background check, admin review
+- Verification steps: P/EVO certificate, vehicle, background check and admin review
 - Reviews after every job
 
-No commissions and no job fees. Plans and payments are managed on our website.
+No commissions and no job fees. Accounts are created on our website.
 
 ## Keywords (App Store, 100 characters)
 
@@ -65,9 +68,9 @@ Data is NOT sold. Data is NOT used for advertising.
 | Files and docs (certificates, ID, background check, DD-214) | Yes (optional) | No (admin review only) | Verification |
 | Approximate/precise location | Only on the weather page, when the user taps it, and not stored | No | Weather |
 | User-generated content (loads, bids, reviews) | Yes | With other users | App functionality |
-| Purchase history | Yes (plan only; card details stay with Stripe) | Stripe | Subscriptions on the website |
+| Purchase history | Yes (website add-ons such as sponsored zones; card details stay with Stripe) | Stripe | Purchases on the website |
 | App activity / diagnostics | Yes (Vercel Analytics, page views) | Vercel | Analytics |
-| Device or other IDs | Yes (a browser fingerprint to stop repeated free trials; push token) | No | Fraud prevention; notifications |
+| Device or other IDs | Yes (push token) | No | Notifications |
 
 Third-party services that process data: Supabase (database and login), Stripe (payments), Resend (email), Vercel (hosting and analytics).
 Text messages (SMS) are NOT active yet; do not declare SMS data until they are switched on.
@@ -84,14 +87,14 @@ Expected: Apple 4+, Google "Everyone".
 
 ## App Review notes (paste into App Store Connect "Notes" and Play "App access")
 
-Oversize Escort Hub is a marketplace for pilot car escorts and oversize-load carriers.
-Accounts and subscriptions are created and paid for on our website, so the app does not sell digital goods inside
-the app (sign-up and checkout are hidden in the app). Sign in with the demo account below.
+Oversize Escort Hub is a marketplace for pilot car escorts and oversize-load carriers. Everything is free while we launch.
+Accounts are created on our website, so the app sells nothing inside the app (sign-up and checkout are hidden in the app).
+Sign in with a demo account below. The owner supplies the credentials in the store console only: never write them in this repository.
 
-Demo account (escort, Pro plan): [OWNER: email]  password: [OWNER: password]
-Demo account (carrier): [OWNER: email]  password: [OWNER: password]
+Demo account (escort): [OWNER: enter in the console]
+Demo account (carrier): [OWNER: enter in the console]
 
-Users can delete their account in the app: menu > "Delete my account".
+Users can delete their account at https://www.oversize-escort-hub.com/delete-account.
 
 ## Ready-made images (in docs/mobile-store/assets/)
 
@@ -100,24 +103,19 @@ Users can delete their account in the app: menu > "Delete my account".
 - appstore-icon-1024.png: App Store icon (1024x1024, no transparency)
 The app's own launcher icons and splash screens already use the same 3D logo.
 
-## Screenshots needed
+## Screenshots
 
-Phone portrait, at least 4 each (Play 1080x1920 or larger; App Store 6.7-inch 1290x2796 and 6.5-inch 1284x2778):
-1. Bid board with loads
-2. A load's details with the bid button
-3. Escort dashboard (jobs, earnings)
-4. Profile with verification badges
-5. Post-a-load form (carrier)
-The 512x512 icon and 1024x500 feature graphic for Play are ready (see above); phone screenshots still have to be taken from the app.
+Seven phone screenshots (1080x1920) were taken from the live site on 2026-10-25: home, role cards, create account, how it works,
+free pricing, post a load, dashboard. Retake after loads exist to add the bid board and a load's details.
+App Store sizes (1290x2796 and 1284x2778) are needed only when the iPhone project exists.
 
 ## Still needed from the owner
 
-- Demo accounts for the reviewers (a Pro escort and a carrier) with a few sample loads on the boards.
-- App Store: an iPhone project built on a Mac with Xcode (npx cap add ios), a Firebase/APNs key if native push is wanted.
-- Native push notifications need a Firebase project and its google-services.json (the web push used on the site does not work inside the app).
-- Apple often rejects apps that are only a website in a wrapper (guideline 4.2): the reviewer notes above, push alerts and the
-  document/photo upload from the phone camera are the usual way through.
-- Back up `android/oeh-release.keystore` privately (it is gitignored). Set `OEH_KEYSTORE_PASSWORD`, `OEH_KEY_PASSWORD`,
-  and optional `OEH_KEYSTORE_PATH` / `OEH_KEY_ALIAS` in CI — never commit passwords. Turn on Play App Signing.
+- A new Android signing key and the GitHub secrets: see [SIGNING_KEY.md](./SIGNING_KEY.md). The old key was public and must never be used.
+- Reviewer demo accounts (an escort and a carrier) entered in the store console, with a strong password changed after approval.
+- App Store: an iPhone project built on a Mac with Xcode (npx cap add ios), and a Firebase/APNs key if native push is wanted.
+- Native push needs a Firebase project and its google-services.json (the web push on the site does not work inside the app).
+- Apple often rejects apps that are only a website in a wrapper (guideline 4.2); Google can too (minimum functionality).
+  Native push and phone-camera document upload are the usual way through.
 
 See also: [STORE_READINESS.md](./STORE_READINESS.md) for the prioritized A1 gap list.
