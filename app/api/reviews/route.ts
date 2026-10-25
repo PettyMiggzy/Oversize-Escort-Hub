@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createServerSupabase } from '@/lib/supabase/server';
+import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { checkTierAccess } from '@/lib/tier-access';
 
 export const dynamic = 'force-dynamic';
@@ -49,16 +50,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'You can only review someone you worked a load with' }, { status: 403 });
     }
 
-    const { data, error } = await authed
+    // written with the service key after the checks above: the table is closed to direct writes from the browser
+    const svc = createServiceClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+    const { data, error } = await svc
       .from('reviews')
       .insert({
         load_id: loadId,
         reviewer_id: userId,
         reviewee_id: targetUserId,
         rating,
-        body: typeof comment === 'string' ? comment.slice(0, 2000) : null,
+        comment: typeof comment === 'string' ? comment.slice(0, 2000) : null,
+        reviewer_role: role === 'escort' ? 'escort' : 'carrier',
       });
 
+    // one review per person per load
+    if (error?.code === '23505') return NextResponse.json({ error: 'You already reviewed this load' }, { status: 409 });
     if (error) throw error;
     return NextResponse.json({ success: true, review: data });
   } catch (error) {
