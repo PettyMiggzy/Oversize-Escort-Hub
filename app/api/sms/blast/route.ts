@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { requireAdmin } from '@/lib/api-auth'
 import { SMS_ENABLED, smsComingSoon } from '@/lib/features'
+import { sendSms } from '@/lib/twilio'
 
 export async function POST(req: NextRequest) {
   if (!SMS_ENABLED) return smsComingSoon()
@@ -25,8 +26,6 @@ export async function POST(req: NextRequest) {
     const { data: profiles, error } = await query
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-    const accountId = process.env.TEXTREQUEST_ACCOUNT_ID
-    const apiKey = process.env.TEXTREQUEST_API_KEY
     let sent = 0
 
     for (const p of (profiles || [])) {
@@ -34,12 +33,7 @@ export async function POST(req: NextRequest) {
       try {
         const { data: optOut } = await supabase.from('sms_opt_outs').select('id').eq('phone', p.phone).maybeSingle()
         if (optOut) continue
-        const res = await fetch(`https://app.textrequest.com/api/v2/accounts/${accountId}/messages`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey! },
-          body: JSON.stringify({ contact_phone: p.phone, message })
-        })
-        if (res.ok) sent++
+        if (await sendSms(p.phone, message)) sent++
       } catch (_) {}
     }
 

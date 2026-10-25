@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { SMS_ENABLED } from '@/lib/features'
 import { alertEscortBidAccepted, runAfter } from '@/lib/alerts'
+import { sendSms } from '@/lib/twilio'
 
 export const dynamic = 'force-dynamic'
 
@@ -78,25 +79,15 @@ export async function POST(req: NextRequest) {
 
     runAfter(() => alertEscortBidAccepted(load_id, escort_id))
 
-    // Text the accepted escort once SMS is switched on (it is coming soon)
+    // Text the accepted escort once SMS is switched on (it stays off until SMS_ENABLED=true)
     if (SMS_ENABLED) {
       const { data: escort } = await supabase
         .from('profiles')
         .select('phone')
         .eq('id', escort_id)
         .single()
-      const apiKey = process.env.TEXTREQUEST_API_KEY
-      const accountId = process.env.TEXTREQUEST_ACCOUNT_ID
-      if (escort?.phone && apiKey && accountId) {
-        await fetch('https://api.textrequest.com/api/v3/Messages', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-Api-Key': apiKey },
-          body: JSON.stringify({
-            AccountId: accountId,
-            Contact: { PhoneNumber: escort.phone },
-            Body: `OEH: Your bid was accepted! Check the app for load details. https://oversize-escort-hub.com/dashboard`,
-          }),
-        }).catch(() => {})
+      if (escort?.phone) {
+        await sendSms(escort.phone, 'OEH: Your bid was accepted! Check the app for load details. https://oversize-escort-hub.com/dashboard')
       }
     }
 

@@ -2,26 +2,12 @@ import { createClient } from '@supabase/supabase-js'
 import { SMS_ENABLED } from '@/lib/features'
 import { FREE_LAUNCH } from '@/lib/free-launch'
 import { sendWebPushToUsers } from '@/lib/push'
+import { sendSms } from '@/lib/twilio'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
-
-async function sendSMS(phone: string, body: string): Promise<boolean> {
-  if (!SMS_ENABLED) return false
-  const apiKey = process.env.TEXTREQUEST_API_KEY
-  const accountId = process.env.TEXTREQUEST_ACCOUNT_ID
-  if (!apiKey || !accountId) return false
-  const { data: optOut } = await supabase.from('sms_opt_outs').select('id').eq('phone', phone).maybeSingle()
-  if (optOut) return false
-  const res = await fetch(`https://api.textrequest.com/api/v3/Messages`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Api-Key': apiKey },
-    body: JSON.stringify({ AccountId: accountId, Contact: { PhoneNumber: phone }, Body: body }),
-  })
-  return res.ok
-}
 
 type NotifyProInput = { load_id: string; zone?: string; cert_type?: string; pu_state?: string; dl_state?: string }
 
@@ -98,7 +84,7 @@ export async function notifyProEscorts({ load_id, zone, cert_type, pu_state, dl_
     for (const e of allEscorts as any[]) {
       if (!e.phone) continue
       try {
-        if (await sendSMS(e.phone, msg)) smsSent++
+        if (await sendSms(e.phone, msg)) smsSent++
       } catch {}
     }
   }
