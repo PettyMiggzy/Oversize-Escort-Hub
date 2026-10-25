@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     const normalizedType = certType === "p_evo" ? "pevo" : certType;
     const lowered = normalizedType.toLowerCase();
     if (!FREE_LAUNCH && (lowered.includes("pevo") || lowered.includes("p/evo"))) {
-      const { data: prof } = await supabase
+      const { data: prof } = await serviceClient()
         .from("profiles")
         .select("pevo_paid")
         .eq("id", user.id)

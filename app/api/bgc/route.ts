@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient as createSvcClient } from '@supabase/supabase-js'
+import { serviceClient } from '@/lib/service-client'
 import { FREE_LAUNCH } from '@/lib/free-launch'
 import { Resend } from 'resend'
 import { signedDocUrl } from '@/lib/signed-url'
@@ -15,7 +16,7 @@ export async function GET() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ status: 'none' })
 
-  const { data: prof } = await supabase
+  const { data: prof } = await serviceClient()
     .from('profiles')
     .select('bgc_verified, bgc_pending')
     .eq('id', user.id)
@@ -53,7 +54,7 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   // Payment gate
-  const { data: prof } = await supabase.from('profiles').select('bgc_paid, bgc_verified, full_name, email').eq('id', user.id).single()
+  const { data: prof } = await serviceClient().from('profiles').select('bgc_paid, bgc_verified, full_name, email').eq('id', user.id).single()
   if (prof?.bgc_verified) return NextResponse.json({ error: 'Already verified' }, { status: 400 })
   if (!FREE_LAUNCH && !prof?.bgc_paid) return NextResponse.json({ error: 'Payment required before upload' }, { status: 402 })
 

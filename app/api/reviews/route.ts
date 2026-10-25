@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
 
     const { data: profile } = await authed
       .from('profiles')
-      .select('email, role')
+      .select('role')
       .eq('id', userId)
       .single();
 

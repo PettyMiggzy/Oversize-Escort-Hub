@@ -58,18 +58,17 @@ export default function AdminPage() {
       // Fetch DD-214 queue
       fetch('/api/admin/dd214').then(r => r.json()).then(d => setDd214Queue(d.submissions || [])).catch(() => setDd214Queue([]))
       // Fetch Sponsored Zones
-      supabase.from('sponsored_zones').select('*, profiles(full_name, email)').then(({data}: {data: any}) => setSponsoredZonesList(data || []))
+      supabase.from('sponsored_zones').select('*, profiles(full_name)').then(({data}: {data: any}) => setSponsoredZonesList(data || []))
       // Fetch Disputes
       supabase.from('disputes').select('*').then(({data}: {data: any}) => setDisputesList(data || []))
       // Fetch Loads
       supabase.from('loads').select('*').order('created_at', {ascending: false}).then(({data}: {data: any}) => setLoadsList(data || []))
 
-      // Load users
-      const { data: usersData } = await supabase
-        .from('profiles')
-        .select('id, full_name, email, role, tier, bgc_verified, pevo_verified, created_at, suspended, phone, stripe_customer_id, tier_updated_at, sms_opt_in')
-        .order('created_at', { ascending: false })
-      setUsers(usersData || [])
+      // Email, phone, and Stripe ids are not readable on other rows from the browser.
+      const usersRes = await fetch('/api/contact/directory')
+      const usersBody = await usersRes.json().catch(() => ({}))
+      const usersData: any[] = usersRes.ok ? (usersBody.users || []) : []
+      setUsers(usersData)
 
       // Revenue
       const all = usersData || []
@@ -455,7 +454,7 @@ export default function AdminPage() {
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                         <div>
                           <div style={{ fontWeight: 600, fontSize: 15 }}>{z.zone || 'Zone'}</div>
-                          <div style={{ color: '#9ca3af', fontSize: 12 }}>{prof.full_name || z.user_id} {prof.email ? '• ' + prof.email : ''}</div>
+                          <div style={{ color: '#9ca3af', fontSize: 12 }}>{prof.full_name || users.find(u => u.id === z.user_id)?.full_name || z.user_id} {users.find(u => u.id === z.user_id)?.email ? '• ' + users.find(u => u.id === z.user_id).email : ''}</div>
                           <div style={{ color: '#9ca3af', fontSize: 12, marginTop: 4 }}>Status: {z.active === false ? 'inactive' : 'active'} • Expires: {z.expires_at ? new Date(z.expires_at).toLocaleDateString() : '-'}</div>
                         </div>
                       </div>

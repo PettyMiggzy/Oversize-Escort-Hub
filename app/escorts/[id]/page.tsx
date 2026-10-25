@@ -1,7 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-
 const svc = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -9,7 +8,7 @@ const svc = createClient(
 
 export default async function EscortProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const { data: profile } = await svc.from('profiles').select('*').eq('id', id).single()
+  const { data: profile } = await svc.from('profiles').select('id, full_name, role, tier, bio, bgc_verified, rating, review_count, avatar_url, pevo_verified, state, vehicle, states_licensed, availability_states, is_available, created_at').eq('id', id).single()
   if (!profile) notFound()
 
   const { data: certs } = await svc.from('certifications').select('*').eq('user_id', id)

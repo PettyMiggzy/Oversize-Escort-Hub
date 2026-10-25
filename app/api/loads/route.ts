@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse, after } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { serviceClient } from '@/lib/service-client'
 import { notifyProEscorts } from '@/lib/notify-pro'
 import { notifyDeadhead } from '@/lib/deadhead'
 import { alertEscortsNewLoad } from '@/lib/alerts'
@@ -17,7 +18,7 @@ export async function POST(request: NextRequest) {
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     // Only carriers, brokers and admins post loads, and a suspended account cannot post
-    const { data: poster } = await supabase.from('profiles').select('role, suspended').eq('id', user.id).maybeSingle()
+    const { data: poster } = await serviceClient().from('profiles').select('role, suspended').eq('id', user.id).maybeSingle()
     const isAdmin = poster?.role === 'admin' || isAdminEmail(user.email ?? '')
     if (poster?.suspended && !isAdmin) return NextResponse.json({ error: 'This account is suspended' }, { status: 403 })
     if (!isAdmin && poster?.role !== 'carrier' && poster?.role !== 'broker') {

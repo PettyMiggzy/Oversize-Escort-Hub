@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { requireAuth } from '@/lib/api-auth'
+import { serviceClient } from '@/lib/service-client'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,9 +13,7 @@ export async function POST(req: NextRequest) {
     const { load_id } = await req.json()
     if (!load_id) return NextResponse.json({ error: 'load_id required' }, { status: 400 })
 
-    const supabase = await createClient()
-
-    const { data: load } = await supabase
+    const { data: load } = await serviceClient()
       .from('loads')
       .select('*, profiles!carrier_id(full_name, email, company_name, phone)')
       .eq('id', load_id)

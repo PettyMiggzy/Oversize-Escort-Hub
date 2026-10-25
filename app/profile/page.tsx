@@ -22,11 +22,9 @@ export default function ProfilePage() {
         router.replace('/signin')
         return
       }
-      const { data: prof } = await supabase
-        .from('profiles')
-        .select('full_name, company_name, phone, state')
-        .eq('id', user.id)
-        .single()
+      const res = await fetch('/api/profile/me')
+      const body = await res.json().catch(() => ({}))
+      const prof = res.ok ? body.profile : null
       if (prof) {
         setFullName(prof.full_name || '')
         setCompany(prof.company_name || '')
