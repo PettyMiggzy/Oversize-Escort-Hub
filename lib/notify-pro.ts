@@ -42,7 +42,6 @@ export async function notifyProEscorts({ load_id, zone, cert_type, pu_state, dl_
 
   // while everything is free every escort is on the instant plan, so no plan filter
   if (!FREE_LAUNCH) query = query.in('tier', ['pro', 'fleet_starter', 'fleet_plus', 'fleet_pro'])
-  if (cert_type) query = query.contains('cert_types', [cert_type])
 
   const { data: proEscorts } = await query
 
@@ -59,7 +58,7 @@ export async function notifyProEscorts({ load_id, zone, cert_type, pu_state, dl_
     const { data: availRows } = await supabase
       .from('escort_availability')
       .select('escort_id')
-      .eq('state', stateFilter)
+      .eq('location_state', stateFilter)
     for (const row of availRows || []) {
       if (row.escort_id) coveredIds.add(row.escort_id)
     }

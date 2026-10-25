@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { requireAuth } from "@/lib/api-auth";
 import { sendWebPushToUser } from "@/lib/push";
+import { alertEscortMatch, runAfter } from "@/lib/alerts";
 
 
 export const dynamic = 'force-dynamic'
@@ -52,6 +53,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Load is no longer pending" }, { status: 409 });
     }
 
+    runAfter(() => alertEscortMatch(load_id, load.matched_escort_id, true));
     await sendWebPushToUser(load.matched_escort_id, {
       title: "Match Accepted!",
       body: `${carrierP?.full_name ?? "Carrier"}: ${carrierP?.phone ?? carrierP?.email ?? "—"}`,
@@ -78,6 +80,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Load is no longer pending" }, { status: 409 });
     }
 
+    runAfter(() => alertEscortMatch(load_id, load.matched_escort_id, false));
     await sendWebPushToUser(load.matched_escort_id, {
       title: "Match Declined",
       body: "The carrier has passed on your request. Keep looking — the load is back on the board.",

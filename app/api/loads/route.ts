@@ -2,7 +2,10 @@ import { NextRequest, NextResponse, after } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { notifyProEscorts } from '@/lib/notify-pro'
 import { notifyDeadhead } from '@/lib/deadhead'
+import { alertEscortsNewLoad } from '@/lib/alerts'
 import { isAdminEmail } from '@/lib/supabase'
+
+export const maxDuration = 60
 
 const BOARD_TYPES = ['flat-rate', 'bid', 'open-bid']
 const MAX_HOLD_MS = 14 * 24 * 60 * 60 * 1000
@@ -92,6 +95,7 @@ export async function POST(request: NextRequest) {
         await Promise.allSettled([
           notifyDeadhead(loadId),
           notifyProEscorts({ load_id: loadId, pu_state: pickupState, dl_state: destinationState }),
+          alertEscortsNewLoad(loadId),
         ])
       })
     }

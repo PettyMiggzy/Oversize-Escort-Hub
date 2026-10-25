@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { SMS_ENABLED } from '@/lib/features'
+import { alertEscortBidAccepted, runAfter } from '@/lib/alerts'
 
 export const dynamic = 'force-dynamic'
 
@@ -71,6 +72,8 @@ export async function POST(req: NextRequest) {
       .update({ status: 'rejected' })
       .eq('load_id', load_id)
       .neq('id', bid_id)
+
+    runAfter(() => alertEscortBidAccepted(load_id, escort_id))
 
     // Text the accepted escort once SMS is switched on (it is coming soon)
     if (SMS_ENABLED) {

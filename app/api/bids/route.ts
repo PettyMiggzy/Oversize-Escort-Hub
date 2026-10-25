@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { escortClaimant, claimRefusal } from '@/lib/access-server'
+import { alertCarrierNewBid, runAfter } from '@/lib/alerts'
 
 export const dynamic = 'force-dynamic'
 
@@ -127,6 +128,7 @@ export async function POST(req: NextRequest) {
       await supabase.from('bids').delete().eq('id', inserted.id)
       return NextResponse.json({ error: 'You already have a bid on this load' }, { status: 409 })
     }
+    runAfter(() => alertCarrierNewBid(load_id, rate))
     return NextResponse.json({ ok: true, bid: inserted })
   } catch (err: any) {
     console.error('[bids POST]', err)

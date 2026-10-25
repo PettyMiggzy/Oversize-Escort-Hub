@@ -3,6 +3,7 @@ import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
 import { createClient as createServerSupabase } from "@/lib/supabase/server";
 import { escortClaimant, claimRefusal } from "@/lib/access-server";
 import { sendWebPushToUser } from "@/lib/push";
+import { alertCarrierClaimRequest, runAfter } from "@/lib/alerts";
 
 export const dynamic = 'force-dynamic'
 
@@ -66,6 +67,7 @@ export async function POST(req: NextRequest) {
   // two escorts racing for one load: only the one whose update matched a row has it
   if (!claimed?.length) return NextResponse.json({ error: "Load is not available" }, { status: 409 });
 
+  runAfter(() => alertCarrierClaimRequest(load_id));
   await sendWebPushToUser(load.carrier_id, {
     title: "New Match Request",
     body: "An escort has requested your load. Tap to accept or decline.",
