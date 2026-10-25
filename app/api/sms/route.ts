@@ -61,10 +61,10 @@ export async function POST(req: NextRequest) {
       // Check if escort covers pickup state
       const { data: zones } = await svc
         .from('escort_availability')
-        .select('state')
+        .select('location_state')
         .eq('escort_id', escort.id)
 
-      const escortStates = (zones || []).map((z: any) => z.state)
+      const escortStates = (zones || []).map((z: any) => z.location_state)
       if (pu_state && !escortStates.includes(pu_state)) continue
 
       const msg = `New OEH Load: ${load.escort_type || load.escort_types?.[0] || 'Escort'} needed. ${load.pu_city || ''}, ${pu_state} → ${load.dl_city || ''}, ${dl_state}. Rate: $${load.per_mile_rate ?? '?'}. View: oversize-escort-hub.com/loads/${load.id}`

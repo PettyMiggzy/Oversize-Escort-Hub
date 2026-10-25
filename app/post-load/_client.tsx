@@ -69,7 +69,7 @@ export function PostLoadPageClient() {
       const { data } = await supabase
         .from('sponsored_zones')
         .select('user_id, profiles:user_id(id, full_name, tier, bgc_verified, certifications(type, status))')
-        .eq('state', pickupState)
+        .eq('zone', pickupState)
         .eq('active', true)
       if (data && data.length > 0) {
         setSponsoredEscorts(data.map((sz: any) => sz.profiles).filter(Boolean))

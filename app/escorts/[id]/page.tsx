@@ -81,7 +81,7 @@ export default async function EscortProfilePage({ params }: { params: Promise<{ 
             <div style={S.sectionTitle}>Availability Zones</div>
             <div style={S.zoneGrid}>
               {zones.map((z: any) => (
-                <span key={z.id || z.state} style={S.zone}>{z.state}</span>
+                <span key={z.id || z.location_state} style={S.zone}>{z.location_state}</span>
               ))}
             </div>
           </div>
@@ -110,7 +110,7 @@ export default async function EscortProfilePage({ params }: { params: Promise<{ 
                   <span style={{ color: '#f0a500' }}>{'★'.repeat(r.rating || 0)}</span>
                   <span style={S.reviewDate}>{r.created_at ? new Date(r.created_at).toLocaleDateString() : ''}</span>
                 </div>
-                {r.body && <p style={S.reviewText}>{r.body}</p>}
+                {r.comment && <p style={S.reviewText}>{r.comment}</p>}
               </div>
             ))}
           </div>

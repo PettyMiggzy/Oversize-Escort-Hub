@@ -985,7 +985,7 @@ function EscortDashPage({ setPage, profile, showToast }: { setPage: (p: Page) =>
   async function fetchDisputes() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    const { data } = await supabase.from('disputes').select('*').eq('escort_id', user.id).order('created_at', { ascending: false });
+    const { data } = await supabase.from('disputes').select('*').eq('filed_by', user.id).order('created_at', { ascending: false });
     setDisputes(data || []);
   }
 
@@ -995,9 +995,9 @@ function EscortDashPage({ setPage, profile, showToast }: { setPage: (p: Page) =>
     if (!user) return;
     setDisputeLoading(true);
     const { error } = await supabase.from('disputes').insert({
-      escort_id: user.id,
-      job_id: disputeJobId || null,
-      message: disputeMsg,
+      filed_by: user.id,
+      load_id: disputeJobId || null,
+      description: disputeMsg,
       status: 'open',
     });
     if (error) {
@@ -1217,7 +1217,7 @@ function EscortDashPage({ setPage, profile, showToast }: { setPage: (p: Page) =>
                     <span className={`chip ${d.status === 'resolved' ? 'ch-gr' : d.status === 'open' ? 'ch-am' : 'ch-dim'}`}>{d.status}</span>
                     <span style={{ fontSize: 10, color: 'var(--t2)' }}>{new Date(d.created_at).toLocaleDateString()}</span>
                   </div>
-                  <div style={{ fontSize: 12, color: 'var(--t2)' }}>{d.message}</div>
+                  <div style={{ fontSize: 12, color: 'var(--t2)' }}>{d.description}</div>
                 </div>
               ))}
             </div>

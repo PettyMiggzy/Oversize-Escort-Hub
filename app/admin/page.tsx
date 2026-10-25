@@ -454,7 +454,7 @@ export default function AdminPage() {
                     <div key={z.id} style={{ background: '#0f1a2e', border: '1px solid #1e3a5f', borderRadius: 8, padding: 14 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                         <div>
-                          <div style={{ fontWeight: 600, fontSize: 15 }}>{z.state || z.zone_name || 'Zone'}</div>
+                          <div style={{ fontWeight: 600, fontSize: 15 }}>{z.zone || 'Zone'}</div>
                           <div style={{ color: '#9ca3af', fontSize: 12 }}>{prof.full_name || z.user_id} {prof.email ? '• ' + prof.email : ''}</div>
                           <div style={{ color: '#9ca3af', fontSize: 12, marginTop: 4 }}>Status: {z.active === false ? 'inactive' : 'active'} • Expires: {z.expires_at ? new Date(z.expires_at).toLocaleDateString() : '-'}</div>
                         </div>
@@ -476,11 +476,11 @@ export default function AdminPage() {
             ) : (
               <div style={{ display: 'grid', gap: 12 }}>
                 {disputesList.map((d: any) => {
-                  const body = d.message || d.description || d.subject || d.title || ''
+                  const body = d.description || ''
                   return (
                   <div key={d.id} style={{ background: '#0f1a2e', border: '1px solid #1e3a5f', borderRadius: 8, padding: 14 }}>
                     <div style={{ fontWeight: 600, fontSize: 15 }}>{d.subject || d.title || 'Dispute #' + String(d.id).slice(0, 8)}</div>
-                    <div style={{ color: '#9ca3af', fontSize: 12, marginTop: 4 }}>Status: {d.status || 'open'} • Opened: {d.created_at ? new Date(d.created_at).toLocaleString() : '-'}{d.job_id ? ` • Job: ${d.job_id}` : ''}</div>
+                    <div style={{ color: '#9ca3af', fontSize: 12, marginTop: 4 }}>Status: {d.status || 'open'} • Opened: {d.created_at ? new Date(d.created_at).toLocaleString() : '-'}{d.load_id ? ` • Load: ${d.load_id}` : ''}</div>
                     {body && (
                       <div style={{ color: '#e2e8f0', fontSize: 13, marginTop: 8, whiteSpace: 'pre-wrap' }}>{body}</div>
                     )}
