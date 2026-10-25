@@ -2120,8 +2120,11 @@ function AdminPage({ setPage, user, profile }: any) {
   const [bgcTab, setBgcTab] = useState(false)
     const [adminStats, setAdminStats] = useState<Record<string,number>>({});
   async function fetchBgcQueue() {
-    const { data } = await supabase.from('profiles').select('*').eq('bgc_pending', true)
-    setBgcQueue(data || [])
+    // the review rows (with their private document links) come from the server, after the admin check
+    try {
+      const d = await fetch('/api/admin/cert-queue').then(r => r.json())
+      setBgcQueue((d.bgc || []).map((r: any) => ({ id: r.user_id, full_name: r.profiles?.full_name, email: r.profiles?.email, bgc_document_url: r.document_url })))
+    } catch { setBgcQueue([]) }
   }
 
     async function fetchAdminStats() {

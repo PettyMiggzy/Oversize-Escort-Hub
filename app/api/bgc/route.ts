@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
 
   const { error: profErr } = await svc
     .from('profiles')
-    .update({ bgc_pending: true, bgc_document_url: publicUrl })
+    .update({ bgc_pending: true })  // the document link lives only on the review row, never on the profile other users can read
     .eq('id', user.id)
   if (profErr) {
     console.error('[bgc] profile update', profErr)

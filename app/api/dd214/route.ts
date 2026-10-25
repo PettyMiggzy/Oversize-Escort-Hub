@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
   let publicUrl: string;
   try { publicUrl = await signedDocUrl(svc, "verification-docs", path); } catch { return NextResponse.json({ error: "Upload failed" }, { status: 500 }); }
 
-  const { error: profErr } = await svc.from("profiles").update({ dd214_pending: true, dd214_url: publicUrl } as any).eq("id", userId);
+  const { error: profErr } = await svc.from("profiles").update({ dd214_pending: true } as any).eq("id", userId);
   if (profErr) {
     console.error('[dd214] profile update', profErr);
     return NextResponse.json({ error: "Could not mark pending" }, { status: 500 });
