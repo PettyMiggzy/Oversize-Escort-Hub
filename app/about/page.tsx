@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import SiteHeader from '@/components/SiteHeader'
+import Title3D from '@/components/Title3D'
 
 export const metadata: Metadata = {
   title: 'About',
@@ -21,7 +22,7 @@ export default function AboutPage() {
     <div style={{ minHeight: '100vh', background: bg, color: '#fff' }}>
       <SiteHeader />
       <main style={{ maxWidth: 720, margin: '0 auto', padding: '60px 24px' }}>
-        <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 8 }}>About Oversize Escort Hub</h1>
+        <Title3D src="/titles/about.webp" alt="About Oversize Escort Hub" maxWidth={380} marginBottom={12} />
         <p style={{ color: '#9ca3af', fontSize: 15, marginBottom: 40, lineHeight: 1.6 }}>
           Building the future of oversize transport logistics.
         </p>

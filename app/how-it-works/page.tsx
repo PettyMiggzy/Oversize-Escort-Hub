@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import SiteHeader from '@/components/SiteHeader';
+import Title3D from '@/components/Title3D'
 
 
 const bgColor = '#060b16';
@@ -56,9 +57,7 @@ export default function HowItWorks() {
     <div style={{ background: bgColor, color: textColor, minHeight: '100vh', padding: '40px 20px' }}>
       <SiteHeader />
       <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-        <h1 style={{ fontSize: '36px', fontWeight: 800, marginBottom: '40px', textAlign: 'center', color: orangeColor }}>
-          How It Works
-        </h1>
+        <Title3D src="/titles/how.webp" alt="How It Works" maxWidth={560} marginTop={24} marginBottom={36} />
 
         <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginBottom: '40px', flexWrap: 'wrap' }}>
           {['pevo', 'carrier', 'fleet'].map((tab) => (

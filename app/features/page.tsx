@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import SiteHeader from '@/components/SiteHeader';
+import Title3D from '@/components/Title3D'
 
 const bgColor = '#060b16';
 const surfaceColor = '#0d1117';
@@ -40,9 +41,7 @@ export default function Features() {
     <div style={{ minHeight: '100vh', background: bgColor, color: '#eee' }}>
       <SiteHeader />
       <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '40px 20px' }}>
-        <h1 style={{ textAlign: 'center', fontSize: '32px', fontWeight: 800, color: orangeColor, marginBottom: '8px' }}>
-          Platform Features
-        </h1>
+        <Title3D src="/titles/features.webp" alt="Platform Features" maxWidth={420} marginBottom={10} />
         <p style={{ textAlign: 'center', color: '#888', marginBottom: '32px' }}>
           Click any feature card to learn more
         </p>

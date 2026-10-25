@@ -4,6 +4,7 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { isNativeApp, openInBrowser, WEB_HOST } from "@/lib/native";
 import { FREE_LAUNCH } from "@/lib/free-launch";
+import Title3D from "@/components/Title3D";
 
 const PRICES = {
   member:         "price_1TF00LLmfugPCRbAl6sF0Oup",
@@ -260,7 +261,7 @@ export default function PricingPage() {
           </div>
         )}
         <div style={{ textAlign: "center", marginBottom: 16 }}>
-          <h1 style={{ fontSize: 40, fontWeight: 900, margin: 0 }}>Pricing</h1>
+          <Title3D src="/titles/pricing.webp" alt="Pricing" maxWidth={380} marginBottom={6} />
           <p style={{ color: MUTED, fontSize: 15, marginTop: 8 }}>Simple plans for escorts, fleets, and carriers.</p>
         </div>
 

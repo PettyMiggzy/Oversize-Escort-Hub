@@ -1,6 +1,7 @@
 'use client'
 import SiteHeader from '@/components/SiteHeader'
 import { useState } from 'react'
+import Title3D from '@/components/Title3D'
 
 const S = {
   page: { minHeight: '100vh', background: '#060b16', color: '#eee', padding: '40px 20px' },
@@ -45,7 +46,7 @@ export default function ContactPage() {
     <div style={S.page}>
       <SiteHeader />
       <div style={S.container}>
-        <h1 style={S.heading}>Contact Us</h1>
+        <Title3D src="/titles/contact.webp" alt="Contact Us" maxWidth={420} marginTop={20} marginBottom={12} />
         <p style={S.sub}>Questions, issues, or partnership inquiries — we respond within 1 business day.</p>
         {sent ? (
           <div style={S.success}>✓ Message sent! We'll be in touch shortly.</div>

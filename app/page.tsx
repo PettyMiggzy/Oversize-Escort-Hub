@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { withFreeLaunch } from "@/lib/free-launch";
+import Title3D from "@/components/Title3D";
 
 const supabase = createClient();
 
@@ -622,7 +623,7 @@ function HomePage({ setPage, user, profile, setSigninMode, setPendingRole }: { s
           <img src="/logo-3d.png" alt="Oversize Escort Hub" style={{ width: 'min(320px, 70vw)', height: 'auto' }} />
           <span className="bb" style={{ fontSize: 16, letterSpacing: '.12em', color: 'var(--t2)' }}>OVERSIZE ESCORT HUB</span>
         </div>
-        <div className="bb" style={{ fontSize: 52, textAlign: "center", marginBottom: 6 }}>WHO ARE YOU?</div>
+        <Title3D src="/titles/who.webp" alt="Who are you?" maxWidth={640} marginBottom={14} />
         <p className="mo" style={{ fontSize: 11, color: "var(--t2)", marginBottom: 48, letterSpacing: ".12em", textTransform: "uppercase" }}>Select your role to get started</p>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20 }}>
           {/* Left — US flag */}
