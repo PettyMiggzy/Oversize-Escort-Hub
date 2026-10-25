@@ -24,7 +24,10 @@ export async function POST(req: NextRequest) {
     .select('id, full_name, role')
     .eq('email', email)
     .maybeSingle()
-  if (!data) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+  // A fleet manager only adds escorts, so any other account answers the same as "not found".
+  // That stops the lookup from confirming which emails belong to carriers or brokers.
+  const isAdmin = me?.role === 'admin' || isAdminEmail(user.email)
+  if (!data || (data.role !== 'escort' && !isAdmin)) return NextResponse.json({ error: 'User not found' }, { status: 404 })
   return NextResponse.json({
     profile: { id: data.id, full_name: data.full_name ?? null, role: data.role ?? null },
   })

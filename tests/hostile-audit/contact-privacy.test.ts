@@ -145,3 +145,16 @@ test('own profile route returns the caller row and not someone else', async () =
   expect(body.profile.phone).toBe('8085550102')
   expect(body.profile.email).toBe('escort@example.com')
 })
+
+test('fleet lookup only confirms escorts, so it cannot probe carrier or broker emails', async () => {
+  const ask = (email: string) => lookup(new NextRequest('http://localhost/api/contact/lookup', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ email }),
+  }))
+  getDb().sessionUser = { id: 'fleet', email: 'fleet@example.com' }
+  expect((await ask('carrier@example.com')).status).toBe(404)
+  expect((await ask('escort@example.com')).status).toBe(200)
+  getDb().sessionUser = { id: 'admin', email: 'admin@example.com' }
+  expect((await ask('carrier@example.com')).status).toBe(200)
+})
