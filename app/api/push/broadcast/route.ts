@@ -51,7 +51,7 @@ export async function POST(_req: NextRequest) {
   const { data: byTable } = await svc
     .from('escort_availability')
     .select('escort_id')
-    .eq('state', puState)
+    .eq('location_state', puState)
 
   const memberIds = new Set((byProfile || []).map((e: { id: string }) => e.id))
   const availEscortIds = [...new Set((byTable || []).map((r: any) => r.escort_id).filter(Boolean))]

@@ -1,5 +1,6 @@
 'use client';
 
+import { FREE_LAUNCH } from '@/lib/free-launch'
 import { useState, Suspense, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { isNativeApp, openInBrowser, WEB_HOST } from '@/lib/native';
@@ -218,8 +219,9 @@ function SignInInner() {
   }
 
   // Plan selection step for escort signup
-  const showPlanStep = mode === "signup" && role === "escort" && plan === null && !trialBlocked;
-  const showTrialBlocked = mode === "signup" && role === "escort" && trialBlocked;
+  // while everything is free there is no plan step and no one-trial-per-device block
+  const showPlanStep = !FREE_LAUNCH && mode === "signup" && role === "escort" && plan === null && !trialBlocked;
+  const showTrialBlocked = !FREE_LAUNCH && mode === "signup" && role === "escort" && trialBlocked;
 
   return (
     <>
@@ -448,14 +450,14 @@ function SignInInner() {
                     setSuccess("");
                   }}
                 >
-                  {mode === "signup" ? "Sign In" : "Start Free Trial"}
+                  {mode === "signup" ? "Sign In" : "Create Account"}
                 </button>
               </div>
             </div>
           )}
 
           <div className="mo" style={{ fontSize: 9, color: "var(--t3)", textAlign: "center", marginTop: 20, lineHeight: 1.6 }}>
-            30-day free trial · No credit card required<br />
+            Free while we launch · No credit card required<br />
             $2.00/mi standard · $100 overnight · $250 no-go
           </div>
         </div>

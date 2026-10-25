@@ -38,7 +38,7 @@ export default function FindEscortsPage() {
       profileData.map(async (p: any) => {
         const { data: zones } = await supabase
           .from("escort_availability")
-          .select("state")
+          .select("location_state")
           .eq("escort_id", p.id)
         const { data: certs } = await supabase
           .from("certifications")
@@ -58,7 +58,7 @@ export default function FindEscortsPage() {
 
     // Filter by state if selected
     const filtered = stateFilter
-      ? enriched.filter((e: any) => e.zones.some((z: any) => z.state === stateFilter))
+      ? enriched.filter((e: any) => e.zones.some((z: any) => z.location_state === stateFilter))
       : enriched
 
     // Always fetch sponsored escorts — filter by zone if selected, else show top 6 nationally
@@ -68,7 +68,7 @@ export default function FindEscortsPage() {
         .eq("active", true)
         .order("created_at", { ascending: false })
         .limit(6)
-      if (stateFilter) sponsoredQuery = sponsoredQuery.eq("state", stateFilter)
+      if (stateFilter) sponsoredQuery = sponsoredQuery.eq("zone", stateFilter)
       const { data: sponsoredZones } = await sponsoredQuery
       if (sponsoredZones && sponsoredZones.length > 0) {
         const sponsoredProfiles = sponsoredZones
@@ -158,7 +158,7 @@ export default function FindEscortsPage() {
                   {e.bgc_verified && <span style={S.badge("#22c55e")}>✓ BGC</span>}
                 </div>
                 {e.zones.length > 0 && (
-                  <div style={S.zones}>Zones: {e.zones.slice(0,5).map((z: any) => z.state).join(", ")}{e.zones.length > 5 ? ` +${e.zones.length-5}` : ""}</div>
+                  <div style={S.zones}>Zones: {e.zones.slice(0,5).map((z: any) => z.location_state).join(", ")}{e.zones.length > 5 ? ` +${e.zones.length-5}` : ""}</div>
                 )}
                 {e.cert_types.length > 0 && (
                   <div style={{ fontSize: 12, color: "#9ca3af", marginBottom: 8 }}>Certs: {e.cert_types.join(", ")}</div>

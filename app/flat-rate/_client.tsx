@@ -153,7 +153,7 @@ export function FlatRateBoardClient() {
         const { data } = await supabase
           .from('sponsored_zones')
           .select('user_id, profiles:user_id(id, full_name, tier, bgc_verified, rating, certifications(type, status))')
-          .eq('state', stateFilter)
+          .eq('zone', stateFilter)
           .eq('active', true);
         if (data && data.length > 0) {
           setSponsoredEscorts(

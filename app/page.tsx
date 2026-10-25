@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { withFreeLaunch } from "@/lib/free-launch";
-import Title3D from "@/components/Title3D";
+import HomeLanding from "@/components/HomeLanding";
 
 const supabase = createClient();
 
@@ -369,15 +369,15 @@ function Toast({ msg, type, onClose }: { msg: string; type: "gr" | "rd" | "am"; 
 
 function Ticker() {
   const items = [
-    { dot: "dot-gr", text: "Platform launching · Be an early member · $2.00/mi standard rate" },
-    { dot: "dot-am", text: "BID BOARD LIVE · 5-Min bids · Pro gets instant access · Member gets 60s delay" },
+    { dot: "dot-gr", text: "Platform launching · Be an early member · Everything is free while we launch" },
+    { dot: "dot-am", text: "BID BOARD LIVE · 5-Min bids · Everyone sees new loads the moment they post" },
     { dot: "dot-gr", text: "Verified P/EVO escorts · Background checked · Vehicle verified · Admin approved" },
     { dot: "dot-or", text: "OPEN BID BOARD · 24-72h window · Post your pitch · Carrier picks the best fit" },
     { dot: "dot-gr", text: "Standard rates: $2.00/mi or $500/day · $100 overnight · $250 no-go fee" },
     { dot: "dot-am", text: "Deadhead Minimizer · Return loads near your drop · Stop driving home empty" },
-    { dot: "dot-gr", text: "No commissions · No job fees · Ever · Flat subscription only" },
+    { dot: "dot-gr", text: "No commissions · No job fees · Free while we launch" },
     { dot: "dot-or", text: "Carriers: Post loads free · Escorts: Find loads · Both: No middleman" },
-    { dot: "dot-am", text: "• Fleet Pro Unlimited · Manage unlimited escorts · Full fleet dashboard" },
+    { dot: "dot-am", text: "• Fleet managers · Manage all your escorts · Full fleet dashboard" },
   ];
   return (
     <div className="ticker">
@@ -510,7 +510,7 @@ function Footer({ setPage }: { setPage: (p: Page) => void }) {
         </div>
         <div className="footer-col">
           <h4>Membership</h4>
-          {[["verification", "Verification"], ["signin", "Start Free Trial"], ["dashboard-e", "Escort Dashboard"], ["dashboard-c", "Carrier Dashboard"]].map(([p, l]) => (
+          {[["verification", "Verification"], ["signin", "Create Account"], ["dashboard-e", "Escort Dashboard"], ["dashboard-c", "Carrier Dashboard"]].map(([p, l]) => (
             <a key={p} onClick={() => p === "pricing" ? window.location.href = '/pricing' : setPage(p as Page)}>{l}</a>
           ))}
         </div>
@@ -572,65 +572,13 @@ function HomePage({ setPage, user, profile, setSigninMode, setPendingRole }: { s
 
   if (!role) {
     return (
-      <div className="role-picker-active">
-        {/* How It Works banner for logged-out visitors */}
-        <div style={{ background: '#111', borderBottom: '1px solid #222', padding: '10px 24px', textAlign: 'center', fontSize: 13, color: '#9ca3af', margin: '-20px -20px 20px -20px' }}>
-          New to OEH? <a href="/how-it-works" style={{ color: '#f0a500', fontWeight: 600, textDecoration: 'none' }}>See How It Works →</a>
-        </div>
-        {/* Logo */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, marginBottom: 28 }}>
-          <img src="/logo-3d.png" alt="Oversize Escort Hub" style={{ width: 'min(320px, 70vw)', height: 'auto' }} />
-          <span className="bb" style={{ fontSize: 16, letterSpacing: '.12em', color: 'var(--t2)' }}>OVERSIZE ESCORT HUB</span>
-        </div>
-        <Title3D src="/titles/who.webp" alt="Who are you?" maxWidth={640} marginBottom={14} />
-        <p className="mo" style={{ fontSize: 11, color: "var(--t2)", marginBottom: 48, letterSpacing: ".12em", textTransform: "uppercase" }}>Select your role to get started</p>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20 }}>
-          {/* Left — US flag */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-            <svg width="78" height="52" viewBox="0 0 78 52" xmlns="http://www.w3.org/2000/svg">
-              {[0,1,2,3,4,5,6,7,8,9,10,11,12].map(i => (
-                <rect key={i} x="0" y={i*4} width="78" height="4" fill={i%2===0 ? '#B22234' : '#FFFFFF'}/>
-              ))}
-              <rect x="0" y="0" width="31" height="28" fill="#3C3B6E"/>
-              {[0,1,2,3,4].map(row => [0,1,2,3,4,5].map(col => (
-                <text key={`${row}-${col}`} x={3+col*5} y={6+row*5.5} fontSize="4" fill="white" textAnchor="middle">&#9733;</text>
-              )))}
-            </svg>
-            
-          </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, width: "100%", maxWidth: 720 }}>
-          <div className="role-card" style={{ border: "2px solid var(--or)" }} onClick={() => { setPendingRole("carrier"); setSigninMode("signup"); setPage("signin"); }}>
-            <div className="bb" style={{ fontSize: 34, color: "var(--or)", marginBottom: 10 }}>OVERSIZE CARRIER</div>
-            <p style={{ fontSize: 11, color: "var(--t2)", lineHeight: 1.5, marginBottom: 16 }}>Carriers hauling oversize/overweight loads who need permits, escorts, and load boards.</p>
-            <div className="mo" style={{ fontSize: 10, color: "var(--or)", letterSpacing: ".1em" }}>POST LOADS · BID BOARD · FIND ESCORTS</div>
-          </div>
-          <div className="role-card" style={{ border: "2px solid var(--am)" }} onClick={() => { setPendingRole("escort"); setSigninMode("signup"); setPage("signin"); }}>
-            <div className="bb" style={{ fontSize: 34, color: "var(--am)", marginBottom: 10 }}>PILOT CAR / P/EVO</div>
-            <p style={{ fontSize: 11, color: "var(--t2)", lineHeight: 1.5, marginBottom: 16 }}>Pilot car operators and P/EVO escorts looking for loads, routes, and work opportunities.</p>
-            <div className="mo" style={{ fontSize: 10, color: "var(--am)", letterSpacing: ".1em" }}>FIND LOADS · DEADHEAD MINIMIZER · BID</div>
-          </div>
-          <div className="role-card" style={{ border: "2px solid var(--t2)" }} onClick={() => { setPendingRole("broker"); setSigninMode("signup"); setPage("signin"); }}>
-            <div className="bb" style={{ fontSize: 34, color: "var(--t2)", marginBottom: 10 }}>FREIGHT BROKER</div>
-            <p style={{ fontSize: 11, color: "var(--t2)", lineHeight: 1.5, marginBottom: 16 }}>Licensed freight brokers who need verified P/EVO escorts for oversize shipments.</p>
-            <div className="mo" style={{ fontSize: 9, color: "var(--t2)", letterSpacing: ".1em" }}>POST LOADS · FIND ESCORTS · MANAGE SHIPMENTS</div>
-          </div>
-          <div className="role-card" style={{ border: "2px solid #3b82f6" }} onClick={() => window.location.href = "/join?role=fleet"}>
-            <div className="bb" style={{ fontSize: 34, color: "#3b82f6", marginBottom: 10 }}>FLEET MANAGER</div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-              <span style={{ background: "rgba(59,130,246,0.18)", color: "#3b82f6", fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, letterSpacing: 1 }}>PRO REQUIRED</span>
-            </div>
-            <p style={{ lineHeight: 1.5, marginBottom: 16 }}>Manage multiple P/EVO escorts across loads. Find work for your fleet, track jobs, and maximize every mile.</p>
-            <div className="mo" style={{ fontSize: 11, color: "var(--t2)", marginBottom: 20, letterSpacing: ".06em", lineHeight: 1.8 }}>FIND LOADS · FLEET DEADHEAD · MANAGE ESCORTS</div>
-            <a href="/signin" className="mo" style={{ display: "inline-block", padding: "11px 18px", background: "#3b82f6", color: "#fff", borderRadius: 4, fontWeight: 700, fontSize: 10, letterSpacing: ".1em", textDecoration: "none" }}>GET STARTED</a>
-          </div>
-        </div>
-          {/* Right — Canada flag */}
-            <div style={{ flexShrink: 0 }}><svg width="78" height="52" viewBox="0 0 78 52" xmlns="http://www.w3.org/2000/svg"><rect width="78" height="52" fill="#fff"/><rect x="0" y="0" width="20" height="52" fill="#FF0000"/><rect x="58" y="0" width="20" height="52" fill="#FF0000"/><text x="39" y="33" fontSize="28" fill="#FF0000" textAnchor="middle">&#127809;</text></svg></div>
-        </div>
-        <button className="btn btn-or btn-sm" style={{ marginTop: 28 }} onClick={() => { setSigninMode("signin"); setPage("signin"); }}>
-              Sign In
-            </button>
-      </div>
+      <HomeLanding
+        onCarrier={() => { setPendingRole("carrier"); setSigninMode("signup"); setPage("signin"); }}
+        onEscort={() => { setPendingRole("escort"); setSigninMode("signup"); setPage("signin"); }}
+        onBroker={() => { setPendingRole("broker"); setSigninMode("signup"); setPage("signin"); }}
+        onFleet={() => { window.location.href = "/join?role=fleet"; }}
+        onSignIn={() => { setSigninMode("signin"); setPage("signin"); }}
+      />
     );
   }
 
@@ -664,7 +612,7 @@ function HomePage({ setPage, user, profile, setSigninMode, setPendingRole }: { s
         <div className="bid-strip">
           <div className="bid-live">5-Min Bid Board</div>
           <div style={{ width: 1, height: 18, background: "var(--l1)" }} />
-          <div className="mo" style={{ fontSize: 10, color: "var(--t2)", flex: 1 }}>Loads close on timer · fill · or cancel — Pro instant access · Member 60s delay</div>
+          <div className="mo" style={{ fontSize: 10, color: "var(--t2)", flex: 1 }}>Loads close on timer · fill · or cancel</div>
           <button className="bid-cta" onClick={() => window.location.href = "/bid-board"}>View Live Board →</button>
         </div>
         <div className="hero hero-carrier">
@@ -703,7 +651,7 @@ function HomePage({ setPage, user, profile, setSigninMode, setPendingRole }: { s
       <div className="bid-strip">
         <div className="bid-live">5-Min Bid Board</div>
         <div style={{ width: 1, height: 18, background: "var(--l1)" }} />
-        <div className="mo" style={{ fontSize: 10, color: "var(--t2)", flex: 1 }}>Loads close on timer · fill · or cancel — Pro instant access · Member 60s delay</div>
+        <div className="mo" style={{ fontSize: 10, color: "var(--t2)", flex: 1 }}>Loads close on timer · fill · or cancel</div>
         <button className="bid-cta" onClick={() => window.location.href = "/bid-board"}>View Live Board →</button>
       </div>
       <div className="hero hero-escort">
@@ -711,15 +659,15 @@ function HomePage({ setPage, user, profile, setSigninMode, setPendingRole }: { s
           <div className="hero-tag tag-am">For Pilot Car Escorts / P/EVO Operators</div>
           <div className="hero-hl" style={{ color: "var(--am)" }}>STOP<br />DRIVING<br />HOME<br />EMPTY.</div>
           <p className="hero-sub">The average P/EVO escort deadheads home after <strong style={{ color: "var(--t1)" }}>40% of runs.</strong> At $2.00/mi that&apos;s real revenue sitting on the table every single week.</p>
-          <p className="hero-sub">Pro surfaces return loads near your drop, sorted toward home state first. <strong style={{ color: "var(--am)" }}>One recovered run at 150mi pays for a month of Pro.</strong></p>
+          <p className="hero-sub">The Deadhead Minimizer surfaces return loads near your drop, sorted toward home state first. <strong style={{ color: "var(--am)" }}>Every recovered run is money back in your pocket.</strong></p>
           <div className="stat-row">
             <div className="stat"><div className="stat-n" style={{ color: "var(--am)" }}>$1,200</div><div className="stat-l">Recovered/Year</div></div>
-            <div className="stat"><div className="stat-n" style={{ color: "var(--am)" }}>3×</div><div className="stat-l">ROI at $29.99/mo</div></div>
-            <div className="stat"><div className="stat-n" style={{ color: "var(--gr)" }}>60s</div><div className="stat-l">Pro Head Start</div></div>
+            <div className="stat"><div className="stat-n" style={{ color: "var(--am)" }}>$0</div><div className="stat-l">While we launch</div></div>
+            <div className="stat"><div className="stat-n" style={{ color: "var(--gr)" }}>Live</div><div className="stat-l">Bid board</div></div>
           </div>
           <div className="btn-row">
             <button className="btn btn-am" onClick={() => { window.location.href = '/pricing'; }}>Go Pro — $29.99/mo →</button>
-            <button className="btn btn-ghost" onClick={() => setPage("signin")}>Start Free Trial</button>
+            <button className="btn btn-ghost" onClick={() => setPage("signin")}>Create Free Account</button>
           </div>
         </div>
       </div>
@@ -887,7 +835,7 @@ function FeatureSection({ setPage }: { setPage: (p: Page) => void }) {
       </div>
       <div className="feat-grid">
         {[
-          { c: "var(--am)", t: "5-Min Bid Board", d: "Industry first. Closes on timer, carrier fills it, or carrier cancels. Pro gets instant access, Members see it 60 seconds later." },
+          { c: "var(--am)", t: "5-Min Bid Board", d: "Industry first. Closes on timer, carrier fills it, or carrier cancels. Everyone sees new loads the moment they post." },
           { c: "var(--gr)", t: "Verified P/EVO Escorts", d: "4-tier trust ladder: P/EVO cert, vehicle verified, background check, admin verified. Fraudulent listings cannot exist here." },
           { c: "var(--am)", t: "Deadhead Minimizer", d: "Return load feed sorted toward home state. Pre-arrival SMS alerts are coming soon. I'm Available broadcast. Every empty mile is money left on the table." },
           { c: "var(--or)", t: "Carrier Pay Score (Public)", d: "Pay speed, communication, load accuracy, no-go fee history — all public. 4.9 fills in minutes. 2.8 sits on the board." },
@@ -985,7 +933,7 @@ function EscortDashPage({ setPage, profile, showToast }: { setPage: (p: Page) =>
   async function fetchDisputes() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    const { data } = await supabase.from('disputes').select('*').eq('escort_id', user.id).order('created_at', { ascending: false });
+    const { data } = await supabase.from('disputes').select('*').eq('filed_by', user.id).order('created_at', { ascending: false });
     setDisputes(data || []);
   }
 
@@ -995,9 +943,9 @@ function EscortDashPage({ setPage, profile, showToast }: { setPage: (p: Page) =>
     if (!user) return;
     setDisputeLoading(true);
     const { error } = await supabase.from('disputes').insert({
-      escort_id: user.id,
-      job_id: disputeJobId || null,
-      message: disputeMsg,
+      filed_by: user.id,
+      load_id: disputeJobId || null,
+      description: disputeMsg,
       status: 'open',
     });
     if (error) {
@@ -1217,7 +1165,7 @@ function EscortDashPage({ setPage, profile, showToast }: { setPage: (p: Page) =>
                     <span className={`chip ${d.status === 'resolved' ? 'ch-gr' : d.status === 'open' ? 'ch-am' : 'ch-dim'}`}>{d.status}</span>
                     <span style={{ fontSize: 10, color: 'var(--t2)' }}>{new Date(d.created_at).toLocaleDateString()}</span>
                   </div>
-                  <div style={{ fontSize: 12, color: 'var(--t2)' }}>{d.message}</div>
+                  <div style={{ fontSize: 12, color: 'var(--t2)' }}>{d.description}</div>
                 </div>
               ))}
             </div>
@@ -1563,7 +1511,7 @@ function PricingPage({ setPage }: { setPage: (p: Page) => void }) {
               {tier.features.map((f) => <div key={f} className="price-feat">{f}</div>)}
             </div>
             <button className="btn btn-sm" style={{ width: "100%", background: tier.popular ? "var(--am)" : "transparent", color: tier.popular ? "#000" : tier.color, border: `1px solid ${tier.color}` }} onClick={() => setPage("signin")}>
-              {tier.price === 0 ? "Start Free Trial" : "Get Started"}
+              {tier.price === 0 ? "Join Free" : "Get Started"}
             </button>
           </div>
         ))}
@@ -1726,7 +1674,7 @@ function SignInPage({ setPage, showToast, initialMode = "signup", initialRole = 
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 24 }}>
           <img src="/logo.png" alt="OEH" style={{ width: 52, height: 52, objectFit: "contain" }} />
           <div>
-            <div className="bb" style={{ fontSize: 20 }}>{mode === "signup" ? "Start Free Trial" : "Welcome Back"}</div>
+            <div className="bb" style={{ fontSize: 20 }}>{mode === "signup" ? "Create Your Account" : "Welcome Back"}</div>
             <div className="mo" style={{ fontSize: 9, color: "var(--t2)", letterSpacing: ".1em" }}>OVERSIZE ESCORT HUB</div>
           </div>
         </div>
@@ -1734,9 +1682,14 @@ function SignInPage({ setPage, showToast, initialMode = "signup", initialRole = 
           <div style={{ display: "flex", border: "1px solid var(--l1)", borderRadius: 3, overflow: "hidden", marginBottom: 20 }}>
             {(["escort", "carrier", "broker"] as const).map((r) => (
               <button key={r} onClick={() => setRole(r)} style={{ flex: 1, padding: "10px 0", background: role === r ? (r === "escort" ? "var(--am)" : "var(--or)") : "transparent", color: role === r ? "#000" : "var(--t2)", border: "none", fontFamily: "'DM Mono',monospace", fontSize: 9, letterSpacing: ".12em", textTransform: "uppercase" as const, fontWeight: 700 }}>
-                {r === "escort" ? "Escort / P/EVO" : "Carrier / Operator"}
+                {r === "escort" ? "Escort / P/EVO" : r === "carrier" ? "Carrier" : "Freight Broker"}
               </button>
             ))}
+          </div>
+        )}
+        {mode === "signup" && (
+          <div style={{ marginTop: -10, marginBottom: 18, textAlign: "center" }}>
+            <a href="/join?role=fleet" className="mo" style={{ fontSize: 10, color: "#4f8cff", letterSpacing: ".06em", textDecoration: "none" }}>Run a fleet? Sign up as a fleet manager →</a>
           </div>
         )}
         {mode === "signup" && (
@@ -1766,7 +1719,7 @@ function SignInPage({ setPage, showToast, initialMode = "signup", initialRole = 
         <div style={{ textAlign: "center" }}>
           <span className="mo" style={{ fontSize: 10, color: "var(--t2)" }}>{mode === "signup" ? "Already have an account? " : "Don't have an account? "}</span>
           <button onClick={() => setMode(mode === "signup" ? "signin" : "signup")} style={{ background: "none", border: "none", color: "var(--or)", fontFamily: "'DM Mono',monospace", fontSize: 10, cursor: "pointer" }}>
-            {mode === "signup" ? "Sign In" : "Start Free Trial"}
+            {mode === "signup" ? "Sign In" : "Create Account"}
           </button>
         </div>
         )}
@@ -1793,7 +1746,7 @@ function SignInPage({ setPage, showToast, initialMode = "signup", initialRole = 
         </div>
         )}
         <div className="mo" style={{ fontSize: 9, color: "var(--t2)", textAlign: "center", marginTop: 12, lineHeight: 1.6 }}>
-          30-day free trial · No credit card required<br />
+          Free while we launch · No credit card required<br />
           $2.00/mi standard · $100 overnight · $250 no-go
         </div>
       </div>

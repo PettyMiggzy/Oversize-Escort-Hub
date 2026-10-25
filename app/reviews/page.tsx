@@ -7,7 +7,7 @@ interface Review {
   id: string;
   reviewer_name?: string;
   rating: number;
-  body: string | null;
+  comment: string | null;
   created_at: string;
   load_id: string;
 }
@@ -133,7 +133,7 @@ export default function ReviewsPage() {
                     ))}
                   </div>
                 </div>
-                <p className="text-gray-300">{r.body}</p>
+                <p className="text-gray-300">{r.comment}</p>
                 <p className="text-gray-500 text-sm mt-2">{new Date(r.created_at).toLocaleDateString()}</p>
               </div>
             ))
