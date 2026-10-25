@@ -11,6 +11,7 @@ const NAV = [
   { label: "Bid Board",     href: "/bid-board" },
   { label: "Find Escorts",  href: "/find-escorts" },
   { label: "Post a Load",   href: "/post-load" },
+  { label: "How it works",  href: "/how-it-works" },
   { label: "Pricing",       href: "/pricing" },
   { label: "Verification",  href: "/verify" },
 ];
@@ -44,9 +45,10 @@ export default function SiteHeader() {
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
-    height: 56,
-    background: "rgba(6,8,10,0.98)",
-    borderBottom: "1px solid #1c2229",
+    height: 64,
+    background: "rgba(10,11,13,0.92)",
+    backdropFilter: "blur(8px)",
+    borderBottom: "1px solid #1d212b",
     padding: "0 24px",
     gap: 20,
     position: "sticky",
@@ -55,13 +57,12 @@ export default function SiteHeader() {
   };
 
   const navLinkStyle: React.CSSProperties = {
-    fontFamily: '"DM Mono", monospace',
-    fontSize: 9,
-    letterSpacing: "0.14em",
-    textTransform: "uppercase",
-    color: "#6e7a88",
-    padding: "0 10px",
-    height: 56,
+    fontFamily: 'Inter, system-ui, sans-serif',
+    fontSize: 14,
+    fontWeight: 500,
+    color: "#9aa3b2",
+    padding: "0 8px",
+    height: 64,
     display: "flex",
     alignItems: "center",
     background: "none",
@@ -87,13 +88,9 @@ export default function SiteHeader() {
   };
 
   const logoStyle: React.CSSProperties = {
-    fontFamily: '"DM Mono", monospace',
-    fontSize: 11,
-    letterSpacing: "0.12em",
-    textTransform: "uppercase",
-    color: "#e8eaed",
+    display: "flex",
+    alignItems: "center",
     textDecoration: "none",
-    whiteSpace: "nowrap",
     marginRight: 8,
   };
 
@@ -105,29 +102,27 @@ export default function SiteHeader() {
   };
 
   const btnGhostStyle: React.CSSProperties = {
-    fontFamily: '"DM Mono", monospace',
-    fontSize: 9,
-    letterSpacing: "0.12em",
-    textTransform: "uppercase",
-    color: "#6e7a88",
-    background: "none",
-    border: "1px solid #2a3340",
-    borderRadius: 4,
-    padding: "6px 14px",
+    fontFamily: 'Inter, system-ui, sans-serif',
+    fontSize: 14,
+    fontWeight: 600,
+    color: "#e6e9ef",
+    background: "#12141a",
+    border: "1px solid #2a2f3c",
+    borderRadius: 8,
+    padding: "8px 16px",
     cursor: "pointer",
     textDecoration: "none",
   };
 
   const btnPrimeStyle: React.CSSProperties = {
-    fontFamily: '"DM Mono", monospace',
-    fontSize: 9,
-    letterSpacing: "0.12em",
-    textTransform: "uppercase",
-    color: "#0a0c0e",
-    background: "#e8eaed",
+    fontFamily: 'Inter, system-ui, sans-serif',
+    fontSize: 14,
+    fontWeight: 700,
+    color: "#120800",
+    background: "#ff6a13",
     border: "none",
-    borderRadius: 4,
-    padding: "6px 14px",
+    borderRadius: 8,
+    padding: "8px 16px",
     cursor: "pointer",
     textDecoration: "none",
   };
@@ -142,12 +137,10 @@ export default function SiteHeader() {
   };
 
   const mobileLinkStyle: React.CSSProperties = {
-    fontFamily: '"DM Mono", monospace',
-    fontSize: 10,
-    letterSpacing: "0.12em",
-    textTransform: "uppercase",
-    color: "rgba(255,255,255,0.8)",
-    padding: "10px 24px",
+    fontFamily: 'Inter, system-ui, sans-serif',
+    fontSize: 16,
+    color: "rgba(255,255,255,0.85)",
+    padding: "12px 24px",
     textDecoration: "none",
     background: "none",
   };
@@ -165,7 +158,10 @@ export default function SiteHeader() {
     <>
       <header>
         <nav style={navContainerStyle}>
-          <Link href="/" style={logoStyle}>OEH</Link>
+          <Link href="/" style={logoStyle} aria-label="Oversize Escort Hub home">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo-3d.png" alt="Oversize Escort Hub" style={{ height: 44, width: "auto" }} />
+          </Link>
 
           {/* Desktop nav links */}
             {!isMobile && (
@@ -183,7 +179,7 @@ export default function SiteHeader() {
         {userProfile ? (
           <Link href="/dashboard" style={btnPrimeStyle}>Dashboard</Link>
         ) : (
-          <><Link href="/signin" style={btnGhostStyle}>Sign in</Link><Link href="/dashboard" style={btnPrimeStyle}>Dashboard</Link></>
+          <><Link href="/signin" style={btnGhostStyle}>Sign in</Link><Link href="/signin?mode=signup" style={btnPrimeStyle}>Get started</Link></>
         )}
           </div>
 
@@ -213,7 +209,7 @@ export default function SiteHeader() {
           {userProfile ? (
             <Link href="/dashboard" style={{ ...btnPrimeStyle, textAlign: "center", padding: "10px 0" }} onClick={() => setOpen(false)}>Dashboard</Link>
           ) : (
-            <><Link href="/signin" style={{ ...btnGhostStyle, textAlign: "center", padding: "10px 0" }} onClick={() => setOpen(false)}>Sign in</Link><Link href="/dashboard" style={{ ...btnPrimeStyle, textAlign: "center", padding: "10px 0" }} onClick={() => setOpen(false)}>Dashboard</Link></>
+            <><Link href="/signin" style={{ ...btnGhostStyle, textAlign: "center", padding: "10px 0" }} onClick={() => setOpen(false)}>Sign in</Link><Link href="/signin?mode=signup" style={{ ...btnPrimeStyle, textAlign: "center", padding: "10px 0" }} onClick={() => setOpen(false)}>Get started</Link></>
           )}
           </div>
         </div>

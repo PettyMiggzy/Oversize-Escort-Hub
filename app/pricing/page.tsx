@@ -4,7 +4,7 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { isNativeApp, openInBrowser, WEB_HOST } from "@/lib/native";
 import { FREE_LAUNCH } from "@/lib/free-launch";
-import Title3D from "@/components/Title3D";
+import PageHero from "@/components/PageHero";
 
 const PRICES = {
   member:         "price_1TF00LLmfugPCRbAl6sF0Oup",
@@ -253,6 +253,7 @@ export default function PricingPage() {
           </div>
         </div>
       )}
+      <PageHero image="/photos/band-pricing.webp" position="50% 55%" title="Pricing" lead="Plans for escorts, carriers, brokers and fleets." />
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" }}>
         {FREE_LAUNCH && (
           <div style={{ background: "rgba(240,165,0,.10)", border: `1px solid ${ORANGE}`, borderRadius: 12, padding: "18px 22px", margin: "0 auto 28px", maxWidth: 760, textAlign: "center" }}>
@@ -262,10 +263,30 @@ export default function PricingPage() {
           </div>
         )}
         <div style={{ textAlign: "center", marginBottom: 16 }}>
-          <Title3D src="/titles/pricing.webp" alt="Pricing" maxWidth={380} marginBottom={6} />
+          
           <p style={{ color: MUTED, fontSize: 15, marginTop: 8 }}>Simple plans for escorts, fleets, and carriers.</p>
         </div>
 
+        {FREE_LAUNCH && (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 20, marginBottom: 40 }}>
+            <Card>
+              <PriceHeader label="Escorts" price="$0" period=" while we launch" />
+              <Features items={["Flat-rate, open-bid and 5-minute bid boards", "Bid on loads and see contact info when matched", "Deadhead Minimizer", "Load and bid alerts by email", "Verification badges", "Reviews"]} />
+              <CTA label="Join as an escort" onClick={() => { window.location.href = "/signin?mode=signup&role=escort"; }} />
+            </Card>
+            <Card highlight>
+              <PriceHeader label="Carriers & brokers" price="$0" period=" while we launch" highlight />
+              <Features items={["Post loads in minutes", "Get bids and claims from escorts", "Review certifications, ratings and badges", "Email and in-app alerts", "Match and confirm in the app"]} />
+              <CTA label="Post a load" onClick={() => { window.location.href = "/signin?mode=signup&role=carrier"; }} />
+            </Card>
+            <Card>
+              <PriceHeader label="Fleets" price="$0" period=" while we launch" />
+              <Features items={["Manage several escorts in one account", "Fleet search", "Fleet deadhead planning", "Jobs, invoices and earnings in one dashboard"]} />
+              <GhostCTA label="Set up a fleet" href="/join?role=fleet" />
+            </Card>
+          </div>
+        )}
+        {!FREE_LAUNCH && (<>
         {/* SECTION 1 — ESCORT TIERS */}
         <SectionTitle subtitle="For P/EVO operators">Escort Tiers</SectionTitle>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 20 }}>
@@ -352,11 +373,12 @@ export default function PricingPage() {
           <GhostCTA label="Sign Up Free" href="/signin" />
         </div>
 
+        </>)}
         {/* SECTION 4 — ADD-ONS */}
         <SectionTitle subtitle="One-time purchases and boosts">Add-Ons</SectionTitle>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 20 }}>
           <Card>
-            <PriceHeader label="BGC Badge" price="$9.99" period=" one-time" />
+            <PriceHeader label="BGC Badge" price={FREE_LAUNCH ? "Free" : "$9.99"} period={FREE_LAUNCH ? " while we launch" : " one-time"} />
             <Features items={[
               "Background check review",
               "Badge appears on profile upon approval",
@@ -364,21 +386,21 @@ export default function PricingPage() {
             <CTA label="Get BGC Badge" onClick={() => startCheckout(PRICES.bgc, setLoading)} loading={loading === PRICES.bgc} />
           </Card>
           <Card>
-            <PriceHeader label="P/EVO Cert Review — Member" price="$14.99" />
+            <PriceHeader label={FREE_LAUNCH ? "P/EVO Cert Review" : "P/EVO Cert Review — Member"} price={FREE_LAUNCH ? "Free" : "$14.99"} period={FREE_LAUNCH ? " while we launch" : undefined} />
             <Features items={[
-              "Cert document review for Member tier",
+              FREE_LAUNCH ? "Cert document review" : "Cert document review for Member tier",
               "Covers Cert Review + Verification",
             ]} />
             <CTA label="Buy Review" onClick={() => startCheckout(PRICES.pevo_member, setLoading)} loading={loading === PRICES.pevo_member} />
           </Card>
-          <Card>
+          {!FREE_LAUNCH && (<Card>
             <PriceHeader label="P/EVO Cert Review — Pro" price="$9.99" />
             <Features items={[
               "Discounted for Pro tier",
               "Covers Cert Review + Verification",
             ]} />
             <CTA label="Buy Review" onClick={() => startCheckout(PRICES.pevo_pro, setLoading)} loading={loading === PRICES.pevo_pro} />
-          </Card>
+          </Card>)}
           <Card>
             <div id="sponsored" />
             <PriceHeader label="Sponsored Zone" price="$29.99" period="/30 days" />

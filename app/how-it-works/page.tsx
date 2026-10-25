@@ -1,116 +1,95 @@
 'use client';
 import { useState } from 'react';
 import SiteHeader from '@/components/SiteHeader';
-import Title3D from '@/components/Title3D'
+import PageHero from '@/components/PageHero';
 
-
-const bgColor = '#060b16';
-const surfaceColor = '#0d1117';
-const orangeColor = '#f0a500';
-const textColor = '#e0e0e0';
+const TABS = [
+  {
+    key: 'escort', label: 'Pilot car / P/EVO', color: '#f0a500', cta: 'Join as an escort', href: '/signin?mode=signup&role=escort',
+    steps: [
+      ['Create a free account', 'Pick pilot car / P/EVO as your role.'],
+      ['Build your profile', 'Add your certifications, the states you cover, your vehicle and your verification badges.'],
+      ['Browse the boards', 'Flat-rate, open-bid and 5-minute bid boards. Every account sees new loads the moment they post.'],
+      ['Claim a load or place a bid', 'Pick a load that matches your certifications. The load is held for you while the carrier decides.'],
+      ['Get matched', 'The carrier reviews your profile and accepts. You both get an alert and each other’s contact details.'],
+      ['Get home faster', 'The Deadhead Minimizer finds return loads near your drop-off so you do not drive home empty.'],
+      ['Leave a review', 'Rate each other after the job. Good reviews win you more work.'],
+    ],
+  },
+  {
+    key: 'carrier', label: 'Oversize carrier', color: '#ff6a13', cta: 'Post your first load', href: '/signin?mode=signup&role=carrier',
+    steps: [
+      ['Create a free account', 'Pick oversize carrier as your role.'],
+      ['Post a load in about two minutes', 'Pickup, drop-off, escort type, your rate and any certifications you need.'],
+      ['Choose how it posts', 'Flat rate, open bid, or the 5-minute bid board.'],
+      ['Get alerts', 'You get an email and an in-app alert when an escort claims or bids on your load.'],
+      ['Review the escort', 'Check their profile, certifications, ratings and verification badges.'],
+      ['Accept or decline', 'Accept and you both get contact details. Decline and the load goes back on the board.'],
+    ],
+  },
+  {
+    key: 'broker', label: 'Freight broker', color: '#c1c8d4', cta: 'Join as a broker', href: '/signin?mode=signup&role=broker',
+    steps: [
+      ['Create a free account', 'Pick freight broker as your role.'],
+      ['Post loads for your shipments', 'Add each oversize move and the escort positions it needs.'],
+      ['Compare escorts', 'See each bidder’s certifications, rating and verification badges before you decide.'],
+      ['Accept and confirm', 'Accept the escort you want. You both get an alert and contact details.'],
+      ['Keep track', 'Follow every job from your dashboard.'],
+    ],
+  },
+  {
+    key: 'fleet', label: 'Fleet manager', color: '#4f8cff', cta: 'Set up a fleet', href: '/join?role=fleet',
+    steps: [
+      ['Create a fleet manager account', 'Free while we launch.'],
+      ['Add your escort drivers', 'Put every driver in one place.'],
+      ['Set coverage for the whole fleet', 'Choose the states and zones your fleet works.'],
+      ['Get alerts for any driver in a zone', 'Know about loads the moment they post.'],
+      ['Track the work', 'Jobs, invoices and earnings from the fleet dashboard, with unlimited escorts under one account.'],
+    ],
+  },
+] as const;
 
 export default function HowItWorks() {
-  const [activeTab, setActiveTab] = useState('pevo');
-
-  const content = {
-    pevo: {
-      title: 'P/EVO Escort',
-      steps: [
-        { num: 1, desc: 'Create free account' },
-        { num: 2, desc: 'Complete profile — certs, availability zones, BGC badge' },
-        { num: 3, desc: 'Browse the board (Pro: instant access; SMS alerts coming soon)' },
-        { num: 4, desc: 'Click a load matching your certs' },
-        { num: 5, desc: 'Confirm requirements — load held for you' },
-        { num: 6, desc: 'Carrier reviews your profile and accepts' },
-        { num: 7, desc: 'Both get contact info' },
-        { num: 8, desc: 'Leave review after job' },
-      ]
-    },
-    carrier: {
-      title: 'Carrier',
-      steps: [
-        { num: 1, desc: 'Create free account — always free' },
-        { num: 2, desc: 'Post load in under 2 min — pickup, destination, escort type, rate' },
-        { num: 3, desc: 'Choose flat rate, open bid, or 5-min bid' },
-        { num: 4, desc: 'Get notified when escort claims load' },
-        { num: 5, desc: 'Review escort profile, certs, ratings, BGC badge' },
-        { num: 6, desc: 'Accept or decline — declined loads return to board' },
-        { num: 7, desc: 'Both get contact info on acceptance' },
-      ]
-    },
-    fleet: {
-      title: 'Fleet Manager',
-      steps: [
-        { num: 1, desc: 'Sign up Fleet Pro $99.99/mo' },
-        { num: 2, desc: 'Add escort drivers to fleet' },
-        { num: 3, desc: 'Set availability zones for entire fleet' },
-        { num: 4, desc: 'Receive load notifications for any driver in zone' },
-        { num: 5, desc: 'Track jobs, invoices, earnings from fleet dashboard' },
-        { num: 6, desc: 'Unlimited escorts under one account' },
-      ]
-    }
-  };
-
-  const current = content[activeTab as keyof typeof content];
+  const [tab, setTab] = useState<(typeof TABS)[number]['key']>('escort');
+  const current = TABS.find((t) => t.key === tab)!;
 
   return (
-    <div style={{ background: bgColor, color: textColor, minHeight: '100vh', padding: '40px 20px' }}>
+    <div style={{ background: '#0a0b0d', color: '#e6e9ef', minHeight: '100vh', fontFamily: 'Inter, system-ui, sans-serif' }}>
       <SiteHeader />
-      <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-        <Title3D src="/titles/how.webp" alt="How It Works" maxWidth={560} marginTop={24} marginBottom={36} />
-
-        <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginBottom: '40px', flexWrap: 'wrap' }}>
-          {['pevo', 'carrier', 'fleet'].map((tab) => (
+      <PageHero image="/photos/band-how.webp" position="50% 62%" title="How it works" lead="From sign-up to a confirmed job. Everything is free while we launch." />
+      <div style={{ maxWidth: 860, margin: '0 auto', padding: '36px 20px 70px' }}>
+        <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginBottom: 28, flexWrap: 'wrap' }}>
+          {TABS.map((t) => (
             <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
+              key={t.key}
+              onClick={() => setTab(t.key)}
               style={{
-                padding: '12px 24px',
-                background: activeTab === tab ? orangeColor : surfaceColor,
-                color: activeTab === tab ? bgColor : textColor,
-                border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: 600,
+                padding: '11px 20px', borderRadius: 999, cursor: 'pointer', fontSize: 14, fontWeight: 700,
+                background: tab === t.key ? t.color : '#12141a', color: tab === t.key ? '#120800' : '#c9ced8',
+                border: `1px solid ${tab === t.key ? t.color : '#2a2f3c'}`,
               }}
             >
-              {tab === 'pevo' ? 'P/EVO' : tab === 'carrier' ? 'Carrier' : 'Fleet Manager'}
+              {t.label}
             </button>
           ))}
         </div>
 
-        <div style={{ background: surfaceColor, borderRadius: '12px', padding: '32px', borderLeft: `4px solid ${orangeColor}` }}>
-          <h2 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '24px', color: orangeColor }}>
-            {current.title}
-          </h2>
-
-          <div style={{ display: 'grid', gap: '20px' }}>
-            {current.steps.map((step) => (
-              <div key={step.num} style={{ display: 'flex', gap: '16px' }}>
-                <div
-                  style={{
-                    background: orangeColor,
-                    color: bgColor,
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 800,
-                    fontSize: '16px',
-                    flexShrink: 0,
-                  }}
-                >
-                  {step.num}
-                </div>
-                <p style={{ margin: 0, fontSize: '16px', lineHeight: '1.6', color: textColor }}>
-                  {step.desc}
-                </p>
+        <div style={{ display: 'grid', gap: 12 }}>
+          {current.steps.map(([title, text], i) => (
+            <div key={title} style={{ display: 'flex', gap: 16, background: '#12141a', border: '1px solid #232733', borderRadius: 14, padding: '18px 20px' }}>
+              <div className="bb" style={{ fontSize: 40, lineHeight: 1, color: current.color, minWidth: 34 }}>{i + 1}</div>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 17, marginBottom: 2 }}>{title}</div>
+                <div style={{ color: '#9aa3b2', fontSize: 15, lineHeight: 1.55 }}>{text}</div>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ textAlign: 'center', marginTop: 34 }}>
+          <a href={current.href} style={{ display: 'inline-block', background: '#ff6a13', color: '#120800', fontWeight: 800, fontSize: 16, padding: '15px 28px', borderRadius: 10, textDecoration: 'none' }}>
+            {current.cta} &rarr;
+          </a>
         </div>
       </div>
     </div>

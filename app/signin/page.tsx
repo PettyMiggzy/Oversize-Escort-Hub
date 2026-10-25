@@ -17,7 +17,7 @@ body{background:var(--bg);color:var(--t1);font-family:'Inter',system-ui,sans-ser
 input{font-family:'Inter',system-ui,sans-serif;background:var(--p2);border:1px solid var(--l2);color:var(--t1);padding:10px 14px;border-radius:3px;font-size:13px;outline:none;width:100%}
 input:focus{border-color:var(--or)}
 button{cursor:pointer;font-family:'Inter',system-ui,sans-serif}
-.wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(10,11,13,.82),rgba(10,11,13,.9)),url(/photos/band-account.webp) center/cover no-repeat}
 .box{background:var(--p1);border:1px solid var(--l1);border-radius:4px;padding:40px;width:100%;max-width:440px}
 .label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--t2);display:block;margin-bottom:6px}
 .field{margin-bottom:18px}
@@ -84,7 +84,7 @@ function SignInInner() {
   const initialRole = (allowedRoles as readonly string[]).includes(roleParamRaw ?? '')
     ? (roleParamRaw as 'escort' | 'carrier' | 'broker' | 'fleet_manager')
     : 'escort';
-  const [mode, setMode] = useState<"signup" | "signin">("signin");
+  const [mode, setMode] = useState<"signup" | "signin">(searchParams.get('mode') === 'signup' ? "signup" : "signin");
   const [role, setRole] = useState<"escort" | "carrier" | "fleet_manager" | "broker">(initialRole);
   const [plan, setPlan] = useState<"trial" | "member" | "pro" | null>(null);
   const [trialBlocked, setTrialBlocked] = useState(false);

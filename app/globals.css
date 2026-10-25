@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700;800&display=swap');
 /* ================================
    OVERSIZE ESCORT HUB
    Premium Ops / High-Tech Theme
@@ -249,3 +250,18 @@ html, body {
 
 /* sign-in / sign-up fields fill the card */
 .signin-box input[type=text],.signin-box input[type=email],.signin-box input[type=password]{width:100%;box-sizing:border-box}
+
+/* ── Shared photo header band for inner pages ─────────────────────────────── */
+.pgh{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;padding:56px 24px 50px;background-size:cover;background-position:center}
+.pgh:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,11,13,.86),rgba(10,11,13,.6) 60%,rgba(10,11,13,.92))}
+.pgh>*{position:relative}
+.pgh h1{font-size:56px;line-height:1;margin:0 0 12px;font-weight:400;text-shadow:0 2px 20px rgba(0,0,0,.6);color:#fff}
+.pgh p{color:#d6dae2;font-size:18px;line-height:1.5;max-width:640px;margin:0}
+@media(max-width:700px){.pgh{padding:38px 20px 34px}.pgh h1{font-size:38px}.pgh p{font-size:16px}}
+
+/* sign-in / sign-up screens sit on a darkened photo */
+.signin-wrap{background:linear-gradient(180deg,rgba(10,11,13,.82),rgba(10,11,13,.9)),url(/photos/band-account.webp) center/cover no-repeat !important}
+
+/* headline / mono helpers available on every page */
+.bb{font-family:'Bebas Neue',Impact,sans-serif;letter-spacing:.03em;text-transform:uppercase}
+.mo{font-family:'DM Mono',monospace}
