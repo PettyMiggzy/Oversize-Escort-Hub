@@ -1653,7 +1653,7 @@ function SignInPage({ setPage, showToast, initialMode = "signup", initialRole = 
     if (mode === "signup") {
       const { error } = await supabase.auth.signUp({
         email, password,
-        options: { data: { full_name: fullName, company_name: company, role }, emailRedirectTo: `${window.location.origin}/auth/callback` },
+        options: { data: { full_name: fullName, company_name: company, role, sms_opt_in: smsOptIn, sms_opt_in_at: smsOptIn ? new Date().toISOString() : null }, emailRedirectTo: `${window.location.origin}/auth/callback` },
       });
       if (error) showToast(error.message, "rd");
       else showToast("Check your email to confirm your account!", "gr");
@@ -1731,7 +1731,8 @@ function SignInPage({ setPage, showToast, initialMode = "signup", initialRole = 
           <label style={{ display: "flex", gap: 10, alignItems: "flex-start", background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 6, padding: "10px 12px", cursor: "pointer" }}>
             <input type="checkbox" checked={smsOptIn} onChange={e => setSmsOptIn(e.target.checked)} style={{ marginTop: 2, accentColor: "var(--or)", flexShrink: 0, width: 14, height: 14 }} />
             <span style={{ fontSize: 10, color: "#e5e7eb", lineHeight: 1.7 }}>
-              I agree to receive texts from (214) 949-4213 about oversize load escort services. Mobile information will not be shared with third parties/affiliates for marketing/promotional purposes. Text messaging originator opt-in data and consent will not be shared with any third parties. Message frequency varies. Message and data rates apply. Reply HELP for more information. Reply STOP to opt out. Privacy Policy can be found{" "}
+              I agree to receive text messages from Oversize Escort Hub at (855) 601-4751 about my account, load alerts, bids and matches, and texts I send to post loads. Consent is not a condition of using OEH. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for help. Mobile information will not be shared with third parties or affiliates for marketing or promotional purposes. Program details{" "}
+                    <a href="/sms" style={{ color: "#60a5fa" }}>here</a>. Privacy Policy can be found{" "}
                     <a href="/privacy" style={{ color: "#60a5fa" }}>here</a>. Terms &amp; Conditions can be found{" "}
                     <a href="/terms" style={{ color: "#60a5fa" }}>here</a>.</span>
           </label>
