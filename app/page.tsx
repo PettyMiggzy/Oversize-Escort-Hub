@@ -65,28 +65,7 @@ type Load = {
   poster_company: string | null;
   poster_rating: number | null;
   poster_jobs: number | null;
-  isSample?: boolean;
 };
-
-// ─── SEED DATA (shown until real loads exist) ────────────────────────────────
-
-const SEED_LOADS: Load[] = [
-  { id: "seed-1", created_at: new Date().toISOString(), carrier_id: "seed", board_type: "flat-rate", pu_city: "Jacksonville", pu_state: "FL", dl_city: "Montgomery", dl_state: "AL", miles: 344, position: "Lead", pay_type: "FastPay", status: "open", per_mile_rate: 2.00, day_rate: 500, overnight_fee: 100, no_go_fee: 250, requires_p_evo: true, requires_witpac: false, requires_ny_cert: false, requires_twic: false, notes: null, start_date: null, poster_company: "Sunshine State Oversize", poster_rating: 4.8, poster_jobs: 47, isSample: true },
-  { id: "seed-2", created_at: new Date().toISOString(), carrier_id: "seed", board_type: "flat-rate", pu_city: "Houston", pu_state: "TX", dl_city: "Oklahoma City", dl_state: "OK", miles: 488, position: "Rear", pay_type: "7-Day", status: "open", per_mile_rate: 2.00, day_rate: 500, overnight_fee: 100, no_go_fee: 250, requires_p_evo: true, requires_witpac: false, requires_ny_cert: false, requires_twic: false, notes: null, start_date: null, poster_company: "Gulf Coast Transport LLC", poster_rating: 4.6, poster_jobs: 112, isSample: true },
-  { id: "seed-3", created_at: new Date().toISOString(), carrier_id: "seed", board_type: "flat-rate", pu_city: "Bakersfield", pu_state: "CA", dl_city: "Las Vegas", dl_state: "NV", miles: 280, position: "Lead+Rear", pay_type: "10-Day", status: "open", per_mile_rate: 2.00, day_rate: 500, overnight_fee: 100, no_go_fee: 250, requires_p_evo: true, requires_witpac: true, requires_ny_cert: false, requires_twic: false, notes: null, start_date: null, poster_company: "Desert Wind Transport", poster_rating: 4.7, poster_jobs: 83, isSample: true },
-];
-
-const SEED_BID_LOADS = [
-  { id: "BID-771", from: "Dallas, TX", to: "Memphis, TN", mi: 473, rate: 2.00, pos: "Lead", certs: ["P/EVO"], score: 4.7, bids: 3, timer: 187, status: "live", isSample: true },
-  { id: "BID-664", from: "Phoenix, AZ", to: "Albuquerque, NM", mi: 467, rate: 2.00, pos: "Lead", certs: ["P/EVO", "Witpac"], score: 4.8, bids: 1, timer: 44, status: "live", isSample: true },
-];
-
-const SEED_ESCORTS = [
-  { id: "e1", name: "Marcus T.", co: "Thompson Escort Services", loc: "Houston, TX", jobs: 284, rating: 4.97, rank: 1, region: "TX", resp: "< 2 min", rel: 98, badges: ["P/EVO Verified", "BGC", "Vehicle"], vehicle: "2021 Ford F-250", states: ["TX", "LA", "OK", "AR", "NM"], reviewCount: 271, proMember: true, isSample: true },
-  { id: "e2", name: "Dale R.", co: "Desert State Pilot", loc: "Phoenix, AZ", jobs: 412, rating: 4.98, rank: 1, region: "SW", resp: "< 2 min", rel: 99, badges: ["P/EVO Verified", "BGC", "Vehicle"], vehicle: "2022 Ford F-350", states: ["AZ", "NM", "NV", "CA", "UT"], reviewCount: 398, proMember: true, isSample: true },
-  { id: "e3", name: "Sarah M.", co: "Southeast Escort LLC", loc: "Atlanta, GA", jobs: 156, rating: 4.93, rank: 3, region: "SE", resp: "< 5 min", rel: 96, badges: ["P/EVO Verified", "Vehicle"], vehicle: "2020 Chevy Silverado", states: ["GA", "FL", "SC", "NC", "TN"], reviewCount: 149, proMember: false, isSample: true },
-  { id: "e4", name: "Rick B.", co: "MidAmerica Pilot Car", loc: "Nashville, TN", jobs: 88, rating: 4.91, rank: 2, region: "MID", resp: "< 8 min", rel: 94, badges: ["P/EVO Verified", "Vehicle"], vehicle: "2019 Ford F-150", states: ["TN", "KY", "AL", "MS", "MO"], reviewCount: 84, proMember: false, isSample: true },
-];
 
 const TIERS = [
   { id: "trial", name: "Free Trial", price: 0, sub: "30 days · one per device", color: "#6e7a88", features: ["View load board (no contact info)", "Search escorts directory", "30-day limit", "No bidding · no alerts"], daily: null, popular: false, carrierPro: null },
@@ -576,27 +555,7 @@ function LockBar({ setPage }: { setPage: (p: Page) => void }) {
   );
 }
 
-function SampleBadge() {
-  return <span className="chip ch-sample" style={{ marginLeft: 6 }}>SAMPLE</span>;
-}
 
-function EarlyBanner({ role }: { role: "carrier" | "escort" }) {
-  return (
-    <div className="early-banner">
-      <div style={{ fontSize: 22 }}>🚀</div>
-      <div>
-        <div className="mo" style={{ fontSize: 10, color: "var(--am)", fontWeight: 600, marginBottom: 3 }}>
-          {role === "carrier" ? "Be Among the First Carriers on the Platform" : "Be Among the First Escorts on the Platform"}
-        </div>
-        <div className="mo" style={{ fontSize: 10, color: "var(--t2)" }}>
-          {role === "carrier"
-            ? "Sample loads shown below. Post the first real load in your region and get seen by every escort who joins."
-            : "Sample data shown below. Early members get first access to every load posted. Lock in your spot now."}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ─── HOME PAGE ────────────────────────────────────────────────────────────────
 
@@ -794,14 +753,12 @@ function FlatBoardPreview({ setPage, escortView }: { setPage: (p: Page) => void;
       if (data && data.length > 0) {
         setLoads(data);
       } else {
-        setLoads(SEED_LOADS.slice(0, 5));
+        setLoads([]);
       }
       setLoading(false);
     }
     fetchLoads();
   }, []);
-
-  const hasSamples = loads.some(l => l.isSample);
 
   return (
     <div className="section" style={{ paddingBottom: 0, paddingTop: escortView ? 0 : undefined }}>
@@ -812,9 +769,12 @@ function FlatBoardPreview({ setPage, escortView }: { setPage: (p: Page) => void;
         </div>
         <button className="section-link" onClick={() => window.location.href = "/flat-rate"}>View All Loads</button>
       </div>
-      {hasSamples && <EarlyBanner role={escortView ? "escort" : "carrier"} />}
       {loading ? (
         <div className="mo" style={{ fontSize: 10, color: "var(--t2)", padding: "20px 0" }}>Loading loads...</div>
+      ) : loads.length === 0 ? (
+        <div className="mo" style={{ fontSize: 11, color: "var(--t2)", padding: "24px 0", lineHeight: 1.6 }}>
+          No open loads right now. New loads appear here the moment a carrier posts them.
+        </div>
       ) : (
         <div className="data-table">
           <table>
@@ -825,15 +785,14 @@ function FlatBoardPreview({ setPage, escortView }: { setPage: (p: Page) => void;
               {loads.map((l) => (
                 <tr key={l.id} style={{ opacity: l.status === "filled" ? 0.42 : 1 }}>
                   <td className="mo" style={{ color: "var(--t2)", fontSize: 9 }}>
-                    {l.isSample ? `SAMPLE-${l.id.slice(-3).toUpperCase()}` : l.id.slice(0, 8).toUpperCase()}
-                    {l.isSample && <SampleBadge />}
+                    {l.id.slice(0, 8).toUpperCase()}
                   </td>
                   <td style={{ fontWeight: 500, fontSize: 12 }}>{l.pu_city}, {l.pu_state} → {l.dl_city}, {l.dl_state}</td>
                   <td className="mo">{l.miles}</td>
                   <td className="mo" style={{ color: "var(--gr)", fontWeight: 600 }}>${l.per_mile_rate.toFixed(2)}/mi</td>
                   <td style={{ fontSize: 10 }}>{l.position}</td>
                   <td>{l.pay_type === "FastPay" ? <span className="chip ch-gr">⚡ FastPay</span> : <span className="mo" style={{ fontSize: 10, color: "var(--t2)" }}>{l.pay_type}</span>}</td>
-                  <td><PayScore score={l.poster_rating || 4.5} /></td>
+                  <td>{l.poster_rating ? <PayScore score={l.poster_rating} /> : <span className="mo" style={{ fontSize: 9, color: "var(--t2)" }}>New</span>}</td>
                   <td>
                     <div className="mo" style={{ fontSize: 11, color: "var(--t3)" }}>📞 (XXX) XXX-XXXX</div>
                     <div className="mo" style={{ fontSize: 9, color: "var(--t3)" }}>🔒 Member only</div>
@@ -858,13 +817,12 @@ function EscortsPreview({ setPage }: { setPage: (p: Page) => void }) {
       <div className="section-header">
         <div>
           <div className="eyebrow" style={{ color: "var(--gr)" }}>Verified P/EVO Professionals</div>
-          <div className="section-title">TOP RANKED ESCORTS</div>
+          <div className="section-title">ESCORT DIRECTORY</div>
         </div>
-        <button className="section-link" onClick={() => setPage("escorts")}>View All</button>
+        <button className="section-link" onClick={() => { window.location.href = "/find-escorts"; }}>Browse Directory</button>
       </div>
-      <EarlyBanner role="carrier" />
-      <div className="esc-grid">
-        {SEED_ESCORTS.map((e) => <EscortCard key={e.id} e={e} setPage={setPage} />)}
+      <div className="mo" style={{ fontSize: 11, color: "var(--t2)", padding: "14px 0", lineHeight: 1.6 }}>
+        Escorts appear here as they join and are verified. Every profile in the directory belongs to a real, signed-up escort.
       </div>
     </div>
   );
@@ -949,50 +907,6 @@ function FeatureSection({ setPage }: { setPage: (p: Page) => void }) {
   );
 }
 
-// ─── ESCORT CARD ──────────────────────────────────────────────────────────────
-
-function EscortCard({ e, setPage }: { e: typeof SEED_ESCORTS[0]; setPage: (p: Page) => void }) {
-  return (
-    <div className="card">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
-        <div>
-          <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 1 }}>
-            {e.name}
-            {e.isSample && <SampleBadge />}
-          </div>
-          <div className="mo" style={{ fontSize: 10, color: "var(--t2)" }}>{e.co}</div>
-          <div className="mo" style={{ fontSize: 10, color: "var(--t2)" }}>{e.loc}</div>
-          <div className="mo" style={{ fontSize: 10, color: "var(--am)" }}>Resp: {e.resp} avg</div>
-        </div>
-        <div style={{ textAlign: "right" }}>
-          <div className="bb" style={{ fontSize: 20, color: "var(--am)", lineHeight: 1 }}>#{e.rank} {e.region}</div>
-          <div className="mo" style={{ fontSize: 8, color: "var(--t2)", letterSpacing: ".1em" }}>RANK</div>
-        </div>
-      </div>
-      <div style={{ display: "flex", gap: 4, flexWrap: "wrap" as const, marginBottom: 10 }}>
-        {e.badges.slice(0, 3).map((b) => (
-          <span key={b} className="chip ch-gr" style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-            {b === "P/EVO Verified" && <img src="/verified.png" alt="" style={{ width: 12, height: 12, objectFit: "contain" }} />}
-            {b !== "P/EVO Verified" && "✓"} {b}
-          </span>
-        ))}
-      </div>
-      <div style={{ display: "flex", gap: 12, padding: "9px 0", borderTop: "1px solid var(--l1)", borderBottom: "1px solid var(--l1)", marginBottom: 10 }}>
-        {[{ n: e.jobs, l: "Jobs", c: undefined }, { n: e.rating, l: "Rating", c: "var(--gr)" }, { n: `${e.rel}%`, l: "Reliability", c: "var(--bl)" }].map((s) => (
-          <div key={s.l} style={{ textAlign: "center" }}>
-            <div className="bb" style={{ fontSize: 20, lineHeight: 1, color: s.c || "var(--t1)" }}>{s.n}</div>
-            <div className="mo" style={{ fontSize: 8, color: "var(--t2)", letterSpacing: ".08em", textTransform: "uppercase" }}>{s.l}</div>
-          </div>
-        ))}
-      </div>
-      <div className="mo" style={{ fontSize: 9, color: "var(--t2)", marginBottom: 10 }}>{e.vehicle}</div>
-      <div style={{ display: "flex", gap: 6 }}>
-        <button className="btn btn-or btn-sm" style={{ flex: 1, fontSize: 8 }} onClick={() => { window.location.href = '/pricing'; }}>🔒 CONTACT (MEMBER)</button>
-        <button className="btn btn-ghost btn-sm" onClick={() => setPage("escprofile")}>Profile →</button>
-      </div>
-    </div>
-  );
-}
 
 const CURFEW_STATES: Record<string, string> = {
   NY: 'No oversize movement Fri 12pm-Mon 7am, holidays',
@@ -1007,110 +921,16 @@ const CURFEW_STATES: Record<string, string> = {
   TX: 'No movement during peak hours on certain corridors',
 };
 function EscortsPage({ setPage }: { setPage: (p: Page) => void }) {
-  const [filterState, setFilterState] = useState('');
-  const [filterCert, setFilterCert] = useState('');
-  const [filterAvailNow, setFilterAvailNow] = useState(false);
-  const [filterBGC, setFilterBGC] = useState(false);
-  const [sortBy, setSortBy] = useState('rating');
-  const CERT_TYPES = ['Lead','Chase','High Pole','Bucket Truck','Rear Steer','Survey','Flagger','NY Cert','CSE (Ontario MTO)','BC Pilot Car','WITPAC','TWIC','AZ Cert','CTTS BC/AB','OAPC Ontario','Saskatchewan'];
-  const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
-  let escorts: any[] = [...SEED_ESCORTS];
-  if (filterState) escorts = escorts.filter(e => e.states?.includes(filterState));
-  if (filterCert) escorts = escorts.filter(e => (e.cert_types || e.badges || []).includes(filterCert));
-  if (filterAvailNow) escorts = escorts.filter(e => (e as any).is_available !== false);
-  if (filterBGC) escorts = escorts.filter(e => (e as any).bgc_verified);
-  if (sortBy === 'rating') escorts.sort((a,b) => (b.rating||0) - (a.rating||0));
-  else if (sortBy === 'jobs') escorts.sort((a,b) => (b.total_jobs||0) - (a.total_jobs||0));
-  else if (sortBy === 'newest') escorts.reverse();
-  else if (sortBy === 'available') escorts.sort((a,b) => (b.is_available ? 1 : 0) - (a.is_available ? 1 : 0));
-  return (
-    <div className="section">
-      <div className="section-header">
-        <div>
-          <div className="eyebrow" style={{ color: "var(--gr)" }}>Verified P/EVO Directory</div>
-          <div className="section-title">FIND ESCORTS</div>
-        </div>
-      </div>
-      <EarlyBanner role="carrier" />
-      <div style={{ display: "flex", gap: 10, marginBottom: 12, flexWrap: "wrap" as const, alignItems: "center" }}>
-        <select value={filterState} onChange={e => setFilterState(e.target.value)} style={{ minWidth: 120 }}>
-          <option value="">All States</option>
-          {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
-        </select>
-        <select value={filterCert} onChange={e => setFilterCert(e.target.value)} style={{ minWidth: 160 }}>
-          <option value="">All Certifications</option>
-          {CERT_TYPES.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
-        <select value={sortBy} onChange={e => setSortBy(e.target.value)}>
-          <option value="rating">Sort: Highest Rated</option>
-          <option value="jobs">Most Jobs</option>
-          <option value="newest">Newest</option>
-          <option value="available">Available First</option>
-        </select>
-        <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, cursor: "pointer" }}>
-          <input type="checkbox" checked={filterAvailNow} onChange={e => setFilterAvailNow(e.target.checked)} />
-          Available Now
-        </label>
-        <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, cursor: "pointer" }}>
-          <input type="checkbox" checked={filterBGC} onChange={e => setFilterBGC(e.target.checked)} />
-          BGC Badge
-        </label>
-      </div>
-      <div className="esc-grid">
-        {escorts.length > 0 ? escorts.map((e) => <EscortCard key={e.id} e={e} setPage={setPage} />) : (
-          <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: 40, color: 'var(--t2)' }}>No escorts match your filters.</div>
-        )}
-      </div>
-    </div>
-  );
+  useEffect(() => { window.location.href = "/find-escorts"; }, []);
+  return <div className="section"><div className="mo" style={{ fontSize: 11, color: "var(--t2)" }}>Opening the escort directory…</div></div>;
 }
 
 // ─── ESC PROFILE PAGE ─────────────────────────────────────────────────────────
 
 function EscProfilePage({ setPage }: { setPage: (p: Page) => void }) {
-  const profile = { name: "Jane Doe", tier: "Pro", bgc_verified: true, cert_types: ["FSSW", "STI"], id: "prof1" };
-  const user = { id: "1" };
-  
-  const reviews = [
-    { rating: 5, reviewer: "John", text: "Amazing service!" },
-    { rating: 4.5, reviewer: "Mike", text: "Very professional" },
-    { rating: 5, reviewer: "Alex", text: "Highly recommend" }
-  ];
-  
-  const avgRating = reviews.length > 0 ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1) : 0;
-  
-  return (
-    <div className="section" style={{ padding: "20px" }}>
-      <div className="mo" style={{ fontSize: 9, color: "var(--am)", marginBottom: 16 }}>Profile</div>
-      
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-        <div style={{ fontSize: 18, fontWeight: "600", color: "var(--am)" }}>{profile.name}</div>
-        {profile.tier && <span style={{ backgroundColor: profile.tier === "Pro" ? "#ff9800" : "#757575", color: "white", padding: "4px 8px", borderRadius: "4px", fontSize: 12 }}>{profile.tier}</span>}
-        {profile.bgc_verified && <span style={{ backgroundColor: "#4caf50", color: "white", padding: "4px 8px", borderRadius: "4px", fontSize: 12 }}>✓ BGC Verified</span>}
-      </div>
-      
-      {profile.cert_types && profile.cert_types.length > 0 && (
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 12, color: "var(--t2)", marginBottom: 8 }}>Certifications</div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {profile.cert_types.map((cert: string) => <span key={cert} style={{ backgroundColor: "rgba(255,152,0,0.1)", color: "#ff9800", padding: "4px 8px", borderRadius: "4px", fontSize: 12 }}>{cert}</span>)}
-          </div>
-        </div>
-      )}
-      
-      <div style={{ marginBottom: 20 }}>
-        <div style={{ fontSize: 14, fontWeight: "600", color: "var(--am)" }}>★ {avgRating} / 5 ({reviews.length} reviews)</div>
-      </div>
-      
-      <div style={{ marginBottom: 20 }}>
-        <div style={{ fontSize: 12, color: "var(--t2)", marginBottom: 12, fontWeight: "600" }}>Recent Reviews</div>
-        {reviews.slice(0, 5).map((review, i) => <div key={i} style={{ marginBottom: 12, padding: "12px", backgroundColor: "rgba(0,0,0,0.02)", borderRadius: "4px" }}><div style={{ fontSize: 11, color: "var(--t2)" }}>{review.reviewer} • ★ {review.rating}</div><div style={{ fontSize: 11, color: "var(--t2)", marginTop: 4 }}>{review.text}</div></div>)}
-      </div>
-      
-      {user?.id === profile?.id && <button className="btn btn-ghost btn-sm" style={{ width: "100%" }} onClick={() => { window.location.href = '/pricing'; }}>Edit Profile</button>}
-    </div>
-  );
-  }
+  useEffect(() => { window.location.href = "/find-escorts"; }, []);
+  return <div className="section"><div className="mo" style={{ fontSize: 11, color: "var(--t2)" }}>Opening the escort directory…</div></div>;
+}
 
 // ─── POST LOAD PAGE ───────────────────────────────────────────────────────────
 
@@ -1411,7 +1231,7 @@ function EscortDashPage({ setPage, profile, showToast }: { setPage: (p: Page) =>
     async function fetchLoads() {
       const { data } = await supabase.from("loads").select("*").eq("status", "open").order("created_at", { ascending: false }).limit(10);
       if (data && data.length > 0) setMyLoads(data);
-      else setMyLoads(SEED_LOADS);
+      else setMyLoads([]);
     }
     async function fetchJobs() {
       const { data: { user } } = await supabase.auth.getUser();
@@ -1571,22 +1391,26 @@ function EscortDashPage({ setPage, profile, showToast }: { setPage: (p: Page) =>
         {tab === "loads" && (
           <>
             <div className="bb" style={{ fontSize: 24, marginBottom: 8 }}>AVAILABLE LOADS</div>
-            {myLoads.some(l => l.isSample) && <EarlyBanner role="escort" />}
-            <div className="data-table">
+            {myLoads.length === 0 && (
+              <div className="mo" style={{ fontSize: 11, color: "var(--t2)", padding: "24px 0", lineHeight: 1.6 }}>
+                No open loads right now. New loads appear here the moment a carrier posts them.
+              </div>
+            )}
+            <div className="data-table" style={{ display: myLoads.length === 0 ? "none" : undefined }}>
               <table>
                 <thead><tr><th>Load ID</th><th>Route</th><th>Miles</th><th>Rate</th><th>Est. Pay</th><th>Position</th><th>Pay Terms</th><th>Score</th><th></th></tr></thead>
                 <tbody>
                   {myLoads.map((l) => (
                     <tr key={l.id}>
-                      <td className="mo" style={{ color: "var(--t2)", fontSize: 9 }}>{l.isSample ? "SAMPLE" : l.id.slice(0, 8).toUpperCase()}{l.isSample && <SampleBadge />}</td>
+                      <td className="mo" style={{ color: "var(--t2)", fontSize: 9 }}>{l.id.slice(0, 8).toUpperCase()}</td>
                       <td style={{ fontWeight: 500, fontSize: 12 }}>{l.pu_city}, {l.pu_state} → {l.dl_city}, {l.dl_state}</td>
                       <td className="mo">{l.miles}</td>
                       <td className="mo" style={{ color: "var(--gr)", fontWeight: 600 }}>${l.per_mile_rate.toFixed(2)}/mi</td>
                       <td className="mo" style={{ color: "var(--gr)" }}>${((l.miles || 0) * l.per_mile_rate).toFixed(0)}</td>
                       <td style={{ fontSize: 10 }}>{l.position}</td>
                       <td>{l.pay_type === "FastPay" ? <span className="chip ch-gr">⚡ FastPay</span> : <span className="mo" style={{ fontSize: 10, color: "var(--t2)" }}>{l.pay_type}</span>}</td>
-                      <td><PayScore score={l.poster_rating || 4.5} /></td>
-                      <td><button className="btn btn-am btn-sm" onClick={() => { window.location.href = '/pricing'; }}>Respond →</button></td>
+                      <td>{l.poster_rating ? <PayScore score={l.poster_rating} /> : <span className="mo" style={{ fontSize: 9, color: "var(--t2)" }}>New</span>}</td>
+                      <td><button className="btn btn-am btn-sm" onClick={() => { window.location.href = `/loads/${l.id}`; }}>Respond →</button></td>
                     </tr>
                   ))}
                 </tbody>
