@@ -2,22 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireAuth } from '@/lib/api-auth'
 import { SMS_ENABLED, smsComingSoon } from '@/lib/features'
+import { sendSms } from '@/lib/twilio'
 
 const svc = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
-
-async function sendSMS(phone: string, body: string) {
-  const apiKey = process.env.TEXTREQUEST_API_KEY!
-  const accountId = process.env.TEXTREQUEST_ACCOUNT_ID!
-  const res = await fetch(`https://api.textrequest.com/api/v3/Messages`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Api-Key': apiKey },
-    body: JSON.stringify({ AccountId: accountId, Contact: { PhoneNumber: phone }, Body: body })
-  })
-  if (!res.ok) throw new Error(`TextRequest ${res.status}`)
-}
 
 export async function POST(req: NextRequest) {
   if (!SMS_ENABLED) return smsComingSoon()
@@ -69,7 +59,7 @@ export async function POST(req: NextRequest) {
 
       const msg = `New OEH Load: ${load.escort_type || load.escort_types?.[0] || 'Escort'} needed. ${load.pu_city || ''}, ${pu_state} → ${load.dl_city || ''}, ${dl_state}. Rate: $${load.per_mile_rate ?? '?'}. View: oversize-escort-hub.com/loads/${load.id}`
 
-      try { await sendSMS(escort.phone, msg); sent++ } catch {}
+      if (await sendSms(escort.phone, msg)) sent++
     }
 
     return NextResponse.json({ sent })

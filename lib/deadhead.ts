@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
-import { SMS_ENABLED } from '@/lib/features'
 import { FREE_LAUNCH } from '@/lib/free-launch'
+import { sendSms } from '@/lib/twilio'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -27,22 +27,6 @@ async function geocode(city: string, state: string): Promise<{ lat: number; lon:
   } catch {
     return null
   }
-}
-
-async function sendSMS(phone: string, message: string) {
-  if (!SMS_ENABLED) return
-  const apiKey = process.env.TEXTREQUEST_API_KEY
-  const accountId = process.env.TEXTREQUEST_ACCOUNT_ID
-  if (!apiKey || !accountId || !phone) return
-  const { data: optOut } = await supabase.from('sms_opt_outs').select('id').eq('phone', phone).maybeSingle()
-  if (optOut) return
-  try {
-    await fetch('https://api.textrequest.com/api/v3/Messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Api-Key': apiKey },
-      body: JSON.stringify({ AccountId: accountId, Contact: { PhoneNumber: phone }, Body: message }),
-    })
-  } catch { /* non-fatal */ }
 }
 
 // Tells Pro and Fleet escorts who are about to finish a run near this new load. Called by the server when a
@@ -106,7 +90,7 @@ export async function notifyDeadhead(load_id: string) {
       const rate = load.per_mile_rate ? `$${load.per_mile_rate}/mi` : 'see load'
       const msg = `🚛 Deadhead opportunity near your drop zone: ${load.escort_type} needed. ${load.pu_city}, ${load.pu_state} → ${load.dl_city}, ${load.dl_state}. Rate: ${rate}. You have 5 minutes to claim: oversize-escort-hub.com/loads/${load.id}`
 
-      if (profile.phone) await sendSMS(profile.phone, msg)
+      if (profile.phone) await sendSms(profile.phone, msg)
 
       await supabase.from('notifications').insert({
         user_id: match.matched_escort_id,
