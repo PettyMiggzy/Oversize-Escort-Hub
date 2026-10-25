@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { phoneCandidates } from '@/lib/sms-parse'
 
 // Same switch as SMS_ENABLED in lib/features.ts, read on each call.
 // Texting stays off unless the server process has SMS_ENABLED=true. Importing this module does not turn it on.
@@ -23,19 +24,25 @@ export async function sendSms(to: string, body: string): Promise<boolean> {
     const from = process.env.TWILIO_FROM
     if (!sid || !token || !from || !to || !body) return false
 
-    const { data: optOut, error: optErr } = await supabase
+    // Profiles and opt-outs may hold the number in any common format, so match every format.
+    const candidates = phoneCandidates(to)
+    if (!candidates.length) return false
+
+    const { data: optOuts, error: optErr } = await supabase
       .from('sms_opt_outs')
       .select('id')
-      .eq('phone', to)
-      .maybeSingle()
-    if (optErr || optOut) return false
+      .in('phone', candidates)
+      .limit(1)
+    if (optErr || (optOuts && optOuts.length > 0)) return false
 
-    const { data: profile, error: profErr } = await supabase
+    const { data: profiles, error: profErr } = await supabase
       .from('profiles')
       .select('sms_opt_in')
-      .eq('phone', to)
-      .maybeSingle()
-    if (profErr || !profile || profile.sms_opt_in !== true) return false
+      .in('phone', candidates)
+      .limit(20)
+    if (profErr || !profiles?.length) return false
+    // Any matching profile that has not opted in blocks the send.
+    if (!profiles.every((p) => (p as { sms_opt_in?: boolean }).sms_opt_in === true)) return false
 
     const params = new URLSearchParams()
     params.set('To', to)

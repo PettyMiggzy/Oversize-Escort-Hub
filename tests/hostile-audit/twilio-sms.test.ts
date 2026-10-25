@@ -275,3 +275,51 @@ test('the TextRequest webhook is gone', async () => {
   expect(res.status).toBe(410)
   expect(twilioCalls()).toHaveLength(0)
 })
+
+test('a number saved in another format still honors STOP and opt-in', async () => {
+  getDb().tables.profiles = [{ id: 'c1', role: 'carrier', phone: '(555) 123-4567', sms_opt_in: true }]
+  expect(await sendSms(PHONE, 'hi')).toBe(true)
+  getDb().tables.sms_opt_outs = [{ id: 'o1', phone: '5551234567' }]
+  expect(await sendSms(PHONE, 'hi')).toBe(false)
+  getDb().tables.sms_opt_outs = []
+  getDb().tables.profiles = [
+    { id: 'c1', role: 'carrier', phone: '(555) 123-4567', sms_opt_in: true },
+    { id: 'c2', role: 'carrier', phone: PHONE, sms_opt_in: false },
+  ]
+  expect(await sendSms(PHONE, 'hi')).toBe(false)
+})
+
+test('only carriers, brokers and admins in good standing can post by text', async () => {
+  const text = 'flat Dallas TX Tulsa OK 12/31/2026 Lead 2.5'
+  for (const [role, suspended] of [['escort', false], ['carrier', true]] as const) {
+    resetHostile()
+    getDb().tables.profiles = [{ id: 'c1', role, phone: PHONE, sms_opt_in: true, suspended }]
+    const res = await postTwilio({ Body: text })
+    expect(await res.text()).not.toContain('Load posted')
+    expect(getDb().tables.loads ?? []).toHaveLength(0)
+  }
+  resetHostile()
+  getDb().tables.profiles = [{ id: 'b1', role: 'broker', phone: PHONE, sms_opt_in: true, suspended: false }]
+  expect(await (await postTwilio({ Body: text })).text()).toContain('Load posted')
+})
+
+test('a sender cannot post more than 30 loads a day by text', async () => {
+  carrier(true)
+  const now = new Date().toISOString()
+  getDb().tables.loads = Array.from({ length: 29 }, (_, i) => ({ id: `l${i}`, carrier_id: 'c1', created_at: now }))
+  const two = await postTwilio({ Body: 'flat Dallas TX Tulsa OK 12/31/2026 Lead Chase 2.5' })
+  expect(await two.text()).not.toContain('Load posted')
+  expect(getDb().tables.loads).toHaveLength(29)
+  const one = await postTwilio({ Body: 'flat Dallas TX Tulsa OK 12/31/2026 Lead 2.5' })
+  expect(await one.text()).toContain('Load posted')
+  expect(getDb().tables.loads).toHaveLength(30)
+})
+
+test('the parser refuses absurd rates and too many positions', async () => {
+  const { parseSms } = await import('@/lib/sms-parse')
+  expect(parseSms('flat Dallas TX Tulsa OK 12/31/2026 Lead 51').ok).toBe(false)
+  expect(parseSms('flat Dallas TX Tulsa OK 12/31/2026 Lead 50').ok).toBe(true)
+  expect(parseSms('flat Dallas TX Tulsa OK 12/31/2026 a b c d e f g 2.5').ok).toBe(false)
+  const dup = parseSms('flat Dallas TX Tulsa OK 12/31/2026 Lead Lead Lead 2.5')
+  expect(dup.ok && dup.data.positions).toEqual(['Lead'])
+})

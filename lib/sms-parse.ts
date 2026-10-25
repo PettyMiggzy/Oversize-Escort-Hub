@@ -9,6 +9,9 @@ const US_STATES = new Set([
   'VA','WA','WV','WI','WY','DC'
 ])
 
+export const MAX_POSITIONS = 6
+export const MAX_RATE = 50
+
 function titleCase(s: string): string {
   return s.replace(/\w\S*/g, (t) => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase())
 }
@@ -104,12 +107,13 @@ export function parseSms(text: string): { ok: true; data: ParsedSmsLoad } | { ok
 
   const posTokens = rest.slice(1, rest.length - 1)
   if (posTokens.length === 0) return { ok: false, error: 'missing_position' }
-  const positions: string[] = posTokens.map(normalizePosition).filter((x) => x.length > 0)
+  const positions: string[] = Array.from(new Set(posTokens.map(normalizePosition).filter((x) => x.length > 0)))
   if (positions.length === 0) return { ok: false, error: 'bad_position' }
+  if (positions.length > MAX_POSITIONS) return { ok: false, error: 'too_many_positions' }
 
   const rateToken = rest[rest.length - 1].replace(/[^0-9.]/g, '')
   const perMileRate = parseFloat(rateToken)
-  if (!isFinite(perMileRate) || perMileRate <= 0) return { ok: false, error: 'bad_rate' }
+  if (!isFinite(perMileRate) || perMileRate <= 0 || perMileRate > MAX_RATE) return { ok: false, error: 'bad_rate' }
 
   return {
     ok: true,

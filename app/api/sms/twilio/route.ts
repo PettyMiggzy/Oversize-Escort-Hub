@@ -71,14 +71,21 @@ async function optIn(phone: string) {
   await setSmsOptIn(trimmed, true)
 }
 
-async function lookupCarrier(phoneRaw: string): Promise<{ id: string; sms_opt_in: boolean } | null> {
+const MAX_LOADS_PER_DAY = 30
+
+type SmsSender = { id: string; sms_opt_in: boolean; role: string | null; suspended: boolean }
+
+async function lookupCarrier(phoneRaw: string): Promise<SmsSender | null> {
   const candidates = phoneCandidates(phoneRaw)
   if (!candidates.length) return null
   const orFilter = candidates.map((c) => `phone.eq.${c}`).join(',')
-  const { data, error } = await svc.from('profiles').select('id, sms_opt_in').or(orFilter).limit(1)
+  const { data, error } = await svc.from('profiles').select('id, sms_opt_in, role, suspended').or(orFilter).limit(20)
   if (error || !data?.length) return null
-  const row = data[0] as { id: string; sms_opt_in?: boolean }
-  return { id: row.id, sms_opt_in: row.sms_opt_in === true }
+  const rows = data as { id: string; sms_opt_in?: boolean; role?: string | null; suspended?: boolean | null }[]
+  // Two profiles can share a number. Prefer one that opted in and is allowed to post.
+  const eligible = rows.find((r) => r.sms_opt_in === true && !r.suspended && ['carrier', 'broker', 'admin'].includes(r.role ?? ''))
+  const row = eligible ?? rows[0]
+  return { id: row.id, sms_opt_in: row.sms_opt_in === true, role: row.role ?? null, suspended: row.suspended === true }
 }
 
 async function confirmByEmail(
@@ -136,9 +143,17 @@ async function postLoad(phone: string, messageText: string): Promise<NextRespons
   if (!carrier.sms_opt_in) {
     return twiml('OEH: This number is not opted in. Reply YES to opt in, then text the load again.')
   }
-  const { data: optOut } = await svc.from('sms_opt_outs').select('id').eq('phone', phone.trim()).maybeSingle()
-  if (optOut) {
+  const { data: optOuts } = await svc.from('sms_opt_outs').select('id').in('phone', phoneCandidates(phone)).limit(1)
+  if (optOuts && optOuts.length > 0) {
     return twiml('OEH: This number is unsubscribed. Reply START to opt in.')
+  }
+  if (carrier.suspended || !['carrier', 'broker', 'admin'].includes(carrier.role ?? '')) {
+    return twiml('OEH: This account cannot post loads by text. Sign in at oversize-escort-hub.com.')
+  }
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+  const { data: recent } = await svc.from('loads').select('id').eq('carrier_id', carrier.id).gte('created_at', since).limit(MAX_LOADS_PER_DAY + 1)
+  if ((recent?.length ?? 0) + result.data.positions.length > MAX_LOADS_PER_DAY) {
+    return twiml('OEH: Daily text-post limit reached. Post more at oversize-escort-hub.com.')
   }
 
   const d = result.data
