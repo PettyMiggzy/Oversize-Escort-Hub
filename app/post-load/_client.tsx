@@ -96,7 +96,7 @@ export function PostLoadPageClient() {
       if (permitFile) {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) { alert('Please sign in.'); setSubmitting(false); return }
-        const path = `permits/${user.id}/${Date.now()}_${permitFile.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`
+        const path = `${user.id}/${Date.now()}_${permitFile.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`
         const { error: upErr } = await supabase.storage.from('permits').upload(path, permitFile, { upsert: true })
         if (upErr) { alert('Permit upload failed: ' + upErr.message); setSubmitting(false); return }
         const { data: urlData } = supabase.storage.from('permits').getPublicUrl(path)

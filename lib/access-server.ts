@@ -11,8 +11,9 @@ export type EscortClaimant =
 
 // Who may claim or bid, decided on the server (board UI delay/lock is only a courtesy).
 export async function escortClaimant(supabase: SupabaseClient, user: User): Promise<EscortClaimant> {
-  const { data: p } = await supabase.from('profiles').select('tier, role').eq('id', user.id).single()
+  const { data: p } = await supabase.from('profiles').select('tier, role, suspended').eq('id', user.id).single()
   const isAdmin = p?.role === 'admin' || isAdminEmail(user.email ?? '')
+  if (p?.suspended && !isAdmin) return { ok: false, error: 'This account is suspended' }
   // fleet_manager keeps escort claim/bid rights (fleet plans include Pro escort features)
   if (!isAdmin && p?.role !== 'escort' && p?.role !== 'fleet_manager') {
     return { ok: false, error: 'Only escorts can claim or bid on loads' }

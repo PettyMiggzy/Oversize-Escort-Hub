@@ -4,6 +4,7 @@ import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { requireAuth } from '@/lib/api-auth'
 import { FREE_LAUNCH } from '@/lib/free-launch'
 import { escapeHtml } from '@/lib/security'
+import { signedDocUrl } from '@/lib/signed-url'
 
 export async function POST(req: Request) {
   const { user, error: authErr } = await requireAuth()
@@ -38,21 +39,18 @@ export async function POST(req: Request) {
       }
     }
 
-    // Prefer the public URL / path the client just uploaded (includes timestamp).
-    // Fall back only when older clients omit them.
-    const path =
-      typeof storagePath === 'string' && storagePath.startsWith(`${userId}/`)
-        ? storagePath.slice(0, 400)
-        : `${userId}/${String(fileName || 'upload').slice(0, 200)}`
-
-    let docUrl =
-      typeof documentUrl === 'string' && documentUrl.startsWith(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/`)
-        ? documentUrl.slice(0, 1000)
-        : ''
-    if (!docUrl) {
-      const { data: urlData } = svc.storage.from(bucket).getPublicUrl(path)
-      docUrl = urlData.publicUrl
+    // The file must be in this user's own folder; the link is made here from that path, never taken from the request
+    const mine = typeof storagePath === 'string' && storagePath.startsWith(`${userId}/`) && !storagePath.includes('..')
+    const claimedUrl = typeof documentUrl === 'string' && documentUrl ? documentUrl : null
+    if (claimedUrl && !claimedUrl.includes(`/${bucket}/${userId}/`)) {
+      return NextResponse.json({ error: 'That file does not belong to this account' }, { status: 400 })
     }
+    if (!mine) {
+      return NextResponse.json({ error: 'Upload the file first' }, { status: 400 })
+    }
+    const path = (storagePath as string).slice(0, 400)
+    let docUrl: string
+    try { docUrl = await signedDocUrl(svc, bucket, path) } catch { return NextResponse.json({ error: 'Could not find the uploaded file' }, { status: 400 }) }
 
     // Create a pending row so admin Certs/Verification queues can approve in-app
     // (email alone left submissions invisible to the admin UI).

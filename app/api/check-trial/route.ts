@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { createClient as createSessionClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,10 +36,18 @@ export async function POST(req: NextRequest) {
   const { fp } = body;
   if (!fp || typeof fp !== 'string') return NextResponse.json({ ok: false }, { status: 400 });
 
+  // When the visitor is signed in, the row belongs to the account so deleting the account removes it
+  let userId: string | null = null
+  try {
+    const session = await createSessionClient()
+    const { data: { user } } = await session.auth.getUser()
+    userId = user?.id ?? null
+  } catch { /* not signed in: the row is anonymous */ }
+
   const supabase = serviceClient();
   const { error } = await supabase
     .from('device_fingerprints')
-    .insert({ fingerprint: fp });
+    .insert({ fingerprint: fp.slice(0, 200), ...(userId ? { user_id: userId } : {}) });
 
   if (error) {
     console.error('check-trial POST error:', error);

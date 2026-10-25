@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { requireAuth } from '@/lib/api-auth';
 import { DOC_TYPES, escapeHtml, safeFileName } from '@/lib/security';
+import { signedDocUrl } from "@/lib/signed-url";
 
 export const dynamic = 'force-dynamic'
 
@@ -64,7 +65,8 @@ export async function POST(req: NextRequest) {
 
   if (upErr) return NextResponse.json({ error: "Upload failed" }, { status: 500 });
 
-  const { data: { publicUrl } } = svc.storage.from("verification-docs").getPublicUrl(path);
+  let publicUrl: string;
+  try { publicUrl = await signedDocUrl(svc, "verification-docs", path); } catch { return NextResponse.json({ error: "Upload failed" }, { status: 500 }); }
 
   const { error: profErr } = await svc.from("profiles").update({ dd214_pending: true, dd214_url: publicUrl } as any).eq("id", userId);
   if (profErr) {

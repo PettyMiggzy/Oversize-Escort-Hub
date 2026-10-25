@@ -28,8 +28,24 @@ jobs:
       - run: npm ci
       - name: Copy the web fallback page into the Android project
         run: npx cap sync android
+      - name: Restore the signing key from repository secrets
+        env:
+          OEH_KEYSTORE_BASE64: ${{ secrets.OEH_KEYSTORE_BASE64 }}
+          OEH_KEYSTORE_PASSWORD: ${{ secrets.OEH_KEYSTORE_PASSWORD }}
+          OEH_KEY_PASSWORD: ${{ secrets.OEH_KEY_PASSWORD }}
+        run: |
+          if [ -z "$OEH_KEYSTORE_BASE64" ] || [ -z "$OEH_KEYSTORE_PASSWORD" ] || [ -z "$OEH_KEY_PASSWORD" ]; then
+            echo "The signing secrets are not set (OEH_KEYSTORE_BASE64, OEH_KEYSTORE_PASSWORD, OEH_KEY_PASSWORD). See docs/mobile-store/SIGNING_KEY.md"
+            exit 1
+          fi
+          echo "$OEH_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/oeh-release.keystore"
       - name: Build the signed bundle
         working-directory: android
+        env:
+          OEH_KEYSTORE_PATH: ${{ runner.temp }}/oeh-release.keystore
+          OEH_KEYSTORE_PASSWORD: ${{ secrets.OEH_KEYSTORE_PASSWORD }}
+          OEH_KEY_PASSWORD: ${{ secrets.OEH_KEY_PASSWORD }}
+          OEH_KEY_ALIAS: ${{ secrets.OEH_KEY_ALIAS || 'oeh' }}
         run: ./gradlew bundleRelease -PversionCode=${{ github.run_number }} -PversionName=${{ inputs.version_name }}
       - uses: actions/upload-artifact@v4
         with:

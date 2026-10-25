@@ -25,13 +25,15 @@ export async function POST(req: NextRequest) {
     if (!TIERS.includes(body.tier)) return NextResponse.json({ error: 'Unknown plan' }, { status: 400 })
     update.tier = body.tier
     update.tier_updated_at = new Date().toISOString()
-    // Keep role in sync with fleet plans (mirrors Stripe webhook)
+    // Keep role in sync with fleet plans (mirrors the Stripe webhook): the role before a fleet plan is remembered,
+    // so taking the plan away puts it back (a carrier stays a carrier).
     if (body.role === undefined) {
+      const { data: cur } = await svc.from('profiles').select('role, prior_role').eq('id', userId).maybeSingle()
       if (FLEET_TIERS.has(body.tier)) {
-        update.role = 'fleet_manager'
-      } else {
-        const { data: cur } = await svc.from('profiles').select('role').eq('id', userId).maybeSingle()
-        if (cur?.role === 'fleet_manager') update.role = 'escort'
+        if (cur && cur.role !== 'fleet_manager') { update.role = 'fleet_manager'; update.prior_role = cur.role ?? 'escort' }
+      } else if (cur?.role === 'fleet_manager') {
+        update.role = cur.prior_role ?? 'escort'
+        update.prior_role = null
       }
     }
   }

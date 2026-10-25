@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { isAdminEmail } from '@/lib/supabase'
-import { withFreeLaunch } from '@/lib/free-launch'
+import { withFreeLaunch, effectiveTier } from '@/lib/free-launch'
 const BG = '#060b16'
 const SURFACE = '#0d1117'
 const ORANGE = '#f0a500'
@@ -159,7 +159,7 @@ export function DashboardPageClient() {
       const deadheadTiers = new Set(['pro', 'fleet_starter', 'fleet_plus', 'fleet_pro'])
       if (
         (prof.role === 'escort' || prof.role === 'fleet_manager') &&
-        (deadheadTiers.has(prof.tier) || isAdminEmail(prof.email))
+        (deadheadTiers.has(effectiveTier(prof.tier, prof.role) ?? '') || isAdminEmail(prof.email))
       ) {
         const since = new Date(Date.now() - 5 * 60 * 1000).toISOString()
         const { data: dhLoads } = await supabase

@@ -50,6 +50,22 @@ export default function AdminPage() {
       if (p?.role !== 'admin' && !isAdminEmail(user.email ?? '')) { setLoading(false); return }
       setIsAdmin(true)
 
+      // Review queues load only for confirmed admins
+      // Fetch BGC queue
+      supabase.from('certifications').select('*, profiles(full_name, email)').eq('type', 'bgc').eq('status', 'pending').then(({data}) => setBgcQueue(data || []))
+      // Fetch Certs queue
+      supabase.from('certifications').select('*, profiles(full_name, email)').neq('type', 'bgc').eq('status', 'pending').then(({data}) => setCertsQueue(data || []))
+      // Fetch Verification queue
+      supabase.from('certifications').select('*, profiles(full_name, email)').eq('status', 'pending').then(({data}) => setVerificationQueue(data || []))
+      // Fetch DD-214 queue
+      fetch('/api/admin/dd214').then(r => r.json()).then(d => setDd214Queue(d.submissions || [])).catch(() => setDd214Queue([]))
+      // Fetch Sponsored Zones
+      supabase.from('sponsored_zones').select('*, profiles(full_name, email)').then(({data}: {data: any}) => setSponsoredZonesList(data || []))
+      // Fetch Disputes
+      supabase.from('disputes').select('*').then(({data}: {data: any}) => setDisputesList(data || []))
+      // Fetch Loads
+      supabase.from('loads').select('*').order('created_at', {ascending: false}).then(({data}: {data: any}) => setLoadsList(data || []))
+
       // Load users
       const { data: usersData } = await supabase
         .from('profiles')
@@ -77,20 +93,6 @@ export default function AdminPage() {
     }
     init()
 
-    // Fetch BGC queue
-    supabase.from('certifications').select('*, profiles(full_name, email)').eq('type', 'bgc').eq('status', 'pending').then(({data}) => setBgcQueue(data || []))
-    // Fetch Certs queue
-    supabase.from('certifications').select('*, profiles(full_name, email)').neq('type', 'bgc').eq('status', 'pending').then(({data}) => setCertsQueue(data || []))
-    // Fetch Verification queue
-    supabase.from('certifications').select('*, profiles(full_name, email)').eq('status', 'pending').then(({data}) => setVerificationQueue(data || []))
-    // Fetch DD-214 queue
-    fetch('/api/admin/dd214').then(r => r.json()).then(d => setDd214Queue(d.submissions || [])).catch(() => setDd214Queue([]))
-    // Fetch Sponsored Zones
-    supabase.from('sponsored_zones').select('*, profiles(full_name, email)').then(({data}: {data: any}) => setSponsoredZonesList(data || []))
-    // Fetch Disputes
-    supabase.from('disputes').select('*').then(({data}: {data: any}) => setDisputesList(data || []))
-    // Fetch Loads
-    supabase.from('loads').select('*').order('created_at', {ascending: false}).then(({data}: {data: any}) => setLoadsList(data || []))
   }, [])
 
   const setUserFields = async (userId: string, fields: { tier?: string; role?: string; suspended?: boolean; pevo_verified?: boolean; bgc_verified?: boolean }) => {

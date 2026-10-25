@@ -3,6 +3,7 @@ import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { FREE_LAUNCH } from '@/lib/free-launch';
 import { requireAdmin } from "@/lib/api-auth";
+import { signedDocUrl } from "@/lib/signed-url";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +29,12 @@ export async function POST(req: NextRequest) {
     if (!pdfFile || !expiryDate) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
+    if (pdfFile.type !== "application/pdf") {
+      return NextResponse.json({ error: "Upload a PDF" }, { status: 400 });
+    }
+    if (pdfFile.size > 10 * 1024 * 1024) {
+      return NextResponse.json({ error: "File exceeds 10 MB" }, { status: 400 });
+    }
 
     // P/EVO cert review uploads require the pevo paywall purchase first
     const normalizedType = certType === "p_evo" ? "pevo" : certType;
@@ -51,8 +58,7 @@ export async function POST(req: NextRequest) {
 
     if (uploadError) throw uploadError;
 
-    const { data: urlData } = supabase.storage.from("documents").getPublicUrl(path);
-    const document_url = urlData.publicUrl;
+    const document_url = await signedDocUrl(serviceClient(), "documents", path);
 
     // Admin queues + /api/bgc/approve read certifications (status pending), not escort_certs.
     const type = normalizedType;

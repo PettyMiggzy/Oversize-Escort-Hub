@@ -48,6 +48,47 @@ function writeFailed(label: string, error: { message?: string } | null) {
   return NextResponse.json({ error: label }, { status: 500 })
 }
 
+const FLEET_TIERS = ['fleet_starter', 'fleet_plus', 'fleet_pro']
+
+// Fleet plans make an account a fleet manager. The role it had before is remembered, so cancelling puts it back
+// (a carrier stays a carrier) instead of turning everyone into an escort.
+async function roleForPlan(userId: string, tier: string): Promise<Record<string, unknown>> {
+  const { data: existing } = await supabase.from('profiles').select('role, prior_role').eq('id', userId).maybeSingle()
+  if (FLEET_TIERS.includes(tier)) {
+    if (existing?.role === 'fleet_manager') return {}
+    return { role: 'fleet_manager', prior_role: existing?.role ?? 'escort' }
+  }
+  if (existing?.role === 'fleet_manager') return { role: existing.prior_role ?? 'escort', prior_role: null }
+  return {}
+}
+
+// A subscription that has ended: back to the base plan, and only for the profile that holds this subscription.
+async function endSubscription(subscriptionId: string): Promise<NextResponse | null> {
+  const { data: rows } = await supabase
+    .from('profiles')
+    .select('id, role, prior_role')
+    .eq('stripe_subscription_id', subscriptionId)
+  for (const row of rows || []) {
+    const patch: Record<string, unknown> = { tier: 'trial', stripe_subscription_id: null }
+    if (row.role === 'fleet_manager') { patch.role = row.prior_role ?? 'escort'; patch.prior_role = null }
+    const { error } = await supabase.from('profiles').update(patch).eq('id', row.id)
+    if (error) return writeFailed('subscription deleted tier update', error)
+  }
+  return null
+}
+
+// The price actually charged on a checkout session (its metadata is only a hint and can disagree).
+async function chargedPriceId(session: Stripe.Checkout.Session): Promise<string | null> {
+  const inline = session.line_items?.data?.[0]?.price?.id
+  if (inline) return inline
+  try {
+    const items = await stripe.checkout.sessions.listLineItems(session.id, { limit: 1 })
+    return items.data[0]?.price?.id ?? null
+  } catch {
+    return null
+  }
+}
+
 export async function POST(req: NextRequest) {
   const body = await req.text()
   const sig = req.headers.get('stripe-signature')!
@@ -62,7 +103,12 @@ export async function POST(req: NextRequest) {
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session
     const metaUserId = (session.metadata?.userId as string | undefined) ?? null
-    const priceId = (session.metadata?.priceId as string | undefined) ?? null
+    // Not paid (and not a free trial start): nothing is granted yet
+    if (session.payment_status !== 'paid' && session.payment_status !== 'no_payment_required') {
+      console.error('[stripe webhook] checkout session not paid, nothing granted', { sessionId: session.id, status: session.payment_status })
+      return NextResponse.json({ received: true })
+    }
+    const priceId = (await chargedPriceId(session)) ?? ((session.metadata?.priceId as string | undefined) ?? null)
     const clientRef = session.client_reference_id ?? null
     const email = session.customer_details?.email ?? session.customer_email ?? null
 
@@ -121,10 +167,7 @@ export async function POST(req: NextRequest) {
       tier,
       stripe_customer_id: (session.customer as string) ?? null,
       stripe_subscription_id: (session.subscription as string) ?? null,
-    }
-    // Fleet subscriptions unlock Fleet Dashboard, which is gated on role
-    if (tier === 'fleet_starter' || tier === 'fleet_plus' || tier === 'fleet_pro') {
-      profilePatch.role = 'fleet_manager'
+      ...(await roleForPlan(userId, tier)),
     }
     const { error: tierErr } = await supabase.from('profiles').update(profilePatch).eq('id', userId)
     if (tierErr) return writeFailed('tier update', tierErr)
@@ -135,20 +178,8 @@ export async function POST(req: NextRequest) {
   // ── customer.subscription.deleted ─────────────────────────────────────
   if (event.type === 'customer.subscription.deleted') {
     const sub = event.data.object as Stripe.Subscription
-    // Drop fleet_manager so cancelled buyers lose Fleet Dashboard redirect/access
-    const { data: rows } = await supabase
-      .from('profiles')
-      .select('id, role')
-      .eq('stripe_subscription_id', sub.id)
-    for (const row of rows || []) {
-      const patch: Record<string, unknown> = {
-        tier: 'trial',
-        stripe_subscription_id: null,
-      }
-      if (row.role === 'fleet_manager') patch.role = 'escort'
-      const { error } = await supabase.from('profiles').update(patch).eq('id', row.id)
-      if (error) return writeFailed('subscription deleted tier update', error)
-    }
+    const failed = await endSubscription(sub.id)
+    if (failed) return failed
     return NextResponse.json({ received: true })
   }
 
@@ -160,6 +191,16 @@ export async function POST(req: NextRequest) {
     const sub = event.data.object as Stripe.Subscription
     const priceId = sub.items?.data?.[0]?.price?.id
     if (!priceId || !PRICE_TO_TIER[priceId]) return NextResponse.json({ received: true })
+
+    // Only a live subscription grants a plan. An ended one is treated as a cancellation; a payment that is late or
+    // not finished grants nothing new and leaves the account as it is.
+    if (sub.status !== 'active' && sub.status !== 'trialing') {
+      if (sub.status === 'canceled' || sub.status === 'unpaid' || sub.status === 'incomplete_expired') {
+        const failed = await endSubscription(sub.id)
+        if (failed) return failed
+      }
+      return NextResponse.json({ received: true })
+    }
 
     // 1) Try metadata.userId set by createCheckoutSession's subscription_data.
     let userId = (sub.metadata?.userId as string | undefined) ?? null
@@ -202,17 +243,7 @@ export async function POST(req: NextRequest) {
       tier,
       stripe_subscription_id: sub.id,
       stripe_customer_id: sub.customer as string,
-    }
-    if (tier === 'fleet_starter' || tier === 'fleet_plus' || tier === 'fleet_pro') {
-      profilePatch.role = 'fleet_manager'
-    } else {
-      // Downgrade off a fleet plan — restore escort role if still marked fleet_manager
-      const { data: existing } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', userId)
-        .maybeSingle()
-      if (existing?.role === 'fleet_manager') profilePatch.role = 'escort'
+      ...(await roleForPlan(userId, tier)),
     }
     const { error } = await supabase.from('profiles').update(profilePatch).eq('id', userId)
     if (error) return writeFailed('subscription sync tier update', error)

@@ -3,6 +3,8 @@ import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient as createSvcClient } from '@supabase/supabase-js'
 import { FREE_LAUNCH } from '@/lib/free-launch'
 import { Resend } from 'resend'
+import { signedDocUrl } from '@/lib/signed-url'
+import { DOC_TYPES } from '@/lib/security'
 
 export const dynamic = 'force-dynamic'
 
@@ -59,6 +61,7 @@ export async function POST(req: NextRequest) {
   const file = formData.get('file') as File | null
   if (!file) return NextResponse.json({ error: 'missing file' }, { status: 400 })
   if (file.size > 10 * 1024 * 1024) return NextResponse.json({ error: 'File exceeds 10 MB' }, { status: 400 })
+  if (!DOC_TYPES.includes(file.type)) return NextResponse.json({ error: 'Upload a PDF or an image' }, { status: 400 })
 
   // Service-role for storage + cross-row writes
   const svc = createSvcClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
@@ -69,7 +72,8 @@ export async function POST(req: NextRequest) {
   const { error: upErr } = await svc.storage.from('bgc-submissions').upload(path, buf, { contentType: file.type, upsert: true })
   if (upErr) return NextResponse.json({ error: upErr.message }, { status: 500 })
 
-  const { data: { publicUrl } } = svc.storage.from('bgc-submissions').getPublicUrl(path)
+  let publicUrl: string
+  try { publicUrl = await signedDocUrl(svc, 'bgc-submissions', path) } catch { return NextResponse.json({ error: 'Upload failed' }, { status: 500 }) }
 
   const { error: profErr } = await svc
     .from('profiles')

@@ -114,6 +114,19 @@ export async function POST(req: NextRequest) {
       console.error('[bids POST]', insErr)
       return NextResponse.json({ error: 'Could not place the bid' }, { status: 500 })
     }
+    // Two requests can pass the check above together. If this escort now has more than one live bid on the load,
+    // the later one is withdrawn.
+    const { data: live } = await supabase
+      .from('bids')
+      .select('id')
+      .eq('load_id', load_id)
+      .eq('escort_id', user.id)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: true })
+    if ((live?.length ?? 0) > 1 && live?.[0]?.id !== inserted?.id) {
+      await supabase.from('bids').delete().eq('id', inserted.id)
+      return NextResponse.json({ error: 'You already have a bid on this load' }, { status: 409 })
+    }
     return NextResponse.json({ ok: true, bid: inserted })
   } catch (err: any) {
     console.error('[bids POST]', err)

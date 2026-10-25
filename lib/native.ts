@@ -13,7 +13,7 @@ export const isNativeApp = (): boolean => {
   return false;
 };
 
-export const WEB_HOST = 'https://oversize-escort-hub.com';
+export const WEB_HOST = 'https://www.oversize-escort-hub.com';
 
 /** Open a URL in the system browser from inside the native app. */
 export const openInBrowser = (path: string) => {

@@ -28,26 +28,26 @@ export async function GET(req: Request) {
   if (heldErr) console.error('[cron expire-loads] holds failed:', heldErr)
 
   let released = 0
-  if (held?.length) {
-    const ids = held.map((l: any) => l.id)
-    const { error: reErr } = await supabase
+  for (const load of held ?? []) {
+    // only the hold we read: a newer claim on the same load, or one the carrier already accepted, is left alone
+    const { data: reopened, error: reErr } = await supabase
       .from('loads')
       .update({ status: 'open', matched_escort_id: null, match_requested_at: null })
-      .in('id', ids)
+      .eq('id', load.id)
       .eq('status', 'pending_match')
-    if (reErr) console.error('[cron expire-loads] reopen failed:', reErr)
-    else released = ids.length
-
-    if (!reErr) {
-      for (const load of held) {
-        if (!load.matched_escort_id) continue
-        await sendWebPushToUser(load.matched_escort_id, {
-          title: 'Match Expired',
-          body: 'The carrier did not respond in time. The load is back on the board.',
-          url: `/loads/${load.id}`,
-          data: { load_id: load.id, type: 'match_expired' },
-        })
-      }
+      .eq('matched_escort_id', load.matched_escort_id)
+      .lt('match_requested_at', heldBefore)
+      .select('id')
+    if (reErr) { console.error('[cron expire-loads] reopen failed:', reErr); continue }
+    if (!reopened?.length) continue
+    released += 1
+    if (load.matched_escort_id) {
+      await sendWebPushToUser(load.matched_escort_id, {
+        title: 'Match Expired',
+        body: 'The carrier did not respond in time. The load is back on the board.',
+        url: `/loads/${load.id}`,
+        data: { load_id: load.id, type: 'match_expired' },
+      })
     }
   }
 

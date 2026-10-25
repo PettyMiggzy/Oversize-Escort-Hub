@@ -52,15 +52,18 @@ export async function POST(req: NextRequest) {
     if (!taken?.length) return NextResponse.json({ error: 'Load not available' }, { status: 409 })
 
     // Accept this bid, reject the rest
-    const { error: acceptErr } = await supabase
+    const { data: accepted, error: acceptErr } = await supabase
       .from('bids')
       .update({ status: 'accepted' })
       .eq('id', bid_id)
       .eq('load_id', load_id)
-    if (acceptErr) {
-      // put the load back so the carrier can try again
-      await supabase.from('loads').update({ status: 'open', matched_escort_id: null, match_requested_at: null }).eq('id', load_id).eq('matched_escort_id', escort_id)
-      return NextResponse.json({ error: 'Could not accept the bid' }, { status: 500 })
+      .eq('status', 'pending')
+      .select('id')
+    if (acceptErr || !accepted?.length) {
+      // the bid was withdrawn or rejected in the meantime: put the load back so the carrier can choose again
+      await supabase.from('loads').update({ status: 'open', matched_escort_id: null, match_requested_at: null }).eq('id', load_id).eq('status', 'filled').eq('matched_escort_id', escort_id)
+      if (acceptErr) return NextResponse.json({ error: 'Could not accept the bid' }, { status: 500 })
+      return NextResponse.json({ error: 'Bid not available' }, { status: 409 })
     }
 
     await supabase
