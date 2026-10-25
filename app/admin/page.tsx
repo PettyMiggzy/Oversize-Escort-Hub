@@ -51,12 +51,10 @@ export default function AdminPage() {
       setIsAdmin(true)
 
       // Review queues load only for confirmed admins
-      // Fetch BGC queue
-      supabase.from('certifications').select('*, profiles(full_name, email)').eq('type', 'bgc').eq('status', 'pending').then(({data}) => setBgcQueue(data || []))
-      // Fetch Certs queue
-      supabase.from('certifications').select('*, profiles(full_name, email)').neq('type', 'bgc').eq('status', 'pending').then(({data}) => setCertsQueue(data || []))
-      // Fetch Verification queue
-      supabase.from('certifications').select('*, profiles(full_name, email)').eq('status', 'pending').then(({data}) => setVerificationQueue(data || []))
+      // The three review queues (BGC, certs, verification) come from the server: the table is closed to the browser
+      fetch('/api/admin/cert-queue').then(r => r.json()).then(d => {
+        setBgcQueue(d.bgc || []); setCertsQueue(d.certs || []); setVerificationQueue(d.verification || [])
+      }).catch(() => { setBgcQueue([]); setCertsQueue([]); setVerificationQueue([]) })
       // Fetch DD-214 queue
       fetch('/api/admin/dd214').then(r => r.json()).then(d => setDd214Queue(d.submissions || [])).catch(() => setDd214Queue([]))
       // Fetch Sponsored Zones

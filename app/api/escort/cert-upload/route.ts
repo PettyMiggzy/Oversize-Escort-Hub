@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
 
     // Admin queues + /api/bgc/approve read certifications (status pending), not escort_certs.
     const type = normalizedType;
-    const { data, error } = await supabase
+    const { data, error } = await serviceClient()
       .from("certifications")
       .insert({
         user_id: user.id,
