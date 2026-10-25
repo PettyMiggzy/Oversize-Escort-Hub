@@ -336,6 +336,10 @@ export function FlatRateBoardClient() {
                               )}
                               {(() => {
                                 // Tier-aware claim CTA. See lib/board-access.ts for the rules.
+                                if (userRole === 'carrier' || userRole === 'broker') {
+                                  // Posting accounts do not claim loads; no upgrade prompt for them.
+                                  return <div style={{ fontSize: 12, color: '#6b7280', textAlign: 'center' }}>Escorts claim loads from here</div>;
+                                }
                                 const access = getAccessLevel(userTier, isAdminEmail(userEmail));
                                 const claimed = claimedLoads.has(load.id);
                                 const remaining = access === 'delayed'

@@ -31,6 +31,7 @@ export function OpenLoadsBoardClient() {
   const [bids, setBids] = useState<Record<string, any[]>>({})
   const [loading, setLoading] = useState(true)
   const [accessLevel, setAccessLevel] = useState<AccessLevel>('none')
+  const [viewerRole, setViewerRole] = useState<string | null>(null)
   // Tick once a second so per-load Member countdowns re-render in real time.
   const [now, setNow] = useState<number>(() => Date.now())
   useEffect(() => {
@@ -57,6 +58,7 @@ export function OpenLoadsBoardClient() {
     const loadUser = async (uid: string, email?: string | null): Promise<boolean> => {
       setUserId(uid)
       const { data: p } = await supabase.from('profiles').select('tier, role').eq('id', uid).single()
+      setViewerRole(p?.role ?? null)
       const admin = isAdminEmail(email)
       const level = getAccessLevel(effectiveTier(p?.tier, p?.role), admin)
       setAccessLevel(level)
@@ -273,6 +275,8 @@ export function OpenLoadsBoardClient() {
                       </button>
                     )
                   })()
+                ) : viewerRole === 'carrier' || viewerRole === 'broker' ? (
+                  <div style={{ fontSize: 12, color: '#6b7280', textAlign: 'center' }}>Escorts bid on loads from here</div>
                 ) : (
                   <Link href="/pricing" style={{
                     display: 'block', background: '#2a2a2a', color: '#f0a500', border: '1px solid #f0a500', borderRadius: 6,

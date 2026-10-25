@@ -21,7 +21,8 @@ const PRICES = {
 async function startCheckout(priceId: string, setLoading: (v: string) => void, zone?: string) {
   // While everything is free the plans are not sold; sponsored zones (ads) still are.
   if (FREE_LAUNCH && priceId !== PRICES.sponsored_zone) {
-    window.location.href = '/signin';
+    const { data: { user } } = await createClient().auth.getUser();
+    window.location.href = user ? '/dashboard' : '/signin';
     return;
   }
   // Purchases are made on the website, not inside the app.
