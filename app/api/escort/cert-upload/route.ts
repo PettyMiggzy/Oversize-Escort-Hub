@@ -52,9 +52,10 @@ export async function POST(req: NextRequest) {
 
     const filename = `cert_${user.id}_${Date.now()}.pdf`;
     const path = `certs/${filename}`;
-    const { error: uploadError } = await supabase.storage
+    // uploaded with the service key into a private bucket: the file never needs a public address
+    const { error: uploadError } = await serviceClient().storage
       .from("documents")
-      .upload(path, pdfFile);
+      .upload(path, pdfFile, { contentType: "application/pdf", upsert: false });
 
     if (uploadError) throw uploadError;
 
