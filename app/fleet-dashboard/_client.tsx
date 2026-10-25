@@ -33,7 +33,7 @@ export function FleetDashboardPageClient() {
     // Fleet escorts with profile join
     const { data: escorts } = await supabase
       .from('fleet_escorts')
-      .select('*, profiles!fleet_escorts_escort_id_fkey(full_name, tier, bgc_verified, phone, rating)')
+      .select('*, profiles!fleet_escorts_escort_id_fkey(full_name, tier, bgc_verified, rating)')
       .eq('fleet_manager_id', uid)
     setFleetEscorts(escorts || [])
 
@@ -64,13 +64,15 @@ export function FleetDashboardPageClient() {
   const addEscort = async () => {
     if (!addEmail.trim() || !userId) return
     setAddStatus('Looking up...')
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('id, full_name, role')
-      .eq('email', addEmail.trim())
-      .single()
+    const lookupRes = await fetch('/api/contact/lookup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: addEmail.trim() }),
+    })
+    const lookupBody = await lookupRes.json().catch(() => ({}))
+    const profile = lookupRes.ok ? lookupBody.profile : null
 
-    if (!profile) { setAddStatus('User not found.'); return }
+    if (!profile) { setAddStatus(lookupBody.error || 'User not found.'); return }
     if (profile.role !== 'escort' && !isAdminEmail(userEmail ?? undefined)) { setAddStatus('User is not an escort.'); return }
 
     const { error } = await supabase.from('fleet_escorts').insert({
@@ -131,7 +133,7 @@ export function FleetDashboardPageClient() {
           ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr>{['Name', 'Tier', 'BGC', 'Phone', 'Actions'].map(h => <th key={h} style={th}>{h}</th>)}</tr>
+                <tr>{['Name', 'Tier', 'BGC', 'Actions'].map(h => <th key={h} style={th}>{h}</th>)}</tr>
               </thead>
               <tbody>
                 {fleetEscorts.map((e: any) => (
@@ -139,7 +141,6 @@ export function FleetDashboardPageClient() {
                     <td style={td}>{e.profiles?.full_name ?? '—'}</td>
                     <td style={td}>{e.profiles?.tier ?? '—'}</td>
                     <td style={td}>{e.profiles?.bgc_verified ? '✅' : '—'}</td>
-                    <td style={td}>{e.profiles?.phone ?? '—'}</td>
                     <td style={td}>
                       <button onClick={() => removeEscort(e.escort_id)} style={{ background: '#7f1d1d', color: '#fca5a5', border: 'none', borderRadius: 4, padding: '4px 10px', fontSize: 12, cursor: 'pointer' }}>Remove</button>
                     </td>

@@ -8,11 +8,11 @@ export default async function VerificationPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  let profile: { tier?: string; verified_tier?: number } | null = null
+  let profile: { tier?: string } | null = null
   if (user) {
     const { data } = await supabase
       .from('profiles')
-      .select('tier, verified_tier')
+      .select('tier')
       .eq('id', user.id)
       .single()
     profile = data

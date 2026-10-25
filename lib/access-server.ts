@@ -2,6 +2,7 @@ import type { SupabaseClient, User } from '@supabase/supabase-js'
 import { getAccessLevel, secondsUntilClaimable, type AccessLevel } from '@/lib/board-access'
 import { isAdminEmail } from '@/lib/supabase'
 import { effectiveTier } from '@/lib/free-launch'
+import { serviceClient } from '@/lib/service-client'
 
 const DEADHEAD_EXCLUSIVE_MS = 5 * 60 * 1000
 
@@ -10,8 +11,9 @@ export type EscortClaimant =
   | { ok: false; error: string }
 
 // Who may claim or bid, decided on the server (board UI delay/lock is only a courtesy).
-export async function escortClaimant(supabase: SupabaseClient, user: User): Promise<EscortClaimant> {
-  const { data: p } = await supabase.from('profiles').select('tier, role, suspended').eq('id', user.id).single()
+export async function escortClaimant(_supabase: SupabaseClient, user: User): Promise<EscortClaimant> {
+  // suspended is not a public column. The user client cannot select it after the column revoke.
+  const { data: p } = await serviceClient().from('profiles').select('tier, role, suspended').eq('id', user.id).single()
   const isAdmin = p?.role === 'admin' || isAdminEmail(user.email ?? '')
   if (p?.suspended && !isAdmin) return { ok: false, error: 'This account is suspended' }
   // fleet_manager keeps escort claim/bid rights (fleet plans include Pro escort features)

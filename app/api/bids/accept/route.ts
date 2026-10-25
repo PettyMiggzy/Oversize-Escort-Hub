@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
 
     // Text the accepted escort once SMS is switched on (it stays off until SMS_ENABLED=true)
     if (SMS_ENABLED) {
-      const { data: escort } = await supabase
+      const { data: escort } = await svc
         .from('profiles')
         .select('phone')
         .eq('id', escort_id)

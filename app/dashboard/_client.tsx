@@ -85,11 +85,9 @@ export function DashboardPageClient() {
       }
       const uid = user.id
 
-      const { data: prof } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', uid)
-        .single()
+      const meRes = await fetch('/api/profile/me')
+      const meBody = await meRes.json().catch(() => ({}))
+      const prof = meRes.ok ? meBody.profile : null
 
       if (!prof) {
         setLoading(false)
@@ -122,7 +120,7 @@ export function DashboardPageClient() {
         if (loadIds.length > 0) {
           const { data: bidsData } = await supabase
             .from('bids')
-            .select('*, profiles!escort_id(full_name, bgc_verified, rating, phone)')
+            .select('*, profiles!escort_id(full_name, bgc_verified, rating)')
             .in('load_id', loadIds)
             .eq('status', 'pending')
             .order('rate', { ascending: false })
@@ -136,7 +134,7 @@ export function DashboardPageClient() {
         // of truth is the loads table; we shape rows to the Match interface.
         const { data: pendingLoads } = await supabase
           .from('loads')
-          .select('*, escort:profiles!matched_escort_id(full_name, phone, tier, bgc_verified)')
+          .select('*, escort:profiles!matched_escort_id(full_name, tier, bgc_verified)')
           .eq('carrier_id', uid)
           .eq('status', 'pending_match')
           .order('match_requested_at', { ascending: false })
@@ -183,7 +181,7 @@ export function DashboardPageClient() {
     if (loadIds.length === 0) { setBids([]); return }
     const { data } = await supabase
       .from('bids')
-      .select('*, profiles!escort_id(full_name, bgc_verified, rating, phone)')
+      .select('*, profiles!escort_id(full_name, bgc_verified, rating)')
       .in('load_id', loadIds)
       .eq('status', 'pending')
       .order('rate', { ascending: false })

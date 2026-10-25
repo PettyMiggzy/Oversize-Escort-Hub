@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { requireAdmin } from '@/lib/api-auth'
+import { serviceClient } from '@/lib/service-client'
 import { SMS_ENABLED, smsComingSoon } from '@/lib/features'
 import { sendSms } from '@/lib/twilio'
 
@@ -18,7 +19,7 @@ export async function POST(req: NextRequest) {
     const { message, audience } = await req.json()
     if (!message || message.length > 160) return NextResponse.json({ error: 'Invalid message' }, { status: 400 })
 
-    let query = supabase.from('profiles').select('phone').eq('sms_opt_in', true).not('phone', 'is', null)
+    let query = serviceClient().from('profiles').select('phone').eq('sms_opt_in', true).not('phone', 'is', null)
     if (audience === 'pro') query = query.in('tier', ['pro', 'fleet_pro'])
     else if (audience === 'carriers') query = query.eq('role', 'carrier')
     else if (audience === 'members') query = query.eq('tier', 'member')

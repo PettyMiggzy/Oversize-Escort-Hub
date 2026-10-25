@@ -34,21 +34,46 @@ export default function LoadDetailPage() {
     const init = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       setCurrentUser(user)
+      let profile: any = null
       if (user) {
-        const { data: p } = await supabase.from('profiles').select('*').eq('id', user.id).single()
-        setUserProfile(withFreeLaunch(p))
+        const { data: p } = await supabase.from('profiles').select('id, role, tier').eq('id', user.id).single()
+        profile = p ? withFreeLaunch(p) : null
+        setUserProfile(profile)
       }
 
       const { data: loadData } = await supabase.from('loads').select('*').eq('id', id).single()
       setLoad(loadData)
 
       if (loadData?.carrier_id) {
-        const { data: c } = await supabase.from('profiles').select('full_name, phone, email').eq('id', loadData.carrier_id).single()
+        const { data: c } = await supabase.from('profiles').select('full_name').eq('id', loadData.carrier_id).single()
         setCarrier(c)
       }
       if (loadData?.matched_escort_id) {
-        const { data: e } = await supabase.from('profiles').select('full_name, phone, email').eq('id', loadData.matched_escort_id).single()
+        const { data: e } = await supabase.from('profiles').select('full_name').eq('id', loadData.matched_escort_id).single()
         setEscort(e)
+      }
+
+      const share = loadData && (loadData.status === 'filled' || loadData.status === 'pending_match')
+      const viewer = user?.id
+      const party = viewer && (viewer === loadData?.carrier_id || viewer === loadData?.matched_escort_id)
+      const admin = isAdminEmail(user?.email) || profile?.role === 'admin'
+      if (share && viewer && (party || admin)) {
+        const pull = async (who: string, apply: (row: any) => void) => {
+          if (!who) return
+          if (who === viewer) {
+            const res = await fetch('/api/profile/me')
+            if (!res.ok) return
+            const body = await res.json().catch(() => ({}))
+            if (body.profile) apply(body.profile)
+            return
+          }
+          const res = await fetch(`/api/contact/party?loadId=${encodeURIComponent(id)}&userId=${encodeURIComponent(who)}`)
+          if (!res.ok) return
+          const row = await res.json().catch(() => null)
+          if (row) apply(row)
+        }
+        await pull(loadData.carrier_id, (row) => setCarrier((prev: any) => ({ ...prev, ...row })))
+        await pull(loadData.matched_escort_id, (row) => setEscort((prev: any) => ({ ...prev, ...row })))
       }
       if (loadData?.board_type === 'bid' || loadData?.board_type === 'open-bid') {
         const { data: b } = await supabase.from('bids').select('*').eq('load_id', id).order('rate', { ascending: false })
@@ -99,11 +124,11 @@ export default function LoadDetailPage() {
 
   const isCarrier = userProfile?.role === 'carrier'
   const isEscort = userProfile?.role === 'escort' || userProfile?.role === 'fleet_manager'
-  const isAdmin = isAdminEmail(currentUser?.email)
+  const isAdmin = isAdminEmail(currentUser?.email) || userProfile?.role === 'admin'
   const isMatchedEscort = currentUser && load.matched_escort_id === currentUser.id
   const isOwnerCarrier = currentUser && load.carrier_id === currentUser.id
-  const isMatched = load.status === 'filled'
-  const canSeeFull = isMatched && (isMatchedEscort || isOwnerCarrier)
+  const contactOpen = load.status === 'filled' || load.status === 'pending_match'
+  const canSeeFull = contactOpen && (isMatchedEscort || isOwnerCarrier || isAdmin)
   const isBidType = load.board_type === 'bid' || load.board_type === 'open-bid'
   const isFlatClaimable = !isBidType && load.status === 'open' && isEscort
 
@@ -169,7 +194,7 @@ export default function LoadDetailPage() {
         )}
 
         {/* Full contact when matched */}
-        {canSeeFull && escort && isOwnerCarrier && (
+        {canSeeFull && escort && !isMatchedEscort && (isOwnerCarrier || isAdmin) && (
           <div style={{ ...card, borderColor: '#22c55e' }}>
             <h2 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, color: '#22c55e' }}>✅ Matched Escort</h2>
             <p style={value}>{escort.full_name}</p>

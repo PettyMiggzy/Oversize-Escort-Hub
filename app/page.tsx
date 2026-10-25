@@ -2246,7 +2246,9 @@ export default function OEHPlatform() {
   }
 
   async function loadProfile(userId: string) {
-    const { data } = await supabase.from("profiles").select("*").eq("id", userId).single();
+    const res = await fetch('/api/profile/me')
+    const body = await res.json().catch(() => ({}))
+    const data = res.ok ? body.profile : null
     if (data) { setProfile(withFreeLaunch(data) as Profile); loadUnreadCount(userId, (data as Profile).role); }
   }
   async function loadUnreadCount(userId: string, role: string) {

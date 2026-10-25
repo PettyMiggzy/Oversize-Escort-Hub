@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
+import { serviceClient } from '@/lib/service-client'
 import { STRIPE_PRICE_IDS } from '@/lib/stripe-utils'
 
 export const dynamic = 'force-dynamic'
@@ -23,7 +24,7 @@ export async function POST(req: NextRequest) {
       && (session.metadata?.userId === user.id || session.client_reference_id === user.id)
     if (!ok) return NextResponse.json({ paid: false }, { status: 200 })
     // Trust webhook to flip bgc_paid; fall back to direct flip if webhook lagged.
-    const { data: prof } = await supabase.from('profiles').select('bgc_paid').eq('id', user.id).single()
+    const { data: prof } = await serviceClient().from('profiles').select('bgc_paid').eq('id', user.id).single()
     if (!prof?.bgc_paid) {
       // the paid flag is written with the service key: profile rows cannot set it from a user session
       const svc = createServiceClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)

@@ -12,12 +12,11 @@ export default async function FleetDashboardPage() {
   if (!user) redirect('/signin')
   const { data: prof } = await supabase
     .from('profiles')
-    .select('role, tier, email')
+    .select('role, tier')
     .eq('id', user.id)
     .maybeSingle()
   const ok =
     isAdminEmail(user.email ?? '') ||
-    isAdminEmail(prof?.email) ||
     (prof?.role === 'fleet_manager' && FLEET_TIERS.has(effectiveTier(prof?.tier, prof?.role) || ''))
   if (!ok) redirect('/pricing')
   return <FleetDashboardPageClient />

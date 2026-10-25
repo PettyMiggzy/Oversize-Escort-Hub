@@ -29,14 +29,12 @@ export default function VerifyPage() {
   const [pevoCheckoutLoading, setPevoCheckoutLoading] = useState<'member'|'pro'|''>('')
   const [pevoMsg, setPevoMsg] = useState('')
 
-  const refreshProfile = useCallback(async (uid: string) => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('bgc_paid, bgc_verified, bgc_pending, pevo_paid, verified_tier')
-      .eq('id', uid)
-      .single()
+  const refreshProfile = useCallback(async () => {
+    const res = await fetch('/api/profile/me')
+    const body = await res.json().catch(() => ({}))
+    const data = res.ok ? body.profile : null
     setFlags(FREE_LAUNCH ? { ...(data || {}), bgc_paid: true, pevo_paid: true } : (data || {}))
-  }, [supabase])
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -46,7 +44,7 @@ export default function VerifyPage() {
       if (!u) { if (!cancelled) setLoading(false); return }
       if (cancelled) return
       setUserId(u.id); setEmail(u.email ?? null)
-      await refreshProfile(u.id)
+      await refreshProfile()
 
       // Stripe success return: verify session, then refresh.
       if (typeof window !== 'undefined') {
@@ -59,7 +57,7 @@ export default function VerifyPage() {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ session_id: sessionId }),
             })
-            if (r.ok) await refreshProfile(u.id)
+            if (r.ok) await refreshProfile()
           } catch {}
           window.history.replaceState({}, '', '/verify')
         }
@@ -92,7 +90,7 @@ export default function VerifyPage() {
       const data = await res.json()
       if (!res.ok) { setBgcMsg(data.error || 'Upload failed'); return }
       setBgcSubmitted(true)
-      if (userId) await refreshProfile(userId)
+      if (userId) await refreshProfile()
     } catch (e: any) { setBgcMsg(e?.message || 'Upload failed') }
     finally { setBgcSubmitting(false) }
   }
