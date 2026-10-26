@@ -128,3 +128,8 @@ test('open jobs: only open, unexpired jobs, state filter, plain-words labels, no
   getDb().tables.job_posts = []
   expect((await tool('search_open_jobs')).content[0].text).toMatch(/No open jobs/)
 })
+
+test('the registry listing fits the registry rules (description at most 100 characters)', () => {
+  const d = JSON.parse(fs.readFileSync('docs/mcp-registry/server.json', 'utf8'))
+  expect(d.description.length).toBeLessThanOrEqual(100)
+})
