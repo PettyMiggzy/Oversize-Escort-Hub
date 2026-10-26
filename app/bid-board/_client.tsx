@@ -3,6 +3,9 @@ import SiteHeader from '@/components/SiteHeader';
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { BoardAdSidebar } from '@/components/BoardAdSidebar';
+import Link from 'next/link';
+import PageTitle from '@/components/PageTitle';
+import EmptyState from '@/components/EmptyState';
 
 interface Load {
   id: string;
@@ -81,115 +84,75 @@ export function BidBoardClient() {
   return (
     <>
     <SiteHeader />
-    <div style={{ background: '#0a0a0a', minHeight: '100vh', padding: isMobile ? '16px 12px' : '24px', color: '#ccc' }}>
-      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 16 : 24, alignItems: 'flex-start', maxWidth: 1400, margin: '0 auto' }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-      <h1 style={{ color: '#f0a500' }}>Bid Board</h1>
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(240px, 1fr))', gap: 16 }}>
+    <div className="ui-page">
+      <div className="ui-wrap">
+        <PageTitle eyebrow="Boards" title="Bid board" lead="Open bid loads, with the time left on each one." />
+        <div className="ui-two">
+          <main style={{ minWidth: 0 }}>
+        {loads.length === 0 ? (
+          <EmptyState
+            title="No open bid loads right now"
+            text="Bid loads show up here when a carrier posts one."
+            action={<Link href="/post-load" className="ui-btn">Post a load</Link>}
+          />
+        ) : (
+        <div className="ui-grid" style={isMobile ? { gridTemplateColumns: '1fr' } : undefined}>
           {loads.map((load) => (
             <div
               key={load.id}
-              style={{
-                background: '#111',
-                border: '1px solid #222',
-                borderLeft: '4px solid #f0a500',
-                opacity: timers[load.id] === 'EXPIRED' ? 0.5 : 1,
-                borderRadius: 8,
-                padding: '20px 24px',
-                marginBottom: 16,
-                display: 'grid',
-                gridTemplateColumns: '1fr',
-                gap: 16,
-                alignItems: 'start'
-              }}
+              className="ui-load"
+              style={{ opacity: timers[load.id] === 'EXPIRED' ? 0.5 : 1 }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginBottom: 6 }}>
+                  <div className="ui-route">
                     {load.pu_city}, {load.pu_state} → {load.dl_city}, {load.dl_state}
                   </div>
-                  <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 8 }}>
-                    <span style={{ fontSize: 13, color: '#f0a500' }}>
+                  <div className="ui-meta" style={{ marginTop: 6 }}>
+                    <span style={{ color: '#ffc46b', fontWeight: 600 }}>
                       {load.escort_type || 'Position TBD'}
                     </span>
                   </div>
-                  <div style={{ fontSize: 12, color: '#6b7280' }}>
-                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
+                  <div className="ui-meta" style={{ marginTop: 10 }}>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                       {load.bgc_verified && (
-                        <span style={{ background: '#14532d', color: '#22c55e', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4 }}>✓ BGC</span>
+                        <span className="ui-badge green">✓ BGC</span>
                       )}
                       {load.fmcsa_verified && (
-                        <span style={{ background: '#1e3a5f', color: '#60a5fa', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4 }}>✓ FMCSA</span>
+                        <span className="ui-badge blue">✓ FMCSA</span>
                       )}
                       {load.poster_rating && (
-                        <span style={{ fontSize: 11, color: '#f0a500' }}>★ {Number(load.poster_rating).toFixed(1)} ({load.poster_jobs || 0} jobs)</span>
+                        <span style={{ color: '#ffc46b' }}>★ {Number(load.poster_rating).toFixed(1)} ({load.poster_jobs || 0} jobs)</span>
                       )}
                     </div>
-                    Posted {new Date(load.created_at).toLocaleDateString()}
+                    <div style={{ marginTop: 8 }}>Posted {new Date(load.created_at).toLocaleDateString()}</div>
                   </div>
                 </div>
                 <div style={{ textAlign: 'right', minWidth: 80 }}>
-                  <div style={{ fontSize: 11, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>
-                    Time Left
-                  </div>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: timers[load.id] === 'EXPIRED' ? '#ff6b6b' : '#4ade80' }}>
+                  <div className="ui-k">Time Left</div>
+                  <div className="ui-v" style={{ fontSize: 16, color: timers[load.id] === 'EXPIRED' ? '#ff5a5a' : '#35d489' }}>
                     {timers[load.id] || 'Loading...'}
                   </div>
                 </div>
               </div>
               <div>
-                <div style={{ fontSize: 22, fontWeight: 800, color: '#f0a500', marginBottom: 4 }}>
+                <div className="ui-k">Rate</div>
+                <div className="ui-v or" style={{ marginBottom: 8 }}>
                   {load.per_mile_rate != null ? `$${Number(load.per_mile_rate).toLocaleString()}/mi` : 'Rate TBD'}
                 </div>
                 {timers[load.id] === 'EXPIRED' ? (
-                <span
-                  style={{
-                    display: 'block',
-                    background: '#333',
-                    color: '#888',
-                    border: 'none',
-                    borderRadius: 6,
-                    padding: '8px 20px',
-                    fontWeight: 700,
-                    fontSize: 13,
-                    cursor: 'not-allowed',
-                    width: '100%',
-                    textAlign: 'center',
-                    textDecoration: 'none',
-                    marginTop: 8,
-                    boxSizing: 'border-box',
-                  }}
-                >
-                  Expired
-                </span>
+                <span className="ui-btn dim block">Expired</span>
               ) : (
-                <a
-                  href={`/loads/${load.id}`}
-                  style={{
-                    display: 'block',
-                    background: '#f0a500',
-                    color: '#000',
-                    border: 'none',
-                    borderRadius: 6,
-                    padding: '8px 20px',
-                    fontWeight: 700,
-                    fontSize: 13,
-                    cursor: 'pointer',
-                    width: '100%',
-                    textAlign: 'center',
-                    textDecoration: 'none',
-                    marginTop: 8
-                  }}
-                >
-                  View Details
-                </a>
+                <a href={`/loads/${load.id}`} className="ui-btn block">View Details</a>
               )}
               </div>
             </div>
           ))}
       </div>
+        )}
+          </main>
+          <BoardAdSidebar />
         </div>
-        <BoardAdSidebar />
       </div>
     </div>
     </>

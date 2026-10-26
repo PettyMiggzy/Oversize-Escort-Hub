@@ -8,6 +8,8 @@ import { isAdminEmail } from '@/lib/supabase';
 import { getAccessLevel, secondsUntilClaimable } from '@/lib/board-access';
 import { BoardAdSidebar } from '@/components/BoardAdSidebar';
 import { effectiveTier } from '@/lib/free-launch';
+import PageTitle from '@/components/PageTitle';
+import EmptyState from '@/components/EmptyState';
 
 const toTitleCase = (str?: string) =>
   str ? str.replace(/\w\S*/g, t => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()) : '';
@@ -205,140 +207,105 @@ export function FlatRateBoardClient() {
   return (
     <>
       <SiteHeader />
-      <div style={{ background: '#0a0a0a', minHeight: '100vh', color: '#ccc' }}>
-        <div style={{ maxWidth: 1400, margin: '0 auto', padding: isMobile ? '20px 12px' : '32px 24px' }}>
-          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 16 : 24, alignItems: 'flex-start' }}>
-            <div style={{ flex: 1, minWidth: 0 }}>
-          {/* Header row */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-            <h1 style={{ fontSize: 22, fontWeight: 700 }}>Flat Rate Board</h1>
-          </div>
-          <p style={{ color: '#6b7280', fontSize: 13, marginBottom: 16 }}>Fixed-rate loads · Direct hire · No bidding</p>
-
-          {/* State filter */}
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ fontSize: 11, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em', marginRight: 8 }}>
-              Filter by state:
-            </label>
-            <select
-              value={stateFilter}
-              onChange={(e) => setStateFilter(e.target.value)}
-              style={{
-                background: '#111',
-                color: '#fff',
-                border: '1px solid #333',
-                borderRadius: 6,
-                padding: '6px 10px',
-                fontSize: 13
-              }}
-            >
-              <option value="">All states</option>
-              {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
+      <div className="ui-page">
+        <div className="ui-wrap">
+          <PageTitle eyebrow="Boards" title="Flat rate board" lead="Fixed-rate loads. Direct hire. No bidding." />
+          <div className="ui-two">
+            <main style={{ minWidth: 0 }}>
+          <div className="ui-filters">
+            <div style={{ flex: '1 1 200px', minWidth: 0 }}>
+              <label className="ui-label" htmlFor="flat-state">Filter by state</label>
+              <select
+                id="flat-state"
+                className="ui-select"
+                value={stateFilter}
+                onChange={(e) => setStateFilter(e.target.value)}
+              >
+                <option value="">All states</option>
+                {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
           </div>
 
-          {/* Sponsored strip — only when state selected + escorts exist */}
           {stateFilter && sponsoredEscorts.length > 0 && (
-            <div style={{ display: 'flex', gap: 10, overflowX: 'auto', marginBottom: 20, paddingBottom: 4 }}>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 20 }}>
               {sponsoredEscorts.map(esc => (
-                <div
-                  key={esc.id}
-                  style={{
-                    background: '#111',
-                    border: '1px solid #f0a500',
-                    borderRadius: 6,
-                    padding: '8px 14px',
-                    minWidth: 160,
-                    flexShrink: 0,
-                    fontSize: 12
-                  }}
-                >
-                  <div style={{ fontWeight: 600, color: '#fff' }}>{esc.full_name || 'Escort'}</div>
-                  {esc.bgc_verified && <span style={{ color: '#22c55e', fontSize: 11 }}>✓ BGC</span>}
+                <div key={esc.id} className="ui-card" style={{ padding: '12px 16px', flex: '1 1 160px', minWidth: 0 }}>
+                  <div className="ui-route" style={{ fontSize: 15 }}>{esc.full_name || 'Escort'}</div>
+                  {esc.bgc_verified && <span className="ui-badge green" style={{ marginTop: 8 }}>✓ BGC</span>}
                 </div>
               ))}
             </div>
           )}
 
-          {loading && <p>Loading...</p>}
+          {loading && <p className="ui-meta">Loading...</p>}
           {!loading && filteredLoads.length === 0 && (
-            <p style={{ color: '#6b7280' }}>
-              No open flat-rate loads{stateFilter ? ` in ${stateFilter}` : ''} right now.
-            </p>
+            <EmptyState
+              title={stateFilter ? `No open flat-rate loads in ${stateFilter}` : 'No open flat-rate loads right now'}
+              text="Fixed-rate loads show up here when a carrier posts one."
+              action={<Link href="/post-load" className="ui-btn">Post a load</Link>}
+            />
           )}
 
-          {/* Cards grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
+          {filteredLoads.length > 0 && (
+          <div className="ui-grid" style={isMobile ? { gridTemplateColumns: '1fr' } : undefined}>
             {filteredLoads.map((load) => (
-                          <div
-                            key={load.id}
-                            style={{
-                              background: '#111',
-                              border: '1px solid #222',
-                              borderLeft: '4px solid #f0a500',
-                              borderRadius: 8,
-                              padding: '20px 24px',
-                              marginBottom: 16,
-                              display: 'grid',
-                              gridTemplateColumns: '1fr',
-                              gap: 16,
-                              alignItems: 'start'
-                            }}
-                          >
+                          <div key={load.id} className="ui-load">
                             <div>
                               {load.load_type === 'breakdown' && (
-          <div style={{ display: 'inline-block', background: '#7a1f1f', color: '#fff', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4, marginBottom: 6 }}>
+          <div className="ui-badge red" style={{ marginBottom: 6 }}>
             🚨 BREAKDOWN ASSISTANCE
           </div>
         )}
-        <div style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginBottom: 6 }}>
+        <div className="ui-route">
                                 {toTitleCase(load.pu_city)}, {load.pu_state} → {toTitleCase(load.dl_city)}, {load.dl_state}
                               </div>
-                              <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 8 }}>
-                                <span style={{ fontSize: 13, color: '#f0a500' }}>
+                              <div className="ui-meta" style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: 8 }}>
+                                <span style={{ color: '#ffc46b', fontWeight: 600 }}>
                                   {load.escort_type || 'Position TBD'}
                                 </span>
-                                <span style={{ fontSize: 13, color: '#9ca3af' }}>
+                                <span>
                                   {load.escort_count || 1} escort{(load.escort_count || 1) > 1 ? 's' : ''} needed
                                 </span>
                                 {load.cert_types && load.cert_types.length > 0 && (
-                                  <span style={{ fontSize: 12, color: '#6b7280' }}>
+                                  <span>
                                     Certs: {(load.cert_types as string[]).join(', ')}
                                   </span>
                                 )}
                               </div>
-                              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
+                              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10, alignItems: 'center' }}>
                                 {load.bgc_verified && (
-                                  <span style={{ background: '#14532d', color: '#22c55e', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4 }}>✓ BGC</span>
+                                  <span className="ui-badge green">✓ BGC</span>
                                 )}
                                 {load.fmcsa_verified && (
-                                  <span style={{ background: '#1e3a5f', color: '#60a5fa', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4 }}>✓ FMCSA</span>
+                                  <span className="ui-badge blue">✓ FMCSA</span>
                                 )}
                                 {load.poster_rating && (
-                                  <span style={{ fontSize: 11, color: '#f0a500' }}>★ {Number(load.poster_rating).toFixed(1)} ({load.poster_jobs || 0} jobs)</span>
+                                  <span className="ui-meta" style={{ color: '#ffc46b' }}>★ {Number(load.poster_rating).toFixed(1)} ({load.poster_jobs || 0} jobs)</span>
                                 )}
                               </div>
-                              <div style={{ fontSize: 12, color: '#6b7280' }}>
+                              <div className="ui-meta" style={{ marginTop: 8 }}>
                                 Posted {new Date(load.created_at).toLocaleDateString()} · Expires {load.expires_at ? new Date(load.expires_at).toLocaleDateString() : '24hr'}
                               </div>
                             </div>
-                            <div style={{ textAlign: 'left', minWidth: undefined }}>
-                              <div style={{ fontSize: 22, fontWeight: 800, color: '#f0a500', marginBottom: 4 }}>
+                            <div>
+                              <div className="ui-k">Rate</div>
+                              <div className="ui-v or">
                                 {load.per_mile_rate != null
                                   ? `$${load.per_mile_rate}/mi`
                                   : 'Negotiable'}
                               </div>
-                              <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 12 }}>
+                              <div className="ui-meta" style={{ margin: '4px 0 12px' }}>
                                 $250 no-go · $100 overnight
                               </div>
                               {claimError[load.id] && (
-                                <div style={{ fontSize: 11, color: '#ef4444', marginBottom: 6 }}>{claimError[load.id]}</div>
+                                <div className="ui-err">{claimError[load.id]}</div>
                               )}
                               {(() => {
                                 // Tier-aware claim CTA. See lib/board-access.ts for the rules.
                                 if (userRole === 'carrier' || userRole === 'broker') {
                                   // Posting accounts do not claim loads; no upgrade prompt for them.
-                                  return <div style={{ fontSize: 12, color: '#6b7280', textAlign: 'center' }}>Escorts claim loads from here</div>;
+                                  return <div className="ui-meta" style={{ textAlign: 'center' }}>Escorts claim loads from here</div>;
                                 }
                                 const access = getAccessLevel(userTier, isAdminEmail(userEmail));
                                 const claimed = claimedLoads.has(load.id);
@@ -349,23 +316,7 @@ export function FlatRateBoardClient() {
                                 if (access === 'none') {
                                   // Free / trial / unknown tier: hard upgrade CTA.
                                   return (
-                                    <Link
-                                      href="/pricing"
-                                      style={{
-                                        display: 'block',
-                                        background: '#2a2a2a',
-                                        color: '#f0a500',
-                                        border: '1px solid #f0a500',
-                                        borderRadius: 6,
-                                        padding: '8px 20px',
-                                        fontWeight: 700,
-                                        fontSize: 13,
-                                        textAlign: 'center',
-                                        textDecoration: 'none',
-                                        width: '100%',
-                                        boxSizing: 'border-box',
-                                      }}
-                                    >
+                                    <Link href="/pricing" className="ui-btn block ghost">
                                       Upgrade to Member →
                                     </Link>
                                   );
@@ -374,17 +325,7 @@ export function FlatRateBoardClient() {
                                   <button
                                     onClick={() => handleClaim(load.id)}
                                     disabled={claimed || locked}
-                                    style={{
-                                      background: claimed ? '#22c55e' : locked ? '#3a3a3a' : '#f0a500',
-                                      color: claimed ? '#fff' : locked ? '#9ca3af' : '#000',
-                                      border: 'none',
-                                      borderRadius: 6,
-                                      padding: '8px 20px',
-                                      fontWeight: 700,
-                                      fontSize: 13,
-                                      cursor: claimed || locked ? 'default' : 'pointer',
-                                      width: '100%'
-                                    }}
+                                    className={claimed ? 'ui-btn block ok' : locked ? 'ui-btn block dim' : 'ui-btn block'}
                                   >
                                     {claimed
                                       ? 'Request Sent ✓'
@@ -395,7 +336,7 @@ export function FlatRateBoardClient() {
                                 );
                               })()}
                               {userId && load.status === 'filled' && (
-                                <a href={`/review/${load.id}`} style={{ fontSize: 11, color: '#9ca3af', textAlign: 'center', display: 'block', marginTop: 6 }}>
+                                <a href={`/review/${load.id}`} className="ui-btn ghost block" style={{ marginTop: 8 }}>
                                   Leave a Review
                                 </a>
                               )}
@@ -403,7 +344,8 @@ export function FlatRateBoardClient() {
                           </div>
                         ))}
           </div>
-            </div>
+          )}
+            </main>
             <BoardAdSidebar />
           </div>
         </div>
