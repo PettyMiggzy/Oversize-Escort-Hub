@@ -17,6 +17,7 @@ export default function Documents() {
   const [type, setType] = useState('insurance')
   const [expiry, setExpiry] = useState('')
   const [file, setFile] = useState<File | null>(null)
+  const [fileKey, setFileKey] = useState(0)
   const [sending, setSending] = useState(false)
 
   async function load() {
@@ -48,7 +49,7 @@ export default function Documents() {
       const res = await fetch('/api/escort/cert-upload', { method: 'POST', body: fd })
       const d = await res.json().catch(() => ({}))
       if (!res.ok) setErr(res.status === 402 ? 'A P/EVO certificate is reviewed after you buy the review on our website. Insurance and vehicle documents can be uploaded now.' : d.error || 'Upload failed')
-      else { setOk('Uploaded. We will review it and email you.'); setFile(null); setExpiry('') }
+      else { setOk('Uploaded. We will review it and email you.'); setFile(null); setFileKey((k) => k + 1); setExpiry('') }
     } catch { setErr('Could not connect. Try again.') }
     setSending(false)
     await load()
@@ -72,7 +73,7 @@ export default function Documents() {
           </div>
           <div>
             <label className="ui-label" htmlFor="doc-file">File</label>
-            <input id="doc-file" className="ui-input" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+            <input key={fileKey} id="doc-file" className="ui-input" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
           </div>
           {err ? <p className="ui-err">{err}</p> : null}
           {ok ? <p className="ui-ok">{ok}</p> : null}
