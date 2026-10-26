@@ -15,6 +15,8 @@ const SCHEMA = {
   fleet_searches: ['id', 'user_id', 'escort_count', 'created_at'],
   invoices: ['id', 'escort_id', 'carrier_id', 'load_id', 'amount', 'miles', 'rate', 'date', 'status', 'pdf_url', 'created_at'],
   job_logs: ['id', 'escort_id', 'load_id', 'mileage', 'expenses', 'notes', 'logged_at'],
+  job_posts: ['id', 'poster_id', 'title', 'company', 'description', 'classification', 'equipment', 'pay_model', 'pay_min', 'pay_max', 'pay_note', 'schedule', 'travel', 'base_city', 'base_state', 'states', 'cert_types', 'start_date', 'status', 'created_at', 'expires_at'],
+  job_applications: ['id', 'job_id', 'applicant_id', 'message', 'status', 'created_at', 'updated_at'],
   jobs: ['id', 'user_id', 'load_id', 'carrier', 'date', 'miles', 'rate', 'total', 'notes', 'created_at'],
   launch_waitlist: ['email', 'source', 'created_at'],
   load_reports: ['id', 'load_id', 'reporter_id', 'reason', 'created_at'],
