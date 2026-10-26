@@ -17,6 +17,9 @@ Quick post: a carrier can also post a load without an account at oversize-escort
 FLEETS
 Fleet managers can add escort drivers, set coverage for the whole fleet and see jobs and invoices on the fleet dashboard.
 
+BEGINNER'S GUIDE
+For people new to pilot car work there is a plain-words guide at oversize-escort-hub.com/pilot-car-guide: what a P/EVO does, the escort positions, which states required certification as of 2016, gear, insurance, safety, and links to the public sources (FHWA training manual and each state's permit office list). Point newcomers there. It says rules are set by each state and change; confirm with the state before driving in it.
+
 JOBS BOARD
 Separate from loads: companies and fleets post jobs when they want to hire pilot car subcontractors (1099) or drivers (W-2 or either). Browse at oversize-escort-hub.com/jobs; anyone with an account can apply, and posting a job needs an account (free while we launch). A job says who provides the vehicle and gear, how the pay works (percent of the load, flat weekly, day rate, per mile, hourly or negotiable), the schedule, travel and the states. Do not put phone numbers or links in a post or application; the company and the applicant get each other's contact details only after the company accepts. A poster can have up to 5 open jobs at once. We are the marketplace, not the employer: the company and the worker agree the pay and the work between themselves. Applications show in the dashboard under My applications, and posters see applicants under My jobs.
 

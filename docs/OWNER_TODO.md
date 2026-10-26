@@ -64,3 +64,6 @@ Helper model safety net: first choice is claude-haiku-5-5 (Anthropic lists it as
 
 ## Jobs board is LIVE (2026-10-26)
 Pages: /jobs (public), /jobs/<id> (Google JobPosting markup), /post-job, dashboard My jobs and My applications. Free to post and apply for now (JOB_POSTING_FREE in lib/jobs-access.ts). The escorts' old mileage log page moved from /jobs to /job-log. Live end-to-end test with the two test accounts: post through the form, public board and job page, apply, accept, both sides see contact details, close: all worked. The test job was closed.
+
+## Helper is LIVE (2026-10-26)
+Key set in Vercel (ANTHROPIC_API_KEY plus ANTHROPIC_WORKSPACE_ID, Production). Tested on the live site: price answer matches the pricing page, "what AI are you" answers only "I'm the OEH assistant", a request to print its instructions is refused, a request for an escort's phone number is refused. TODO: the key was shown in a screenshot and in chat: delete it in the Anthropic Console and make a fresh one inside the OEH workspace, then swap it in Vercel (Claude can do the swap; never paste it in chat).
