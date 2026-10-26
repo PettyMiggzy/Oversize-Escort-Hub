@@ -1,23 +1,20 @@
 # Oversize Escort Hub: running to-do list
 
-Last updated 2026-10-26. The owner says "I'm home" and we go down the "When you are home" list together. Claude keeps this file current.
+Last updated 2026-10-26 (evening). The owner says "I'm home" and we go down the "When you are home" list together. Claude keeps this file current.
 
 ## Rules the owner set
-- **Everything is free except add-ons.** Free to post a load, free to bid, free to accept, free to post a job. Only things that cost the owner money are charged: BGC badge, P/EVO cert review, sponsored zones. Charge for more only after the site is busy.
+- **Everything is free except add-ons.** Free to post a load, free to bid, free to accept, free to post a job. The only add-on sold today is sponsored zones. We do NOT check or verify anyone (BGC badge and cert review were removed 2026-10-26; owner: no liability). Charge for more only after the site is busy.
 
 ## When you are home (owner does these, Claude walks you through)
-1. **Email DNS fixes** (stops your own mail going to spam; do in this order)
-   1. Microsoft 365 DKIM: security.microsoft.com > Email & collaboration > Policies & rules > Threat policies > Email authentication settings > DKIM. Create the keys, add the two CNAMEs it shows (selector1/selector2 `_domainkey`) at GoDaddy, wait, then switch signing On.
-   2. SPF: replace the root TXT `v=spf1 include:secureserver.net -all` with `v=spf1 include:spf.protection.outlook.com include:secureserver.net ~all` (edit the existing record, never add a second).
-   3. DMARC: delete the three `_dmarc` TXT records, add ONE: `v=DMARC1; p=none; rua=mailto:bahmed3170@gmail.com`. After about two weeks of clean reports, raise to `p=quarantine`.
-   4. Tell Claude: it reads your DNS and confirms each record.
+1. **Email DNS: DONE 2026-10-26.** SPF (`v=spf1 include:spf.protection.outlook.com -all`), DKIM (Microsoft 365, Valid and Enabled) and one DMARC record (`p=none`, reports to the owner's Precision Pilot Services mailbox) are live and checked. In about two weeks, if reports are clean, raise DMARC to `p=quarantine`. The same SPF fix is still to do on `precisionpilotservices.com` (it still lists only GoDaddy).
 2. **Profile picture for outgoing email**: make a Google account using a real domain mailbox (for example support@oversize-escort-hub.com), upload `oeh-profile-picture-1024.png` (Claude sent it), then tell Claude the address so the site's sender switches to it (Vercel setting `EMAIL_FROM`, no deploy). Send a screenshot of the next email. Logo in Gmail for sure needs BIMI plus a paid certificate: decide later, do not buy yet.
 3. **Cursor**: tell it "pull main, the task is docs/cursor/CURSOR_TASK_D_growth.md, branch cursor/growth-pages". Claude reviews before anything goes live.
 4. **Google Play**: after Oct 27, 8:19 PM Eastern upload `oeh-1.0.0-code1.aab` (Desktop). Closed test first. Organization account, so the 12-tester rule should not apply: confirm in Console. Answers: contains ads No, in-app purchases No (add-ons are bought on the website, never in the app).
-5. **Back up** `C:\Users\samah\oeh-upload.keystore` and its password (USB stick + password manager). The old `oeh-release.keystore` password is lost; the upload key was reset.
+5. **Back up** `C:\Users\samah\oeh-upload.keystore` and its password (USB stick + password manager). The old `oeh-release.keystore` password is lost; the upload key was reset. (Apple and Google developer accounts: the owner already has both, 2026-10-26.)
 6. **Texting**: the toll-free number may not reach Canada. Options: check Twilio's Canada rules and test one text to a Canadian phone, or go back to TextRequest. Twilio verification is still pending. Before texting is ever turned on: run `docs/sms-consent-before-texting.sql`, collect phone numbers (optional field exists at sign-up), set SMS_ENABLED=true.
-7. **Security housekeeping**: revoke the GitHub token that was pasted in chat; change the Play reviewer password (123456789) after the stores approve; turn on leaked-password protection in Supabase (Auth settings); delete leftover test accounts.
-8. **Decisions**: P/EVO cert review is $14.99 for everyone while plans are free (Stripe also has a $9.99 Pro price). Keep? Evergreen: confirm the discount wording with them.
+7. **Security housekeeping**: revoke the GitHub token that was pasted in chat; change the Play reviewer password (123456789) after the stores approve; turn on leaked-password protection in Supabase (Auth settings). Test accounts were deleted 2026-10-26. The owner chose not to rotate the helper key and the admin password for now.
+   - Google Business Profile (Precision Pilot Services LLC): category change pending Google review (up to 7 days); then in the Business Profile app rename two services to "Pilot car jobs" and "Find a pilot car driver by state". Search Console: request indexing of precisionpilotservices.com. Lock down precisionpilotservice@gmail.com (password, 2-step).
+8. **Decisions**: the cert review is gone. Open: is the "Official Evergreen Safety Council Member / partner" wording true? (Evergreen has no API; they verify only through a web form.) Keep, reword or remove.
 9. **Outreach**: message 30 to 50 carriers and brokers you know. Claude drafts the message and a one-page "why post here". Run the first 10 jobs by hand.
 
 ## Claude does next (no action needed from you)
@@ -45,7 +42,7 @@ Last updated 2026-10-26. The owner says "I'm home" and we go down the "When you 
 - **Perks for drivers (partnerships):** rental car discount (Enterprise / Hertz / Avis corporate or affiliate programs), roadside and towing (AAA business, or a towing network). Needs the owner to be the one asking; Claude drafts the pitch once there are real numbers (members, loads). Do not promise a perk on the site until one is signed.
 - **AI helper:** a chat on the site that answers common questions from our own help pages and routes the rest to the owner as a ticket (cheap model such as Haiku or Groq; it only answers from our text, never invents rules, and never gives out contact details). Later: a read-only MCP server (search loads, escorts by state) to list in AI directories. Not before the boards have real traffic.
 
-## Test accounts made by Claude (delete when testing is finished)
+## Test accounts made by Claude (both DELETED 2026-10-26; make new ones if needed and delete after)
 - bahmed3170+e2eesc@gmail.com (escort) and bahmed3170+e2ecar@gmail.com (carrier). Both are the owner's own inbox; delete them in the admin panel or Supabase before launch outreach. The test load and bid were already removed.
 - Live end-to-end check 2026-10-26: sign-up (escort and carrier), email confirm, sign-in, bid, accept, contact release (both sides; anonymous refused 401), phone-width check of the main boards: all work. Not tested live on purpose: posting a load through the form (it would email about 25 real escorts who have no states set).
 
