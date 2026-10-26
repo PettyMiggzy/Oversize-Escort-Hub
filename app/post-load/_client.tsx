@@ -73,6 +73,7 @@ export function PostLoadPageClient() {
         .select('user_id, profiles:user_id(id, full_name, tier, bgc_verified, certifications(type, status))')
         .eq('zone', pickupState)
         .eq('active', true)
+        .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
       if (data && data.length > 0) {
         setSponsoredEscorts(data.map((sz: any) => sz.profiles).filter(Boolean))
       } else {

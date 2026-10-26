@@ -135,7 +135,7 @@ export async function POST(req: NextRequest) {
       if (zone) {
         const { error } = await supabase.from('sponsored_zones').insert({
           user_id: userId,
-          state: zone,
+          zone: zone.trim().toUpperCase(),
           active: true,
           expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         })

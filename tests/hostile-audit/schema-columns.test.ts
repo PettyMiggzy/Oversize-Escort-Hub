@@ -27,7 +27,7 @@ const SCHEMA = {
   rewards: ['wallet', 'points', 'streak', 'last_checkin', 'referred_by', 'ref_count', 'created_at', 'updated_at'],
   sms_compliance: ['id', 'phone', 'action', 'created_at'],
   sms_opt_outs: ['id', 'phone', 'opted_out_at'],
-  sponsored_zones: ['id', 'user_id', 'zone', 'stripe_subscription_id', 'active', 'created_at'],
+  sponsored_zones: ['id', 'user_id', 'zone', 'stripe_subscription_id', 'active', 'created_at', 'expires_at'],
   support_tickets: ['id', 'user_id', 'subject', 'message', 'status', 'created_at'],
   veteran_submissions: ['id', 'user_id', 'pdf_url', 'status', 'created_at'],
 } as const satisfies Schema

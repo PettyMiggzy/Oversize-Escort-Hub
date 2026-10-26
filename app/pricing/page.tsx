@@ -144,8 +144,8 @@ export default function PricingPage() {
 
   const handleSponsoredClick = async () => {
     const supabase = createClient();
-    const { data } = await supabase.from('sponsored_zones').select('state').eq('active', true);
-    setTakenZones(((data || []) as Array<{ state: string }>).map((r) => r.state));
+    const { data } = await supabase.from('sponsored_zones').select('zone').eq('active', true).or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`);
+    setTakenZones(((data || []) as Array<{ zone: string }>).map((r) => r.zone));
     setShowZoneModal(true);
   };
 
@@ -411,7 +411,7 @@ export default function PricingPage() {
               </button>
             </div>
             <p style={{ fontSize: 13, color: MUTED, marginBottom: 16 }}>
-              One carrier per state/province. Taken zones are greyed out.
+              One sponsor per state. Taken states are greyed out.
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: 8, marginBottom: 20 }}>
               {[

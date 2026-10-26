@@ -267,7 +267,7 @@ export default function VerifyPage() {
                 <div className="ui-v or">$29.99<span className="ui-meta">/30 days</span></div>
               </div>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {['1 carrier per state', 'Top of load list', 'Sponsored badge', 'Exclusive placement'].map(f => (
+                {['1 sponsor per state', 'Top of load list', 'Sponsored badge', 'Exclusive placement'].map(f => (
                   <li key={f} className="ui-note" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span className="ui-ok" style={{ margin: 0 }}>✓</span> {f}</li>
                 ))}
               </ul>

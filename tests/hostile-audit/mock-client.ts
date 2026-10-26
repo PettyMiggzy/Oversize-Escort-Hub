@@ -73,9 +73,16 @@ function matches(row: Record<string, unknown>, filters: Filter[]): boolean {
     if (f.op === 'or') {
       const parts = String(f.val).split(',')
       return parts.some((part) => {
-        const m = part.match(/^([A-Za-z0-9_]+)\.eq\.(.+)$/)
+        const m = part.match(/^([A-Za-z0-9_]+)\.(eq|is|gt|gte|lt)\.(.+)$/)
         if (!m) return false
-        return String(row[m[1]] ?? '') === m[2]
+        const [, col, op, val] = m
+        const cur = row[col]
+        if (op === 'is') return val === 'null' ? cur == null : String(cur) === val
+        if (op === 'eq') return String(cur ?? '') === val
+        if (cur == null) return false
+        if (op === 'gt') return String(cur) > val
+        if (op === 'gte') return String(cur) >= val
+        return String(cur) < val
       })
     }
     return true

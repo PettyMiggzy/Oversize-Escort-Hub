@@ -73,6 +73,7 @@ export default function FindEscortsPage() {
         .eq("active", true)
         .order("created_at", { ascending: false })
         .limit(6)
+      sponsoredQuery = sponsoredQuery.or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
       if (stateFilter) sponsoredQuery = sponsoredQuery.eq("zone", stateFilter)
       const { data: sponsoredZones } = await sponsoredQuery
       if (sponsoredZones && sponsoredZones.length > 0) {

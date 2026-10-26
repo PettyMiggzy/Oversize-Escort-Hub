@@ -167,3 +167,29 @@ test('checkout tier follows the charged price, not a conflicting metadata price'
   expect(profile().tier).not.toBe('pro')
   expect(profile().tier).toBe('member')
 })
+
+test('a paid sponsored-zone purchase writes the real columns (zone, expires_at) and runs for 30 days', async () => {
+  const res = await postEvent({
+    id: 'evt_zone',
+    type: 'checkout.session.completed',
+    data: {
+      object: {
+        id: 'cs_zone',
+        object: 'checkout.session',
+        payment_status: 'paid',
+        status: 'complete',
+        mode: 'payment',
+        metadata: { userId: 'user-1', priceId: STRIPE_PRICE_IDS.SPONSORED_ZONE, zone: 'in' },
+        client_reference_id: 'user-1',
+      },
+    },
+  })
+  expect(res.status).toBe(200)
+  const rows = getDb().tables.sponsored_zones ?? []
+  expect(rows).toHaveLength(1)
+  expect(rows[0]).toMatchObject({ user_id: 'user-1', zone: 'IN', active: true })
+  expect(rows[0]).not.toHaveProperty('state')
+  const days = (new Date(String(rows[0].expires_at)).getTime() - Date.now()) / 86400000
+  expect(days).toBeGreaterThan(29.9)
+  expect(days).toBeLessThan(30.1)
+})

@@ -44,6 +44,18 @@ export async function POST(req: NextRequest) {
       if (!z || z.length < 2) {
         return NextResponse.json({ error: 'Pick a sponsored zone (state)' }, { status: 400 })
       }
+      // One sponsor per state at a time: refuse before taking any money
+      const zsvc = createServiceClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+      const { data: held } = await zsvc
+        .from('sponsored_zones')
+        .select('id')
+        .eq('zone', z)
+        .eq('active', true)
+        .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
+        .limit(1)
+      if (held && held.length > 0) {
+        return NextResponse.json({ error: 'That state already has a sponsor. Pick another state.' }, { status: 409 })
+      }
     }
 
     // Approved DD-214 veterans get 30% off subscription checkouts
