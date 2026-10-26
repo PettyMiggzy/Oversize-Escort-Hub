@@ -6,6 +6,7 @@ import Link from 'next/link'
 import SiteHeader from '@/components/SiteHeader'
 import PageTitle from '@/components/PageTitle'
 import EmptyState from '@/components/EmptyState'
+import ReportLoad from '@/components/ReportLoad'
 import { isAdminEmail } from '@/lib/supabase'
 import { getAccessLevel, secondsUntilClaimable } from '@/lib/board-access'
 import { withFreeLaunch } from '@/lib/free-launch'
@@ -291,6 +292,8 @@ export default function LoadDetailPage() {
             ))}
           </div>
         )}
+
+        {currentUser && load.carrier_id !== currentUser.id && <ReportLoad loadId={load.id} />}
           </div>
         </div>
       </div>

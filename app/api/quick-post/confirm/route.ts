@@ -3,7 +3,9 @@ import { serviceClient } from '@/lib/service-client'
 import { runAfter, alertEscortsNewLoad } from '@/lib/alerts'
 import { notifyProEscorts } from '@/lib/notify-pro'
 import { notifyDeadhead } from '@/lib/deadhead'
-import { LIMITS, hashToken, ilikeExact, type QuickPostInput } from '@/lib/quick-post'
+import { LIMITS, SITE, hashToken, ilikeExact, type QuickPostInput } from '@/lib/quick-post'
+import { sendEmail } from '@/lib/email'
+import { ADMIN_EMAILS } from '@/lib/supabase'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
@@ -78,11 +80,24 @@ export async function POST(req: NextRequest) {
     poster_company: p.company || null,
     pay_term: 'on_completion',
     status: 'open',
+    source: 'quick_post',
   }).select('id').single()
   if (error || !load?.id) return NextResponse.json({ error: 'Could not post the load. Please try again.' }, { status: 500 })
 
   const loadId = load.id as string
   runAfter(async () => {
+    // Tell the admins so a bad post is seen within minutes (at most 10 of these emails a day)
+    try {
+      const since = new Date(Date.now() - 86400000).toISOString()
+      const { data: today } = await svc.from('loads').select('id').eq('source', 'quick_post').gte('created_at', since).limit(11)
+      if ((today?.length ?? 0) <= 10) {
+        await Promise.allSettled(ADMIN_EMAILS.map((to) => sendEmail({
+          to,
+          subject: `Account-free load: ${p.pickupCity}, ${p.pickupState} to ${p.destinationCity}, ${p.destinationState}`,
+          html: `<p style="font-family:Arial,sans-serif">A load was just posted without an account (${created ? 'brand new account' : 'existing account'}).<br>${p.escortCount} x ${p.escortType} at $${p.rate}/mi from ${email}.<br><a href="${SITE}/admin">Open the admin panel &gt; Quick posts to check or remove it</a>.</p>`,
+        })))
+      }
+    } catch { /* best effort */ }
     await Promise.allSettled([
       notifyDeadhead(loadId),
       notifyProEscorts({ load_id: loadId, pu_state: p.pickupState, dl_state: p.destinationState }),

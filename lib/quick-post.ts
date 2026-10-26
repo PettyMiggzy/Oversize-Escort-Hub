@@ -32,6 +32,21 @@ export type QuickPostInput = {
   notes: string
 }
 
+// Throwaway inboxes are how spam gets in. Real carriers use a work or personal address.
+const DISPOSABLE = new Set([
+  'mailinator.com', 'guerrillamail.com', 'guerrillamailblock.com', 'sharklasers.com', 'grr.la', '10minutemail.com', 'tempmail.com',
+  'temp-mail.org', 'throwawaymail.com', 'yopmail.com', 'trashmail.com', 'getnada.com', 'maildrop.cc', 'dispostable.com',
+  'fakeinbox.com', 'mailnesia.com', 'mintemail.com', 'moakt.com', 'tempail.com', 'emailondeck.com', 'burnermail.io', 'mohmal.com',
+])
+export function isDisposableEmail(email: string): boolean {
+  const domain = email.split('@')[1]?.toLowerCase() ?? ''
+  return DISPOSABLE.has(domain)
+}
+/** Links, emails or phone numbers in the notes are how people dodge the confirm step or advertise. */
+export function hasContactInfo(text: string): boolean {
+  return /(https?:\/\/|www\.|@|\b[a-z0-9-]+\.(com|net|org|io|co|us|ca|biz|info|me|ly|app|xyz)\b)/i.test(text) || /\d[\d\s().-]{7,}\d/.test(text)
+}
+
 const clean = (v: unknown, max: number) => (typeof v === 'string' ? v.replace(/[\u0000-\u001f\u007f<>]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max) : '')
 
 export function validateQuickPost(body: unknown): { ok: true; data: QuickPostInput } | { ok: false; error: string } {
@@ -62,6 +77,8 @@ export function validateQuickPost(body: unknown): { ok: true; data: QuickPostInp
     dateNeeded = b.dateNeeded.slice(0, 10)
   }
   const notes = clean(b.notes, 500)
+  if (hasContactInfo(notes)) return { ok: false, error: 'Please take links, emails and phone numbers out of the notes. Contact details are shared only after a match.' }
+  if (isDisposableEmail(email)) return { ok: false, error: 'Please use a work or personal email, not a temporary one.' }
   return { ok: true, data: { email, name, company, phone, pickupCity, pickupState, destinationCity, destinationState, escortType, escortCount, boardType, rate, dateNeeded, notes } }
 }
 
