@@ -1143,6 +1143,7 @@ export function DashboardPageClient() {
               <p style={{ margin: 0 }}><span style={{ color: MUTED }}>Name:</span> {profile.full_name || '—'}</p>
               <p style={{ margin: '8px 0 0' }}><span style={{ color: MUTED }}>Role:</span> {profile.role}</p>
               <a href="/profile" style={{ display: 'inline-block', marginTop: '0.75rem', color: ORANGE, fontSize: '0.875rem' }}>Edit Profile →</a>
+              {profile.role === 'escort' ? <a href="/my-documents" style={{ display: 'inline-block', marginTop: '0.75rem', marginLeft: '1.25rem', color: ORANGE, fontSize: '0.875rem' }}>My documents →</a> : null}
             </div>
           </section>
 

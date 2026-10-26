@@ -13,6 +13,7 @@ const PROTECTED_ROUTES = [
   '/admin',
   '/available',
   '/escort-cert',
+  '/my-documents',
   '/verify',
 ]
 

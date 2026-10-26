@@ -3,6 +3,7 @@ import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/api-auth";
 import { signedDocUrl } from "@/lib/signed-url";
+import { DOC_EXT, DOC_LIMITS, DOC_MIME, sniffDocType } from "@/lib/profile-docs";
 
 export const dynamic = "force-dynamic";
 
@@ -21,18 +22,35 @@ export async function POST(req: NextRequest) {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const formData = await req.formData();
-    const pdfFile = formData.get("pdf") as File | null;
+    const pdfFile = (formData.get("pdf") || formData.get("file")) as File | null;
     const expiryDate = formData.get("expiryDate") as string | null;
-    const certType = (formData.get("certType") as string | null) || "pevo";
+    // a short plain label ("pevo", "insurance", "state_cert"); anything else is cleaned, never trusted as markup
+    const certType = String(formData.get("certType") || "pevo").toLowerCase().replace(/[^a-z0-9_/ -]/g, "").slice(0, 30) || "pevo";
 
     if (!pdfFile || !expiryDate) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
-    if (pdfFile.type !== "application/pdf") {
-      return NextResponse.json({ error: "Upload a PDF" }, { status: 400 });
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(expiryDate)) {
+      return NextResponse.json({ error: "Pick the expiry date from the calendar" }, { status: 400 });
     }
-    if (pdfFile.size > 10 * 1024 * 1024) {
+    if (pdfFile.size > DOC_LIMITS.maxBytes) {
       return NextResponse.json({ error: "File exceeds 10 MB" }, { status: 400 });
+    }
+    // a PDF or a photo, decided by the file's own first bytes
+    const bytes = new Uint8Array(await pdfFile.arrayBuffer());
+    const kind = sniffDocType(bytes);
+    if (!kind) {
+      return NextResponse.json({ error: "Upload a PDF or a photo (JPG, PNG or WebP)" }, { status: 400 });
+    }
+
+    // spam guard: a handful waiting for review, and a sensible total
+    const { data: mineAll } = await serviceClient().from("certifications").select("id, status").eq("user_id", user.id).limit(100);
+    const rowsMine = (mineAll ?? []) as { status: string | null }[];
+    if (rowsMine.filter((r) => r.status === "pending").length >= DOC_LIMITS.maxPending) {
+      return NextResponse.json({ error: "You already have several documents waiting for review. We will get to them first." }, { status: 429 });
+    }
+    if (rowsMine.length >= DOC_LIMITS.maxTotal) {
+      return NextResponse.json({ error: "You have reached the document limit. Email support to remove old ones." }, { status: 429 });
     }
 
     // P/EVO cert review uploads require the pevo paywall purchase first
@@ -49,12 +67,12 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const filename = `cert_${user.id}_${Date.now()}.pdf`;
+    const filename = `cert_${user.id}_${Date.now()}.${DOC_EXT[kind]}`;
     const path = `certs/${filename}`;
     // uploaded with the service key into a private bucket: the file never needs a public address
     const { error: uploadError } = await serviceClient().storage
       .from("documents")
-      .upload(path, pdfFile, { contentType: "application/pdf", upsert: false });
+      .upload(path, bytes, { contentType: DOC_MIME[kind], upsert: false });
 
     if (uploadError) throw uploadError;
 

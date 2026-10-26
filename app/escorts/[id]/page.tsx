@@ -4,6 +4,7 @@ import Link from 'next/link'
 import SiteHeader from '@/components/SiteHeader'
 import PageTitle from '@/components/PageTitle'
 import EmptyState from '@/components/EmptyState'
+import { docLabel, isPublic, type DocRow } from '@/lib/profile-docs'
 const svc = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -14,7 +15,9 @@ export default async function EscortProfilePage({ params }: { params: Promise<{ 
   const { data: profile } = await svc.from('profiles').select('id, full_name, role, tier, bio, bgc_verified, rating, review_count, avatar_url, pevo_verified, state, vehicle, states_licensed, availability_states, is_available, created_at').eq('id', id).single()
   if (!profile) notFound()
 
-  const { data: certs } = await svc.from('certifications').select('*').eq('user_id', id)
+  // only the columns shown here: never the stored file address
+  const { data: certRows } = await svc.from('certifications').select('id, user_id, type, status, expiry_date, show_on_profile').eq('user_id', id)
+  const certs = ((certRows ?? []) as DocRow[]).filter((c) => c.status === 'approved')
   const { data: zones } = await svc.from('escort_availability').select('*').eq('escort_id', id)
   const { data: reviews } = await svc
     .from('reviews')
@@ -68,16 +71,21 @@ export default async function EscortProfilePage({ params }: { params: Promise<{ 
           </div>
         )}
 
-        {certs && certs.length > 0 && (
+        {certs.length > 0 && (
           <div className="ui-card">
-            <h2>Certifications</h2>
-            {certs.map((c: any) => (
-              <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: c.status === 'approved' ? 'var(--ui-green)' : 'var(--ui-dim)' }} />
-                <span style={{ fontSize: 14, fontWeight: 600 }}>{c.type?.toUpperCase()}</span>
-                <span className={c.status === 'approved' ? 'ui-ok' : 'ui-meta'} style={{ margin: 0 }}>{c.status}</span>
-              </div>
-            ))}
+            <h2>Certifications and documents</h2>
+            {certs.map((c) => {
+              const shown = isPublic(c)
+              return (
+                <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--ui-green)' }} />
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>{docLabel(c.type)}</span>
+                  <span className="ui-ok" style={{ margin: 0 }}>reviewed</span>
+                  {c.expiry_date ? <span className="ui-meta">valid through {new Date(String(c.expiry_date).slice(0, 10) + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span> : null}
+                  {shown ? <a className="ui-link" href={`/api/escort-doc/${c.id}`} target="_blank" rel="noopener noreferrer">View document</a> : null}
+                </div>
+              )
+            })}
           </div>
         )}
 
@@ -97,8 +105,8 @@ export default async function EscortProfilePage({ params }: { params: Promise<{ 
           </div>
         ) : (
           <EmptyState
-            title={(!zones || zones.length === 0) && (!certs || certs.length === 0) ? 'No additional profile details yet' : 'No reviews yet'}
-            text={(!zones || zones.length === 0) && (!certs || certs.length === 0) ? 'Zones, certifications and reviews will show here once this escort adds them.' : 'Reviews show up here after a finished job.'}
+            title={(!zones || zones.length === 0) && certs.length === 0 ? 'No additional profile details yet' : 'No reviews yet'}
+            text={(!zones || zones.length === 0) && certs.length === 0 ? 'Zones, certifications and reviews will show here once this escort adds them.' : 'Reviews show up here after a finished job.'}
           />
         )}
           </div>
