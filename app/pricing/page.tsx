@@ -4,7 +4,7 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { isNativeApp, openInBrowser, WEB_HOST } from "@/lib/native";
 import { FREE_LAUNCH } from "@/lib/free-launch";
-import PageHero from "@/components/PageHero";
+import PageTitle from "@/components/PageTitle";
 
 const PRICES = {
   member:         "price_1TF00LLmfugPCRbAl6sF0Oup",
@@ -69,24 +69,13 @@ async function startCheckout(priceId: string, setLoading: (v: string) => void, z
   }
 }
 
-const BG = "#0a0a0a";
-const CARD = "#111";
-const BORDER = "#222";
-const ORANGE = "#f0a500";
-const TEXT = "#fff";
-const MUTED = "#9ca3af";
+const TEXT = "var(--ui-text)";
+const MUTED = "var(--ui-muted)";
+const ORANGE = "var(--ui-or)";
 
 function Card({ highlight, children }: { highlight?: boolean; children: React.ReactNode }) {
   return (
-    <div style={{
-      background: CARD,
-      border: highlight ? `2px solid ${ORANGE}` : `1px solid ${BORDER}`,
-      borderRadius: 12,
-      padding: "24px 22px",
-      display: "flex",
-      flexDirection: "column",
-      position: "relative",
-    }}>
+    <div className={highlight ? "ui-card warn" : "ui-card"} style={{ display: "flex", flexDirection: "column", position: "relative" }}>
       {children}
     </div>
   );
@@ -97,18 +86,8 @@ function CTA({ label, onClick, disabled, loading }: { label: string; onClick?: (
     <button
       onClick={onClick}
       disabled={disabled || loading}
-      style={{
-        marginTop: "auto",
-        background: ORANGE,
-        color: "#000",
-        border: "none",
-        borderRadius: 6,
-        padding: "12px 20px",
-        fontWeight: 700,
-        fontSize: 15,
-        cursor: disabled || loading ? "default" : "pointer",
-        opacity: loading ? 0.7 : 1,
-      }}
+      className="ui-btn block"
+      style={{ marginTop: "auto" }}
     >
       {loading ? "Processing..." : label}
     </button>
@@ -117,19 +96,7 @@ function CTA({ label, onClick, disabled, loading }: { label: string; onClick?: (
 
 function GhostCTA({ label, href }: { label: string; href: string }) {
   return (
-    <a href={href} style={{
-      marginTop: "auto",
-      background: "transparent",
-      color: ORANGE,
-      border: `1px solid ${ORANGE}`,
-      borderRadius: 6,
-      padding: "12px 20px",
-      fontWeight: 700,
-      fontSize: 15,
-      textAlign: "center",
-      textDecoration: "none",
-      display: "block",
-    }}>{label}</a>
+    <a href={href} className="ui-btn ghost block" style={{ marginTop: "auto" }}>{label}</a>
   );
 }
 
@@ -148,7 +115,7 @@ function Features({ items }: { items: string[] }) {
 function SectionTitle({ children, subtitle }: { children: React.ReactNode; subtitle?: string }) {
   return (
     <div style={{ margin: "32px 0 20px", textAlign: "center" }}>
-      <h2 style={{ color: TEXT, fontSize: 26, fontWeight: 800, margin: 0 }}>{children}</h2>
+      <h2 style={{ color: "#fff", fontSize: 26, fontWeight: 800, margin: 0, fontFamily: "'Plus Jakarta Sans', Inter, sans-serif", letterSpacing: "-.02em" }}>{children}</h2>
       {subtitle && <p style={{ color: MUTED, fontSize: 14, marginTop: 6 }}>{subtitle}</p>}
     </div>
   );
@@ -158,10 +125,7 @@ function PriceHeader({ label, price, period, highlight }: { label: string; price
   return (
     <>
       {highlight && (
-        <div style={{
-          position: "absolute", top: -11, right: 16, background: ORANGE, color: "#000",
-          fontSize: 10, fontWeight: 800, padding: "3px 10px", borderRadius: 99, letterSpacing: "0.08em"
-        }}>MOST POPULAR</div>
+        <div className="ui-badge orange" style={{ position: "absolute", top: -11, right: 16 }}>Most popular</div>
       )}
       <div style={{ color: MUTED, fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 6 }}>{label}</div>
       <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
@@ -225,13 +189,13 @@ export default function PricingPage() {
   const [loading, setLoading] = useState("");
 
   return (
-    <div style={{ background: BG, minHeight: "100vh", color: TEXT }}>
+    <div className="ui-page">
       <SiteHeader />
       {isNativeApp() && (
         <div
           style={{
-            background: '#111',
-            borderBottom: '1px solid #222',
+            background: 'rgba(255,255,255,.04)',
+            borderBottom: '1px solid rgba(255,255,255,.09)',
             color: '#fff',
             padding: '14px 18px',
             fontSize: 13,
@@ -240,12 +204,12 @@ export default function PricingPage() {
           }}
         >
           <div style={{ maxWidth: 720, margin: '0 auto' }}>
-            <strong style={{ color: '#f0a500' }}>Plans and purchases are on our website.</strong>{' '}
+            <strong style={{ color: ORANGE }}>Plans and purchases are on our website.</strong>{' '}
             Please visit{' '}
             <a
               href={`${WEB_HOST}/pricing`}
               onClick={(e) => { e.preventDefault(); openInBrowser('/pricing'); }}
-              style={{ color: '#f0a500', textDecoration: 'underline' }}
+              style={{ color: ORANGE, textDecoration: 'underline' }}
             >
               oversize-escort-hub.com/pricing
             </a>
@@ -253,13 +217,13 @@ export default function PricingPage() {
           </div>
         </div>
       )}
-      <PageHero image="/photos/band-pricing.webp" position="50% 55%" title="Pricing" lead="Plans for escorts, carriers, brokers and fleets." />
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" }}>
+      <div className="ui-wrap">
+        <PageTitle eyebrow="Plans" title="Pricing" lead="Plans for escorts, carriers, brokers and fleets." />
         {FREE_LAUNCH && (
-          <div style={{ background: "rgba(240,165,0,.10)", border: `1px solid ${ORANGE}`, borderRadius: 12, padding: "18px 22px", margin: "0 auto 28px", maxWidth: 760, textAlign: "center" }}>
-            <div style={{ color: ORANGE, fontWeight: 900, fontSize: 20, letterSpacing: ".04em" }}>FREE WHILE WE LAUNCH</div>
+          <div className="ui-card warn" style={{ padding: "18px 22px", margin: "0 auto 28px", maxWidth: 760, textAlign: "center" }}>
+            <div style={{ color: ORANGE, fontFamily: "'Plus Jakarta Sans', Inter, sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-.02em" }}>Free while we launch</div>
             <p style={{ color: TEXT, fontSize: 15, margin: "8px 0 14px" }}>Every feature is unlocked for every account. No card needed. We will give plenty of notice before any plan costs anything.</p>
-            <a href="/signin" style={{ display: "inline-block", background: ORANGE, color: "#000", fontWeight: 800, borderRadius: 8, padding: "11px 26px", textDecoration: "none" }}>Create your free account</a>
+            <a href="/signin" className="ui-btn">Create your free account</a>
           </div>
         )}
         <div style={{ textAlign: "center", marginBottom: 16 }}>
@@ -268,7 +232,7 @@ export default function PricingPage() {
         </div>
 
         {FREE_LAUNCH && (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 20, marginBottom: 40 }}>
+          <div className="ui-fit" style={{ marginBottom: 40 }}>
             <Card>
               <PriceHeader label="Escorts" price="$0" period=" while we launch" />
               <Features items={["Flat-rate, open-bid and 5-minute bid boards", "Bid on loads and see contact info when matched", "Deadhead Minimizer", "Load and bid alerts by email", "Verification badges", "Reviews"]} />
@@ -289,7 +253,7 @@ export default function PricingPage() {
         {!FREE_LAUNCH && (<>
         {/* SECTION 1 — ESCORT TIERS */}
         <SectionTitle subtitle="For P/EVO operators">Escort Tiers</SectionTitle>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 20 }}>
+        <div className="ui-fit">
           <Card>
             <PriceHeader label="Free Trial" price="Free" />
             <Features items={[
@@ -329,7 +293,7 @@ export default function PricingPage() {
 
         {/* SECTION 2 — FLEET TIERS */}
         <SectionTitle subtitle="Manage multiple escorts">Fleet Tiers</SectionTitle>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 20 }}>
+        <div className="ui-fit">
           <Card>
             <PriceHeader label="Fleet Starter" price="$29.99" period="/mo" />
             <Features items={[
@@ -362,7 +326,7 @@ export default function PricingPage() {
 
         {/* SECTION 3 — CARRIER */}
         <SectionTitle>Carrier</SectionTitle>
-        <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "28px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20, flexWrap: "wrap" }}>
+        <div className="ui-card" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20, flexWrap: "wrap" }}>
           <div>
             <div style={{ color: MUTED, fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 6 }}>Carrier</div>
             <div style={{ fontSize: 32, fontWeight: 800, color: TEXT }}>Always Free</div>
@@ -376,7 +340,7 @@ export default function PricingPage() {
         </>)}
         {/* SECTION 4 — ADD-ONS */}
         <SectionTitle subtitle="One-time purchases and boosts">Add-Ons</SectionTitle>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 20 }}>
+        <div className="ui-fit">
           <Card>
             <PriceHeader label="BGC Badge" price={FREE_LAUNCH ? "Free" : "$9.99"} period={FREE_LAUNCH ? " while we launch" : " one-time"} />
             <Features items={[
@@ -415,41 +379,33 @@ export default function PricingPage() {
 
         {/* SECTION 5 — PARTNER PERKS */}
         <SectionTitle subtitle="Included benefits from OEH partners">Partner Perks</SectionTitle>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
-          <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "24px 26px" }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: ORANGE, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>
-              ⛽ Partner Benefit
-            </div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: TEXT, marginBottom: 8 }}>Upside Fuel Cash Back</div>
+        <div className="ui-fit">
+          <div className="ui-card">
+            <div className="ui-badge orange" style={{ marginBottom: 8 }}>Partner benefit</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: "#fff", marginBottom: 8 }}>Upside Fuel Cash Back</div>
             <div style={{ fontSize: 13, color: MUTED, lineHeight: 1.6, marginBottom: 12 }}>
-              Extra 15¢/gal cash back on your first fill-up. Use code <strong style={{ color: TEXT }}>9WR232</strong> when signing up.
+              Extra 15¢/gal cash back on your first fill-up. Use code <strong style={{ color: "#fff" }}>9WR232</strong> when signing up.
             </div>
-            <a href="https://upside.app.link/9WR232" target="_blank" rel="noopener noreferrer" style={{
-              color: ORANGE, fontSize: 13, fontWeight: 700, textDecoration: "none", borderBottom: `1px solid ${ORANGE}`
-            }}>Claim Upside Bonus →</a>
+            <a href="https://upside.app.link/9WR232" target="_blank" rel="noopener noreferrer" className="ui-link">Claim Upside Bonus →</a>
           </div>
         </div>
       </div>
           {showZoneModal && (
         <div
           onClick={() => !zoneLoading && setShowZoneModal(false)}
-          style={{
-            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20,
-          }}
+          className="ui-modal-back"
         >
           <div
+            className="ui-modal wide"
             onClick={(e) => e.stopPropagation()}
-            style={{
-              background: CARD, border: `1px solid ${BORDER}`, borderRadius: 12,
-              padding: 24, maxWidth: 720, width: '100%', maxHeight: '85vh', overflow: 'auto',
-            }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <h2 style={{ fontSize: 22, fontWeight: 800, color: TEXT, margin: 0 }}>Pick Your Sponsored Zone</h2>
               <button
                 onClick={() => !zoneLoading && setShowZoneModal(false)}
-                style={{ background: 'transparent', border: 'none', color: MUTED, fontSize: 24, cursor: 'pointer' }}
+                className="ui-btn ghost"
+                style={{ minWidth: 44, padding: '0 14px' }}
+                aria-label="Close"
               >
                 ×
               </button>
@@ -471,14 +427,8 @@ export default function PricingPage() {
                     key={code}
                     disabled={taken || zoneLoading}
                     onClick={() => setSelectedZone(code)}
-                    style={{
-                      padding: '10px 8px', borderRadius: 6, fontSize: 13, fontWeight: 700,
-                      border: selected ? `2px solid ${ORANGE}` : `1px solid ${BORDER}`,
-                      background: taken ? '#1a1a1a' : (selected ? ORANGE : CARD),
-                      color: taken ? '#555' : (selected ? '#000' : TEXT),
-                      cursor: taken ? 'not-allowed' : 'pointer',
-                      opacity: taken ? 0.5 : 1,
-                    }}
+                    className={selected ? 'ui-chip on' : 'ui-chip'}
+                    style={{ justifyContent: 'center', opacity: taken ? 0.45 : 1 }}
                   >
                     {code}{taken ? ' •' : ''}
                   </button>
@@ -488,12 +438,7 @@ export default function PricingPage() {
             <button
               disabled={!selectedZone || zoneLoading}
               onClick={handleZoneCheckout}
-              style={{
-                width: '100%', padding: '12px 20px', background: ORANGE, color: '#000',
-                border: 'none', borderRadius: 6, fontSize: 15, fontWeight: 700,
-                cursor: !selectedZone || zoneLoading ? 'default' : 'pointer',
-                opacity: !selectedZone || zoneLoading ? 0.6 : 1,
-              }}
+              className="ui-btn block"
             >
               {zoneLoading ? 'Processing…' : selectedZone ? `Checkout — ${selectedZone}` : 'Select a zone'}
             </button>

@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import SiteHeader from '@/components/SiteHeader';
+import PageTitle from '@/components/PageTitle';
 
 export default function ComingSoonPage() {
   const [email, setEmail] = useState('');
@@ -35,76 +37,36 @@ export default function ComingSoonPage() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: 'radial-gradient(ellipse at top, #1a1a1a 0%, #0a0a0a 60%)',
-        color: '#fff',
-        fontFamily: "'Inter', system-ui, sans-serif",
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '40px 20px',
-      }}
-    >
-      <div style={{ maxWidth: 520, width: '100%', textAlign: 'center' }}>
-        <div style={{ marginBottom: 32, display: 'flex', justifyContent: 'center' }}>
-          <Image
-            src="/logo.png"
-            alt="Oversize Escort Hub"
-            width={140}
-            height={140}
-            priority
+    <div className="ui-page">
+      <SiteHeader />
+      <div className="ui-wrap" style={{ maxWidth: 560, textAlign: 'center' }}>
+        <Image
+          src="/logo-wordmark.png"
+          alt="Oversize Escort Hub"
+          width={832}
+          height={308}
+          priority
+          style={{ width: 'min(220px, 70%)', height: 'auto', margin: '0 auto 28px', display: 'block' }}
+        />
+
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <PageTitle
+            eyebrow="Launching May 1st"
+            title="Oversize Escort Hub"
+            lead="The verified marketplace for oversize carriers and P/EVO escorts."
           />
         </div>
-
-        <div
-          style={{
-            display: 'inline-block',
-            padding: '4px 12px',
-            background: 'rgba(249,144,0,0.12)',
-            border: '1px solid rgba(249,144,0,0.4)',
-            borderRadius: 999,
-            fontSize: 11,
-            letterSpacing: '0.15em',
-            textTransform: 'uppercase',
-            color: '#f0a500',
-            marginBottom: 20,
-            fontFamily: "'Bebas Neue', Impact, sans-serif",
-          }}
-        >
-          Launching May 1st
-        </div>
-
-        <h1
-          style={{
-            fontFamily: "'Bebas Neue', Impact, sans-serif",
-            fontSize: 44,
-            lineHeight: 1.05,
-            margin: '0 0 14px',
-            letterSpacing: '0.02em',
-          }}
-        >
-          Oversize Escort Hub
-        </h1>
-
-        <p style={{ fontSize: 16, lineHeight: 1.5, color: '#bbb', margin: '0 0 8px' }}>
-          The verified marketplace for oversize carriers and P/EVO escorts.
-        </p>
-        <p style={{ fontSize: 13, lineHeight: 1.5, color: '#888', margin: '0 0 32px' }}>
+        <p className="ui-note" style={{ marginTop: -12, marginBottom: 28 }}>
           Official Evergreen Safety Council Member.
         </p>
 
         <form
           onSubmit={handleSubmit}
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 10,
-            marginBottom: 24,
-          }}
+          className="ui-card"
+          style={{ display: 'flex', flexDirection: 'column', gap: 10, textAlign: 'left' }}
         >
           <input
+            className="ui-input"
             type="email"
             required
             autoComplete="email"
@@ -112,61 +74,31 @@ export default function ComingSoonPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             disabled={status === 'loading'}
-            style={{
-              width: '100%',
-              padding: '12px 14px',
-              fontSize: 15,
-              background: '#111',
-              border: '1px solid #2a2a2a',
-              borderRadius: 6,
-              color: '#fff',
-              outline: 'none',
-              fontFamily: 'inherit',
-            }}
           />
           <button
+            className="ui-btn block"
             type="submit"
             disabled={status === 'loading' || !email}
-            style={{
-              width: '100%',
-              padding: '12px 14px',
-              fontSize: 14,
-              fontWeight: 700,
-              letterSpacing: '0.05em',
-              textTransform: 'uppercase',
-              background: status === 'loading' ? '#444' : '#f0a500',
-              color: '#000',
-              border: 'none',
-              borderRadius: 6,
-              cursor: status === 'loading' || !email ? 'not-allowed' : 'pointer',
-              fontFamily: "'Bebas Neue', Impact, sans-serif",
-            }}
           >
             {status === 'loading' ? 'Saving…' : 'Notify Me at Launch'}
           </button>
           {msg && (
-            <div
-              style={{
-                fontSize: 12,
-                color: status === 'ok' ? '#7cd97c' : '#ff8080',
-                marginTop: 4,
-              }}
-            >
+            <div className={status === 'ok' ? 'ui-ok' : 'ui-err'}>
               {msg}
             </div>
           )}
         </form>
 
-        <div style={{ display: 'flex', gap: 16, justifyContent: 'center', fontSize: 13 }}>
-          <Link href="/pricing" style={{ color: '#f0a500', textDecoration: 'none' }}>
+        <div className="ui-chips" style={{ justifyContent: 'center', marginTop: 24 }}>
+          <Link href="/pricing" className="ui-link">
             Preview pricing →
           </Link>
-          <Link href="/getting-started" style={{ color: '#f0a500', textDecoration: 'none' }}>
+          <Link href="/getting-started" className="ui-link">
             How to get started →
           </Link>
         </div>
 
-        <div style={{ marginTop: 40, fontSize: 11, color: '#555', letterSpacing: '0.1em' }}>
+        <div className="ui-note" style={{ marginTop: 40, letterSpacing: '.08em' }}>
           OVERSIZE-ESCORT-HUB.COM
         </div>
       </div>

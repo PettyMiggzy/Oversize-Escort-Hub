@@ -6,36 +6,37 @@ import { createClient } from '@/lib/supabase/client';
 import { isNativeApp, openInBrowser, WEB_HOST } from '@/lib/native';
 import { useSearchParams } from 'next/navigation';
 import { safeRedirectPath } from '@/lib/security';
+import SiteHeader from '@/components/SiteHeader';
+import PageTitle from '@/components/PageTitle';
 
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@800&family=Inter:wght@400;500;600;700&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#06080a;--p1:#0f1318;--p2:#141a1f;--l1:#1c2229;--l2:#252d36;--or:#ff6200;--am:#f5a200;--gr:#00cc7a;--rd:#ff3535;--bl:#3d8ef8;--t1:#dce0e6;--t2:#6e7a88;--t3:#363f4a}
-body{background:var(--bg);color:var(--t1);font-family:'Inter',system-ui,sans-serif;font-size:13px;line-height:1.6;min-height:100vh}
-.bb{font-family:'Bebas Neue',Impact,sans-serif;letter-spacing:.03em;text-transform:uppercase}
-.mo{font-family:'DM Mono','Courier New',monospace}
-input{font-family:'Inter',system-ui,sans-serif;background:var(--p2);border:1px solid var(--l2);color:var(--t1);padding:10px 14px;border-radius:3px;font-size:13px;outline:none;width:100%}
-input:focus{border-color:var(--or)}
+:root{--bg:#06080a;--p1:rgba(255,255,255,.06);--p2:rgba(255,255,255,.05);--l1:rgba(255,255,255,.12);--l2:rgba(255,255,255,.14);--or:#ff6a13;--am:#ff6a13;--gr:#35d489;--rd:#ff5a5a;--bl:#6aa8ff;--t1:#dce0e6;--t2:#9aa3b2;--t3:#6b7686}
+body{background:var(--bg);color:var(--t1);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.6;min-height:100vh}
+.bb{font-family:'Plus Jakarta Sans','Inter',sans-serif;font-weight:800;letter-spacing:-.03em;text-transform:none}
+.mo{font-family:'Inter',system-ui,sans-serif;font-weight:500}
+input{font-family:'Inter',system-ui,sans-serif;background:var(--p2);border:1px solid var(--l2);color:var(--t1);padding:12px 14px;border-radius:12px;font-size:16px;outline:none;width:100%;min-height:44px}
+input:focus{border-color:var(--or);box-shadow:0 0 0 3px rgba(255,106,19,.18)}
 button{cursor:pointer;font-family:'Inter',system-ui,sans-serif}
-.wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(10,11,13,.82),rgba(10,11,13,.9)),url(/photos/band-account.webp) center/cover no-repeat}
-.box{background:var(--p1);border:1px solid var(--l1);border-radius:4px;padding:40px;width:100%;max-width:440px}
-.label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--t2);display:block;margin-bottom:6px}
+.wrap{min-height:calc(100vh - 64px);display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(10,11,13,.72),rgba(10,11,13,.88)),url(/photos/band-account.webp) center/cover no-repeat;padding:28px 16px}
+.box{background:linear-gradient(180deg,rgba(20,22,28,.78),rgba(10,12,16,.72));border:1px solid rgba(255,255,255,.14);border-radius:26px;padding:32px 28px;width:100%;max-width:440px;backdrop-filter:blur(22px) saturate(140%);-webkit-backdrop-filter:blur(22px) saturate(140%);box-shadow:0 30px 80px rgba(0,0,0,.45)}
+.label{font-family:'Inter',system-ui,sans-serif;font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:var(--t2);display:block;margin-bottom:7px}
 .field{margin-bottom:18px}
-.btn{display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;padding:13px 22px;border:none;width:100%;margin-bottom:12px;cursor:pointer}
-.btn-or{background:var(--or);color:#000}
-.btn-am{background:var(--am);color:#000}
-.btn-fleet{background:var(--bl);color:#fff}
-.btn:disabled{opacity:.5;cursor:not-allowed}
-.role-toggle{display:flex;border:1px solid var(--l1);border-radius:3px;overflow:hidden;margin-bottom:20px}
-.role-btn{flex:1;padding:10px;background:transparent;border:none;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--t2);cursor:pointer}
-.role-btn.active-escort{background:var(--am);color:#000}
-.role-btn.active-carrier{background:var(--or);color:#000}
-.role-btn.active-fleet{background:var(--bl);color:#fff}
-.error{background:rgba(255,53,53,.1);border:1px solid rgba(255,53,53,.2);color:var(--rd);font-family:'DM Mono',monospace;font-size:10px;padding:10px 14px;border-radius:3px;margin-bottom:16px}
-.success{background:rgba(0,204,122,.1);border:1px solid rgba(0,204,122,.2);color:var(--gr);font-family:'DM Mono',monospace;font-size:10px;padding:10px 14px;border-radius:3px;margin-bottom:16px}
+.btn{display:flex;align-items:center;justify-content:center;font-family:'Inter',system-ui,sans-serif;font-size:14px;letter-spacing:0;text-transform:none;font-weight:700;padding:11px 22px;min-height:44px;border:none;border-radius:999px;width:100%;margin-bottom:12px;cursor:pointer;box-shadow:0 8px 24px rgba(255,106,19,.28)}
+.btn-or{background:var(--or);color:#160800}
+.btn-am{background:var(--am);color:#160800}
+.btn-fleet{background:var(--or);color:#160800}
+.btn:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
+.role-toggle{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.role-btn{flex:1 1 46%;min-height:44px;padding:10px 8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);border-radius:999px;font-family:'Inter',system-ui,sans-serif;font-size:13px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--t2);cursor:pointer}
+.role-btn.active-escort,.role-btn.active-carrier,.role-btn.active-fleet{background:var(--or);color:#160800;border-color:var(--or)}
+.error{background:rgba(255,90,90,.1);border:1px solid rgba(255,90,90,.35);color:#ff8a8a;font-family:'Inter',system-ui,sans-serif;font-size:14px;padding:12px 14px;border-radius:12px;margin-bottom:16px}
+.success{background:rgba(53,212,137,.1);border:1px solid rgba(53,212,137,.35);color:var(--gr);font-family:'Inter',system-ui,sans-serif;font-size:14px;padding:12px 14px;border-radius:12px;margin-bottom:16px}
 .switch{text-align:center;margin-top:4px}
-.switch span{font-family:'DM Mono',monospace;font-size:10px;color:var(--t2)}
-.switch button{background:none;border:none;color:var(--or);font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;text-decoration:underline;margin-left:4px}@media(max-width:768px){.box{padding:24px 20px;max-width:100%}.wrap{padding:16px 12px}input{font-size:16px;padding:12px 14px}.btn{padding:14px 18px;font-size:11px}}
+.switch span{font-family:'Inter',system-ui,sans-serif;font-size:14px;font-weight:500;color:var(--t2)}
+.switch button{background:none;border:none;color:var(--or);font-family:'Inter',system-ui,sans-serif;font-size:14px;font-weight:700;cursor:pointer;text-decoration:underline;margin-left:4px;min-height:44px}
+@media(max-width:768px){.box{padding:24px 18px;max-width:100%}.wrap{padding:16px 12px}}
 `;
 
 function SignInInner() {
@@ -231,8 +232,8 @@ function SignInInner() {
           style={{
             position: 'relative',
             zIndex: 10,
-            background: '#111',
-            borderBottom: '1px solid #222',
+            background: 'rgba(8,9,12,.92)',
+            borderBottom: '1px solid rgba(255,255,255,.09)',
             color: '#fff',
             padding: '14px 18px',
             fontSize: 13,
@@ -242,12 +243,12 @@ function SignInInner() {
           }}
         >
           <div style={{ maxWidth: 560, margin: '0 auto' }}>
-            <strong style={{ color: '#f0a500' }}>Create your account on our website.</strong>{' '}
+            <strong style={{ color: '#ff6a13' }}>Create your account on our website.</strong>{' '}
             New accounts are made at{' '}
             <a
               href={`${WEB_HOST}/signin`}
               onClick={(e) => { e.preventDefault(); openInBrowser('/signin'); }}
-              style={{ color: '#f0a500', textDecoration: 'underline' }}
+              style={{ color: '#ff6a13', textDecoration: 'underline' }}
             >
               oversize-escort-hub.com
             </a>
@@ -255,8 +256,14 @@ function SignInInner() {
           </div>
         </div>
       )}
+      <SiteHeader />
       <div className="wrap">
         <div className="box">
+          <PageTitle
+            eyebrow="Account"
+            title={mode === 'signup' ? 'Create your account' : 'Sign in'}
+            lead={mode === 'signup' ? 'Free while we launch. No credit card required.' : 'Use the email and password on your account.'}
+          />
           <div className="role-toggle">
             <button
               className={`role-btn ${role === "escort" ? "active-escort" : ""}`}
