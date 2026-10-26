@@ -6,7 +6,7 @@ Values in [BRACKETS] are things only the owner can supply.
 ## Identity
 
 - App name: Oversize Escort Hub
-- Android package: pevo.oversizeescorthub.app (the iPhone bundle ID is different: pevo.oversizeescorthub.app)
+- Android package and iPhone bundle ID: pevo.oversizeescorthub.app (same for both, owner's choice 2026-10-26)
 - Category: Business (second choice: Maps & Navigation is NOT right, there is no navigation)
 - Support email: support@oversize-escort-hub.com
 - Website: https://www.oversize-escort-hub.com
@@ -17,37 +17,32 @@ Values in [BRACKETS] are things only the owner can supply.
 
 ## Short description (Google Play, 80 characters)
 
-Find pilot car jobs and verified escorts for oversize loads.
+Free load board for pilot car jobs and oversize loads.
 
 ## Subtitle (App Store, 30 characters)
 
-Pilot car jobs & escorts
+Pilot car jobs & loads
 
 ## Full description
 
-Oversize Escort Hub is the load board for oversize-load carriers and certified pilot car (P/EVO) escorts. Everything is free while we launch.
+Oversize Escort Hub is a load board that connects oversize-load carriers with pilot car (escort) drivers. Everything is free while we launch.
 
-FOR ESCORTS
-- Browse flat-rate, open-bid and 5-minute bid boards for escort jobs
+FOR PILOT CAR DRIVERS
+- Browse flat-rate, open-bid and 5-minute bid boards
 - Get email and in-app alerts for new loads in the states you cover
 - Place bids or claim loads and get matched with the carrier
-- Show your certifications, background check and vehicle verification on your profile
+- Build a profile with your states, vehicle and the documents you choose to show
 - Use the Deadhead Minimizer to find return loads near your drop-off, plus the weather tools
 - Track jobs, mileage and expenses, and send invoices
 
 FOR CARRIERS AND BROKERS
-- Post a load in minutes and receive bids from escorts
-- Review each escort's certifications, verification level and ratings
+- Post a load in minutes and receive bids from pilot car drivers
 - Accept the bid you want; contact details are shared after a match
 
 FOR FLEETS
-- Manage several escorts in one account
+- Manage several drivers in one account
 
-TRUST
-- Verification steps: P/EVO certificate, vehicle, background check and admin review
-- Reviews after every job
-
-No commissions and no job fees. Accounts are created on our website.
+No commissions and no job fees. We do not check or verify anyone's licences, certificates, insurance or background: profiles show what drivers tell us, so always confirm details yourself before you hire or accept a job. Accounts are created on our website.
 
 ## Keywords (App Store, 100 characters)
 
@@ -65,9 +60,9 @@ Data is NOT sold. Data is NOT used for advertising.
 | Phone number | Yes (optional) | No | Account; contact after a match |
 | Company name | Yes (optional) | With other users | Profile |
 | Photos (profile picture) | Yes (optional) | With other users | Profile |
-| Files and docs (certificates, ID, background check, DD-214) | Yes (optional) | No (admin review only) | Verification |
+| Files and docs (insurance, certificates the escort chooses to upload) | Yes (optional) | Only if the escort switches them on for their public profile | Profile; we do not review or verify them |
 | Approximate/precise location | Only on the weather page, when the user taps it, and not stored | No | Weather |
-| User-generated content (loads, bids, reviews) | Yes | With other users | App functionality |
+| User-generated content (loads, bids, jobs, reviews) | Yes | With other users | App functionality |
 | Purchase history | Yes (website add-ons such as sponsored zones; card details stay with Stripe) | Stripe | Purchases on the website |
 | App activity / diagnostics | Yes (Vercel Analytics, page views) | Vercel | Analytics |
 | Device or other IDs | Yes (push token) | No | Notifications |
@@ -105,17 +100,15 @@ The app's own launcher icons and splash screens already use the same 3D logo.
 
 ## Screenshots
 
-Seven phone screenshots (1080x1920) were taken from the live site on 2026-10-25: home, role cards, create account, how it works,
-free pricing, post a load, dashboard. Retake after loads exist to add the bid board and a load's details.
-App Store sizes (1290x2796 and 1284x2778) are needed only when the iPhone project exists.
+- Google Play phone (1080x1920, aspect 9:16; Play rejects anything taller than 2:1, so do NOT use the iPhone files): `assets/play-phone-1080x1920/` (home, beginner guide, post a load, how it works). Never use the find-escorts page (real names).
+- App Store iPhone 6.9-inch: `assets/appstore-iphone-6.9/`. App Store iPad 13-inch: `assets/appstore-ipad-13/`.
+- Google Play tablet screenshots are optional: skip.
 
 ## Still needed from the owner
 
-- A new Android signing key and the GitHub secrets: see [SIGNING_KEY.md](./SIGNING_KEY.md). The old key was public and must never be used.
-- Reviewer demo accounts (an escort and a carrier) entered in the store console, with a strong password changed after approval.
-- App Store: an iPhone project built on a Mac with Xcode (npx cap add ios), and a Firebase/APNs key if native push is wanted.
-- Native push needs a Firebase project and its google-services.json (the web push on the site does not work inside the app).
-- Apple often rejects apps that are only a website in a wrapper (guideline 4.2); Google can too (minimum functionality).
-  Native push and phone-camera document upload are the usual way through.
+- Android: signing secrets are set and the bundle is built (see CLAUDE.md "Android build WORKS"); create the Play app for `pevo.oversizeescorthub.app`, fill this listing, upload the bundle to a closed test.
+- Reviewer demo accounts are in CLAUDE.md (emails only; the passwords were given to the owner in chat). Enter them in the store consoles; change them after approval.
+- Native push needs a Firebase project and its google-services.json (the web push on the site does not work inside the app). Waiting.
+- Apple and Google can both reject an app that is only a website in a wrapper (4.2 / minimum functionality). Native push and phone-camera document upload are the usual way through.
 
-See also: [STORE_READINESS.md](./STORE_READINESS.md) for the prioritized A1 gap list.
+See also: [STORE_READINESS.md](./STORE_READINESS.md) and [IOS_RELEASE.md](./IOS_RELEASE.md).
