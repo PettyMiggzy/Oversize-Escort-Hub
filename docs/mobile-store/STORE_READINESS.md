@@ -1,6 +1,6 @@
 # Mobile store readiness (updated 2026-10-25)
 
-Android package: `com.oversizeescorthub.app`. iPhone bundle ID: `pevo.oversizeescorthub.app`. Stack: Capacitor 8 wrapping the live site (`capacitor.config.ts` `server.url`).
+Android package: `pevo.oversizeescorthub.app`. iPhone bundle ID: `pevo.oversizeescorthub.app`. Stack: Capacitor 8 wrapping the live site (`capacitor.config.ts` `server.url`).
 
 ## Android (Google Play)
 

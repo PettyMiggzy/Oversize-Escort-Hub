@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace = "com.oversizeescorthub.app"
+    namespace = "pevo.oversizeescorthub.app"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.oversizeescorthub.app"
+        applicationId "pevo.oversizeescorthub.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         // Play wants a higher versionCode for every upload: the release workflow passes its run number

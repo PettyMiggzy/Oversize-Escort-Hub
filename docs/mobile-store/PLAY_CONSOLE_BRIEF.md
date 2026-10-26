@@ -9,7 +9,7 @@ You are driving the owner's own browser, signed in as the owner. Work one step a
 - If a form asks something this brief does not answer, stop and ask the owner. Never guess.
 
 ## Facts
-- App name: Oversize Escort Hub. Package: `com.oversizeescorthub.app`. Category: Business. Free app, no ads, no in-app purchases.
+- App name: Oversize Escort Hub. Package: `pevo.oversizeescorthub.app`. Category: Business. Free app, no ads, no in-app purchases.
 - Website https://www.oversize-escort-hub.com. Privacy https://www.oversize-escort-hub.com/privacy. Terms https://www.oversize-escort-hub.com/terms.
 - Account deletion: https://www.oversize-escort-hub.com/delete-account. Support email: support@oversize-escort-hub.com.
 - All store text, data-safety answers and review notes are in `docs/mobile-store/STORE_LISTING.md` in the repository (github.com/PettyMiggzy/Oversize-Escort-Hub): copy from there.

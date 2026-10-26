@@ -1,4 +1,4 @@
-package com.oversizeescorthub.app;
+package pevo.oversizeescorthub.app;
 
 import com.getcapacitor.BridgeActivity;
 

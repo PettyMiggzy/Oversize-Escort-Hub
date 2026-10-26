@@ -1,6 +1,6 @@
 import { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
-  appId: 'com.oversizeescorthub.app',
+  appId: 'pevo.oversizeescorthub.app',
   appName: 'Oversize Escort Hub',
   // The app opens the live site; this folder is only the "no connection" page shown if the site cannot be reached
   webDir: 'mobile-fallback',
