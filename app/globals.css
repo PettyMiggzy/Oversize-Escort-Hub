@@ -198,8 +198,8 @@ html, body {
     box-sizing: border-box !important;
   }
   
-  /* Post-a-load: inputs full width */
-  input, textarea, select {
+  /* Post-a-load: inputs full width (never checkboxes and radios: they stay their own size) */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]), textarea, select {
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
@@ -322,6 +322,8 @@ html, body {
 .ui-label{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ui-muted);font-weight:600;margin:0 0 7px}
 .ui-chip{text-decoration:none;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);color:#dce0e6;font-size:13.5px;cursor:pointer;box-sizing:border-box}
 .ui-chip.on{border-color:var(--ui-or);background:rgba(255,106,19,.14);color:#fff}
+.ui-chip input[type=checkbox],.ui-chip input[type=radio]{flex:none;width:18px;height:18px;min-height:0;margin:0;padding:0}
+.ui-chip{white-space:nowrap}
 .ui-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;letter-spacing:.02em}
 .ui-badge.green{background:rgba(53,212,137,.14);color:var(--ui-green);border:1px solid rgba(53,212,137,.35)}
 .ui-badge.blue{background:rgba(106,168,255,.14);color:var(--ui-blue);border:1px solid rgba(106,168,255,.35)}

@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { FREE_LAUNCH } from '@/lib/free-launch'
 import { sendSms } from '@/lib/twilio'
+import { sendEmail } from '@/lib/email'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -63,7 +64,7 @@ export async function notifyDeadhead(load_id: string) {
     // Pro and Fleet escorts (the plan is in profiles.tier)
     let profileQuery = supabase
       .from('profiles')
-      .select('id, phone, tier')
+      .select('id, phone, tier, email, email_alerts, suspended')
       .in('id', escortIds)
     // while everything is free, every matched escort is on the instant plan
     if (!FREE_LAUNCH) profileQuery = profileQuery.in('tier', ['pro', 'fleet_starter', 'fleet_plus', 'fleet_pro'])
@@ -91,6 +92,15 @@ export async function notifyDeadhead(load_id: string) {
       const msg = `🚛 Deadhead opportunity near your drop zone: ${load.escort_type} needed. ${load.pu_city}, ${load.pu_state} → ${load.dl_city}, ${load.dl_state}. Rate: ${rate}. You have 5 minutes to claim: oversize-escort-hub.com/loads/${load.id}`
 
       if (profile.phone) await sendSms(profile.phone, msg)
+      // Texting is off for now, and five minutes is short: the same heads-up goes by email too (unless they turned alerts off)
+      if (profile.email && profile.email_alerts !== false && !profile.suspended) {
+        const link = `https://www.oversize-escort-hub.com/loads/${load.id}`
+        await sendEmail({
+          to: profile.email,
+          subject: `Deadhead opportunity near your drop: ${load.pu_city}, ${load.pu_state}`,
+          html: `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;color:#111"><h2 style="margin:0 0 12px">Deadhead opportunity near your drop</h2><p style="font-size:15px;line-height:1.5">${load.escort_type} needed: ${load.pu_city}, ${load.pu_state} to ${load.dl_city}, ${load.dl_state}. Rate: ${rate}. You get a short head start before it opens to everyone.</p><p><a href="${link}" style="background:#ff6a13;color:#000;padding:12px 20px;border-radius:6px;text-decoration:none;font-weight:bold">Open the load</a></p></div>`,
+        })
+      }
 
       await supabase.from('notifications').insert({
         user_id: match.matched_escort_id,
