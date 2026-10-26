@@ -42,6 +42,13 @@ test('the job page carries JobPosting JSON-LD', () => {
   expect(src).toContain('baseSalary')
 })
 
+test('/jobs is in the sitemap code', () => {
+  const src = read('app/sitemap.ts')
+  expect(src).toContain('/jobs')
+  expect(src).toContain("from('job_posts')")
+  expect(src).toContain('createClient')
+})
+
 test('the apply box posts to the apply route', () => {
   const src = read('app/jobs/[id]/apply-box.tsx')
   expect(src).toMatch(/\/api\/jobs\/\$\{[^}]+\}\/apply/)

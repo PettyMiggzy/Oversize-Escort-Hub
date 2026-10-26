@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import SiteHeader from '@/components/SiteHeader'
 import PageTitle from '@/components/PageTitle'
+import BoardTabs from '@/components/BoardTabs'
 import { payText } from '@/lib/jobs'
 import { JobsBoard, type JobCard } from './_client'
 import { loadOpenJobs, postedLabel } from './query'
@@ -42,6 +43,7 @@ export default async function JobsPage() {
             lead="Fleets and escort companies post the work and the pay in their own words. Oversize Escort Hub is the marketplace, not the employer."
             right={<Link href="/post-job" className="ui-btn">Post a job</Link>}
           />
+          <BoardTabs active="jobs" />
           <JobsBoard jobs={cards} />
         </div>
       </div>

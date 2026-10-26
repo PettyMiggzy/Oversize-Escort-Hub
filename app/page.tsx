@@ -507,7 +507,7 @@ function Footer({ setPage }: { setPage: (p: Page) => void }) {
         </div>
         <div className="footer-col">
           <h4>Platform</h4>
-          <><a href="/flat-rate">Flat Rate Board</a><a href="/bid-board">5-Min Bid Board</a><a href="/open-loads">Open Bid Board</a><a href="/post-load">Post a Load</a><a href="/find-escorts">Find Escorts</a></>
+          <><a href="/flat-rate">Flat Rate Board</a><a href="/bid-board">5-Min Bid Board</a><a href="/open-loads">Open Bid Board</a><a href="/post-load">Post a Load</a><a href="/find-escorts">Find Escorts</a><a href="/jobs">Jobs</a></>
         </div>
         <div className="footer-col">
           <h4>Membership</h4>
