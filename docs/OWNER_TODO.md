@@ -39,3 +39,8 @@ Last updated 2026-10-26. The owner says "I'm home" and we go down the "When you 
 - Native push notifications and iOS app (needs a Mac; Apple may reject a plain website wrapper, so native features like push help).
 - BIMI logo with a certificate (paid).
 - State-by-state escort requirements reference (needs official sources; review by you).
+
+## Ideas from the owner, 2026-10-26 (after the Jobs board pages)
+- **Make sure sign-up and every board work end to end** (first priority): escort and carrier sign-up, post a load, bid, accept, deadhead minimizer. Claude runs a full test with +alias test accounts in a state with no escorts (so no real person is emailed) and reports what breaks.
+- **Perks for drivers (partnerships):** rental car discount (Enterprise / Hertz / Avis corporate or affiliate programs), roadside and towing (AAA business, or a towing network). Needs the owner to be the one asking; Claude drafts the pitch once there are real numbers (members, loads). Do not promise a perk on the site until one is signed.
+- **AI helper:** a chat on the site that answers common questions from our own help pages and routes the rest to the owner as a ticket (cheap model such as Haiku or Groq; it only answers from our text, never invents rules, and never gives out contact details). Later: a read-only MCP server (search loads, escorts by state) to list in AI directories. Not before the boards have real traffic.
