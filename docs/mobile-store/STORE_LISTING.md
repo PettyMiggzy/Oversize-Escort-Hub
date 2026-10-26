@@ -6,7 +6,7 @@ Values in [BRACKETS] are things only the owner can supply.
 ## Identity
 
 - App name: Oversize Escort Hub
-- Android package: com.oversizeescorthub.app (the iPhone bundle ID should be the same)
+- Android package: com.oversizeescorthub.app (the iPhone bundle ID is different: pevo.oversizeescorthub.app)
 - Category: Business (second choice: Maps & Navigation is NOT right, there is no navigation)
 - Support email: support@oversize-escort-hub.com
 - Website: https://www.oversize-escort-hub.com

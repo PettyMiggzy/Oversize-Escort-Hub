@@ -1,12 +1,12 @@
 # iPhone app: build and submit (written 2026-10-26)
 
-The iOS project is in `ios/` (Capacitor, same live-site wrapper as Android, bundle id `com.oversizeescorthub.app`).
+The iOS project is in `ios/` (Capacitor, same live-site wrapper as Android, bundle id `pevo.oversizeescorthub.app`).
 The "iOS release" workflow (`.github/workflows/ios-release.yml`) builds it on a GitHub Mac and uploads it to App Store Connect. No Mac needed.
 
 ## What the owner does, in order
 
 1. **App Store Connect** (appstoreconnect.apple.com, the LLC's organization account): My Apps > + > New App. Platform iOS, name
-   "Oversize Escort Hub", language English (US), bundle id `com.oversizeescorthub.app` (register it under Certificates, Identifiers & Profiles > Identifiers if it is not in the list), SKU `oeh-ios-1`.
+   "Oversize Escort Hub", language English (US), bundle id `pevo.oversizeescorthub.app` (register it under Certificates, Identifiers & Profiles > Identifiers if it is not in the list; it cannot be changed once the app is created), SKU `oeh-ios-1`.
 2. **API key**: Users and Access > Integrations > App Store Connect API > Team Keys > +. Name "GitHub", access **Admin** (needed so the build can create its own signing certificate).
    Download the `.p8` once. Note the **Key ID** and the **Issuer ID** at the top of the page.
 3. **GitHub secrets** (repo Settings > Secrets and variables > Actions): `ASC_KEY_ID`, `ASC_ISSUER_ID`, `APPLE_TEAM_ID` (Membership details page, 10 characters),
