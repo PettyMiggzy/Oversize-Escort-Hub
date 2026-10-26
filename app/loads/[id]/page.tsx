@@ -3,6 +3,9 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import SiteHeader from '@/components/SiteHeader'
+import PageTitle from '@/components/PageTitle'
+import EmptyState from '@/components/EmptyState'
 import { isAdminEmail } from '@/lib/supabase'
 import { getAccessLevel, secondsUntilClaimable } from '@/lib/board-access'
 import { withFreeLaunch } from '@/lib/free-launch'
@@ -119,8 +122,17 @@ export default function LoadDetailPage() {
     setLoad(loadData)
   }
 
-  if (loading) return <div style={{ background: '#0a0f1a', minHeight: '100vh', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>
-  if (!load) return <div style={{ background: '#0a0f1a', minHeight: '100vh', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Load not found.</div>
+  if (loading) return (<><SiteHeader /><div className="ui-page"><div className="ui-wrap" style={{ textAlign: 'center' }}><p className="ui-meta">Loading...</p></div></div></>)
+  if (!load) return (
+    <>
+      <SiteHeader />
+      <div className="ui-page">
+        <div className="ui-wrap">
+          <EmptyState title="Load not found" text="This load is not on the board." action={<Link href="/open-loads" className="ui-btn">Back to the board</Link>} />
+        </div>
+      </div>
+    </>
+  )
 
   const isCarrier = userProfile?.role === 'carrier'
   const isEscort = userProfile?.role === 'escort' || userProfile?.role === 'fleet_manager'
@@ -132,23 +144,23 @@ export default function LoadDetailPage() {
   const isBidType = load.board_type === 'bid' || load.board_type === 'open-bid'
   const isFlatClaimable = !isBidType && load.status === 'open' && isEscort
 
-  const card = { background: '#0f1a2e', border: '1px solid #1e3a5f', borderRadius: 10, padding: '20px 24px', marginBottom: 16 }
-  const row = { display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(30,58,95,0.4)' } as React.CSSProperties
-  const label = { fontSize: 12, color: '#9ca3af', fontWeight: 600 }
-  const value = { fontSize: 13, color: '#e2e8f0' }
+  const statusClass = load.status === 'open' ? 'ui-badge blue' : load.status === 'filled' ? 'ui-badge green' : 'ui-badge red'
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0f1a', color: '#fff' }}>
-      <main style={{ maxWidth: 680, margin: '0 auto', padding: '40px 24px' }}>
-        <Link href="/open-loads" style={{ fontSize: 13, color: '#9ca3af', textDecoration: 'none', display: 'block', marginBottom: 16 }}>← Back to Board</Link>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-          <h1 style={{ fontSize: 20, fontWeight: 700 }}>Load Details</h1>
-          <span style={{ background: load.status === 'open' ? '#1e3a5f' : load.status === 'filled' ? '#14532d' : '#7f1d1d', color: '#fff', borderRadius: 6, padding: '4px 12px', fontSize: 12, fontWeight: 700 }}>
-            {load.status?.toUpperCase()}
-          </span>
-        </div>
+    <>
+      <SiteHeader />
+      <div className="ui-page">
+        <div className="ui-wrap" style={{ maxWidth: 760 }}>
+          <Link href="/open-loads" className="ui-back">← Back to Board</Link>
+          <PageTitle
+            eyebrow="Loads"
+            title="Load details"
+            lead={`${load.pu_city}, ${load.pu_state} → ${load.dl_city}, ${load.dl_state}`}
+            right={<span className={statusClass}>{load.status?.toUpperCase()}</span>}
+          />
 
-        <div style={card}>
+          <div className="ui-stack">
+        <div className="ui-card">
           {[
             ['Route', `${load.pu_city}, ${load.pu_state} → ${load.dl_city}, ${load.dl_state}`],
             ['Escort Type', load.escort_type],
@@ -159,59 +171,55 @@ export default function LoadDetailPage() {
             ['Date Needed', load.start_date ?? '—'],
             ['Posted', new Date(load.created_at).toLocaleDateString()],
           ].map(([k, v]) => (
-            <div key={String(k)} style={row}>
-              <span style={label}>{k}</span>
-              <span style={value}>{String(v)}</span>
+            <div key={String(k)} className="ui-kv">
+              <span className="k">{k}</span>
+              <span className="v">{String(v)}</span>
             </div>
           ))}
           {load.notes && (
             <div style={{ marginTop: 12 }}>
-              <p style={label}>NOTES</p>
-              <p style={{ ...value, marginTop: 4 }}>{load.notes}</p>
+              <p className="ui-label">Notes</p>
+              <p className="ui-note" style={{ marginTop: 4 }}>{load.notes}</p>
             </div>
           )}
         </div>
 
-        {/* Carrier Info */}
-        <div style={card}>
-          <h2 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Carrier Info</h2>
-          <p style={value}>{carrier?.full_name ?? 'Anonymous Carrier'}</p>
+        <div className="ui-card">
+          <h2>Carrier Info</h2>
+          <p className="ui-note" style={{ color: '#fff' }}>{carrier?.full_name ?? 'Anonymous Carrier'}</p>
           {canSeeFull && (
             <>
-              <p style={{ ...value, marginTop: 4 }}>📞 {carrier?.phone ?? '—'}</p>
-              <p style={{ ...value, marginTop: 4 }}>✉️ {carrier?.email ?? '—'}</p>
+              <p className="ui-note" style={{ marginTop: 4, color: '#fff' }}>📞 {carrier?.phone ?? '—'}</p>
+              <p className="ui-note" style={{ marginTop: 4, color: '#fff' }}>✉️ {carrier?.email ?? '—'}</p>
             </>
           )}
-          {!canSeeFull && <p style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>Contact info shown after match is confirmed.</p>}
+          {!canSeeFull && <p className="ui-note" style={{ marginTop: 4 }}>Contact info shown after match is confirmed.</p>}
         </div>
 
-        {/* Status for pending match */}
         {load.status === 'pending_match' && isMatchedEscort && (
-          <div style={{ ...card, borderColor: '#f60' }}>
-            <p style={{ color: '#f60', fontWeight: 600 }}>⏳ Awaiting carrier approval</p>
-            <p style={{ fontSize: 13, color: '#9ca3af', marginTop: 4 }}>The carrier is reviewing your match request.</p>
+          <div className="ui-card warn">
+            <p className="ui-v or" style={{ fontSize: 16 }}>⏳ Awaiting carrier approval</p>
+            <p className="ui-note" style={{ marginTop: 4 }}>The carrier is reviewing your match request.</p>
           </div>
         )}
 
-        {/* Full contact when matched */}
         {canSeeFull && escort && !isMatchedEscort && (isOwnerCarrier || isAdmin) && (
-          <div style={{ ...card, borderColor: '#22c55e' }}>
-            <h2 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, color: '#22c55e' }}>✅ Matched Escort</h2>
-            <p style={value}>{escort.full_name}</p>
-            <p style={{ ...value, marginTop: 4 }}>📞 {escort.phone ?? '—'}</p>
-            <p style={{ ...value, marginTop: 4 }}>✉️ {escort.email ?? '—'}</p>
+          <div className="ui-card good">
+            <h2 style={{ color: 'var(--ui-green)' }}>✅ Matched Escort</h2>
+            <p className="ui-note" style={{ color: '#fff' }}>{escort.full_name}</p>
+            <p className="ui-note" style={{ marginTop: 4, color: '#fff' }}>📞 {escort.phone ?? '—'}</p>
+            <p className="ui-note" style={{ marginTop: 4, color: '#fff' }}>✉️ {escort.email ?? '—'}</p>
           </div>
         )}
 
-        {/* Flat-rate claim (deadhead / Pro push links land here) */}
         {isFlatClaimable && (() => {
           const level = getAccessLevel(userProfile?.tier, isAdmin)
           if (level === 'none') {
             return (
-              <div style={card}>
-                <h2 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Claim this Load</h2>
-                <p style={{ fontSize: 13, color: '#9ca3af', marginBottom: 12 }}>Claiming requires a paid escort plan.</p>
-                <Link href="/pricing" style={{ display: 'inline-block', background: '#f60', color: '#fff', borderRadius: 6, padding: '10px 20px', fontWeight: 700, fontSize: 13, textDecoration: 'none' }}>Upgrade to Member →</Link>
+              <div className="ui-card">
+                <h2>Claim this Load</h2>
+                <p className="ui-note" style={{ marginBottom: 12 }}>Claiming requires a paid escort plan.</p>
+                <Link href="/pricing" className="ui-btn">Upgrade to Member →</Link>
               </div>
             )
           }
@@ -224,65 +232,68 @@ export default function LoadDetailPage() {
             : level === 'delayed' ? secondsUntilClaimable(load.created_at, now) : 0
           const locked = secondsLeft > 0
           return (
-            <div style={card}>
-              <h2 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Claim this Load</h2>
+            <div className="ui-card">
+              <h2>Claim this Load</h2>
               <button
                 onClick={submitClaim}
                 disabled={locked || claiming}
-                style={{ background: locked || claiming ? '#374151' : '#f60', color: '#fff', border: 'none', borderRadius: 6, padding: '10px 20px', fontWeight: 700, cursor: locked || claiming ? 'not-allowed' : 'pointer' }}
+                className={locked || claiming ? 'ui-btn dim' : 'ui-btn'}
               >
                 {claiming ? 'Claiming…' : locked ? `Available in ${secondsLeft}s...` : 'Claim Load'}
               </button>
-              {claimStatus && <p style={{ fontSize: 12, color: claimStatus.startsWith('Error') ? '#ef4444' : '#22c55e', marginTop: 8 }}>{claimStatus}</p>}
+              {claimStatus && <p className={claimStatus.startsWith('Error') ? 'ui-err' : 'ui-ok'}>{claimStatus}</p>}
             </div>
           )
         })()}
 
-        {/* Bid form: tier-gated for escorts on bid loads */}
         {isBidType && isEscort && load.status === 'open' && (() => {
           const level = getAccessLevel(userProfile?.tier, isAdmin)
           if (level === 'none') {
             return (
-              <div style={card}>
-                <h2 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Place a Bid</h2>
-                <p style={{ fontSize: 13, color: '#9ca3af', marginBottom: 12 }}>Bidding requires a paid escort plan.</p>
-                <Link href="/pricing" style={{ display: 'inline-block', background: '#f60', color: '#fff', borderRadius: 6, padding: '10px 20px', fontWeight: 700, fontSize: 13, textDecoration: 'none' }}>Upgrade to Member →</Link>
+              <div className="ui-card">
+                <h2>Place a Bid</h2>
+                <p className="ui-note" style={{ marginBottom: 12 }}>Bidding requires a paid escort plan.</p>
+                <Link href="/pricing" className="ui-btn">Upgrade to Member →</Link>
               </div>
             )
           }
           const secondsLeft = level === 'delayed' ? secondsUntilClaimable(load.created_at, now) : 0
           const locked = secondsLeft > 0
           return (
-            <div style={card}>
-              <h2 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Place a Bid</h2>
-              <div style={{ display: 'flex', gap: 8 }}>
+            <div className="ui-card">
+              <h2>Place a Bid</h2>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                 <input
                   type="number"
-                  style={{ flex: 1, background: '#16213a', border: '1px solid #1e3a5f', borderRadius: 6, color: '#e2e8f0', padding: '10px 12px', fontSize: 14 }}
+                  className="ui-input"
+                  style={{ flex: '1 1 180px', minWidth: 0 }}
                   placeholder="Your rate ($)"
                   value={bidRate}
                   onChange={e => setBidRate(e.target.value)}
                 />
-                <button onClick={submitBid} disabled={locked} style={{ background: locked ? '#374151' : '#f60', color: '#fff', border: 'none', borderRadius: 6, padding: '10px 20px', fontWeight: 700, cursor: locked ? 'not-allowed' : 'pointer' }}>{locked ? `Available in ${secondsLeft}s...` : 'Bid'}</button>
+                <button onClick={submitBid} disabled={locked} className={locked ? 'ui-btn dim' : 'ui-btn'}>{locked ? `Available in ${secondsLeft}s...` : 'Bid'}</button>
               </div>
-              {bidStatus && <p style={{ fontSize: 12, color: bidStatus.startsWith('Error') ? '#ef4444' : '#22c55e', marginTop: 8 }}>{bidStatus}</p>}
+              {bidStatus && <p className={bidStatus.startsWith('Error') ? 'ui-err' : 'ui-ok'}>{bidStatus}</p>}
             </div>
           )
         })()}
 
-        {/* Bids list (carrier only or when matched) */}
-        {isBidType && bids.length > 0 && (isOwnerCarrier || isMatchedEscort) && (
-          <div style={card}>
-            <h2 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>All Bids ({bids.length})</h2>
-            {bids.map((b: any, i) => (
-              <div key={b.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid rgba(30,58,95,0.4)' }}>
-                <span style={{ fontSize: 13, color: '#9ca3af' }}>Bid #{i + 1}</span>
-                <span style={{ fontSize: 14, fontWeight: 700, color: i === 0 ? '#f60' : '#e2e8f0' }}>${b.rate}</span>
+        {isBidType && (isOwnerCarrier || isMatchedEscort) && (
+          <div className="ui-card">
+            <h2>All Bids ({bids.length})</h2>
+            {bids.length === 0 ? (
+              <EmptyState title="No bids yet" text="Bids on this load will show up here." />
+            ) : bids.map((b: any, i) => (
+              <div key={b.id} className="ui-kv">
+                <span className="k">Bid #{i + 1}</span>
+                <span className={i === 0 ? 'ui-v or' : 'v'} style={{ fontSize: 16 }}>${b.rate}</span>
               </div>
             ))}
           </div>
         )}
-      </main>
-    </div>
+          </div>
+        </div>
+      </div>
+    </>
   )
 }
