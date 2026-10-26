@@ -6,6 +6,7 @@ import { runAfter } from '@/lib/alerts'
 import { LIMITS, validateJob } from '@/lib/jobs'
 import { canPostJobs } from '@/lib/jobs-access'
 import { alertAdminsNewJob } from '@/lib/jobs-alerts'
+import { refreshJobsBoard } from '@/lib/jobs-revalidate'
 
 export const dynamic = 'force-dynamic'
 
@@ -40,6 +41,7 @@ export async function POST(req: NextRequest) {
   const company = v.data.company || me.company_name || me.full_name || ''
   const { data: job, error: insErr } = await svc.from('job_posts').insert({ ...v.data, company, poster_id: user!.id, status: 'open', expires_at }).select('id').single()
   if (insErr || !job) return NextResponse.json({ error: 'Could not post the job' }, { status: 500 })
+  refreshJobsBoard(job.id)
   runAfter(() => alertAdminsNewJob(v.data.title, company))
   return NextResponse.json({ ok: true, id: job.id })
 }

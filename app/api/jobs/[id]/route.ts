@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/api-auth'
 import { serviceClient } from '@/lib/service-client'
 import { isAdminEmail } from '@/lib/supabase'
+import { refreshJobsBoard } from '@/lib/jobs-revalidate'
 
 export const dynamic = 'force-dynamic'
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -29,5 +30,6 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
   const patch: Record<string, unknown> = { status }
   if (status === 'open') patch.expires_at = new Date(Date.now() + 30 * 86400000).toISOString()
   await svc.from('job_posts').update(patch).eq('id', id)
+  refreshJobsBoard(id)
   return NextResponse.json({ ok: true, status })
 }

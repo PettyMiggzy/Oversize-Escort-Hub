@@ -61,3 +61,6 @@ Helper model safety net: first choice is claude-haiku-5-5 (Anthropic lists it as
 - Beginner guide: /pilot-car-guide (sources: FHWA training manual and study guide, FHWA state permit contacts, Evergreen Safety Council state pages; most are from 2016 and the page says so). Content file: lib/guide-content.ts. Re-check the sources every few months and update GUIDE_CHECKED.
 - AI server (MCP): /api/mcp, read-only (guide, fact sheet, escorts by state, open loads; no contact details, no company names). Listing it in directories needs about 10 minutes from you: docs/mcp-registry/README.md.
 - robots.txt no longer blocks ChatGPT, Claude, CCBot or other AI crawlers (it did before). Add /llms.txt (done) so assistants find the guide.
+
+## Jobs board is LIVE (2026-10-26)
+Pages: /jobs (public), /jobs/<id> (Google JobPosting markup), /post-job, dashboard My jobs and My applications. Free to post and apply for now (JOB_POSTING_FREE in lib/jobs-access.ts). The escorts' old mileage log page moved from /jobs to /job-log. Live end-to-end test with the two test accounts: post through the form, public board and job page, apply, accept, both sides see contact details, close: all worked. The test job was closed.
