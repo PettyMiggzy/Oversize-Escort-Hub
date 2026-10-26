@@ -174,7 +174,11 @@ export default function TermsOfService() {
           <p>Oversize Escort Hub is a marketplace, not the employer. Posters and applicants agree the work, pay and classification between themselves. Do not put contact details in posts or applications. Oversize Escort Hub may remove posts.</p>
         </section>
         <section style={{ marginBottom: 32 }}>
-          <h2 style={{ color: "#fff", fontSize: 18, marginBottom: 12 }}>37. Contact</h2>
+          <h2 style={{ color: "#fff", fontSize: 18, marginBottom: 12 }}>37. Documents on profiles</h2>
+          <p>Escorts may upload a certificate, proof of insurance or other papers and choose to show them on their public profile. The escort alone is responsible for what is uploaded and for keeping it current. Oversize Escort Hub does not check, verify, endorse or guarantee these documents, and showing one is not a statement that it is genuine, valid or enough for any job. Anyone who relies on a document must confirm it with the issuer or insurer first. Where we review a document for a badge, that review confirms only that a document was shown to us on that date. We may remove any document or profile at any time.</p>
+        </section>
+        <section style={{ marginBottom: 32 }}>
+          <h2 style={{ color: "#fff", fontSize: 18, marginBottom: 12 }}>38. Contact</h2>
           <p>Questions? <a href="mailto:support@oversize-escort-hub.com" style={{ color: "#f90" }}>support@oversize-escort-hub.com</a></p>
         </section>
         <div style={{ borderTop: "1px solid #333", paddingTop: 24, fontSize: 11, color: "#555" }}>

@@ -21,6 +21,9 @@ export function sniffDocType(bytes: Uint8Array): 'pdf' | 'jpeg' | 'png' | 'webp'
 export const DOC_MIME = { pdf: 'application/pdf', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp' } as const
 export const DOC_EXT = { pdf: 'pdf', jpeg: 'jpg', png: 'png', webp: 'webp' } as const
 
+// What a visitor is told next to every document. We do not check them, and the page says so.
+export const DOC_DISCLAIMER = 'Uploaded by the escort. Oversize Escort Hub does not check these documents and does not guarantee they are real, current or enough for any job. Confirm certificates and insurance with the issuer before you hire.'
+
 export const DOC_LIMITS = { maxBytes: 10 * 1024 * 1024, maxPending: 5, maxTotal: 15, linkSeconds: 300 }
 export const DOC_BUCKETS = ['documents', 'pevo-certs', 'vehicle-docs']
 
@@ -37,9 +40,9 @@ export function parseStorageUrl(url: unknown): { bucket: string; path: string } 
 
 export type DocRow = { id: string; user_id: string; type: string | null; status: string | null; expiry_date: string | null; show_on_profile: boolean | null; document_url?: string | null }
 
-/** Shown to visitors only when approved, switched on, and not past its expiry date. */
+/** Shown to visitors only when the escort switched it on, it is not past its expiry date, and it is either one of our paid P/EVO reviews (approved) or an escort's own upload (we do not check those). */
 export function isPublic(row: DocRow, today = new Date().toISOString().slice(0, 10)): boolean {
-  return row.status === 'approved' && row.show_on_profile === true && (!row.expiry_date || String(row.expiry_date).slice(0, 10) >= today)
+  return (row.status === 'approved' || row.status === 'uploaded') && row.show_on_profile === true && (!row.expiry_date || String(row.expiry_date).slice(0, 10) >= today)
 }
 
 // Uploading documents (and keeping them on the public profile) belongs to a paid plan. While plans are free (FREE_LAUNCH)

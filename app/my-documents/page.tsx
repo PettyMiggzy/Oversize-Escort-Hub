@@ -10,7 +10,7 @@ export default function MyDocumentsPage() {
     <div className="ui-page">
       <SiteHeader />
       <div className="ui-wrap" style={{ maxWidth: 760 }}>
-        <PageTitle eyebrow="Account" title="My documents" lead="Upload your certificate and proof of insurance. After we review one, you choose whether it shows on your public profile." />
+        <PageTitle eyebrow="Account" title="My documents" lead="Upload your certificate and proof of insurance, and choose whether they show on your public profile. Optional." />
         <Documents />
       </div>
     </div>

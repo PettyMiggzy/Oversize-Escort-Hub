@@ -86,12 +86,15 @@ export async function POST(req: NextRequest) {
 
     // Admin queues + /api/bgc/approve read certifications (status pending), not escort_certs.
     const type = normalizedType;
+    const isPevoType = lowered.includes("pevo") || lowered.includes("p/evo");
     const { data, error } = await serviceClient()
       .from("certifications")
       .insert({
         user_id: user.id,
         type,
-        status: "pending",
+        // only a P/EVO certificate goes into our paid review; insurance, vehicle and other papers are simply uploaded by the escort,
+        // and we do not check them
+        status: isPevoType ? "pending" : "uploaded",
         document_url,
         expiry_date: expiryDate,
         created_at: new Date().toISOString(),

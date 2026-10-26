@@ -7,7 +7,7 @@ type Doc = { id: string; type: string | null; status: string | null; expiry_date
 
 const TYPES: [string, string][] = [['pevo', 'P/EVO certificate'], ['insurance', 'Proof of insurance'], ['vehicle', 'Vehicle'], ['state_cert', 'Other certificate']]
 const LABEL: Record<string, string> = Object.fromEntries(TYPES)
-const STATUS: Record<string, string> = { pending: 'Waiting for review', approved: 'Reviewed', rejected: 'Not accepted' }
+const STATUS: Record<string, string> = { uploaded: 'Uploaded (we do not check it)', pending: 'Waiting for review', approved: 'Reviewed', rejected: 'Not accepted' }
 
 export default function Documents() {
   const [docs, setDocs] = useState<Doc[] | null>(null)
@@ -51,7 +51,7 @@ export default function Documents() {
       const res = await fetch('/api/escort/cert-upload', { method: 'POST', body: fd })
       const d = await res.json().catch(() => ({}))
       if (!res.ok) setErr(res.status === 402 && d.upgrade ? 'Uploading documents is part of a paid plan.' : res.status === 402 ? 'A P/EVO certificate is reviewed after you buy the review on our website. Insurance and vehicle documents can be uploaded now.' : d.error || 'Upload failed')
-      else { setOk('Uploaded. We will review it and email you.'); setFile(null); setFileKey((k) => k + 1); setExpiry('') }
+      else { setOk(type === 'pevo' ? 'Uploaded. We will review it and email you.' : 'Uploaded. Turn on "Show on my profile" if you want visitors to see it.'); setFile(null); setFileKey((k) => k + 1); setExpiry('') }
     } catch { setErr('Could not connect. Try again.') }
     setSending(false)
     await load()
@@ -68,7 +68,7 @@ export default function Documents() {
       ) : null}
       <div className="ui-card" style={canUpload ? undefined : { opacity: 0.5, pointerEvents: 'none' }} aria-disabled={!canUpload}>
         <h2>Add a document</h2>
-        <p className="ui-note" style={{ marginBottom: 12 }}>A PDF or a photo (JPG, PNG or WebP), up to 10 MB. We look at every document before it counts. If you turn on &quot;show on my profile&quot;, anyone can open it, so cover your date of birth, home address, license number and policy number first.</p>
+        <p className="ui-note" style={{ marginBottom: 12 }}>A PDF or a photo (JPG, PNG or WebP), up to 10 MB. We do not check insurance, vehicle or other documents, and we do not vouch for them. A P/EVO certificate can go through our paid review. If you turn on &quot;show on my profile&quot;, anyone can open the file and will be told you uploaded it yourself, so cover your date of birth, home address, license number and policy number first. You are responsible for what you upload and for keeping it current.</p>
         <form onSubmit={upload} className="ui-stack">
           <div>
             <label className="ui-label" htmlFor="doc-type">What is it?</label>
@@ -106,7 +106,7 @@ export default function Documents() {
                     <div className="ui-chips" style={{ marginTop: 8 }}>
                       <span className={d.status === 'approved' ? 'ui-badge green' : d.status === 'rejected' ? 'ui-badge red' : 'ui-badge dim'}>{STATUS[String(d.status)] || d.status}</span>
                       {d.expiry_date ? <span className={expired ? 'ui-badge red' : 'ui-badge dim'}>{expired ? 'Expired ' : 'Valid through '}{String(d.expiry_date).slice(0, 10)}</span> : null}
-                      {d.show_on_profile ? <span className="ui-badge orange">{d.status === 'approved' && !expired ? 'Shown on profile' : 'Will show when reviewed'}</span> : null}
+                      {d.show_on_profile ? <span className="ui-badge orange">{(d.status === 'approved' || d.status === 'uploaded') && !expired ? 'Shown on profile' : 'Will show when reviewed'}</span> : null}
                     </div>
                     {d.status === 'rejected' && d.reject_reason ? <p className="ui-note" style={{ marginTop: 8 }}>{d.reject_reason}</p> : null}
                   </div>

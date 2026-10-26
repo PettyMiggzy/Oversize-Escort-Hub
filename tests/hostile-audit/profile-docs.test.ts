@@ -30,6 +30,7 @@ beforeEach(() => {
 test('what counts as public: approved, switched on, not expired', () => {
   const base = { id: 'x', user_id: 'u', type: 'insurance', status: 'approved', expiry_date: future, show_on_profile: true }
   expect(isPublic(base)).toBe(true)
+  expect(isPublic({ ...base, status: 'uploaded' })).toBe(true) // an escort's own upload: we do not check it, the page says so
   expect(isPublic({ ...base, status: 'pending' })).toBe(false)
   expect(isPublic({ ...base, status: 'rejected' })).toBe(false)
   expect(isPublic({ ...base, show_on_profile: false })).toBe(false)
@@ -104,10 +105,17 @@ test('uploads: a PDF or a real photo, judged by the file itself; insurance needs
   // a P/EVO certificate still needs the review purchase
   getDb().tables.profiles[0].pevo_paid = false
   expect((await send('%PDF-1.4', 'c.pdf', 'application/pdf', 'pevo')).status).toBe(402)
-  // only five waiting at once
-  expect((await send('%PDF-1.4', 'a.pdf', 'application/pdf')).status).toBe(200)
-  expect((await send('%PDF-1.4', 'b.pdf', 'application/pdf')).status).toBe(200)
-  expect((await send('%PDF-1.4', 'c.pdf', 'application/pdf')).status).toBe(429)
+  // insurance and other papers are just uploaded (we do not check them); only a P/EVO certificate waits for our review
+  expect(getDb().tables.certifications.every((c) => c.type !== 'insurance' || c.status === 'uploaded')).toBe(true)
+  getDb().tables.profiles[0].pevo_paid = true
+  expect((await send('%PDF-1.4', 'c1.pdf', 'application/pdf', 'pevo')).status).toBe(200)
+  expect(getDb().tables.certifications.find((c) => c.type === 'pevo')!.status).toBe('pending')
+  // only five waiting for review at once
+  for (let i = 0; i < 4; i++) expect((await send('%PDF-1.4', `p${i}.pdf`, 'application/pdf', 'pevo')).status).toBe(200)
+  expect((await send('%PDF-1.4', 'p9.pdf', 'application/pdf', 'pevo')).status).toBe(429)
+  // and a sensible total
+  for (let i = getDb().tables.certifications.length; i < 15; i++) getDb().tables.certifications.push({ id: 'x' + i, user_id: 'esc', type: 'insurance', status: 'uploaded' })
+  expect((await send('%PDF-1.4', 'z.pdf', 'application/pdf', 'insurance')).status).toBe(429)
   expect(sniffDocType(new Uint8Array([1, 2, 3]))).toBe(null)
   expect(docLabel('insurance')).toBe('Proof of insurance')
 })
@@ -116,8 +124,24 @@ test('the public profile page never selects or prints the stored file address, a
   const src = fs.readFileSync('app/escorts/[id]/page.tsx', 'utf8')
   expect(src).not.toMatch(/from\('certifications'\)\.select\('\*'\)/)
   expect(src).not.toMatch(/document_url/)
-  expect(src).toContain("c.status === 'approved'")
+  expect(src).toContain('isPublic(c)')
+  // nothing on the page calls a document reviewed, verified or checked by us
+  const docsBlock = src.slice(src.indexOf('Documents from this escort'), src.indexOf('reviews && reviews.length > 0'))
+  expect(docsBlock.length).toBeGreaterThan(200)
+  expect(docsBlock).not.toMatch(/reviewed|verified|checked/i)
+  expect(src).toContain('DOC_DISCLAIMER')
   expect(src).toContain('/api/escort-doc/')
   expect(fs.readFileSync('middleware.ts', 'utf8')).toContain("'/my-documents'")
   expect(fs.readFileSync('app/escort-cert/page.tsx', 'utf8')).toContain("redirect('/my-documents')")
+})
+
+test('the words around documents never claim we checked them', () => {
+  const words = fs.readFileSync('lib/profile-docs.ts', 'utf8')
+  expect(words).toMatch(/does not check these documents/)
+  const terms = fs.readFileSync('app/terms/page.tsx', 'utf8')
+  expect(terms).toMatch(/Documents on profiles/)
+  expect(terms).toMatch(/does not check, verify, endorse or guarantee/)
+  const knowledge = fs.readFileSync('lib/helper-knowledge.ts', 'utf8')
+  expect(knowledge).toMatch(/We do NOT check these documents/)
+  expect(fs.readFileSync('app/my-documents/_client.tsx', 'utf8')).toMatch(/we do not vouch for them/)
 })

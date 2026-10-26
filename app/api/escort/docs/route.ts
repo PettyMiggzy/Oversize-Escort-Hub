@@ -30,5 +30,5 @@ export async function POST(req: NextRequest) {
   const { data: row } = await svc.from('certifications').select('id, user_id, status').eq('id', id).maybeSingle()
   if (!row || row.user_id !== user!.id) return NextResponse.json({ error: 'Document not found' }, { status: 404 })
   await svc.from('certifications').update({ show_on_profile: body.show }).eq('id', id).eq('user_id', user!.id)
-  return NextResponse.json({ ok: true, show: body.show, live: body.show && row.status === 'approved' })
+  return NextResponse.json({ ok: true, show: body.show, live: body.show && (row.status === 'approved' || row.status === 'uploaded') })
 }

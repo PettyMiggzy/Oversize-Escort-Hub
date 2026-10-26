@@ -4,7 +4,7 @@ import Link from 'next/link'
 import SiteHeader from '@/components/SiteHeader'
 import PageTitle from '@/components/PageTitle'
 import EmptyState from '@/components/EmptyState'
-import { canUseDocs, docLabel, isPublic, type DocRow } from '@/lib/profile-docs'
+import { DOC_DISCLAIMER, canUseDocs, docLabel, isPublic, type DocRow } from '@/lib/profile-docs'
 const svc = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -17,7 +17,7 @@ export default async function EscortProfilePage({ params }: { params: Promise<{ 
 
   // only the columns shown here: never the stored file address
   const { data: certRows } = await svc.from('certifications').select('id, user_id, type, status, expiry_date, show_on_profile').eq('user_id', id)
-  const certs = ((certRows ?? []) as DocRow[]).filter((c) => c.status === 'approved')
+  const certs = ((certRows ?? []) as DocRow[]).filter((c) => isPublic(c) && canUseDocs(profile.tier, profile.role))
   const { data: zones } = await svc.from('escort_availability').select('*').eq('escort_id', id)
   const { data: reviews } = await svc
     .from('reviews')
@@ -73,19 +73,15 @@ export default async function EscortProfilePage({ params }: { params: Promise<{ 
 
         {certs.length > 0 && (
           <div className="ui-card">
-            <h2>Certifications and documents</h2>
-            {certs.map((c) => {
-              const shown = isPublic(c) && canUseDocs(profile.tier, profile.role)
-              return (
-                <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--ui-green)' }} />
-                  <span style={{ fontSize: 14, fontWeight: 600 }}>{docLabel(c.type)}</span>
-                  <span className="ui-ok" style={{ margin: 0 }}>reviewed</span>
-                  {c.expiry_date ? <span className="ui-meta">valid through {new Date(String(c.expiry_date).slice(0, 10) + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span> : null}
-                  {shown ? <a className="ui-link" href={`/api/escort-doc/${c.id}`} target="_blank" rel="noopener noreferrer">View document</a> : null}
-                </div>
-              )
-            })}
+            <h2>Documents from this escort</h2>
+            <p className="ui-note" style={{ marginBottom: 12 }}>{DOC_DISCLAIMER}</p>
+            {certs.map((c) => (
+              <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 14, fontWeight: 600 }}>{docLabel(c.type)}</span>
+                {c.expiry_date ? <span className="ui-meta">escort lists it as valid through {new Date(String(c.expiry_date).slice(0, 10) + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span> : null}
+                <a className="ui-link" href={`/api/escort-doc/${c.id}`} target="_blank" rel="noopener noreferrer">View document</a>
+              </div>
+            ))}
           </div>
         )}
 
