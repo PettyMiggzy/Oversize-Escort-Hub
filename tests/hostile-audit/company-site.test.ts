@@ -26,3 +26,9 @@ test('the company page names the LLC and the DBA, links to OEH, and claims no ch
   expect(src).toContain('does not check or verify')
   expect(src).not.toMatch(/USDOT|licensed|insured|verified badge|guarantee|best|cheapest/i)
 })
+
+test('the company page shows the owner-approved phone number as a tap-to-call link', () => {
+  const src = fs.readFileSync('app/company/page.tsx', 'utf8')
+  expect(src).toContain('tel:+13176252831')
+  expect(src).toContain('(317) 625-2831')
+})

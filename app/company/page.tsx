@@ -37,6 +37,9 @@ export default function CompanyPage() {
           <p style={{ margin: 0 }}>
             Email: <a href="mailto:support@oversize-escort-hub.com" style={link}>support@oversize-escort-hub.com</a>
           </p>
+          <p style={{ margin: '6px 0 0' }}>
+            Phone: <a href="tel:+13176252831" style={link}>(317) 625-2831</a>
+          </p>
         </section>
       </main>
       <footer style={{ borderTop: '1px solid #1e3a5f', padding: '20px 24px', textAlign: 'center', fontSize: 13, color: '#6b7280' }}>
