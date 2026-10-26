@@ -2,6 +2,8 @@
 import { useState } from "react";
 import { FREE_LAUNCH } from "@/lib/free-launch";
 import WebOnly from '@/components/WebOnly'
+import SiteHeader from '@/components/SiteHeader'
+import PageTitle from '@/components/PageTitle'
 
 type Plan = {
   id: string;
@@ -101,51 +103,44 @@ function CheckoutPageInner() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
-      <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Choose Your Plan
-        </h1>
-        <p className="text-gray-600 mb-8">
-          {FREE_LAUNCH ? "Everything is free while we launch. Every feature is unlocked for your account, no card needed." : "All plans include core platform access. Cancel anytime."}
-        </p>
+    <div className="ui-page">
+      <SiteHeader />
+      <div className="ui-wrap" style={{ maxWidth: 860 }}>
+        <PageTitle
+          eyebrow="Checkout"
+          title="Choose your plan"
+          lead={FREE_LAUNCH ? "Everything is free while we launch. Every feature is unlocked for your account, no card needed." : "All plans include core platform access. Cancel anytime."}
+        />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="ui-fit" style={{ marginBottom: 24 }}>
           {PLANS.map((p) => (
             <button
               key={p.id}
               onClick={() => setSelected(p.id)}
-              className={`text-left rounded-xl border-2 p-5 transition ${
-                selected === p.id
-                  ? "border-blue-600 bg-blue-50"
-                  : "border-gray-200 bg-white hover:border-gray-300"
-              } ${p.highlight ? "ring-2 ring-blue-200" : ""}`}
+              className={selected === p.id ? "ui-card warn" : "ui-card"}
+              style={{ textAlign: "left", cursor: "pointer", color: "inherit", font: "inherit" }}
             >
               {p.highlight && (
-                <span className="inline-block mb-2 text-xs font-bold uppercase tracking-wide text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
-                  Most Popular
+                <span className="ui-badge orange" style={{ marginBottom: 8 }}>
+                  Most popular
                 </span>
               )}
-              <div className="flex items-baseline gap-1 mb-1">
-                <span className="text-2xl font-bold text-gray-900">
-                  {p.price}
-                </span>
-                <span className="text-sm text-gray-500">{p.period}</span>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 4 }}>
+                <span className="ui-v">{p.price}</span>
+                <span className="ui-note">{p.period}</span>
               </div>
-              <p className="font-semibold text-gray-900 mb-1">{p.name}</p>
-              <p className="text-xs text-gray-500">{p.description}</p>
+              <p style={{ fontWeight: 700, color: "#fff", margin: "0 0 4px" }}>{p.name}</p>
+              <p className="ui-note">{p.description}</p>
             </button>
           ))}
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-          <h2 className="font-semibold text-gray-900 mb-4">
-            {plan.name} includes:
-          </h2>
-          <ul className="space-y-2">
+        <div className="ui-card" style={{ marginBottom: 16 }}>
+          <h2>{plan.name} includes:</h2>
+          <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 8 }}>
             {plan.features.map((f) => (
-              <li key={f} className="flex items-center gap-2 text-sm text-gray-700">
-                <span className="text-green-500 font-bold">✓</span>
+              <li key={f} style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--ui-text)", fontSize: 14 }}>
+                <span style={{ color: "var(--ui-green)", fontWeight: 700 }}>✓</span>
                 {f}
               </li>
             ))}
@@ -153,29 +148,26 @@ function CheckoutPageInner() {
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
-            {error}
-          </div>
+          <div className="ui-err" style={{ marginBottom: 12 }}>{error}</div>
         )}
 
         <button
           onClick={handleCheckout}
           disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-semibold py-4 px-6 rounded-xl transition text-lg"
+          className="ui-btn block"
         >
           {loading
             ? "Redirecting to Stripe..."
             : `Subscribe to ${plan.name} — ${plan.price}/mo`}
         </button>
 
-        <div className="mt-4 flex items-center justify-center gap-2 text-sm text-gray-500">
-          <span>🔒</span>
-          <span>Secured by Stripe · Cancel anytime</span>
-        </div>
+        <p className="ui-note" style={{ textAlign: "center", marginTop: 16 }}>
+          Secured by Stripe · Cancel anytime
+        </p>
 
-        <p className="mt-4 text-center text-xs text-gray-400">
+        <p className="ui-note" style={{ textAlign: "center", marginTop: 12 }}>
           Veteran? Upload your DD-214 at{" "}
-          <a href="/dd214" className="underline">
+          <a href="/dd214" className="ui-link">
             /dd214
           </a>{" "}
           before checkout — approved accounts get 30% off automatically.

@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
 import WebOnly from '@/components/WebOnly'
+import SiteHeader from '@/components/SiteHeader'
+import PageTitle from '@/components/PageTitle'
 
 function BGCCheckoutPageInner() {
   const [loading, setLoading] = useState(false);
@@ -25,54 +27,45 @@ function BGCCheckoutPageInner() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
-      <div className="max-w-md mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          BGC Badge Payment
-        </h1>
-        <p className="text-gray-600 mb-8">
-          Secure checkout via Stripe. One-time payment — no subscription.
-        </p>
+    <div className="ui-page">
+      <SiteHeader />
+      <div className="ui-wrap" style={{ maxWidth: 520 }}>
+        <PageTitle eyebrow="Verification" title="BGC badge payment" lead="Secure checkout via Stripe. One-time payment — no subscription." />
 
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-          <div className="flex items-center justify-between py-3 border-b">
-            <span className="font-medium text-gray-700">
-              Background Check Verification Badge
-            </span>
-            <span className="font-bold text-gray-900">$9.99</span>
+        <div className="ui-card" style={{ marginBottom: 16 }}>
+          <div className="ui-kv">
+            <span className="k">Background Check Verification Badge</span>
+            <span className="v">$9.99</span>
           </div>
-          <div className="flex items-center justify-between py-3 text-sm text-gray-500">
-            <span>One-time fee</span>
-            <span>No recurring charges</span>
+          <div className="ui-kv">
+            <span className="k">One-time fee</span>
+            <span className="v">No recurring charges</span>
           </div>
-          <div className="flex items-center justify-between py-3 border-t font-semibold">
-            <span>Total</span>
-            <span>$9.99</span>
+          <div className="ui-kv" style={{ borderBottom: 0 }}>
+            <span className="k" style={{ color: "#fff" }}>Total</span>
+            <span className="v" style={{ fontWeight: 800 }}>$9.99</span>
           </div>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
-            {error}
-          </div>
+          <div className="ui-err" style={{ marginBottom: 12 }}>{error}</div>
         )}
 
         <button
           onClick={handleCheckout}
           disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-semibold py-4 px-6 rounded-xl transition text-lg"
+          className="ui-btn block"
         >
           {loading ? "Redirecting to Stripe..." : "Pay $9.99 — Get BGC Badge"}
         </button>
 
-        <div className="mt-4 flex items-center justify-center gap-2 text-sm text-gray-500">
-          <span>🔒</span>
-          <span>Secured by Stripe</span>
-        </div>
+        <p className="ui-note" style={{ textAlign: "center", marginTop: 16 }}>
+          Secured by Stripe
+        </p>
 
-        <p className="mt-6 text-center text-sm text-gray-500">
+        <p className="ui-note" style={{ textAlign: "center", marginTop: 16 }}>
           Already paid?{" "}
-          <a href="/bgc-badge" className="text-blue-600 hover:underline">
+          <a href="/bgc-badge" className="ui-link">
             Submit your background check documents
           </a>
         </p>

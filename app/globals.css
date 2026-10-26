@@ -356,5 +356,9 @@ html, body {
 .ui-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .ui-city{display:grid;grid-template-columns:minmax(0,1fr) 120px;gap:12px}
 .ui-chips{display:flex;flex-wrap:wrap;gap:8px}
+.ui-step{font-family:'Plus Jakarta Sans','Inter',sans-serif;font-weight:800;font-size:32px;line-height:1;letter-spacing:-.03em;text-transform:none;min-width:36px;color:var(--ui-or)}
+.ui-modal.wide{max-width:720px;max-height:85vh;overflow:auto}
+.ui-link{color:#ff9a5c;font-weight:700;text-decoration:none}
+.ui-link:hover{color:#fff}
 @media(max-width:700px){.ui-fit,.ui-form-grid{grid-template-columns:1fr}}
 @media(max-width:900px){.ui-two{grid-template-columns:1fr}.ui-wrap{padding:24px 16px 56px}.ui-pt h1{font-size:30px}.ui-grid{grid-template-columns:1fr}}
