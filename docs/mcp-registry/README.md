@@ -1,12 +1,20 @@
-# Listing the MCP server in the official registry (owner steps, about 10 minutes)
+# Listing the MCP server in the official registry
 
-The server is live at https://www.oversize-escort-hub.com/api/mcp (read-only, no login). The official registry (registry.modelcontextprotocol.io) is where AI apps and the other directories find servers; most directories copy from it.
+The server is live at https://www.oversize-escort-hub.com/api/mcp (read-only, no login). The official registry (registry.modelcontextprotocol.io) is where AI apps and the other directories find servers; PulseMCP says it picks listings up from there.
 
-1. On your computer, install the publisher: https://github.com/modelcontextprotocol/registry/releases/latest (Windows: `mcp-publisher_windows_amd64.tar.gz`, unzip it, open a terminal in that folder).
-2. Put the `server.json` from this folder in the same folder.
-3. Run `mcp-publisher login github`. It prints a code and a link; open the link, enter the code, approve. Use the GitHub account that owns the repo (PettyMiggzy). The name in server.json (`io.github.PettyMiggzy/oversize-escort-hub`) must match that account; if it says you have no permission, try the account name in lower case.
-4. Run `mcp-publisher publish`.
-5. Check: https://registry.modelcontextprotocol.io/v0.1/servers?search=oversize-escort-hub
+## From a phone (no computer needed)
+1. Open github.com/PettyMiggzy/Oversize-Escort-Hub in a browser (desktop-site mode helps) and tap Actions.
+2. Tap "Publish MCP server to the registry" in the left list, then "Run workflow" > "Run workflow".
+3. Wait about a minute and refresh. A green check means it is listed. A red X: open it and send Claude the last lines of the log.
+4. Check: https://registry.modelcontextprotocol.io/v0.1/servers?search=oversize-escort-hub
 
-Other directories that accept a link by hand (free): Smithery, mcp.so, PulseMCP, Glama. They ask for the URL above and the one-line description in server.json.
-The registry is in preview; its rules can change. Nothing secret is in the file or the steps. Never paste a login code or token in chat.
+It signs in with the repository's own GitHub identity, so no password, key or token is involved. The name in `server.json` (`io.github.PettyMiggzy/oversize-escort-hub`) must match the repo owner; if it says no permission, tell Claude (a lower-case name may be needed).
+
+## From a computer (alternative)
+Download `mcp-publisher` from https://github.com/modelcontextprotocol/registry/releases/latest, put `server.json` beside it, run `mcp-publisher login github`, approve the code at github.com/login/device, then `mcp-publisher publish`.
+
+## Other directories (checked 2026-10-26)
+- PulseMCP: not accepting submissions right now; it will copy from the official registry.
+- mcp.so: asks for a repository URL and offers a $39 paid fast listing; skip unless the repository is public.
+- Glama: has an "Add Server" button; what it requires was not visible without an account.
+The registry is in preview, so its rules can change. Never paste a login code or token in chat.
