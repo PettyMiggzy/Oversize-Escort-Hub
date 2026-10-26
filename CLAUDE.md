@@ -26,6 +26,8 @@ Read this first. Update it when the owner decides something new (short entry, sa
 - **Test data** is named `ZZTEST`; never let tests send emails to real accounts. The two e2e test accounts were deleted on 2026-10-26; make new ones if needed and delete them after.
 - Do not change things the owner did not ask for: flag them instead.
 
+- **Email logo** (2026-10-26): every email through `sendEmail` gets the OEH wordmark on top (`public/email-logo.png`, `withLogo` in `lib/email.ts`). The inbox avatar (the letter "O" in Gmail) is a separate thing, still waiting on the owner's Google account.
+
 ## Working here
 - Checks before every push: `npx tsc --noEmit` and `npm run test:hostile` (all must pass). New tables or columns must be listed in `tests/hostile-audit/schema-columns.ts`.
 - Next.js route files export only HTTP handlers. Do the database changes as additive SQL (files in `docs/sql-*.sql`).

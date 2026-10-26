@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { escapeHtml } from '@/lib/security'
+import { withLogo } from '@/lib/email'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -24,14 +25,14 @@ export async function POST(req: NextRequest) {
       to: 'support@oversize-escort-hub.com',
       replyTo: email,
       subject: `[OEH Contact] ${oneLine(subject) || 'General Inquiry'} - from ${oneLine(name)}`,
-      html: `
+      html: withLogo(`
         <h2>New Contact Form Submission</h2>
         <p><strong>Name:</strong> ${escapeHtml(name)}</p>
         <p><strong>Email:</strong> ${escapeHtml(email)}</p>
         <p><strong>Subject:</strong> ${escapeHtml(subject) || 'General Inquiry'}</p>
         <p><strong>Message:</strong></p>
         <p>${escapeHtml(message).replace(/\n/g, '<br>')}</p>
-      `,
+      `),
     })
     if (sendErr) {
       console.error('[contact] resend error:', sendErr)
