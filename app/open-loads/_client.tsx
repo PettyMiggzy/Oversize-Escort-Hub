@@ -8,6 +8,8 @@ import { isAdminEmail } from '@/lib/supabase'
 import { getAccessLevel, secondsUntilClaimable, type AccessLevel } from '@/lib/board-access'
 import { effectiveTier } from '@/lib/free-launch'
 import { BoardAdSidebar } from '@/components/BoardAdSidebar';
+import PageTitle from '@/components/PageTitle'
+import EmptyState from '@/components/EmptyState'
 
 function TimeRemaining({ expiresAt }: { expiresAt: string }) {
   const [remaining, setRemaining] = useState('')
@@ -23,7 +25,7 @@ function TimeRemaining({ expiresAt }: { expiresAt: string }) {
     const i = setInterval(calc, 60000)
     return () => clearInterval(i)
   }, [expiresAt])
-  return <span style={{ color: remaining === 'Expired' ? '#ef4444' : '#f60' }}>{remaining}</span>
+  return <span style={{ color: remaining === 'Expired' ? '#ff5a5a' : 'inherit' }}>{remaining}</span>
 }
 
 export function OpenLoadsBoardClient() {
@@ -133,190 +135,108 @@ export function OpenLoadsBoardClient() {
     setTimeout(() => { setBidModal(null); setBidStatus(''); setBidRate('') }, 1500)
   }
 
-  const card = { background: 'var(--p1, #111)', border: '1px solid #222', borderLeft: '3px solid #f0a500', padding: '16px 20px', marginBottom: '12px', borderRadius: '4px' }
-
   if (loading) {
     return (
       <>
         <SiteHeader />
-        <div style={{ background: '#0a0a0a', minHeight: '100vh', padding: '24px', color: '#ccc', textAlign: 'center' }}>
-          Loading...
-        </div>
+        <div className="ui-page"><div className="ui-wrap" style={{ textAlign: 'center', color: '#9aa3b2' }}>Loading&hellip;</div></div>
       </>
     );
   }
 
+  const bidBtn = (load: any) => (
+    <button className="ui-btn block" onClick={() => { setBidModal({ loadId: load.id, loadRate: load.per_mile_rate }); setBidRate('') }}>Place bid</button>
+  )
+
   return (
-      <>
+    <>
       <SiteHeader />
-    <div style={{ background: '#0a0a0a', minHeight: '100vh', padding: '24px', color: '#ccc' }}>
-      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 16 : 24, alignItems: 'flex-start', maxWidth: 1100, margin: '0 auto' }}>
-        <main style={{ flex: 1, minWidth: 0, maxWidth: 760, padding: isMobile ? '20px 12px' : '40px 24px', width: '100%' }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>Open Bid Board</h1>
-        <p style={{ color: '#9ca3af', fontSize: 13, marginBottom: 24 }}>Loads sorted by time remaining. Pro escorts can bid. Carriers see all bids in their dashboard.</p>
-
-        {loads.length === 0 ? (
-          <div style={{ ...card, textAlign: 'center', padding: 40 }}>
-            <p style={{ color: '#9ca3af' }}>No open bid loads available right now.</p>
-          </div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
-            {loads.map((load: any) => {
-          const loadBids = bids[load.id] || []
-          const highestBid = loadBids[0]?.rate
-          return (
-            <div
-              key={load.id}
-              style={{
-                background: '#111',
-                border: '1px solid #222',
-                borderLeft: '4px solid #f0a500',
-                borderRadius: 8,
-                padding: '20px 24px',
-                marginBottom: 16,
-                display: 'grid',
-                gridTemplateColumns: '1fr',
-                gap: 16,
-                alignItems: 'start'
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginBottom: 6 }}>
-                    {load.pu_city}, {load.pu_state} → {load.dl_city}, {load.dl_state}
-                  </div>
-                  <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 8 }}>
-                    <span style={{ fontSize: 13, color: '#f0a500' }}>
-                      {load.escort_type || 'Position TBD'}
-                    </span>
-                    <span style={{ fontSize: 13, color: '#9ca3af' }}>
-                      {load.load_type || ''}{load.load_type && load.board_type ? ' · ' : ''}{load.board_type || ''}
-                    </span>
-                  </div>
-                  <div style={{ fontSize: 12, color: '#6b7280' }}>
-                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
-                      {load.bgc_verified && (
-                        <span style={{ background: '#14532d', color: '#22c55e', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4 }}>✓ BGC</span>
-                      )}
-                      {load.fmcsa_verified && (
-                        <span style={{ background: '#1e3a5f', color: '#60a5fa', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4 }}>✓ FMCSA</span>
-                      )}
-                      {load.poster_rating && (
-                        <span style={{ fontSize: 11, color: '#f0a500' }}>★ {Number(load.poster_rating).toFixed(1)} ({load.poster_jobs || 0} jobs)</span>
-                      )}
-                    </div>
-                    {load.start_date ? `Needed ${load.start_date}` : `Posted ${new Date(load.created_at).toLocaleDateString()}`}
-                  </div>
-                </div>
-                <div style={{ textAlign: 'right', minWidth: 90 }}>
-                  <div style={{ fontSize: 11, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>
-                    Time Left
-                  </div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: '#4ade80' }}>
-                    <TimeRemaining expiresAt={load.expires_at} />
-                  </div>
-                </div>
-              </div>
-              <div>
-                <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 12 }}>
-                  <div>
-                    <div style={{ fontSize: 11, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Posted Rate</div>
-                    <div style={{ fontSize: 18, fontWeight: 800, color: '#f0a500' }}>${load.per_mile_rate != null ? Number(load.per_mile_rate).toLocaleString() : 'TBD'}</div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 11, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Highest Bid</div>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: '#f60' }}>{highestBid ? `$${Number(highestBid).toLocaleString()}` : 'No bids'}</div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 11, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Bids</div>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: '#fff' }}>{loadBids.length}</div>
-                  </div>
-                </div>
-                {!userId ? (
-                  <a href={`/signin?redirect=/open-loads`} style={{
-                    display: 'block', background: '#1e3a5f', color: '#e2e8f0', border: '1px solid #2563eb', borderRadius: 6,
-                    padding: '8px 20px', fontWeight: 700, fontSize: 13, cursor: 'pointer', width: '100%',
-                    textAlign: 'center', textDecoration: 'none'
-                  }}>Sign In to Bid</a>
-                ) : accessLevel === 'instant' ? (
-                  <button
-                    onClick={() => { setBidModal({ loadId: load.id, loadRate: load.per_mile_rate }); setBidRate('') }}
-                    style={{
-                      background: '#f0a500', color: '#000', border: 'none', borderRadius: 6,
-                      padding: '8px 20px', fontWeight: 700, fontSize: 13, cursor: 'pointer', width: '100%'
-                    }}
-                  >
-                    Place Bid
-                  </button>
-                ) : accessLevel === 'delayed' ? (
-                  // Member: 60s countdown gated on load.created_at, then Place Bid unlocks.
-                  (() => {
-                    const remaining = secondsUntilClaimable(load.created_at, now)
-                    if (remaining > 0) {
-                      return (
-                        <button
-                          disabled
-                          style={{
-                            background: '#3a3a3a', color: '#9ca3af', border: 'none', borderRadius: 6,
-                            padding: '8px 20px', fontWeight: 700, fontSize: 13, cursor: 'default', width: '100%'
-                          }}
-                        >{`Available in ${remaining}s...`}</button>
-                      )
-                    }
+      <div className="ui-page">
+        <div className="ui-wrap">
+          <PageTitle eyebrow="Bid board" title="Open bid board" lead="Loads sorted by time remaining. Escorts bid, carriers see every bid on their dashboard." />
+          <div className="ui-two">
+            <main style={{ minWidth: 0 }}>
+              {loads.length === 0 ? (
+                <EmptyState
+                  title="No open loads right now"
+                  text="New loads show up here the moment a carrier posts them. Check back soon, or post one yourself."
+                  action={<Link href="/post-load" className="ui-btn">Post a load</Link>}
+                />
+              ) : (
+                <div className="ui-grid" style={isMobile ? { gridTemplateColumns: '1fr' } : undefined}>
+                  {loads.map((load: any) => {
+                    const loadBids = bids[load.id] || []
+                    const highestBid = loadBids[0]?.rate
                     return (
-                      <button
-                        onClick={() => { setBidModal({ loadId: load.id, loadRate: load.per_mile_rate }); setBidRate('') }}
-                        style={{
-                          background: '#f0a500', color: '#000', border: 'none', borderRadius: 6,
-                          padding: '8px 20px', fontWeight: 700, fontSize: 13, cursor: 'pointer', width: '100%'
-                        }}
-                      >
-                        Place Bid
-                      </button>
+                      <div key={load.id} className="ui-load">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div className="ui-route">{load.pu_city}, {load.pu_state} &rarr; {load.dl_city}, {load.dl_state}</div>
+                            <div className="ui-meta" style={{ marginTop: 6 }}>
+                              <span style={{ color: '#ffc46b', fontWeight: 600 }}>{load.escort_type || 'Position TBD'}</span>
+                              {(load.load_type || load.board_type) && <> &middot; {load.load_type || ''}{load.load_type && load.board_type ? ' · ' : ''}{load.board_type || ''}</>}
+                            </div>
+                            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginTop: 10 }}>
+                              {load.bgc_verified && <span className="ui-badge green">&#10003; BGC</span>}
+                              {load.fmcsa_verified && <span className="ui-badge blue">&#10003; FMCSA</span>}
+                              {load.poster_rating && <span className="ui-meta" style={{ color: '#ffc46b' }}>&#9733; {Number(load.poster_rating).toFixed(1)} ({load.poster_jobs || 0} jobs)</span>}
+                              <span className="ui-meta">{load.start_date ? `Needed ${load.start_date}` : `Posted ${new Date(load.created_at).toLocaleDateString()}`}</span>
+                            </div>
+                          </div>
+                          <div style={{ textAlign: 'right', minWidth: 80 }}>
+                            <div className="ui-k">Time left</div>
+                            <div className="ui-v gr" style={{ fontSize: 16 }}><TimeRemaining expiresAt={load.expires_at} /></div>
+                          </div>
+                        </div>
+                        <div className="ui-stats">
+                          <div><div className="ui-k">Posted rate</div><div className="ui-v or">${load.per_mile_rate != null ? Number(load.per_mile_rate).toLocaleString() : 'TBD'}</div></div>
+                          <div><div className="ui-k">Highest bid</div><div className="ui-v">{highestBid ? `$${Number(highestBid).toLocaleString()}` : 'No bids'}</div></div>
+                          <div><div className="ui-k">Bids</div><div className="ui-v">{loadBids.length}</div></div>
+                        </div>
+                        <div>
+                          {!userId ? (
+                            <a href={`/signin?redirect=/open-loads`} className="ui-btn block ghost">Sign in to bid</a>
+                          ) : accessLevel === 'instant' ? (
+                            bidBtn(load)
+                          ) : accessLevel === 'delayed' ? (
+                            // Member: 60s countdown gated on load.created_at, then Place Bid unlocks.
+                            (() => {
+                              const remaining = secondsUntilClaimable(load.created_at, now)
+                              if (remaining > 0) return <button className="ui-btn block dim" disabled>{`Available in ${remaining}s...`}</button>
+                              return bidBtn(load)
+                            })()
+                          ) : viewerRole === 'carrier' || viewerRole === 'broker' ? (
+                            <div className="ui-meta" style={{ textAlign: 'center' }}>Escorts bid on loads from here</div>
+                          ) : (
+                            <Link href="/pricing" className="ui-btn block ghost">Upgrade to Member &rarr;</Link>
+                          )}
+                        </div>
+                      </div>
                     )
-                  })()
-                ) : viewerRole === 'carrier' || viewerRole === 'broker' ? (
-                  <div style={{ fontSize: 12, color: '#6b7280', textAlign: 'center' }}>Escorts bid on loads from here</div>
-                ) : (
-                  <Link href="/pricing" style={{
-                    display: 'block', background: '#2a2a2a', color: '#f0a500', border: '1px solid #f0a500', borderRadius: 6,
-                    padding: '8px 20px', fontWeight: 700, fontSize: 13, cursor: 'pointer', width: '100%',
-                    textAlign: 'center', textDecoration: 'none'
-                  }}>Upgrade to Member →</Link>
-                )}
-              </div>
-            </div>
-          )
-            })}
-          </div>
-        )}
-        </main>
-        <BoardAdSidebar />
-      </div>
-
-      {/* Bid Modal */}
-      {bidModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: '#0f1a2e', border: '1px solid #1e3a5f', borderRadius: 12, padding: 32, width: 320 }}>
-            <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>Place Your Bid</h3>
-            <p style={{ fontSize: 13, color: '#9ca3af', marginBottom: 16 }}>Posted rate: <strong style={{ color: '#fff' }}>${bidModal.loadRate}</strong></p>
-            <input
-              type="number"
-              style={{ background: '#16213a', border: '1px solid #1e3a5f', borderRadius: 6, color: '#e2e8f0', padding: '10px 12px', fontSize: 15, width: '100%', marginBottom: 16, boxSizing: 'border-box' }}
-              placeholder="Your rate (e.g. 450)"
-              value={bidRate}
-              onChange={e => setBidRate(e.target.value)}
-            />
-            {bidStatus && <p style={{ fontSize: 12, color: bidStatus.startsWith('Error') ? '#ef4444' : '#22c55e', marginBottom: 8 }}>{bidStatus}</p>}
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={submitBid} style={{ flex: 1, background: '#f60', color: '#fff', border: 'none', borderRadius: 6, padding: '10px 0', fontWeight: 700, cursor: 'pointer' }}>Submit Bid</button>
-              <button onClick={() => setBidModal(null)} style={{ flex: 1, background: '#1e3a5f', color: '#e2e8f0', border: 'none', borderRadius: 6, padding: '10px 0', cursor: 'pointer' }}>Cancel</button>
-            </div>
+                  })}
+                </div>
+              )}
+            </main>
+            <BoardAdSidebar />
           </div>
         </div>
-      )}
 
-    </div>
-      </>
+        {bidModal && (
+          <div className="ui-modal-back">
+            <div className="ui-modal">
+              <h3>Place your bid</h3>
+              <p className="ui-meta" style={{ margin: '0 0 16px' }}>Posted rate: <strong style={{ color: '#fff' }}>${bidModal.loadRate}</strong></p>
+              <label className="ui-label" htmlFor="bid-rate">Your rate</label>
+              <input id="bid-rate" type="number" className="ui-input" placeholder="e.g. 450" value={bidRate} onChange={e => setBidRate(e.target.value)} />
+              {bidStatus && <p className="ui-meta" style={{ margin: '10px 0 0', color: bidStatus.startsWith('Error') ? '#ff8a8a' : '#35d489' }}>{bidStatus}</p>}
+              <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
+                <button className="ui-btn" style={{ flex: 1 }} onClick={submitBid}>Submit bid</button>
+                <button className="ui-btn ghost" style={{ flex: 1 }} onClick={() => setBidModal(null)}>Cancel</button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
   )
 }

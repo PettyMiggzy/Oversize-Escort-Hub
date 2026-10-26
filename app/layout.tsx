@@ -101,7 +101,7 @@ export default function RootLayout({
                 email: "support@oversize-escort-hub.com",
                 contactType: "Customer Support",
               },
-              sameAs: [],
+              sameAs: ["https://www.facebook.com/oversizeescorthub"],
               description: "Verified marketplace connecting oversize load carriers with licensed P/EVO pilot car escorts. Built by a former truck driver and pilot car escort.",
               foundingDate: "2026",
               founder: {

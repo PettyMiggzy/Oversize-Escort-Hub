@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { FREE_LAUNCH } from "@/lib/free-launch";
+import WebOnly from '@/components/WebOnly'
 
 type Plan = {
   id: string;
@@ -63,7 +64,7 @@ const PLANS: Plan[] = [
   },
 ];
 
-export default function CheckoutPage() {
+function CheckoutPageInner() {
   const [selected, setSelected] = useState<string>("p_evo_pro");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -182,4 +183,9 @@ export default function CheckoutPage() {
       </div>
     </div>
   );
+}
+
+
+export default function CheckoutPage() {
+  return <WebOnly><CheckoutPageInner /></WebOnly>
 }

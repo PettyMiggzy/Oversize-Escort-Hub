@@ -401,7 +401,7 @@ export default function PricingPage() {
             ]} />
             <CTA label="Buy Review" onClick={() => startCheckout(PRICES.pevo_pro, setLoading)} loading={loading === PRICES.pevo_pro} />
           </Card>)}
-          <Card>
+          {!isNativeApp() && (<Card>
             <div id="sponsored" />
             <PriceHeader label="Sponsored Zone" price="$29.99" period="/30 days" />
             <Features items={[
@@ -410,7 +410,7 @@ export default function PricingPage() {
               "State-specific targeting",
             ]} />
             <CTA label="Get Sponsored" onClick={handleSponsoredClick} loading={false} />
-          </Card>
+          </Card>)}
         </div>
 
         {/* SECTION 5 — PARTNER PERKS */}

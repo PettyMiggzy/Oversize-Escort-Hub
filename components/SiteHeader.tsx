@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 const supabase = createClient();
@@ -20,6 +21,7 @@ export default function SiteHeader() {
   const [open, setOpen] = useState(false);
   const [userProfile, setUserProfile] = useState<{ name?: string; avatar?: string | null } | null>(null);
   const [windowWidth, setWindowWidth] = useState(1200);
+  const pathname = usePathname();
 
   useEffect(() => {
     setWindowWidth(window.innerWidth);
@@ -46,9 +48,10 @@ export default function SiteHeader() {
     flexDirection: "row",
     alignItems: "center",
     height: 64,
-    background: "rgba(10,11,13,0.92)",
-    backdropFilter: "blur(8px)",
-    borderBottom: "1px solid #1d212b",
+    background: "rgba(8,9,12,0.82)",
+    backdropFilter: "blur(18px) saturate(140%)",
+    WebkitBackdropFilter: "blur(18px) saturate(140%)",
+    borderBottom: "1px solid rgba(255,255,255,0.07)",
     padding: "0 24px",
     gap: 20,
     position: "sticky",
@@ -60,7 +63,7 @@ export default function SiteHeader() {
     fontFamily: 'Inter, system-ui, sans-serif',
     fontSize: 14,
     fontWeight: 500,
-    color: "#9aa3b2",
+    color: "#a3acba",
     padding: "0 8px",
     height: 64,
     display: "flex",
@@ -106,10 +109,10 @@ export default function SiteHeader() {
     fontSize: 14,
     fontWeight: 600,
     color: "#e6e9ef",
-    background: "#12141a",
-    border: "1px solid #2a2f3c",
-    borderRadius: 8,
-    padding: "8px 16px",
+    background: "rgba(255,255,255,0.04)",
+    border: "1px solid rgba(255,255,255,0.18)",
+    borderRadius: 999,
+    padding: "9px 20px",
     cursor: "pointer",
     textDecoration: "none",
   };
@@ -121,8 +124,9 @@ export default function SiteHeader() {
     color: "#120800",
     background: "#ff6a13",
     border: "none",
-    borderRadius: 8,
-    padding: "8px 16px",
+    borderRadius: 999,
+    padding: "9px 20px",
+    boxShadow: "0 6px 22px rgba(255,106,19,0.35)",
     cursor: "pointer",
     textDecoration: "none",
   };
@@ -160,14 +164,14 @@ export default function SiteHeader() {
         <nav style={navContainerStyle}>
           <Link href="/" style={logoStyle} aria-label="Oversize Escort Hub home">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-3d.png" alt="Oversize Escort Hub" style={{ height: 44, width: "auto" }} />
+            <img src="/logo-wordmark.png" alt="Oversize Escort Hub" style={{ height: 36, width: "auto" }} />
           </Link>
 
           {/* Desktop nav links */}
             {!isMobile && (
               <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 24 }}>
                 {NAV.map((n) => (
-                  <Link key={n.label} href={n.href} style={navLinkStyle}>
+                  <Link key={n.label} href={n.href} style={pathname === n.href ? { ...navLinkStyle, color: "#fff", borderBottom: "2px solid #ff6a13" } : navLinkStyle}>
                     {n.label}
                   </Link>
                 ))}

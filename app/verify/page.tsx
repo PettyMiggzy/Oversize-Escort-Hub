@@ -3,6 +3,7 @@ import SiteHeader from '@/components/SiteHeader'
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { FREE_LAUNCH } from '@/lib/free-launch'
+import { isNativeApp } from '@/lib/native'
 
 type ProfileFlags = {
   bgc_paid?: boolean
@@ -69,6 +70,7 @@ export default function VerifyPage() {
   }, [supabase, refreshProfile])
 
   const startBgcCheckout = async () => {
+    if (isNativeApp()) { setBgcMsg('Payments are handled on our website.'); return }
     if (!userId) { setBgcMsg('Please sign in first.'); return }
     setBgcMsg(''); setBgcCheckoutLoading(true)
     try {
@@ -96,6 +98,7 @@ export default function VerifyPage() {
   }
 
   const startPevoCheckout = async (tier: 'member'|'pro') => {
+    if (isNativeApp()) { setPevoMsg('Payments are handled on our website.'); return }
     if (!userId || !email) { setPevoMsg('Please sign in first.'); return }
     setPevoMsg(''); setPevoCheckoutLoading(tier)
     try {

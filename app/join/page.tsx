@@ -1,6 +1,7 @@
 'use client';
 import { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import WebOnly from '@/components/WebOnly';
 import SiteHeader from '@/components/SiteHeader';
 
 const bg = '#060b16';
@@ -319,8 +320,10 @@ function JoinPageInner() {
 
 export default function JoinPage() {
   return (
-    <Suspense fallback={null}>
-      <JoinPageInner />
-    </Suspense>
+    <WebOnly>
+      <Suspense fallback={null}>
+        <JoinPageInner />
+      </Suspense>
+    </WebOnly>
   );
 }

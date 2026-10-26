@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
+import WebOnly from '@/components/WebOnly'
 
-export default function BGCCheckoutPage() {
+function BGCCheckoutPageInner() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -78,4 +79,9 @@ export default function BGCCheckoutPage() {
       </div>
     </div>
   );
+}
+
+
+export default function BGCCheckoutPage() {
+  return <WebOnly><BGCCheckoutPageInner /></WebOnly>
 }

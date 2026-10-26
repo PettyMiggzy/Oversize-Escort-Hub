@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { isAdminEmail } from '@/lib/supabase'
+import { isNativeApp } from '@/lib/native'
 import { withFreeLaunch, effectiveTier } from '@/lib/free-launch'
 const BG = '#060b16'
 const SURFACE = '#0d1117'
@@ -52,6 +53,8 @@ interface Match {
 }
 
 export function DashboardPageClient() {
+  const [inApp, setInApp] = useState(false)
+  useEffect(() => { setInApp(isNativeApp()) }, [])
   const supabase = createClient()
   const router = useRouter()
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -750,7 +753,7 @@ export function DashboardPageClient() {
             </div>
           </section>
 
-          {/* Subscription */}
+          {!inApp && (
           <section>
             <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: ORANGE, marginBottom: '1rem' }}>Subscription</h2>
             <div style={{ background: SURFACE, borderRadius: 8, padding: '1rem', border: '1px solid #1e2736', textAlign: 'center', marginTop: 8 }}>
@@ -765,6 +768,7 @@ export function DashboardPageClient() {
               )}
             </div>
           </section>
+          )}
         </div>
       )}
 

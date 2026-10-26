@@ -516,7 +516,7 @@ function Footer({ setPage }: { setPage: (p: Page) => void }) {
         </div>
         <div className="footer-col">
           <h4>Company</h4>
-          <a href="/about" style={{color:"var(--t2)"}}>About</a><a href="mailto:support@oversize-escort-hub.com" style={{color:"var(--t2)"}}>Contact</a><a href="/privacy" style={{color:"var(--t2)"}}>Privacy Policy</a><a href="/terms" style={{color:"var(--t2)"}}>Terms of Service</a>
+          <a href="/about" style={{color:"var(--t2)"}}>About</a><a href="mailto:support@oversize-escort-hub.com" style={{color:"var(--t2)"}}>Contact</a><a href="/privacy" style={{color:"var(--t2)"}}>Privacy Policy</a><a href="/terms" style={{color:"var(--t2)"}}>Terms of Service</a><a href="https://www.facebook.com/oversizeescorthub" target="_blank" rel="noopener noreferrer" style={{color:"var(--t2)"}}>Facebook</a>
         </div>
       </div>
       <div className="footer-bottom">
