@@ -67,9 +67,11 @@ function matches(row: Record<string, unknown>, filters: Filter[]): boolean {
     if (f.op === 'eq') return row[f.col] === f.val
     if (f.op === 'neq') return row[f.col] !== f.val
     if (f.op === 'in') return Array.isArray(f.val) && (f.val as unknown[]).includes(row[f.col])
-    if (f.op === 'lt') return String(row[f.col] ?? '') < String(f.val ?? '')
-    if (f.op === 'gt') return String(row[f.col] ?? '') > String(f.val ?? '')
-    if (f.op === 'gte') return String(row[f.col] ?? '') >= String(f.val ?? '')
+    // SQL: a comparison with NULL is never true
+    if ((f.op === 'lt' || f.op === 'gt' || f.op === 'gte') && row[f.col] == null) return false
+    if (f.op === 'lt') return String(row[f.col]) < String(f.val ?? '')
+    if (f.op === 'gt') return String(row[f.col]) > String(f.val ?? '')
+    if (f.op === 'gte') return String(row[f.col]) >= String(f.val ?? '')
     if (f.op === 'ilike') {
       // SQL ILIKE: % any run, _ any one char, backslash escapes the next character
       let re = ''

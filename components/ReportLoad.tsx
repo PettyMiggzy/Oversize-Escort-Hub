@@ -2,6 +2,7 @@
 import { useState } from 'react'
 
 const REASONS = [
+  ['taken', 'It is already filled or taken'],
   ['scam', 'Looks like a scam'],
   ['spam', 'Spam or an ad'],
   ['fake_rate', 'The rate or details look fake'],
@@ -9,10 +10,10 @@ const REASONS = [
   ['other', 'Something else'],
 ] as const
 
-// A small, quiet way for a signed-in user to flag a load. Three different people take it off the board until an admin looks.
+// A small, quiet way for a signed-in user to flag a load. Two escorts saying it is taken, or three people reporting a problem, take it off the board.
 export default function ReportLoad({ loadId }: { loadId: string }) {
   const [open, setOpen] = useState(false)
-  const [reason, setReason] = useState('scam')
+  const [reason, setReason] = useState('taken')
   const [msg, setMsg] = useState('')
   const [busy, setBusy] = useState(false)
 
@@ -21,7 +22,7 @@ export default function ReportLoad({ loadId }: { loadId: string }) {
     const res = await fetch('/api/loads/report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ loadId, reason }) })
     const d = await res.json().catch(() => ({}))
     setBusy(false)
-    setMsg(res.ok ? 'Thanks. We will look at it.' : d.error || 'Could not send the report.')
+    setMsg(res.ok ? (reason === 'taken' ? 'Thanks. If another escort says the same, it comes off the board.' : 'Thanks. We will look at it.') : d.error || 'Could not send the report.')
     if (res.ok) setOpen(false)
   }
 
