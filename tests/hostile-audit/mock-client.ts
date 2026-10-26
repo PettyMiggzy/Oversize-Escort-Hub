@@ -2,7 +2,7 @@
 // Route modules call createClient() at import time, so this state lives on globalThis
 // and is read on every query rather than snapshotted.
 
-export type Filter = { op: 'eq' | 'neq' | 'in' | 'lt' | 'gt' | 'gte' | 'or' | 'ilike' | 'is' | 'notnull'; col: string; val: unknown }
+export type Filter = { op: 'eq' | 'neq' | 'in' | 'lt' | 'gt' | 'gte' | 'or' | 'ilike' | 'is' | 'notnull' | 'contains'; col: string; val: unknown }
 
 export type HostileDb = {
   tables: Record<string, Record<string, unknown>[]>
@@ -82,6 +82,7 @@ function matches(row: Record<string, unknown>, filters: Filter[]): boolean {
       return new RegExp('^' + re + '$', 'i').test(String(row[f.col] ?? ''))
     }
     if (f.op === 'notnull') return row[f.col] != null
+    if (f.op === 'contains') return Array.isArray(row[f.col]) && (f.val as unknown[]).every((v) => (row[f.col] as unknown[]).includes(v))
     if (f.op === 'is') return f.val === null ? row[f.col] == null : row[f.col] === f.val
     if (f.op === 'or') {
       const parts = String(f.val).split(',')
@@ -163,6 +164,10 @@ class Query {
     this.filters.push({ op: 'is', col, val })
     return this
   }
+  contains(col: string, val: unknown[]) {
+    this.filters.push({ op: 'contains', col, val })
+    return this
+  }
   /** .not(col, 'is', null) only: the one form the code uses */
   not(col: string, op: string, val: unknown) {
     if (op !== 'is' || val !== null) throw new Error('mock .not() supports is null only')
@@ -178,9 +183,6 @@ class Query {
   }
   limit(n: number) {
     this.limited = n
-    return this
-  }
-  contains() {
     return this
   }
   maybeSingle() {

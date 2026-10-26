@@ -58,6 +58,7 @@ export default function HowItWorks() {
       <SiteHeader />
       <div className="ui-wrap" style={{ maxWidth: 860 }}>
         <PageTitle eyebrow="Start here" title="How it works" lead="From sign-up to a confirmed job. Using the site is free while we launch." />
+        <p style={{ margin: '-8px 0 18px', fontSize: 15 }}>New to pilot car work? <a href="/pilot-car-guide">Read the beginner's guide</a>.</p>
         <div className="ui-chips" style={{ justifyContent: 'center', marginBottom: 28 }}>
           {TABS.map((t) => (
             <button

@@ -367,3 +367,8 @@ html, body {
 .ui-link:hover{color:#fff}
 @media(max-width:700px){.ui-fit,.ui-form-grid{grid-template-columns:1fr}}
 @media(max-width:900px){.ui-two{grid-template-columns:1fr}.ui-wrap{padding:24px 16px 56px}.ui-pt h1{font-size:30px}.ui-grid{grid-template-columns:1fr}}
+
+/* Reading pages (guide): readable links on the dark background */
+.guide a:not(.ui-btn){color:#ff9a5c;text-decoration:underline;text-underline-offset:2px}
+.guide a:not(.ui-btn):hover{color:#ffb98a}
+.guide h2,.guide h3{color:#fff}
