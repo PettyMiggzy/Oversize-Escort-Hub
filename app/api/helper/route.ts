@@ -5,7 +5,7 @@ import { serviceClient } from '@/lib/service-client'
 import { sendEmail } from '@/lib/email'
 import { escapeHtml } from '@/lib/security'
 import { clientIp, hashIp } from '@/lib/quick-post'
-import { EMAIL_RE, HELPER_LIMITS, HELPER_MODEL, HELPER_SYSTEM, validateTurns } from '@/lib/helper'
+import { EMAIL_RE, HELPER_LIMITS, HELPER_SYSTEM, helperModels, validateTurns } from '@/lib/helper'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 30
@@ -13,6 +13,14 @@ export const maxDuration = 30
 const SUPPORT = 'support@oversize-escort-hub.com'
 const OFF = `The helper is not switched on yet. Email ${SUPPORT} and the team will answer.`
 const BUSY = `You have asked a lot of questions in a short time. Please try again later, or email ${SUPPORT}.`
+
+let lastGoneMail = 0
+// At most one email an hour per server instance, so a retired model does not flood the inbox
+async function tellTeamModelGone(model: string) {
+  if (Date.now() - lastGoneMail < 3600000) return
+  lastGoneMail = Date.now()
+  await sendEmail({ to: SUPPORT, subject: `[OEH helper] model ${model} is not available`, html: `<p>The site helper asked for <strong>${escapeHtml(model)}</strong> and Anthropic said it is gone. It switched to the next model automatically. Tell Claude, or set HELPER_MODEL in Vercel to a current Haiku model.</p>` })
+}
 
 const TOOLS: Anthropic.Tool[] = [{
   name: 'send_to_team',
@@ -69,21 +77,31 @@ export async function POST(req: NextRequest) {
   await serviceClient().from('helper_usage').insert({ key, kind: 'msg', question: question.slice(0, 300) })
 
   const client = new Anthropic({ maxRetries: 1, timeout: 25000 })
-  let res: Anthropic.Message
-  try {
-    res = await client.messages.create({
-      model: HELPER_MODEL,
-      max_tokens: HELPER_LIMITS.maxOutputTokens,
-      output_config: { effort: 'low' },
-      cache_control: { type: 'ephemeral' },
-      system: HELPER_SYSTEM,
-      tools: TOOLS,
-      messages: turns,
-    })
-  } catch (e) {
-    console.error('[helper] model error:', e instanceof Anthropic.APIError ? e.status : e)
-    return NextResponse.json({ reply: `I could not answer just now. Please try again in a minute, or email ${SUPPORT}.`, error: true })
+  let res: Anthropic.Message | null = null
+  const models = helperModels()
+  for (let i = 0; i < models.length && !res; i++) {
+    try {
+      res = await client.messages.create({
+        model: models[i],
+        max_tokens: HELPER_LIMITS.maxOutputTokens,
+        // the newest Haiku takes an effort setting; the older fallback does not
+        ...(i === 0 ? { output_config: { effort: 'low' as const } } : {}),
+        cache_control: { type: 'ephemeral' },
+        system: HELPER_SYSTEM,
+        tools: TOOLS,
+        messages: turns,
+      })
+    } catch (e) {
+      const status = e instanceof Anthropic.APIError ? e.status : 0
+      const msg = e instanceof Error ? e.message : ''
+      // 404/410, or a 400 about the model: the model was retired or renamed. Try the next one and tell the team.
+      const gone = status === 404 || status === 410 || (status === 400 && /model/i.test(msg))
+      console.error('[helper] model error:', models[i], status, msg.slice(0, 120))
+      if (gone) await tellTeamModelGone(models[i])
+      if (!gone || i === models.length - 1) break
+    }
   }
+  if (!res) return NextResponse.json({ reply: `I could not answer just now. Please try again in a minute, or email ${SUPPORT}.`, error: true })
 
   if (res.stop_reason === 'refusal') return NextResponse.json({ reply: `I can't help with that one here. Email ${SUPPORT} if you need something from the team.` })
 

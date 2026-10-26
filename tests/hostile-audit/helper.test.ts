@@ -5,17 +5,18 @@ import { getDb, resetHostile } from './mock-client'
 
 const m = vi.hoisted(() => ({ calls: [] as Record<string, unknown>[], reply: null as unknown, emails: [] as Record<string, unknown>[] }))
 vi.mock('@anthropic-ai/sdk', () => {
-  class APIError extends Error { status = 500 }
+  class APIError extends Error { status = 500; constructor(msg = '', status = 500) { super(msg); this.status = status } }
   class Anthropic {
     static APIError = APIError
-    messages = { create: async (p: Record<string, unknown>) => { m.calls.push(p); if (m.reply instanceof Error) throw m.reply; return m.reply } }
+    messages = { create: async (p: Record<string, unknown>) => { m.calls.push(p); const r = typeof m.reply === 'function' ? (m.reply as (p: Record<string, unknown>) => unknown)(p) : m.reply; if (r instanceof Error) throw r; return r } }
   }
   return { default: Anthropic }
 })
 vi.mock('@/lib/email', () => ({ sendEmail: async (e: Record<string, unknown>) => { m.emails.push(e); return true } }))
 import { POST } from '@/app/api/helper/route'
 import { HELPER_KNOWLEDGE } from '@/lib/helper-knowledge'
-import { HELPER_LIMITS, HELPER_SYSTEM, validateTurns } from '@/lib/helper'
+import { HELPER_LIMITS, HELPER_SYSTEM, helperModels, validateTurns } from '@/lib/helper'
+import Anthropic from '@anthropic-ai/sdk'
 
 const ask = (messages: unknown, ip = '9.9.9.9') => POST(new NextRequest('http://localhost/api/helper', { method: 'POST', headers: { 'content-type': 'application/json', 'x-forwarded-for': ip }, body: JSON.stringify({ messages }) }))
 const q = (t: string) => [{ role: 'user', content: t }]
@@ -124,4 +125,32 @@ test('the chat widget is hidden in the phone app and has a 16px input', () => {
   expect(src).toMatch(/if \(native\) return null/)
   expect(src).toMatch(/font-size:16px/)
   expect(fs.readFileSync('app/layout.tsx', 'utf8')).toContain('<HelperChat />')
+})
+
+test('if the model is retired, the next cheap one is used, the team is told, and no bigger model is ever tried', async () => {
+  const gone = () => new (Anthropic as unknown as { APIError: new (m: string, s: number) => Error }).APIError('model: claude-haiku-5-5', 404)
+  m.reply = (p: Record<string, unknown>) => (p.model === 'claude-haiku-5-5' ? gone() : say('Still here.'))
+  const r = await (await ask(q('hi'))).json()
+  expect(r.reply).toBe('Still here.')
+  expect(m.calls.map((c) => c.model)).toEqual(['claude-haiku-5-5', 'claude-haiku-4-5'])
+  expect(m.calls[1].output_config).toBeUndefined()
+  expect(m.emails.some((e) => String(e.subject).includes('is not available'))).toBe(true)
+  // both gone: a polite message, nothing bigger tried
+  m.calls.length = 0
+  m.reply = () => gone()
+  expect((await (await ask(q('hi'), '3.3.3.3')).json()).error).toBe(true)
+  expect(m.calls.map((c) => c.model)).toEqual(['claude-haiku-5-5', 'claude-haiku-4-5'])
+})
+
+test('a busy or failing model (not a retired one) does not trigger the fallback', async () => {
+  m.reply = () => new (Anthropic as unknown as { APIError: new (m: string, s: number) => Error }).APIError('slow down', 429)
+  expect((await (await ask(q('hi'))).json()).error).toBe(true)
+  expect(m.calls).toHaveLength(1)
+})
+
+test('the first-choice model can be changed only to another Haiku', () => {
+  expect(helperModels(undefined)).toEqual(['claude-haiku-5-5', 'claude-haiku-4-5'])
+  expect(helperModels('claude-haiku-6-0')).toEqual(['claude-haiku-6-0', 'claude-haiku-4-5'])
+  expect(helperModels('claude-opus-5-5')).toEqual(['claude-haiku-5-5', 'claude-haiku-4-5'])
+  expect(helperModels('claude-haiku-4-5')).toEqual(['claude-haiku-4-5'])
 })

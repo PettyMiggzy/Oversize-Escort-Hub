@@ -1,6 +1,13 @@
 import { HELPER_KNOWLEDGE } from '@/lib/helper-knowledge'
 
+// Cheapest current model first. If Anthropic retires it, the next one is tried automatically; both are Haiku, never a bigger model.
+// HELPER_MODEL (a Vercel setting) can name a different first choice without a code change.
 export const HELPER_MODEL = 'claude-haiku-5-5'
+export const HELPER_FALLBACK_MODEL = 'claude-haiku-4-5'
+export function helperModels(override = process.env.HELPER_MODEL): string[] {
+  const first = /^claude-haiku-[a-z0-9-]+$/.test(override || '') ? (override as string) : HELPER_MODEL
+  return [...new Set([first, HELPER_FALLBACK_MODEL])]
+}
 export const HELPER_LIMITS = {
   perKeyHour: 15, perKeyDay: 60, globalDay: 1500, ticketsPerKeyDay: 3,
   maxTurns: 8, maxChars: 600, maxOutputTokens: 600,
