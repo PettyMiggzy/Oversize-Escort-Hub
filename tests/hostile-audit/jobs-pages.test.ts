@@ -42,6 +42,14 @@ test('the job page carries JobPosting JSON-LD', () => {
   expect(src).toContain('baseSalary')
 })
 
+test('the terms include a plain jobs board section', () => {
+  const src = read('app/terms/page.tsx')
+  expect(src).toContain('Jobs board')
+  expect(src).toContain('marketplace, not the employer')
+  expect(src).toContain('Do not put contact details in posts or applications')
+  expect(src).toContain('may remove posts')
+})
+
 test('/jobs is in the sitemap code', () => {
   const src = read('app/sitemap.ts')
   expect(src).toContain('/jobs')
