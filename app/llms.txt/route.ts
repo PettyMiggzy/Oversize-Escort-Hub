@@ -14,13 +14,14 @@ export function GET() {
 - [Pricing](https://www.oversize-escort-hub.com/pricing): free while we launch; add-ons are one-time purchases.
 
 ## For AI assistants
-- MCP server (read-only, no login, streamable HTTP): https://www.oversize-escort-hub.com/api/mcp. Tools: get_pilot_car_guide, get_site_facts, find_pilot_car_escorts, search_open_loads.
+- MCP server (read-only, no login, streamable HTTP): https://www.oversize-escort-hub.com/api/mcp. Tools: get_pilot_car_guide, get_site_facts, find_pilot_car_escorts, search_open_loads, search_open_jobs.
 
 ## Browse
 - [Find pilot car escorts by state](https://www.oversize-escort-hub.com/find-escorts)
 - [Open bid board](https://www.oversize-escort-hub.com/open-loads)
 - [Flat rate board](https://www.oversize-escort-hub.com/flat-rate)
 - [5-minute bid board](https://www.oversize-escort-hub.com/bid-board)
+- [Jobs board: companies hiring pilot car subcontractors or drivers](https://www.oversize-escort-hub.com/jobs)
 - [Post a load without an account](https://www.oversize-escort-hub.com/quick-post)
 
 ## Notes

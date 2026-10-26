@@ -166,11 +166,67 @@ function jobStatus(value: string) {
   return JOB_STATUS[value] || value
 }
 
+type MyApplication = { id: string; job_id: string; status: string; message: string | null; created_at: string; job: { title: string; company: string | null; status: string } | null }
+
 function MyApplications() {
-  // TODO: My applications needs GET /api/jobs/applications for the signed-in applicant
-  // (application id, status, job id, job title). Withdraw and contact already exist.
-  // Do not read applications from the browser. This section renders nothing until that route exists.
-  return null
+  const [apps, setApps] = useState<MyApplication[] | null>(null)
+  const [err, setErr] = useState('')
+  const [busy, setBusy] = useState('')
+
+  async function load() {
+    const res = await fetch('/api/jobs/applications')
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      setErr(typeof data.error === 'string' ? data.error : 'Could not load your applications')
+      setApps([])
+      return
+    }
+    setApps(Array.isArray(data.applications) ? data.applications : [])
+  }
+
+  useEffect(() => { load().catch(() => setErr('Could not load your applications')) }, [])
+
+  async function withdraw(id: string) {
+    setBusy(id)
+    setErr('')
+    try {
+      const res = await fetch(`/api/jobs/applications/${id}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'withdraw' }) })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) setErr(typeof data.error === 'string' ? data.error : 'Could not withdraw')
+      await load()
+    } finally {
+      setBusy('')
+    }
+  }
+
+  // Nothing to show and nothing wrong: keep the dashboard quiet for people who never applied
+  if (apps !== null && apps.length === 0 && !err) return null
+  return (
+    <section>
+      <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#fff', margin: '0 0 1rem' }}>My applications</h2>
+      {err ? <p className="ui-err">{err}</p> : null}
+      {apps === null ? <p className="ui-meta">Loading your applications…</p> : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          {apps.map((a) => (
+            <div key={a.id} className="ui-load">
+              <div style={{ minWidth: 0 }}>
+                <p style={{ margin: 0, fontWeight: 700 }}>{a.job?.title || 'This job is no longer listed'}</p>
+                <div className="ui-chips" style={{ marginTop: 8 }}>
+                  <span className={a.status === 'accepted' ? 'ui-badge green' : 'ui-badge dim'}>{jobStatus(a.status)}</span>
+                  {a.job?.company ? <span className="ui-badge dim">{a.job.company}</span> : null}
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {a.job && a.job.status === 'open' ? <a className="ui-btn ghost" href={`/jobs/${a.job_id}`}>View job</a> : null}
+                {a.status === 'new' ? <button type="button" className="ui-btn ghost" disabled={busy === a.id} onClick={() => withdraw(a.id)}>Withdraw</button> : null}
+                {a.status === 'accepted' ? <ApplicantContact applicationId={a.id} /> : null}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  )
 }
 
 function ApplicantContact({ applicationId }: { applicationId: string }) {
@@ -834,7 +890,7 @@ export function DashboardPageClient() {
             )}
           </section>
 
-          <MyJobsSection />
+          <><MyJobsSection /><MyApplications /></>
 
           {/* Pending Bids */}
           <section>
@@ -1014,8 +1070,7 @@ export function DashboardPageClient() {
             )}
           </section>
 
-          <MyJobsSection />
-          <MyApplications />
+          <><MyJobsSection /><MyApplications /></>
 
           {/* Mileage / Expense Tracker */}
           <section>
@@ -1113,7 +1168,7 @@ export function DashboardPageClient() {
       {!isCarrier && !isEscort && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           <p style={{ color: MUTED }}>Unrecognized role: {profile.role}</p>
-          <MyJobsSection />
+          <><MyJobsSection /><MyApplications /></>
         </div>
       )}
 

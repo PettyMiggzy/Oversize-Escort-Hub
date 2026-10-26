@@ -17,6 +17,9 @@ Quick post: a carrier can also post a load without an account at oversize-escort
 FLEETS
 Fleet managers can add escort drivers, set coverage for the whole fleet and see jobs and invoices on the fleet dashboard.
 
+JOBS BOARD
+Separate from loads: companies and fleets post jobs when they want to hire pilot car subcontractors (1099) or drivers (W-2 or either). Browse at oversize-escort-hub.com/jobs; anyone with an account can apply, and posting a job needs an account (free while we launch). A job says who provides the vehicle and gear, how the pay works (percent of the load, flat weekly, day rate, per mile, hourly or negotiable), the schedule, travel and the states. Do not put phone numbers or links in a post or application; the company and the applicant get each other's contact details only after the company accepts. A poster can have up to 5 open jobs at once. We are the marketplace, not the employer: the company and the worker agree the pay and the work between themselves. Applications show in the dashboard under My applications, and posters see applicants under My jobs.
+
 DEADHEAD MINIMIZER
 When an escort is on a matched job with a drop-off set, and a new load posts within about 150 miles of that drop-off, they get a heads-up first (in the app and by email) so they do not drive home empty.
 
@@ -30,7 +33,7 @@ REPORTING AND SAFETY
 Any signed-in user can report a load (scam, spam, fake rate, duplicate) with the Report button on the load page. Several reports take a load off the board until an admin checks it. Admins can remove posts and suspend accounts that break the rules.
 
 NOT AVAILABLE YET
-Text-message alerts are not on yet (email and in-app alerts only). Phone numbers entered at sign-up are saved for when texting opens. A jobs board for companies hiring subcontractors or drivers is being built and is not open yet. The mobile app is in testing; paid add-ons and upgrades are bought on the website, not inside the app.
+Text-message alerts are not on yet (email and in-app alerts only). Phone numbers entered at sign-up are saved for when texting opens. The mobile app is in testing; paid add-ons and upgrades are bought on the website, not inside the app.
 
 ACCOUNT HELP
 Forgot password: Sign in page > Forgot password. Confirmation email not arriving: check spam, then try again after a minute; it comes from noreply@oversize-escort-hub.com. Delete account: Dashboard > Delete account. Support email: support@oversize-escort-hub.com.

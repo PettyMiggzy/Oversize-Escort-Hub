@@ -34,14 +34,14 @@ beforeEach(() => {
   ]
 })
 
-test('handshake: negotiates the protocol, lists four read-only tools, answers ping, stays silent for notifications', async () => {
+test('handshake: negotiates the protocol, lists five read-only tools, answers ping, stays silent for notifications', async () => {
   const init = await (await call(rpc('initialize', { protocolVersion: '2025-03-26', capabilities: {}, clientInfo: { name: 't', version: '1' } }))).json()
   expect(init.result.protocolVersion).toBe('2025-03-26')
   expect(init.result.serverInfo.name).toBe('oversize-escort-hub')
   expect(init.result.capabilities.tools).toBeTruthy()
   expect((await (await call(rpc('initialize', { protocolVersion: '1999-01-01' }))).json()).result.protocolVersion).toBe(PROTOCOLS[0])
   const list = await (await call(rpc('tools/list'))).json()
-  expect(list.result.tools.map((t: { name: string }) => t.name).sort()).toEqual(['find_pilot_car_escorts', 'get_pilot_car_guide', 'get_site_facts', 'search_open_loads'])
+  expect(list.result.tools.map((t: { name: string }) => t.name).sort()).toEqual(['find_pilot_car_escorts', 'get_pilot_car_guide', 'get_site_facts', 'search_open_jobs', 'search_open_loads'])
   for (const t of TOOLS) { expect(t.annotations.readOnlyHint).toBe(true); expect(t.annotations.destructiveHint).toBe(false); expect(t.inputSchema.type).toBe('object') }
   expect((await (await call(rpc('ping'))).json()).result).toEqual({})
   const note = await call({ jsonrpc: '2.0', method: 'notifications/initialized' })
@@ -106,4 +106,23 @@ test('a caller that hammers the endpoint is slowed down; the source selects no c
   expect(last).toBe(429)
   const src = fs.readFileSync('lib/mcp.ts', 'utf8')
   expect(src).not.toMatch(/\.select\('[^']*\b(email|phone|notes|poster_company|carrier_id)\b/)
+})
+
+test('open jobs: only open, unexpired jobs, state filter, plain-words labels, no poster id', async () => {
+  const future = new Date(Date.now() + 86400000).toISOString()
+  const j = { status: 'open', expires_at: future, company: 'Lone Star Pilot Cars', classification: '1099', equipment: 'bring_own', pay_model: 'percent', pay_min: 30, pay_max: 30, schedule: 'full_time', travel: 'regional', poster_id: 'secret-poster', states: ['TX'] }
+  getDb().tables.job_posts = [
+    { ...j, id: 'j1', title: 'Lead escort TX', base_city: 'Dallas', base_state: 'TX' },
+    { ...j, id: 'j2', title: 'Chase OK', base_city: 'Tulsa', base_state: 'OK', states: ['OK'] },
+    { ...j, id: 'j3', title: 'Closed one', base_state: 'TX', status: 'closed' },
+    { ...j, id: 'j4', title: 'Expired one', base_state: 'TX', expires_at: old },
+  ]
+  const all = await tool('search_open_jobs')
+  expect(all.structuredContent.jobs.map((x: { title: string }) => x.title).sort()).toEqual(['Chase OK', 'Lead escort TX'])
+  expect(JSON.stringify(all)).not.toMatch(/secret-poster|poster_id/)
+  expect(all.structuredContent.jobs.find((x: { title: string }) => x.title === 'Lead escort TX')).toMatchObject({ pay: '30% of the load', work_type: 'Independent contractor (1099)', link: 'https://www.oversize-escort-hub.com/jobs/j1' })
+  expect((await tool('search_open_jobs', { state: 'ok' })).structuredContent.jobs).toHaveLength(1)
+  expect((await tool('search_open_jobs', { state: 'ZZ' })).isError).toBe(true)
+  getDb().tables.job_posts = []
+  expect((await tool('search_open_jobs')).content[0].text).toMatch(/No open jobs/)
 })

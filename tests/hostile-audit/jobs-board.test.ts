@@ -173,3 +173,20 @@ test('escort earnings: rate times miles, loads without miles add no dollars, ano
   ]
   expect(await (await earn()).json()).toEqual({ month: 500, lifetime: 500, jobsCount: 2 })
 })
+
+test('my applications: sign-in needed, only my own, with the job title', async () => {
+  const { GET: mineApps } = await import('@/app/api/jobs/applications/route')
+  seed()
+  getDb().tables.job_posts[0].title = 'Lead escort TX'
+  getDb().tables.job_applications = [
+    { id: 'a1', job_id: J1, applicant_id: 'escort', status: 'new', message: 'hi', created_at: new Date().toISOString() },
+    { id: 'a2', job_id: J1, applicant_id: 'other', status: 'new', message: 'hello', created_at: new Date().toISOString() },
+  ]
+  getDb().sessionUser = null
+  expect((await mineApps()).status).toBe(401)
+  as('escort')
+  const r = await (await mineApps()).json()
+  expect(r.applications.map((a: { id: string }) => a.id)).toEqual(['a1'])
+  expect(r.applications[0].job.title).toBe('Lead escort TX')
+  expect(JSON.stringify(r)).not.toMatch(/hello|other/)
+})

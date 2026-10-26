@@ -5,6 +5,7 @@ import { serviceClient } from '@/lib/service-client'
 import { HELPER_KNOWLEDGE } from '@/lib/helper-knowledge'
 import { GUIDE_CHECKED, GUIDE_SECTIONS, SOURCES } from '@/lib/guide-content'
 import { placeFor } from '@/lib/state-codes'
+import { LABELS, payText } from '@/lib/jobs'
 
 export const SITE = 'https://www.oversize-escort-hub.com'
 export const PROTOCOLS = ['2025-06-18', '2025-03-26', '2024-11-05']
@@ -46,6 +47,13 @@ export const TOOLS = [
     description: 'Open loads on the boards right now: route, escort type, pay, date and a link. No company names or contact details. Optionally filter by a state the load starts or ends in.',
     inputSchema: { type: 'object', properties: { state: { type: 'string', description: 'Optional two-letter state or province code.' }, limit: { type: 'integer', minimum: 1, maximum: MAX_ROWS } }, additionalProperties: false },
     annotations: { title: 'Open oversize loads needing escorts', ...READ_ONLY },
+  },
+  {
+    name: 'search_open_jobs',
+    title: 'Jobs: companies hiring pilot car drivers',
+    description: 'Open jobs from companies and fleets hiring pilot car / P/EVO subcontractors or drivers: title, company, contractor or employee, vehicle and gear, pay, schedule, base location and a link. Applicants and posters share contact details only after the company accepts.',
+    inputSchema: { type: 'object', properties: { state: { type: 'string', description: 'Optional two-letter state or province code the job is based in or covers.' }, limit: { type: 'integer', minimum: 1, maximum: MAX_ROWS } }, additionalProperties: false },
+    annotations: { title: 'Jobs: companies hiring pilot car drivers', ...READ_ONLY },
   },
 ] as const
 
@@ -117,12 +125,40 @@ async function loads(args: Json): Promise<ToolResult> {
   return text(list.length ? `${rows.length} open load(s)${code ? ' in ' + code : ''}, showing ${list.length}. Bids and claims need a free account.\n${lines.join('\n')}` : `No open loads${code ? ' in ' + code : ''} right now. New ones post all day: ${SITE}/open-loads`, { loads: list, total: rows.length })
 }
 
+type JobRow = { id: string; title: string; company: string | null; classification: string; equipment: string; pay_model: string; pay_min: number | null; pay_max: number | null; schedule: string; travel: string; base_city: string | null; base_state: string | null; states: string[] | null; start_date: string | null; expires_at: string | null }
+
+async function jobs(args: Json): Promise<ToolResult> {
+  let code = ''
+  if (args.state !== undefined && args.state !== '') {
+    const place = placeFor(String(args.state))
+    if (!place) return bad('Give a two-letter US state, DC or Canadian province code, for example TX, or leave state out.')
+    code = place.code
+  }
+  const { data, error } = await serviceClient().from('job_posts')
+    .select('id, title, company, classification, equipment, pay_model, pay_min, pay_max, schedule, travel, base_city, base_state, states, start_date, expires_at')
+    .eq('status', 'open').order('created_at', { ascending: false }).limit(100)
+  if (error) return bad('Jobs could not be loaded right now. Try again later.')
+  const now = Date.now()
+  const rows = ((data ?? []) as unknown as JobRow[]).filter((j) =>
+    (!j.expires_at || Date.parse(j.expires_at) > now) &&
+    (!code || j.base_state?.toUpperCase() === code || (j.states ?? []).map((s) => s.toUpperCase()).includes(code)))
+  const list = rows.slice(0, limitOf(args.limit)).map((j) => ({
+    title: j.title, company: j.company, work_type: LABELS.classification[j.classification as keyof typeof LABELS.classification] ?? j.classification,
+    vehicle_and_gear: LABELS.equipment[j.equipment as keyof typeof LABELS.equipment] ?? j.equipment, pay: payText(j),
+    schedule: LABELS.schedule[j.schedule as keyof typeof LABELS.schedule] ?? j.schedule, travel: LABELS.travel[j.travel as keyof typeof LABELS.travel] ?? j.travel,
+    base: [j.base_city, j.base_state].filter(Boolean).join(', '), covers: j.states ?? [], start_date: j.start_date, link: `${SITE}/jobs/${j.id}`,
+  }))
+  const lines = list.map((j) => `- ${j.title}${j.company ? ' (' + j.company + ')' : ''} | ${j.work_type} | ${j.pay} | ${j.schedule} | ${j.base || 'location in post'} | ${j.link}`)
+  return text(list.length ? `${rows.length} open job(s)${code ? ' in ' + code : ''}, showing ${list.length}. Applying needs a free account.\n${lines.join('\n')}` : `No open jobs${code ? ' in ' + code : ''} right now. Companies can post one at ${SITE}/post-job`, { jobs: list, total: rows.length })
+}
+
 export async function callTool(name: string, args: Json): Promise<ToolResult> {
   try {
     if (name === 'get_pilot_car_guide') return guideText(typeof args.section === 'string' ? args.section : undefined)
     if (name === 'get_site_facts') return text(HELPER_KNOWLEDGE)
     if (name === 'find_pilot_car_escorts') return await escorts(args)
     if (name === 'search_open_loads') return await loads(args)
+    if (name === 'search_open_jobs') return await jobs(args)
   } catch {
     return bad('Something went wrong. Try again later.')
   }
