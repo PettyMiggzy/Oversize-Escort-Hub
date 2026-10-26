@@ -6,6 +6,7 @@ import { BoardAdSidebar } from '@/components/BoardAdSidebar';
 import PageTitle from '@/components/PageTitle';
 import BoardTabs from '@/components/BoardTabs';
 import EmptyState from '@/components/EmptyState';
+import { VERIFICATION_LIVE } from '@/lib/verification'
 
 interface Load {
   id: string;
@@ -107,8 +108,8 @@ export function BidBoardClient() {
                             <div className="ui-route">{load.pu_city}, {load.pu_state} &rarr; {load.dl_city}, {load.dl_state}</div>
                             <div className="ui-meta" style={{ marginTop: 6, color: '#ffc46b', fontWeight: 600 }}>{load.escort_type || 'Position TBD'}</div>
                             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginTop: 10 }}>
-                              {load.bgc_verified && <span className="ui-badge green">&#10003; BGC</span>}
-                              {load.fmcsa_verified && <span className="ui-badge blue">&#10003; FMCSA</span>}
+                              {VERIFICATION_LIVE && load.bgc_verified && <span className="ui-badge green">&#10003; BGC</span>}
+                              {VERIFICATION_LIVE && load.fmcsa_verified && <span className="ui-badge blue">&#10003; FMCSA</span>}
                               {load.poster_rating && <span className="ui-meta" style={{ color: '#ffc46b' }}>&#9733; {Number(load.poster_rating).toFixed(1)} ({load.poster_jobs || 0} jobs)</span>}
                               <span className="ui-meta">Posted {new Date(load.created_at).toLocaleDateString()}</span>
                             </div>

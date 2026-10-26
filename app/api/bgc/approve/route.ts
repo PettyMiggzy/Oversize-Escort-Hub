@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { requireAdmin } from '@/lib/api-auth'
+import { VERIFICATION_LIVE } from '@/lib/verification'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,7 +31,7 @@ export async function POST(req: NextRequest) {
       .eq('id', cert_id)
     if (upErr) return NextResponse.json({ error: upErr.message }, { status: 500 })
 
-    if (cert.type === 'bgc' && cert.user_id) {
+    if (VERIFICATION_LIVE && cert.type === 'bgc' && cert.user_id) {
       const { error: badgeErr } = await svc
         .from('profiles')
         .update({ bgc_verified: true, bgc_pending: false })
@@ -40,7 +41,7 @@ export async function POST(req: NextRequest) {
 
     const _ct = (cert.type || '').toString().toLowerCase()
     const _isPevo = cert.type === 'pevo' || cert.type === 'p_evo' || _ct.includes('pevo') || _ct.includes('p/evo')
-    if (_isPevo && cert.user_id) {
+    if (VERIFICATION_LIVE && _isPevo && cert.user_id) {
       const { error: pevoErr } = await svc
         .from('profiles')
         .update({ pevo_verified: true })
@@ -49,7 +50,7 @@ export async function POST(req: NextRequest) {
     }
 
     const _isVehicle = cert.type === 'vehicle' || _ct.includes('vehicle')
-    if (_isVehicle && cert.user_id) {
+    if (VERIFICATION_LIVE && _isVehicle && cert.user_id) {
       const { error: vehErr } = await svc
         .from('profiles')
         .update({ vehicle_verified: true })

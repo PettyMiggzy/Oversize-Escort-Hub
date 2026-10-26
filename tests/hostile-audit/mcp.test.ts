@@ -79,7 +79,9 @@ test('escorts by state: public fields only, no suspended, no non-escorts, bad co
   expect(names).toEqual(['Ann Escort', 'Bob Escort'])
   const blob = JSON.stringify(r)
   expect(blob).not.toMatch(/ann@x|bob@x|555-01|Sus Pended|Carrier/)
-  expect(r.structuredContent.escorts[0]).toMatchObject({ pevo_badge: true, background_check_badge: true, pro_member: true, profile: 'https://www.oversize-escort-hub.com/escorts/e1' })
+  expect(r.structuredContent.escorts[0]).toMatchObject({ pro_member: true, profile: 'https://www.oversize-escort-hub.com/escorts/e1' })
+  // no verification claims in what an AI assistant is told
+  expect(JSON.stringify(r)).not.toMatch(/badge|verified|background/i)
   expect((await tool('find_pilot_car_escorts', { state: 'OK' })).structuredContent.escorts.map((e: { name: string }) => e.name)).toEqual(['Ann Escort'])
   expect((await tool('find_pilot_car_escorts', { state: 'TX', limit: 1 })).structuredContent.escorts).toHaveLength(1)
   expect((await tool('find_pilot_car_escorts', { state: 'ZZ' })).isError).toBe(true)

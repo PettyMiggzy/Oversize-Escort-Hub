@@ -30,14 +30,14 @@ export const TOOLS = [
   {
     name: 'get_site_facts',
     title: 'Oversize Escort Hub facts',
-    description: 'What Oversize Escort Hub is, what it costs, how the flat-rate, open-bid and 5-minute bid boards work for escorts, carriers, brokers and fleets, how verification badges work, and the privacy rules.',
+    description: 'What Oversize Escort Hub is, what it costs, how the flat-rate, open-bid and 5-minute bid boards work for escorts, carriers, brokers and fleets, and the privacy rules.',
     inputSchema: { type: 'object', properties: {}, additionalProperties: false },
     annotations: { title: 'Oversize Escort Hub facts', ...READ_ONLY },
   },
   {
     name: 'find_pilot_car_escorts',
     title: 'Find pilot car escorts by state',
-    description: 'Pilot car / P/EVO escorts who list a US state, DC or Canadian province on Oversize Escort Hub. Returns names, badges and a profile link. No phone numbers or emails: those are shared only after a carrier accepts an escort. A listing does not mean the escort is free today.',
+    description: 'Pilot car / P/EVO escorts who list a US state, DC or Canadian province on Oversize Escort Hub. Returns names and a profile link. Oversize Escort Hub does not check or verify anyone. No phone numbers or emails: those are shared only after a carrier accepts an escort. A listing does not mean the escort is free today.',
     inputSchema: { type: 'object', properties: { state: { type: 'string', description: 'Two-letter state or province code, for example TX or AB.' }, limit: { type: 'integer', minimum: 1, maximum: MAX_ROWS } }, required: ['state'], additionalProperties: false },
     annotations: { title: 'Find pilot car escorts by state', ...READ_ONLY },
   },
@@ -68,12 +68,12 @@ function guideText(sectionId?: string): ToolResult {
   return text(`Pilot car beginner guide (last checked ${GUIDE_CHECKED}). Rules are set by each state and change: confirm with the state permit office. Full page: ${SITE}/pilot-car-guide\n\n${out}`)
 }
 
-type EscortRow = { id: string; full_name: string | null; tier: string | null; bgc_verified: boolean | null; pevo_verified: boolean | null; p_evo_verified: boolean | null; availability_states: string[] | null; states_licensed: string[] | null }
+type EscortRow = { id: string; full_name: string | null; tier: string | null; availability_states: string[] | null; states_licensed: string[] | null }
 
 async function escorts(args: Json): Promise<ToolResult> {
   const place = placeFor(String(args.state ?? ''))
   if (!place) return bad('Give a two-letter US state, DC or Canadian province code, for example TX.')
-  const cols = 'id, full_name, tier, bgc_verified, pevo_verified, p_evo_verified, availability_states, states_licensed'
+  const cols = 'id, full_name, tier, availability_states, states_licensed'
   const svc = serviceClient()
   const q = (col: string) => svc.from('profiles').select(cols).eq('role', 'escort').or('suspended.is.null,suspended.eq.false').contains(col, [place.code]).limit(60)
   const [a, b] = await Promise.all([q('availability_states'), q('states_licensed')])
@@ -84,10 +84,10 @@ async function escorts(args: Json): Promise<ToolResult> {
   rows.sort((x, y) => (x.full_name || '').localeCompare(y.full_name || ''))
   const list = rows.slice(0, limitOf(args.limit)).map((r) => ({
     name: r.full_name || 'Escort', profile: `${SITE}/escorts/${r.id}`,
-    background_check_badge: !!r.bgc_verified, pevo_badge: !!(r.pevo_verified || r.p_evo_verified), pro_member: r.tier === 'pro',
+    pro_member: r.tier === 'pro',
     states: [...new Set([...(r.availability_states ?? []), ...(r.states_licensed ?? [])].map((s) => String(s).toUpperCase()))],
   }))
-  const lines = list.map((e) => `- ${e.name}: ${e.profile}${e.pevo_badge ? ' (P/EVO badge)' : ''}${e.background_check_badge ? ' (background check badge)' : ''}; covers ${e.states.join(', ')}`)
+  const lines = list.map((e) => `- ${e.name}: ${e.profile}; covers ${e.states.join(', ')}`)
   return text(list.length ? `${rows.length} escort(s) list ${place.name}${rows.length > list.length ? `, showing ${list.length}` : ''}. Contact details are shared only after a carrier accepts an escort; open a profile or post a load at ${SITE}/quick-post.\n${lines.join('\n')}` : `No escorts list ${place.name} yet. A carrier can still post a load at ${SITE}/quick-post and escorts get alerts.`, { escorts: list, total: rows.length })
 }
 

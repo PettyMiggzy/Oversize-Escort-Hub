@@ -12,6 +12,7 @@ import { isNativeApp } from '@/lib/native';
 import PageTitle from '@/components/PageTitle';
 import BoardTabs from '@/components/BoardTabs';
 import EmptyState from '@/components/EmptyState';
+import { VERIFICATION_LIVE } from '@/lib/verification'
 
 const toTitleCase = (str?: string) =>
   str ? str.replace(/\w\S*/g, t => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()) : '';
@@ -264,7 +265,7 @@ export function FlatRateBoardClient() {
                   {sponsoredEscorts.map(esc => (
                     <div key={esc.id} className="ui-side-card" style={{ minWidth: 170, flexShrink: 0, margin: 0, padding: '10px 14px', borderColor: 'rgba(255,196,107,.4)' }}>
                       <div className="t" style={{ margin: '0 0 4px', fontSize: 14 }}>{esc.full_name || 'Escort'}</div>
-                      {esc.bgc_verified && <span className="ui-badge green">&#10003; BGC</span>}
+                      {VERIFICATION_LIVE && esc.bgc_verified && <span className="ui-badge green">&#10003; BGC</span>}
                     </div>
                   ))}
                 </div>
@@ -295,8 +296,8 @@ export function FlatRateBoardClient() {
                         <div className="ui-meta" style={{ marginTop: 6, color: '#6b7686' }}>Certs: {(load.cert_types as string[]).join(', ')}</div>
                       )}
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginTop: 10 }}>
-                        {load.bgc_verified && <span className="ui-badge green">&#10003; BGC</span>}
-                        {load.fmcsa_verified && <span className="ui-badge blue">&#10003; FMCSA</span>}
+                        {VERIFICATION_LIVE && load.bgc_verified && <span className="ui-badge green">&#10003; BGC</span>}
+                        {VERIFICATION_LIVE && load.fmcsa_verified && <span className="ui-badge blue">&#10003; FMCSA</span>}
                         {load.poster_rating && <span className="ui-meta" style={{ color: '#ffc46b' }}>&#9733; {Number(load.poster_rating).toFixed(1)} ({load.poster_jobs || 0} jobs)</span>}
                       </div>
                       <div className="ui-meta" style={{ marginTop: 8 }}>

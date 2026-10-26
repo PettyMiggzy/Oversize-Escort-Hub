@@ -47,7 +47,6 @@ const fleetFeatures = [
   'Deadhead Minimizer for all escorts',
   'Multi-escort job coordination',
   'Sponsored zone eligibility',
-  'BGC badge support per escort',
 ];
 
 function JoinPageInner() {
@@ -111,7 +110,7 @@ function JoinPageInner() {
             <div className="ui-card" style={{ display: 'flex', flexDirection: 'column' }}>
               <h2 style={{ color: 'var(--ui-or)' }}>P/EVO Escort</h2>
               <p className="ui-note" style={{ marginBottom: 20 }}>
-                Pilot/escort vehicle operators. Access load matching, escort profiles, BGC badge, and more.
+                Pilot/escort vehicle operators. Access load matching, escort profiles, and more.
               </p>
               <div style={{ borderTop: '1px solid var(--ui-line)', paddingTop: 20, marginTop: 'auto' }}>
                 <div className="ui-note">Member – Free</div>

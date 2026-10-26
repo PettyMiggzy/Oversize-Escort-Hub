@@ -1,4 +1,5 @@
 import { sendEmail } from '@/lib/email'
+import { VERIFICATION_LIVE, NOT_AVAILABLE } from '@/lib/verification'
 import { NextResponse } from 'next/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { requireAuth } from '@/lib/api-auth'
@@ -6,6 +7,7 @@ import { escapeHtml } from '@/lib/security'
 import { signedDocUrl } from '@/lib/signed-url'
 
 export async function POST(req: Request) {
+  if (!VERIFICATION_LIVE) return NextResponse.json({ error: NOT_AVAILABLE }, { status: 410 })
   const { user, error: authErr } = await requireAuth()
   if (authErr) return authErr
   try {

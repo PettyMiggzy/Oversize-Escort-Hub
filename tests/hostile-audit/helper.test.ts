@@ -106,7 +106,11 @@ test('a model error or a refusal never breaks the chat', async () => {
 
 test('the facts match the real pricing page and keep the rules about money and privacy', () => {
   const pricing = fs.readFileSync('app/pricing/page.tsx', 'utf8')
-  for (const p of ['$9.99', '$14.99', '$29.99', '$19.99']) { expect(pricing).toContain(p); expect(HELPER_KNOWLEDGE).toContain(p) }
+  for (const p of ['$29.99', '$19.99']) { expect(pricing).toContain(p); expect(HELPER_KNOWLEDGE).toContain(p) }
+  // the background-check and certificate-review products are gone from the site and from what the helper says
+  expect(pricing).not.toMatch(/BGC Badge|Cert Review/)
+  expect(HELPER_KNOWLEDGE).not.toMatch(/\$9\.99|\$14\.99/)
+  expect(HELPER_KNOWLEDGE).toMatch(/does not check or verify/)
   expect(HELPER_KNOWLEDGE).toMatch(/free while we launch/i)
   expect(HELPER_SYSTEM).toMatch(/Never guess a price/)
   expect(HELPER_SYSTEM).toMatch(/Do not name a particular state agency/)

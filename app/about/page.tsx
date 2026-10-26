@@ -4,11 +4,11 @@ import Title3D from '@/components/Title3D'
 
 export const metadata: Metadata = {
   title: 'About',
-  description: 'Founded by Brian Ahmed, OEH connects oversize carriers with licensed, verified P/EVO escorts across the US.',
+  description: 'Founded by Brian Ahmed, OEH connects oversize carriers with P/EVO escorts across the US.',
   alternates: { canonical: '/about' },
   openGraph: {
     title: 'About | Oversize Escort Hub',
-    description: 'Founded by Brian Ahmed, OEH connects oversize carriers with licensed, verified P/EVO escorts.',
+    description: 'Founded by Brian Ahmed, OEH connects oversize carriers with P/EVO escorts.',
     url: 'https://www.oversize-escort-hub.com/about',
     siteName: 'Oversize Escort Hub',
   },
@@ -30,17 +30,17 @@ export default function AboutPage() {
         <div style={card}>
           <h2 style={{ fontSize: 18, fontWeight: 700, color: '#f60', marginBottom: 16 }}>Our Story</h2>
           <p style={{ color: '#cbd5e1', fontSize: 14, lineHeight: 1.8, marginBottom: 12 }}>
-            Oversize Escort Hub was founded by Brian Ahmed — a former law enforcement officer turned semi driver and licensed P/EVO escort. After years on both sides of the oversize transport industry, Brian identified a critical gap: escorts and carriers had no reliable, verified marketplace to connect.
+            Oversize Escort Hub was founded by Brian Ahmed — a former law enforcement officer turned semi driver and licensed P/EVO escort. After years on both sides of the oversize transport industry, Brian identified a critical gap: escorts and carriers had no simple, free place to find each other.
           </p>
           <p style={{ color: '#cbd5e1', fontSize: 14, lineHeight: 1.8 }}>
-            Too many escorts were finding loads through informal channels, and too many carriers were hiring unverified pilots without proper credentials. Brian built OEH to solve this — a platform where trust, verification, and reliability come first.
+            Too many escorts were finding loads through informal channels, and carriers had no easy way to reach the escorts they needed. Brian built OEH to solve this — a free marketplace where carriers and escorts deal with each other directly.
           </p>
         </div>
 
         <div style={card}>
           <h2 style={{ fontSize: 18, fontWeight: 700, color: '#f60', marginBottom: 16 }}>Our Mission</h2>
           <p style={{ color: '#cbd5e1', fontSize: 14, lineHeight: 1.8 }}>
-            To connect oversize carriers with licensed, verified P/EVO escorts — making every haul safer, more professional, and more efficient. We believe that when the right people are matched with the right loads, the entire industry improves.
+            To connect oversize carriers with P/EVO escorts — making every haul safer, more professional, and more efficient. We believe that when the right people are matched with the right loads, the entire industry improves.
           </p>
         </div>
 
@@ -48,8 +48,8 @@ export default function AboutPage() {
           <h2 style={{ fontSize: 18, fontWeight: 700, color: '#f60', marginBottom: 16 }}>Our Values</h2>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
             {[
-              { icon: '🛡️', name: 'Safety', desc: 'Every escort on OEH is verified before going live.' },
-              { icon: '✅', name: 'Verification', desc: 'BGC badges and license checks keep the platform clean.' },
+              { icon: '🛡️', name: 'Safety', desc: 'Check licenses, insurance and permits yourself before any job. We do not check them for you.' },
+              { icon: '✅', name: 'Transparency', desc: 'We say plainly what we do and do not do. Contact details stay private until a carrier accepts.' },
               { icon: '⚡', name: 'Reliability', desc: 'Fast matching, clear communication, no guesswork.' },
             ].map(v => (
               <div key={v.name} style={{ background: '#16213a', borderRadius: 8, padding: '16px 14px', textAlign: 'center' }}>

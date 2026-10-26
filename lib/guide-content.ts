@@ -117,7 +117,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
     body: [
       'Oversize Escort Hub is a free place where carriers and brokers post loads and pilot car drivers find them. Creating an account is free while we launch.',
       'Make a free account as an escort, add the states you cover so you get alerts for them, and fill in your certifications and vehicle. You can then browse three boards: Flat Rate (fixed pay, direct hire), Open Bid (you bid, the carrier compares) and the 5-Minute Bid Board (live loads on a timer). When a carrier accepts you, you each get the other\'s phone and email. Phone numbers are never shown publicly.',
-      'You can also add a background-check badge and a P/EVO certificate review to your profile so carriers can see you are verified. Those two are paid add-ons; see the pricing page.',
+      'Nobody here checks or verifies anyone: licenses, certifications and insurance are shown as the people entered them. Check them yourself before you hire or accept work. You can add documents to your profile if you want carriers to see them.',
     ],
     sources: [],
   },

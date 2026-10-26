@@ -13,10 +13,10 @@ export const viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.oversize-escort-hub.com"),
   title: {
-    default: "Oversize Escort Hub | Verified P/EVO Escorts & Oversize Load Board",
+    default: "Oversize Escort Hub | P/EVO Escorts & Oversize Load Board",
     template: "%s | Oversize Escort Hub",
   },
-  description: "The marketplace for oversize load carriers and verified P/EVO pilot car escorts. Post loads, find escorts, bid on jobs. No commissions. Flat subscription only.",
+  description: "The marketplace for oversize load carriers and P/EVO pilot car escorts. Post loads, find escorts, bid on jobs. No commissions. Flat subscription only.",
   keywords: [
     "oversize escort", "pilot car escort", "PEVO escort", "P/EVO operator",
     "oversize load board", "pilot car driver", "oversize load escort",
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     "pilot car company", "oversize transport escort", "wide load escort",
     "oversize load marketplace", "escort driver", "oversize permit",
     "freight broker oversize", "oversize load job board", "deadhead minimizer",
-    "oversize escort marketplace", "pilot car verification"
+    "oversize escort marketplace"
   ],
   authors: [{ name: "Oversize Escort Hub", url: "https://www.oversize-escort-hub.com" }],
   creator: "Oversize Escort Hub",
@@ -44,21 +44,21 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://www.oversize-escort-hub.com",
     siteName: "Oversize Escort Hub",
-    title: "Oversize Escort Hub | Verified P/EVO Escorts & Oversize Load Board",
-    description: "The marketplace for oversize load carriers and verified P/EVO pilot car escorts. Post loads, find escorts, bid on jobs. No commissions. Flat subscription only.",
+    title: "Oversize Escort Hub | P/EVO Escorts & Oversize Load Board",
+    description: "The marketplace for oversize load carriers and P/EVO pilot car escorts. Post loads, find escorts, bid on jobs. No commissions. Flat subscription only.",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Oversize Escort Hub - Verified P/EVO Marketplace",
+        alt: "Oversize Escort Hub - P/EVO Marketplace",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Oversize Escort Hub | Verified P/EVO Escorts & Load Board",
-    description: "The marketplace for oversize carriers and verified P/EVO escorts. No commissions. Post loads, find escorts, bid on jobs.",
+    title: "Oversize Escort Hub | P/EVO Escorts & Load Board",
+    description: "The marketplace for oversize carriers and P/EVO escorts. No commissions. Post loads, find escorts, bid on jobs.",
     images: ["/og-image.png"],
     creator: "@OversizeEscort",
   },
@@ -84,7 +84,7 @@ export default function RootLayout({
               "@type": "WebSite",
               name: "Oversize Escort Hub",
               url: "https://www.oversize-escort-hub.com",
-              description: "The marketplace for oversize load carriers and verified P/EVO pilot car escorts.",
+              description: "The marketplace for oversize load carriers and P/EVO pilot car escorts.",
             }),
           }}
         />
@@ -103,7 +103,7 @@ export default function RootLayout({
                 contactType: "Customer Support",
               },
               sameAs: ["https://www.facebook.com/oversizeescorthub"],
-              description: "Verified marketplace connecting oversize load carriers with licensed P/EVO pilot car escorts. Built by a former truck driver and pilot car escort.",
+              description: "Marketplace connecting oversize load carriers with P/EVO pilot car escorts. Built by a former truck driver and pilot car escort.",
               foundingDate: "2026",
               founder: {
                 "@type": "Person",

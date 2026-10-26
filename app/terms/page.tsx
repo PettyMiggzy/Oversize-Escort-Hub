@@ -35,7 +35,7 @@ export default function TermsOfService() {
         </section>
         <section style={{ marginBottom: 32 }}>
           <h2 style={{ color: "#fff", fontSize: 18, marginBottom: 12 }}>2. Platform Description</h2>
-          <p>Oversize Escort Hub is a verified marketplace connecting oversize load carriers with licensed pilot car (P/EVO) escorts and freight brokers. We are not a party to agreements between users and do not guarantee load or escort availability.</p>
+          <p>Oversize Escort Hub is a marketplace connecting oversize load carriers with pilot car (P/EVO) escorts and freight brokers. We do not check or verify users, licenses, certifications, insurance or vehicles. We are not a party to agreements between users and do not guarantee load or escort availability.</p>
         </section>
         <section style={{ marginBottom: 32 }}>
           <h2 style={{ color: "#fff", fontSize: 18, marginBottom: 12 }}>3. Eligibility</h2>
@@ -81,8 +81,8 @@ export default function TermsOfService() {
           <p>By submitting content you grant Oversize Escort Hub a non-exclusive, worldwide, royalty-free license to display and distribute it to operate the Platform. You confirm you own or have rights to the content submitted.</p>
         </section>
         <section style={{ marginBottom: 32 }}>
-          <h2 style={{ color: "#fff", fontSize: 18, marginBottom: 12 }}>8. Verification</h2>
-          <p>Verification badges are based on user-submitted information. We do not guarantee accuracy of all credentials. Background checks require a non-refundable fee and manual review.</p>
+          <h2 style={{ color: "#fff", fontSize: 18, marginBottom: 12 }}>8. No verification</h2>
+          <p>Profiles, load posts, documents and credentials are entered by the users themselves. Oversize Escort Hub does not check, verify, vouch for or guarantee any of it, including licenses, certifications, background, insurance, vehicles, operating authority or identity. Check before you hire or accept work.</p>
         </section>
         <section style={{ marginBottom: 32 }}>
           <h2 style={{ color: "#fff", fontSize: 18, marginBottom: 12 }}>9. Limitation of Liability</h2>
@@ -118,7 +118,7 @@ export default function TermsOfService() {
           </section>
           <section style={{ marginBottom: 32 }}>
             <h2 style={{ color: "#fff", fontSize: 18, marginBottom: 12 }}>18. FMCSA DOT Number Collection &amp; Verification</h2>
-            <p style={{ color: "#ccc" }}>When carriers post loads, they may optionally provide their USDOT number. OEH uses the FMCSA QCMobile public API to verify the DOT number against the FMCSA carrier database. Verified loads display an FMCSA Verified badge. OEH stores the verification result and the carrier&apos;s legal name alongside the load record. DOT numbers and verification results are visible to Platform users. OEH does not guarantee the accuracy of FMCSA data and is not responsible for errors in the government database.</p>
+            <p style={{ color: "#ccc" }}>When carriers post loads, they may optionally provide their USDOT number. OEH does not check or verify the number and displays no verified badge. A DOT number a carrier provides is entered by the carrier and may be visible to Platform users. OEH does not guarantee that any DOT number or other carrier information is accurate or current.</p>
           </section>
           <section style={{ marginBottom: 32 }}>
             <h2 style={{ color: "#fff", fontSize: 18, marginBottom: 12 }}>19. Weather Data Display</h2>
@@ -134,7 +134,7 @@ export default function TermsOfService() {
           </section>
           <section style={{ marginBottom: 32 }}>
             <h2 style={{ color: "#fff", fontSize: 18, marginBottom: 12 }}>22. MC/DOT Number Collection for Fraud Prevention</h2>
-            <p style={{ color: "#ccc" }}>OEH collects MC (Motor Carrier) and DOT numbers from carriers for identity verification and fraud prevention purposes. This information is used to verify carrier account legitimacy and cross-reference FMCSA public records. MC/DOT numbers are stored securely and are not sold to third parties. Providing false or invalid MC/DOT numbers violates these Terms and may result in immediate account termination.</p>
+            <p style={{ color: "#ccc" }}>OEH may collect MC (Motor Carrier) and DOT numbers from carriers. OEH does not verify them. They are used for account records and fraud prevention. MC/DOT numbers are stored securely and are not sold to third parties. Providing false or invalid MC/DOT numbers violates these Terms and may result in immediate account termination.</p>
           </section> <section style={{marginBottom:32}}><h2 style={{color:"#fff",fontSize:18,marginBottom:12}}>23. Escort Availability Board</h2><p style={{color:"#ccc"}}>The Escort Availability Board allows licensed P/EVO escorts to post their availability window, location, and certifications. Carriers may contact escorts directly. OEH does not guarantee job placement or successful matching through the board.</p></section><section style={{marginBottom:32}}><h2 style={{color:"#fff",fontSize:18,marginBottom:12}}>24. SMS Load Posting</h2><p style={{color:"#ccc"}}>Pro subscribers and carriers may post loads via SMS. Standard carrier messaging rates may apply. OEH is not responsible for delivery failures. SMS load posting requires opt-in and compliance with all applicable 10DLC messaging regulations.</p></section><section style={{marginBottom:32}}><h2 style={{color:"#fff",fontSize:18,marginBottom:12}}>25. BGC Badge and Refund Policy</h2><p style={{color:"#ccc"}}>The BGC Badge is a one-time $9.99 fee. This fee is non-refundable once the background check process has been initiated. OEH does not guarantee employment or matching based on BGC status.</p></section><section style={{marginBottom:32}}><h2 style={{color:"#fff",fontSize:18,marginBottom:12}}>26. Canadian Province Support</h2><p style={{color:"#ccc"}}>OEH supports load posting and escort operations across Canadian provinces. Users are solely responsible for complying with all applicable provincial permits, regulations, and cross-border transportation laws.</p></section><section style={{marginBottom:32}}><h2 style={{color:"#fff",fontSize:18,marginBottom:12}}>27. Curfew and State Route Disclaimer</h2><p style={{color:"#ccc"}}>Curfew hours, travel time restrictions, and permit information displayed on OEH are for reference only and may not be current. Users must verify all requirements with the appropriate state or provincial authority before each trip.</p></section>
           
         <section style={{ marginBottom: 32 }}>
@@ -159,7 +159,7 @@ export default function TermsOfService() {
         </section>
         <section style={{ marginBottom: 32 }}>
           <h2 style={{ color: "#fff", fontSize: 18, marginBottom: 12 }}>33. SMS Messaging & 10DLC Compliance</h2>
-          <p style={{ color: "#ccc" }}>OEH's SMS features — including load-posting notifications, match alerts, verification reminders, and transactional account messages — are delivered over a 10DLC-registered A2P messaging campaign in compliance with CTIA guidelines and applicable carrier requirements. You may receive messages only after explicit opt-in. Standard messaging and data rates may apply. Reply <strong>STOP</strong> to unsubscribe or <strong>HELP</strong> for assistance at any time. OEH does not share your phone number or SMS opt-in with third parties for marketing purposes. Consent to receive SMS is not a condition of using the Platform or purchasing a subscription.</p>
+          <p style={{ color: "#ccc" }}>OEH's SMS features — including load-posting notifications, match alerts, and transactional account messages — are delivered over a 10DLC-registered A2P messaging campaign in compliance with CTIA guidelines and applicable carrier requirements. You may receive messages only after explicit opt-in. Standard messaging and data rates may apply. Reply <strong>STOP</strong> to unsubscribe or <strong>HELP</strong> for assistance at any time. OEH does not share your phone number or SMS opt-in with third parties for marketing purposes. Consent to receive SMS is not a condition of using the Platform or purchasing a subscription.</p>
         </section>
         <section style={{ marginBottom: 32 }}>
           <h2 style={{ color: "#fff", fontSize: 18, marginBottom: 12 }}>34. In-App Purchase & Subscription Management Policy</h2>
@@ -167,7 +167,7 @@ export default function TermsOfService() {
         </section>
         <section style={{ marginBottom: 32 }}>
           <h2 style={{ color: "#fff", fontSize: 18, marginBottom: 12 }}>35. Paid Add-Ons and Refunds</h2>
-          <p style={{ color: "#ccc" }}>Using the Platform is free while we launch. Add-ons are one-time purchases made on our website, never inside the mobile app: the BGC badge review ($9.99), the P/EVO certificate review ($14.99), and a Sponsored Zone ($29.99 for 30 days, one sponsor per state). The BGC and certificate fees pay for our review of your documents, not for approval: a review that ends in a rejection is still a completed review. Once a review has started, the fee is not refundable. If you paid and we have not started the review, ask within 7 days at support@oversize-escort-hub.com and we will refund you. A Sponsored Zone can be refunded in full if you ask within 24 hours of purchase and your listing has not been shown; after that it runs for its 30 days and is not refundable, and it ends on its own without renewing. We may remove a listing or refuse a purchase that breaks these Terms, and in that case we will refund the unused part. Payments are handled by Stripe. We do not store your card number.</p>
+          <p style={{ color: "#ccc" }}>Using the Platform is free while we launch. Paid extras are one-time purchases made on our website, never inside the mobile app. Today the only one is a Sponsored Zone ($29.99 for 30 days, one sponsor per state). A Sponsored Zone can be refunded in full if you ask within 24 hours of purchase and your listing has not been shown; after that it runs for its 30 days and is not refundable, and it ends on its own without renewing. We may remove a listing or refuse a purchase that breaks these Terms, and in that case we will refund the unused part. Payments are handled by Stripe. We do not store your card number.</p>
         </section>
         <section style={{ marginBottom: 32 }}>
           <h2 style={{ color: "#fff", fontSize: 18, marginBottom: 12 }}>36. Jobs board</h2>

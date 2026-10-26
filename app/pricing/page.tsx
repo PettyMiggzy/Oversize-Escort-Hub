@@ -19,8 +19,8 @@ const PRICES = {
 };
 
 async function startCheckout(priceId: string, setLoading: (v: string) => void, zone?: string) {
-  // While the launch is free the plans are not sold. Add-ons (BGC badge, cert review, sponsored zones) always are.
-  const addOns: string[] = [PRICES.sponsored_zone, PRICES.bgc, PRICES.pevo_member, PRICES.pevo_pro];
+  // While the launch is free the plans are not sold. Sponsored zones always are.
+  const addOns: string[] = [PRICES.sponsored_zone];
   if (FREE_LAUNCH && !addOns.includes(priceId)) {
     const { data: { user } } = await createClient().auth.getUser();
     window.location.href = user ? '/dashboard' : '/signin';
@@ -223,7 +223,7 @@ export default function PricingPage() {
         {FREE_LAUNCH && (
           <div className="ui-card warn" style={{ padding: "18px 22px", margin: "0 auto 28px", maxWidth: 760, textAlign: "center" }}>
             <div style={{ color: ORANGE, fontFamily: "'Plus Jakarta Sans', Inter, sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-.02em" }}>Free while we launch</div>
-            <p style={{ color: TEXT, fontSize: 15, margin: "8px 0 14px" }}>Using Oversize Escort Hub is free: every plan feature is unlocked for every account, with no card needed. Add-ons below (BGC badge, P/EVO cert review, sponsored zones) are one-time purchases. We will give plenty of notice before any plan costs anything.</p>
+            <p style={{ color: TEXT, fontSize: 15, margin: "8px 0 14px" }}>Using Oversize Escort Hub is free: every plan feature is unlocked for every account, with no card needed. Sponsored zones below are a one-time purchase. We will give plenty of notice before any plan costs anything.</p>
             <a href="/signin" className="ui-btn">Create your free account</a>
           </div>
         )}
@@ -236,7 +236,7 @@ export default function PricingPage() {
           <div className="ui-fit" style={{ marginBottom: 40 }}>
             <Card>
               <PriceHeader label="Escorts" price="$0" period=" while we launch" />
-              <Features items={["Flat-rate, open-bid and 5-minute bid boards", "Bid on loads and see contact info when matched", "Deadhead Minimizer", "Load and bid alerts by email", "Verification badges", "Reviews"]} />
+              <Features items={["Flat-rate, open-bid and 5-minute bid boards", "Bid on loads and see contact info when matched", "Deadhead Minimizer", "Load and bid alerts by email", "Reviews"]} />
               <CTA label="Join as an escort" onClick={() => { window.location.href = "/signin?mode=signup&role=escort"; }} />
             </Card>
             <Card highlight>
@@ -285,7 +285,6 @@ export default function PricingPage() {
               "SMS load posting (coming soon)",
               "Deadhead Minimizer",
               "Escort Availability Board",
-              "First cert verification free",
               "Priority listing + Invoice Generator",
             ]} />
             <CTA label="Get Pro" onClick={() => startCheckout(PRICES.pro, setLoading)} loading={loading === PRICES.pro} />
@@ -332,7 +331,7 @@ export default function PricingPage() {
             <div style={{ color: MUTED, fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 6 }}>Carrier</div>
             <div style={{ fontSize: 32, fontWeight: 800, color: TEXT }}>Always Free</div>
             <div style={{ color: MUTED, fontSize: 13, marginTop: 8, maxWidth: 520, lineHeight: 1.6 }}>
-              Post unlimited loads on all 3 boards, FMCSA-verified badge, permit directory, and carrier dashboard. No subscription required.
+              Post unlimited loads on all 3 boards, the permit directory, and the carrier dashboard. No subscription required.
             </div>
           </div>
           <GhostCTA label="Sign Up Free" href="/signin" />
@@ -342,30 +341,6 @@ export default function PricingPage() {
         {/* SECTION 4 — ADD-ONS */}
         <SectionTitle subtitle="One-time purchases and boosts">Add-Ons</SectionTitle>
         <div className="ui-fit">
-          <Card>
-            <PriceHeader label="BGC Badge" price="$9.99" period=" one-time" />
-            <Features items={[
-              "Background check review",
-              "Badge appears on profile upon approval",
-            ]} />
-            <CTA label="Get BGC Badge" onClick={() => startCheckout(PRICES.bgc, setLoading)} loading={loading === PRICES.bgc} />
-          </Card>
-          <Card>
-            <PriceHeader label={FREE_LAUNCH ? "P/EVO Cert Review" : "P/EVO Cert Review — Member"} price="$14.99" period={FREE_LAUNCH ? " one-time" : undefined} />
-            <Features items={[
-              FREE_LAUNCH ? "Cert document review" : "Cert document review for Member tier",
-              "Covers Cert Review + Verification",
-            ]} />
-            <CTA label="Buy Review" onClick={() => startCheckout(PRICES.pevo_member, setLoading)} loading={loading === PRICES.pevo_member} />
-          </Card>
-          {!FREE_LAUNCH && (<Card>
-            <PriceHeader label="P/EVO Cert Review — Pro" price="$9.99" />
-            <Features items={[
-              "Discounted for Pro tier",
-              "Covers Cert Review + Verification",
-            ]} />
-            <CTA label="Buy Review" onClick={() => startCheckout(PRICES.pevo_pro, setLoading)} loading={loading === PRICES.pevo_pro} />
-          </Card>)}
           {!isNativeApp() && (<Card>
             <div id="sponsored" />
             <PriceHeader label="Sponsored Zone" price="$29.99" period="/30 days" />

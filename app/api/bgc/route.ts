@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { VERIFICATION_LIVE, NOT_AVAILABLE } from '@/lib/verification'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient as createSvcClient } from '@supabase/supabase-js'
 import { serviceClient } from '@/lib/service-client'
@@ -47,6 +48,7 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  if (!VERIFICATION_LIVE) return NextResponse.json({ error: NOT_AVAILABLE }, { status: 410 })
   // Auth via session
   const supabase = await createServerClient()
   const { data: { user } } = await supabase.auth.getUser()

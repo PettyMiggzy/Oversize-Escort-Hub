@@ -3,6 +3,7 @@ import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/api-auth";
 import { signedDocUrl } from "@/lib/signed-url";
+import { VERIFICATION_LIVE } from "@/lib/verification";
 import { DOC_EXT, DOC_LIMITS, DOC_MIME, canUseDocs, sniffDocType } from "@/lib/profile-docs";
 
 export const dynamic = "force-dynamic";
@@ -62,7 +63,7 @@ export async function POST(req: NextRequest) {
     // P/EVO cert review uploads require the pevo paywall purchase first
     const normalizedType = certType === "p_evo" ? "pevo" : certType;
     const lowered = normalizedType.toLowerCase();
-    if (lowered.includes("pevo") || lowered.includes("p/evo")) {
+    if (VERIFICATION_LIVE && (lowered.includes("pevo") || lowered.includes("p/evo"))) {
       const { data: prof } = await serviceClient()
         .from("profiles")
         .select("pevo_paid")
@@ -86,7 +87,7 @@ export async function POST(req: NextRequest) {
 
     // Admin queues + /api/bgc/approve read certifications (status pending), not escort_certs.
     const type = normalizedType;
-    const isPevoType = lowered.includes("pevo") || lowered.includes("p/evo");
+    const isPevoType = VERIFICATION_LIVE && (lowered.includes("pevo") || lowered.includes("p/evo"));
     const { data, error } = await serviceClient()
       .from("certifications")
       .insert({
@@ -140,12 +141,12 @@ export async function PUT(req: NextRequest) {
 
     const ct = (cert?.type || "").toString().toLowerCase();
     const isPevo = ct === "pevo" || ct.includes("pevo") || ct.includes("p/evo");
-    if (isPevo && cert?.user_id) {
+    if (VERIFICATION_LIVE && isPevo && cert?.user_id) {
       const { error: pevoErr } = await svc.from("profiles").update({ pevo_verified: true }).eq("id", cert.user_id);
       if (pevoErr) throw pevoErr;
     }
     const isVehicle = ct === "vehicle" || ct.includes("vehicle");
-    if (isVehicle && cert?.user_id) {
+    if (VERIFICATION_LIVE && isVehicle && cert?.user_id) {
       const { error: vehErr } = await svc.from("profiles").update({ vehicle_verified: true }).eq("id", cert.user_id);
       if (vehErr) throw vehErr;
     }

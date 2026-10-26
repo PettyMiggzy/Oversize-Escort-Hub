@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireAdmin } from '@/lib/api-auth'
+import { VERIFICATION_LIVE } from '@/lib/verification'
 
 export const dynamic = 'force-dynamic'
 
@@ -42,8 +43,9 @@ export async function POST(req: NextRequest) {
     update.role = body.role
   }
   if (typeof body.suspended === 'boolean') update.suspended = body.suspended
-  if (typeof body.pevo_verified === 'boolean') update.pevo_verified = body.pevo_verified
-  if (typeof body.bgc_verified === 'boolean') update.bgc_verified = body.bgc_verified
+  // badges are off: an admin cannot hand one out by accident
+  if (VERIFICATION_LIVE && typeof body.pevo_verified === 'boolean') update.pevo_verified = body.pevo_verified
+  if (VERIFICATION_LIVE && typeof body.bgc_verified === 'boolean') update.bgc_verified = body.bgc_verified
   if (!Object.keys(update).length) return NextResponse.json({ error: 'Nothing to change' }, { status: 400 })
 
   const { data, error } = await svc.from('profiles').update(update).eq('id', userId).select('id, tier, role, suspended, pevo_verified, bgc_verified')

@@ -1,3 +1,4 @@
+import { VERIFICATION_LIVE, NOT_AVAILABLE } from '@/lib/verification'
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { createCheckoutSession, getVeteranCouponId, STRIPE_PRICE_IDS } from '@/lib/stripe-utils';
@@ -31,6 +32,11 @@ export async function POST(req: NextRequest) {
     // only our own products can be bought here
     if (typeof priceId !== 'string' || !Object.values(STRIPE_PRICE_IDS).includes(priceId)) {
       return NextResponse.json({ error: 'Unknown product' }, { status: 400 });
+    }
+
+    // background-check and certificate-review add-ons are not sold (we do not check or vouch for anyone)
+    if (!VERIFICATION_LIVE && [STRIPE_PRICE_IDS.BGC_BADGE, STRIPE_PRICE_IDS.PEVO_MEMBER_REVIEW, STRIPE_PRICE_IDS.PEVO_PRO_REVIEW].includes(priceId)) {
+      return NextResponse.json({ error: NOT_AVAILABLE }, { status: 410 });
     }
 
     // Free launch: monthly plans are not sold. Add-ons (BGC badge, P/EVO cert review, sponsored zones) always are.

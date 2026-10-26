@@ -7,6 +7,7 @@ import EmptyState from '@/components/EmptyState'
 import { serviceClient } from '@/lib/service-client'
 import { PUBLIC_PROFILE_SELECT } from '@/lib/profile-columns'
 import { placeFor, STATIC_STATE_CODES } from '@/lib/state-codes'
+import { VERIFICATION_LIVE } from '@/lib/verification'
 
 export const revalidate = 3600
 
@@ -127,8 +128,8 @@ export default async function PilotCarEscortsStatePage({ params }: Props) {
                       <div className="ui-route">{row.full_name?.trim() || 'Unnamed'}</div>
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
                         {row.tier === 'pro' && <span className="ui-badge orange">Pro</span>}
-                        {row.bgc_verified && <span className="ui-badge green">BGC</span>}
-                        {(row.pevo_verified || row.p_evo_verified) && <span className="ui-badge blue">P/EVO</span>}
+                        {VERIFICATION_LIVE && row.bgc_verified && <span className="ui-badge green">BGC</span>}
+                        {VERIFICATION_LIVE && (row.pevo_verified || row.p_evo_verified) && <span className="ui-badge blue">P/EVO</span>}
                       </div>
                       {states.length > 0 && (
                         <div className="ui-meta" style={{ marginTop: 10 }}>States covered: {states.join(', ')}</div>

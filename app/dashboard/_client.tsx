@@ -11,6 +11,7 @@ import { withFreeLaunch, effectiveTier } from '@/lib/free-launch'
 import SiteHeader from '@/components/SiteHeader'
 import PageTitle from '@/components/PageTitle'
 import EmptyState from '@/components/EmptyState'
+import { VERIFICATION_LIVE } from '@/lib/verification'
 const BG = 'transparent'
 const SURFACE = 'transparent'
 const ORANGE = 'var(--ui-or)'
@@ -406,8 +407,8 @@ function MyJobsSection() {
                           <p style={{ margin: 0, fontWeight: 700 }}>{person?.full_name || 'Applicant'}</p>
                           <div className="ui-chips" style={{ marginTop: 8 }}>
                             {person?.tier ? <span className="ui-badge dim">{person.tier}</span> : null}
-                            {person?.bgc_verified ? <span className="ui-badge green">BGC</span> : null}
-                            {pevo ? <span className="ui-badge blue">P/EVO</span> : null}
+                            {VERIFICATION_LIVE && person?.bgc_verified ? <span className="ui-badge green">BGC</span> : null}
+                            {VERIFICATION_LIVE && pevo ? <span className="ui-badge blue">P/EVO</span> : null}
                             {typeof rating === 'number' ? <span className="ui-badge dim">Rating {Number(rating).toFixed(1)}</span> : null}
                             <span className={app.status === 'new' ? 'ui-badge orange' : 'ui-badge dim'}>{jobStatus(app.status)}</span>
                           </div>
@@ -824,8 +825,8 @@ export function DashboardPageClient() {
       {/* CARRIER VIEW */}
       {isCarrier && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-          {/* Verify DOT Number (E2) */}
-          <section className="ui-load">
+          {/* Verify DOT Number (E2): off while verification is off (we do not check or vouch for anyone) */}
+          {VERIFICATION_LIVE && <section className="ui-load">
             <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#fff', marginBottom: '0.75rem' }}>Verify DOT Number</h2>
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
               <input
@@ -862,7 +863,7 @@ export function DashboardPageClient() {
                 )}
               </div>
             )}
-          </section>
+          </section>}
           {/* Active Loads */}
           <section>
             <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#fff', marginBottom: '1rem' }}>
@@ -910,7 +911,7 @@ export function DashboardPageClient() {
                         <div>
                           <p style={{ margin: 0, fontWeight: 600 }}>
                             {prof.full_name || 'Escort'}
-                            {prof.bgc_verified && (
+                            {VERIFICATION_LIVE && prof.bgc_verified && (
                               <span style={{ marginLeft: 8, fontSize: 11, color: '#22c55e', border: '1px solid #22c55e', borderRadius: 4, padding: '2px 6px' }}>✓ BGC</span>
                             )}
                           </p>

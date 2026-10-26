@@ -14,7 +14,7 @@ export function BoardAdSidebar() {
         <div className="ui-side-card" style={{ borderColor: 'rgba(255,196,107,.4)' }}>
           <span className="ui-badge amber">Sponsored</span>
           <div className="t">Get featured here</div>
-          <p>Your profile shown to carriers in your zone, with your BGC badge and direct contact unlocked.</p>
+          <p>Your profile shown to carriers in your zone, with direct contact unlocked.</p>
           <span className="ui-btn block" style={{ background: '#ffc46b', boxShadow: 'none' }}>$29.99 / 30 days &mdash; Get started</span>
         </div>
       </a>

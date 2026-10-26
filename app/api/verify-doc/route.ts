@@ -1,4 +1,5 @@
 import { sendEmail } from '@/lib/email';
+import { VERIFICATION_LIVE, NOT_AVAILABLE } from '@/lib/verification'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireAuth } from '@/lib/api-auth'
@@ -8,6 +9,7 @@ import { signedDocUrl } from '@/lib/signed-url'
 export const dynamic = 'force-dynamic'
 
 export async function POST(req: NextRequest) {
+  if (!VERIFICATION_LIVE) return NextResponse.json({ error: NOT_AVAILABLE }, { status: 410 })
   const { user, error: authErr } = await requireAuth()
   if (authErr) return authErr
   const userId = user!.id

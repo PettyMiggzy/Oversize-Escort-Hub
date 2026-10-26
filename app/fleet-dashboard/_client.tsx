@@ -6,6 +6,7 @@ import { isAdminEmail } from '@/lib/supabase'
 import SiteHeader from '@/components/SiteHeader'
 import PageTitle from '@/components/PageTitle'
 import EmptyState from '@/components/EmptyState'
+import { VERIFICATION_LIVE } from '@/lib/verification'
 
 
 export function FleetDashboardPageClient() {
@@ -134,7 +135,7 @@ export function FleetDashboardPageClient() {
               {fleetEscorts.map((e: any) => (
                 <div key={e.escort_id} className="ui-load">
                   <div className="ui-route" style={{ fontSize: 16 }}>{e.profiles?.full_name ?? '—'}</div>
-                  <div className="ui-meta" style={{ marginTop: 6 }}>Tier: {e.profiles?.tier ?? '—'} · BGC: {e.profiles?.bgc_verified ? '✅' : '—'}</div>
+                  <div className="ui-meta" style={{ marginTop: 6 }}>Tier: {e.profiles?.tier ?? '—'}{VERIFICATION_LIVE ? ` · BGC: ${e.profiles?.bgc_verified ? '✅' : '—'}` : ''}</div>
                   <button onClick={() => removeEscort(e.escort_id)} className="ui-btn danger" style={{ marginTop: 10 }}>Remove</button>
                 </div>
               ))}

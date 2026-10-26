@@ -183,7 +183,7 @@ export default function PushPage() {
             </li>
             <li className="flex gap-2">
               <span>✅</span>
-              <span>BGC and DD-214 verification updates</span>
+              <span>Account and subscription updates</span>
             </li>
             <li className="flex gap-2">
               <span>💳</span>

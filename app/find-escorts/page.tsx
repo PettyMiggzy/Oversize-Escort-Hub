@@ -1,4 +1,5 @@
 "use client"
+import { VERIFICATION_LIVE } from '@/lib/verification'
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
@@ -33,7 +34,7 @@ export default function FindEscortsPage() {
       .select("id, full_name, tier, bgc_verified")
       .eq("role", "escort")
     if (memberFilter === "pro") q = q.eq("tier", "pro")
-    if (memberFilter === "bgc") q = q.eq("bgc_verified", true)
+    if (VERIFICATION_LIVE && memberFilter === "bgc") q = q.eq("bgc_verified", true)
     const { data: profileData } = await q
 
     if (!profileData) { setLoading(false); return }
@@ -113,7 +114,7 @@ export default function FindEscortsPage() {
                   <select id="fe-member" className="ui-select" value={memberFilter} onChange={e => setMemberFilter(e.target.value)}>
                     <option value="all">All members</option>
                     <option value="pro">Pro only</option>
-                    <option value="bgc">BGC verified</option>
+                    {VERIFICATION_LIVE && <option value="bgc">BGC verified</option>}
                   </select>
                 </div>
               </div>
@@ -131,7 +132,7 @@ export default function FindEscortsPage() {
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
                         <span className="ui-badge amber">Sponsored</span>
                         <span className={`ui-badge ${e.tier === "pro" ? 'orange' : 'blue'}`}>{e.tier === "pro" ? "Pro" : "Member"}</span>
-                        {e.bgc_verified && <span className="ui-badge green">&#10003; BGC</span>}
+                        {VERIFICATION_LIVE && e.bgc_verified && <span className="ui-badge green">&#10003; BGC</span>}
                       </div>
                     </div>
                     <button className="ui-btn block ghost">View profile</button>
@@ -156,7 +157,7 @@ export default function FindEscortsPage() {
                     <div className="ui-route">{e.full_name || "Unnamed"}</div>
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
                       <span className={`ui-badge ${e.tier === "pro" ? 'orange' : 'blue'}`}>{e.tier === "pro" ? "\u2B50 Pro" : "Member"}</span>
-                      {e.bgc_verified && <span className="ui-badge green">&#10003; BGC</span>}
+                      {VERIFICATION_LIVE && e.bgc_verified && <span className="ui-badge green">&#10003; BGC</span>}
                     </div>
                     {e.zones.length > 0 && (
                       <div className="ui-meta" style={{ marginTop: 10 }}>Zones: {e.zones.slice(0,5).map((z: any) => z.location_state).join(", ")}{e.zones.length > 5 ? ` +${e.zones.length-5}` : ""}</div>

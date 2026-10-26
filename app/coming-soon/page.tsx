@@ -49,7 +49,7 @@ export default function ComingSoonPage() {
           <PageTitle
             eyebrow="Launching May 1st"
             title="Oversize Escort Hub"
-            lead="The verified marketplace for oversize carriers and P/EVO escorts."
+            lead="The marketplace for oversize carriers and P/EVO escorts."
           />
         </div>
         <p className="ui-note" style={{ marginTop: -12, marginBottom: 28 }}>

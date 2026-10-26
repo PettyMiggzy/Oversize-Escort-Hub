@@ -11,6 +11,7 @@ import { BoardAdSidebar } from '@/components/BoardAdSidebar';
 import PageTitle from '@/components/PageTitle'
 import BoardTabs from '@/components/BoardTabs'
 import EmptyState from '@/components/EmptyState'
+import { VERIFICATION_LIVE } from '@/lib/verification'
 
 function TimeRemaining({ expiresAt }: { expiresAt: string }) {
   const [remaining, setRemaining] = useState('')
@@ -179,8 +180,8 @@ export function OpenLoadsBoardClient() {
                               {(load.load_type || load.board_type) && <> &middot; {load.load_type || ''}{load.load_type && load.board_type ? ' · ' : ''}{load.board_type || ''}</>}
                             </div>
                             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginTop: 10 }}>
-                              {load.bgc_verified && <span className="ui-badge green">&#10003; BGC</span>}
-                              {load.fmcsa_verified && <span className="ui-badge blue">&#10003; FMCSA</span>}
+                              {VERIFICATION_LIVE && load.bgc_verified && <span className="ui-badge green">&#10003; BGC</span>}
+                              {VERIFICATION_LIVE && load.fmcsa_verified && <span className="ui-badge blue">&#10003; FMCSA</span>}
                               {load.poster_rating && <span className="ui-meta" style={{ color: '#ffc46b' }}>&#9733; {Number(load.poster_rating).toFixed(1)} ({load.poster_jobs || 0} jobs)</span>}
                               <span className="ui-meta">{load.start_date ? `Needed ${load.start_date}` : `Posted ${new Date(load.created_at).toLocaleDateString()}`}</span>
                             </div>

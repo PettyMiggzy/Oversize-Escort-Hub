@@ -8,7 +8,7 @@ const TABS = [
     key: 'escort', label: 'Pilot car / P/EVO', color: '#ff6a13', cta: 'Join as an escort', href: '/signin?mode=signup&role=escort',
     steps: [
       ['Create a free account', 'Pick pilot car / P/EVO as your role.'],
-      ['Build your profile', 'Add your certifications, the states you cover, your vehicle and your verification badges.'],
+      ['Build your profile', 'Add your certifications, the states you cover, your vehicle and any documents you choose to show.'],
       ['Browse the boards', 'Flat-rate, open-bid and 5-minute bid boards. Every account sees new loads the moment they post.'],
       ['Claim a load or place a bid', 'Pick a load that matches your certifications. The load is held for you while the carrier decides.'],
       ['Get matched', 'The carrier reviews your profile and accepts. You both get an alert and each other’s contact details.'],
@@ -23,7 +23,7 @@ const TABS = [
       ['Post a load in about two minutes', 'Pickup, drop-off, escort type, your rate and any certifications you need.'],
       ['Choose how it posts', 'Flat rate, open bid, or the 5-minute bid board.'],
       ['Get alerts', 'You get an email and an in-app alert when an escort claims or bids on your load.'],
-      ['Review the escort', 'Check their profile, certifications, ratings and verification badges.'],
+      ['Review the escort', 'Check their profile, ratings and any documents they chose to show. We do not check them, so confirm licenses and insurance yourself.'],
       ['Accept or decline', 'Accept and you both get contact details. Decline and the load goes back on the board.'],
     ],
   },
@@ -32,7 +32,7 @@ const TABS = [
     steps: [
       ['Create a free account', 'Pick freight broker as your role.'],
       ['Post loads for your shipments', 'Add each oversize move and the escort positions it needs.'],
-      ['Compare escorts', 'See each bidder’s certifications, rating and verification badges before you decide.'],
+      ['Compare escorts', 'See each bidder’s rating and profile before you decide, and confirm licenses and insurance yourself.'],
       ['Accept and confirm', 'Accept the escort you want. You both get an alert and contact details.'],
       ['Keep track', 'Follow every job from your dashboard.'],
     ],

@@ -1,5 +1,6 @@
 "use client";
 import PushInit from './components/PushInit'
+import { VERIFICATION_LIVE } from '@/lib/verification'
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
@@ -71,7 +72,7 @@ type Load = {
 const TIERS = [
   { id: "trial", name: "Free Trial", price: 0, sub: "30 days · one per device", color: "#6e7a88", features: ["View load board (no contact info)", "Search escorts directory", "30-day limit", "No bidding · no alerts"], daily: null, popular: false, carrierPro: null },
   { id: "member", name: "Member", price: 19.99, sub: "per month", color: "#3d8ef8", features: ["Full bidding on all boards", "Email alerts on new loads", "60s after Pro on bid board", "In-platform messaging", "Multi-state load filters"], daily: 1.99, popular: false, carrierPro: null },
-  { id: "pro", name: "Pro", price: 29.99, sub: "per month", color: "#f5a200", features: ["Instant access to bid loads (60s head start)", "SMS alerts (coming soon)", "Deadhead Minimizer + return load feed", "I'm Available broadcast", "Deadhead calculator + savings dashboard", "Invoice generator", "First cert verification free"], daily: 4.99, popular: true, carrierPro: null },];
+  { id: "pro", name: "Pro", price: 29.99, sub: "per month", color: "#f5a200", features: ["Instant access to bid loads (60s head start)", "SMS alerts (coming soon)", "Deadhead Minimizer + return load feed", "I'm Available broadcast", "Deadhead calculator + savings dashboard", "Invoice generator"], daily: 4.99, popular: true, carrierPro: null },];
 
 // ─── STYLES ──────────────────────────────────────────────────────────────────
 
@@ -372,7 +373,7 @@ function Ticker() {
   const items = [
     { dot: "dot-gr", text: "Platform launching · Be an early member · Using the site is free while we launch" },
     { dot: "dot-am", text: "BID BOARD LIVE · 5-Min bids · Everyone sees new loads the moment they post" },
-    { dot: "dot-gr", text: "Verified P/EVO escorts · Background checked · Vehicle verified · Admin approved" },
+    { dot: "dot-gr", text: "Free to post · No commissions · Contact details stay private until a carrier accepts" },
     { dot: "dot-or", text: "OPEN BID BOARD · 24-72h window · Post your pitch · Carrier picks the best fit" },
     { dot: "dot-gr", text: "Standard rates: $2.00/mi or $500/day · $100 overnight · $250 no-go fee" },
     { dot: "dot-am", text: "Deadhead Minimizer · Return loads near your drop · Stop driving home empty" },
@@ -404,7 +405,6 @@ function Nav({ page, setPage, user, profile, onSignOut, unreadCount = 0, setSign
     ["bidboard", "Bid Board"],
     ["escorts", "Find Escorts"],
     ["postload", "Post a Load"],
-        ["verification", "Verification"],
     ["how-it-works", "How It Works"],
     ["pricing", "Pricing"],
   ];
@@ -502,7 +502,7 @@ function Footer({ setPage }: { setPage: (p: Page) => void }) {
             <span className="bb" style={{ fontSize: 14, letterSpacing: ".06em" }}>Oversize Escort Hub</span>
           </div>
           <p style={{ fontSize: 12, color: "var(--t2)", lineHeight: 1.75, maxWidth: 230 }}>
-            Verified marketplace for oversize carriers and P/EVO escorts. No commissions. No job fees. Ever.
+            Marketplace for oversize carriers and P/EVO escorts. No commissions. No job fees. Ever.
           </p>
         </div>
         <div className="footer-col">
@@ -511,7 +511,7 @@ function Footer({ setPage }: { setPage: (p: Page) => void }) {
         </div>
         <div className="footer-col">
           <h4>Membership</h4>
-          {[["verification", "Verification"], ["signin", "Create Account"], ["dashboard-e", "Escort Dashboard"], ["dashboard-c", "Carrier Dashboard"]].map(([p, l]) => (
+          {[["signin", "Create Account"], ["dashboard-e", "Escort Dashboard"], ["dashboard-c", "Carrier Dashboard"]].map(([p, l]) => (
             <a key={p} onClick={() => p === "pricing" ? window.location.href = '/pricing' : setPage(p as Page)}>{l}</a>
           ))}
         </div>
@@ -638,7 +638,7 @@ function HomePage({ setPage, user, profile, setSigninMode, setPendingRole }: { s
         <div className="platform-div">
           <span className="mo" style={{ fontSize: 9, letterSpacing: ".16em", textTransform: "uppercase", color: "var(--t2)" }}>Platform</span>
           <span style={{ width: 1, height: 16, background: "var(--l1)" }} />
-          <span className="mo" style={{ fontSize: 10, color: "var(--t2)" }}>Three boards · Verified escorts · Real-time bidding · No commissions · No job fees · Ever</span>
+          <span className="mo" style={{ fontSize: 10, color: "var(--t2)" }}>Three boards · Real-time bidding · No commissions · No job fees · Ever</span>
         </div>
         <FlatBoardPreview setPage={setPage} />
         <EscortsPreview setPage={setPage} />
@@ -678,7 +678,7 @@ function HomePage({ setPage, user, profile, setSigninMode, setPendingRole }: { s
       <div className="platform-div">
         <span className="mo" style={{ fontSize: 9, letterSpacing: ".16em", textTransform: "uppercase", color: "var(--t2)" }}>Platform</span>
         <span style={{ width: 1, height: 16, background: "var(--l1)" }} />
-        <span className="mo" style={{ fontSize: 10, color: "var(--t2)" }}>Three boards · Verified escorts · Real-time bidding · No commissions · No job fees · Ever</span>
+        <span className="mo" style={{ fontSize: 10, color: "var(--t2)" }}>Three boards · Real-time bidding · No commissions · No job fees · Ever</span>
       </div>
       <DeadheadSection setPage={setPage} />
       <FlatBoardPreview setPage={setPage} escortView />
@@ -768,13 +768,13 @@ function EscortsPreview({ setPage }: { setPage: (p: Page) => void }) {
     <div className="section" style={{ paddingTop: 32 }}>
       <div className="section-header">
         <div>
-          <div className="eyebrow" style={{ color: "var(--gr)" }}>Verified P/EVO Professionals</div>
+          <div className="eyebrow" style={{ color: "var(--gr)" }}>P/EVO Professionals</div>
           <div className="section-title">ESCORT DIRECTORY</div>
         </div>
         <button className="section-link" onClick={() => { window.location.href = "/find-escorts"; }}>Browse Directory</button>
       </div>
       <div className="mo" style={{ fontSize: 11, color: "var(--t2)", padding: "14px 0", lineHeight: 1.6 }}>
-        Escorts appear here as they join and are verified. Every profile in the directory belongs to a real, signed-up escort.
+        Escorts appear here as they join. We do not check or verify anyone: confirm licenses and insurance yourself before you hire.
       </div>
     </div>
   );
@@ -840,7 +840,7 @@ function FeatureSection({ setPage }: { setPage: (p: Page) => void }) {
       <div className="feat-grid">
         {[
           { c: "var(--am)", t: "5-Min Bid Board", d: "Industry first. Closes on timer, carrier fills it, or carrier cancels. Everyone sees new loads the moment they post." },
-          { c: "var(--gr)", t: "Verified P/EVO Escorts", d: "4-tier trust ladder: P/EVO cert, vehicle verified, background check, admin verified. Fraudulent listings cannot exist here." },
+          { c: "var(--gr)", t: "Deal directly", d: "Carriers and escorts agree the work and pay between themselves. We do not check or verify anyone, so confirm licenses and insurance before any job." },
           { c: "var(--am)", t: "Deadhead Minimizer", d: "Return load feed sorted toward home state. Pre-arrival SMS alerts are coming soon. I'm Available broadcast. Every empty mile is money left on the table." },
           { c: "var(--or)", t: "Carrier Pay Score (Public)", d: "Pay speed, communication, load accuracy, no-go fee history — all public. 4.9 fills in minutes. 2.8 sits on the board." },
           { c: "var(--bl)", t: "Open Bid Board", d: "24-72h window. Carrier reviews all bids, picks whoever they want. Escorts attach a personal pitch to every bid." },
@@ -1002,7 +1002,7 @@ function EscortDashPage({ setPage, profile, showToast }: { setPage: (p: Page) =>
   const tabs = [
     { id: "overview", label: "Overview" }, { id: "loads", label: "Available Loads" },
     { id: "dh", label: "Deadhead Minimizer" }, { id: "jobs", label: "My Jobs" },
-    { id: "certs", label: "Certifications" }, { id: "dispute", label: "Dispute Center" },
+    ...(VERIFICATION_LIVE ? [{ id: "certs", label: "Certifications" }] : []), { id: "dispute", label: "Dispute Center" },
     { id: "zones", label: "My States & Photo" },
   ];
 
@@ -1407,7 +1407,7 @@ function CarrierDashPage({ setPage, user, profile, showToast }: { setPage: (p: P
                         <div style={{ fontWeight: 600, marginBottom: 4 }}>{m.profiles?.full_name || 'Unknown Escort'}</div>
                         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                           <span className={`chip ${m.profiles?.tier === 'pro' ? 'ch-am' : 'ch-dim'}`} style={{ fontSize: 8 }}>{(m.profiles?.tier || 'member').toUpperCase()}</span>
-                          {m.profiles?.bgc_verified && <span className="chip ch-gr" style={{ fontSize: 8 }}>✓ BGC</span>}
+                          {VERIFICATION_LIVE && m.profiles?.bgc_verified && <span className="chip ch-gr" style={{ fontSize: 8 }}>✓ BGC</span>}
                           {(m.profiles?.certs || []).slice(0, 3).map((c: string) => (
                             <span key={c} className="chip ch-dim" style={{ fontSize: 8 }}>{c}</span>
                           ))}
@@ -1797,7 +1797,7 @@ function ToolsPage({ setPage, profile }: { setPage: (p: any) => void; profile: a
     { page: "job-history", icon: "📋", title: "Job History", desc: "View completed loads and earnings history", badge: "MEMBER" },
     { page: "permits", icon: "📄", title: "Permit Hub", desc: "Upload and receive permits day of load instantly", badge: "ALL" },
     { page: "deadhead", icon: "🚗", title: "Stop Driving Home Empty", desc: "Find return loads and recover ~$4,800/yr", badge: "PRO" },
-    { page: "dot-lookup", icon: "🔍", title: "DOT Carrier Lookup", desc: "Verify carrier safety rating via FMCSA free API", badge: "MEMBER" },
+    { page: "dot-lookup", icon: "🔍", title: "DOT Carrier Lookup", desc: "Look up a carrier through the FMCSA free API", badge: "MEMBER" },
     { page: "state-reqs", icon: "🗺️", title: "State Escort Requirements", desc: "Escort requirements by state and load dimensions", badge: "MEMBER" },
     { page: "weather", icon: "⛅", title: "Weather Alerts", desc: "Weather conditions on your route via NWS free API", badge: "MEMBER" },
     { page: "cb-radio", icon: "📻", title: "CB Radio Reference", desc: "Standard CB channels by state and highway", badge: "ALL" },
@@ -2368,7 +2368,7 @@ export default function OEHPlatform() {
           </div>
           </>
           )}
-      {page === "verification" && <VerificationPage />}
+      {page === "verification" && (VERIFICATION_LIVE ? <VerificationPage /> : <div className="card" style={{ margin: 24 }}>Badges and document checks are not live. We do not check or vouch for people or documents. <a href="/coming-later">What is not live</a></div>)}
       {page === "escorts" && <EscortsPage setPage={setPage} />}
       {page === "escprofile" && <EscProfilePage setPage={setPage} />}
       {page === "postload" && <PostLoadPage setPage={setPage} user={user} profile={activeProfile} showToast={showToast} />}

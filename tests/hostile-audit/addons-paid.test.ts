@@ -1,6 +1,9 @@
-import { beforeEach, expect, test } from 'vitest'
+import { beforeEach, expect, test, vi } from 'vitest'
 import { NextRequest } from 'next/server'
 import { getDb, resetHostile } from './mock-client'
+// These tests cover the old paid-review code, which is kept but switched off: run them with verification ON.
+vi.mock('@/lib/verification', () => ({ VERIFICATION_LIVE: true, NOT_AVAILABLE: 'not available' }))
+
 import { STRIPE_PRICE_IDS } from '@/lib/stripe-utils'
 import { POST as checkout } from '@/app/api/checkout/route'
 import { POST as bgcCheckout } from '@/app/api/bgc-checkout/route'

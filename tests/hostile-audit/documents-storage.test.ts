@@ -1,6 +1,9 @@
-import { beforeEach, expect, test } from 'vitest'
+import { beforeEach, expect, test, vi } from 'vitest'
 import { NextRequest } from 'next/server'
 import { getDb, resetHostile } from './mock-client'
+// These tests cover the old paid-review code, which is kept but switched off: run them with verification ON.
+vi.mock('@/lib/verification', () => ({ VERIFICATION_LIVE: true, NOT_AVAILABLE: 'not available' }))
+
 import { POST as uploadBgc } from '@/app/api/bgc/route'
 import { POST as uploadCert } from '@/app/api/escort/cert-upload/route'
 import { POST as uploadDd214 } from '@/app/api/dd214/route'

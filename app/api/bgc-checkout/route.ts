@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { VERIFICATION_LIVE, NOT_AVAILABLE } from '@/lib/verification'
 import Stripe from 'stripe'
 import { createClient } from '@/lib/supabase/server'
 import { serviceClient } from '@/lib/service-client'
@@ -9,6 +10,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-03
 const BGC_PRICE = 'price_1TF0EILmfugPCRbAvM6Q5rhW'
 
 export async function POST(_req: NextRequest) {
+  if (!VERIFICATION_LIVE) return NextResponse.json({ error: NOT_AVAILABLE }, { status: 410 })
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user || !user.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

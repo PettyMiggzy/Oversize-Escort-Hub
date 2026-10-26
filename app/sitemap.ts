@@ -74,6 +74,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.9,
     },
+    {
+      url: "https://www.oversize-escort-hub.com/coming-later",
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.3,
+    },
     ...STATIC_STATE_CODES.map((code) => ({
       url: `https://www.oversize-escort-hub.com/pilot-car-escorts/${code.toLowerCase()}`,
       lastModified: new Date(),

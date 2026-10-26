@@ -22,7 +22,7 @@ export default function PrivacyPolicy() {
         <div style={{ ...s.section }}>
           <h2 style={{ ...s.h2 }}>1. Introduction & Company Information</h2>
           <p style={{ ...s.p }}>This Privacy Policy describes how Oversize Escort Hub ("Company," "we," "us," or "our") collects, uses, and protects your personal information when you access or use our platform at <a href="https://www.oversize-escort-hub.com" style={{ color: "#f90" }}>www.oversize-escort-hub.com</a> (the "Platform").</p>
-          <p style={{ ...s.p }}>Oversize Escort Hub is a verified marketplace connecting oversize load carriers with licensed pilot car (P/EVO) escorts and freight brokers.</p>
+          <p style={{ ...s.p }}>Oversize Escort Hub is a marketplace connecting oversize load carriers with pilot car (P/EVO) escorts and freight brokers.</p>
           <p style={{ ...s.p }}><strong style={{ color: "#fff" }}>Contact:</strong> <a href="mailto:support@oversize-escort-hub.com" style={{ color: "#f90" }}>support@oversize-escort-hub.com</a></p>
         </div>
 
@@ -32,7 +32,7 @@ export default function PrivacyPolicy() {
           <ul style={{ ...s.ul }}>
             <li style={{ ...s.li }}>Create an account or register on the Platform</li>
             <li style={{ ...s.li }}>Post a load, respond to a load listing, or submit a bid</li>
-            <li style={{ ...s.li }}>Submit a verification or background check request</li>
+            <li style={{ ...s.li }}>Upload a document you choose to show on your profile</li>
             <li style={{ ...s.li }}>Contact us via email, phone, or any contact form on the Platform</li>
             <li style={{ ...s.li }}>Opt in to receive SMS or email communications from us</li>
             <li style={{ ...s.li }}>Purchase a subscription or complete a payment transaction</li>
@@ -47,9 +47,9 @@ export default function PrivacyPolicy() {
           <p style={{ ...s.p }}>We use your personal information to:</p>
           <ul style={{ ...s.ul }}>
             <li style={{ ...s.li }}>Operate, maintain, and improve the Platform</li>
-            <li style={{ ...s.li }}>Connect oversize load carriers with verified P/EVO escorts and brokers</li>
-            <li style={{ ...s.li }}>Process payments, subscriptions, and background check fees</li>
-            <li style={{ ...s.li }}>Verify your identity and professional credentials</li>
+            <li style={{ ...s.li }}>Connect oversize load carriers with P/EVO escorts and brokers</li>
+            <li style={{ ...s.li }}>Process payments and subscriptions</li>
+            <li style={{ ...s.li }}>Keep your account secure and prevent fraud</li>
             <li style={{ ...s.li }}>Send transactional messages including load alerts, bid notifications, and account updates</li>
             <li style={{ ...s.li }}>Send SMS notifications you have opted in to receive</li>
             <li style={{ ...s.li }}>Respond to your support requests and communications</li>
@@ -91,7 +91,7 @@ export default function PrivacyPolicy() {
             <li style={{ ...s.li }}>New load alerts and load board updates in your selected states or regions</li>
             <li style={{ ...s.li }}>Bid board notifications — new bids, bid accepted, bid rejected, timer expiration</li>
             <li style={{ ...s.li }}>Load status updates — filled, cancelled, expired, or modified</li>
-            <li style={{ ...s.li }}>Account notifications including verification status and subscription updates</li>
+            <li style={{ ...s.li }}>Account notifications including subscription updates</li>
             <li style={{ ...s.li }}>Platform announcements and service updates</li>
           </ul>
           <p style={{ ...s.p }}>Message frequency may vary based on load activity in your area and your notification preferences.</p>
@@ -172,7 +172,7 @@ export default function PrivacyPolicy() {
         </div>
         <div style={{ ...s.section }}>
           <h2 style={{ ...s.h2 }}>20. FMCSA DOT Number &amp; Verification Data</h2>
-          <p style={{ ...s.p }}>When you provide a USDOT number, OEH queries the FMCSA QCMobile public API using that number. The API response, including carrier legal name and operating status, is stored alongside your load record. This data originates from the publicly available FMCSA government database. We do not sell FMCSA data. Verification results are displayed to other Platform users as part of the load card to promote safety and transparency.</p>
+          <p style={{ ...s.p }}>When you provide a USDOT number, OEH queries the FMCSA QCMobile public API using that number. The API response, including carrier legal name and operating status, is stored alongside your load record. We do not sell this data. We do not verify DOT numbers and show no verified badge.</p>
         </div>
         <div style={{ ...s.section }}>
           <h2 style={{ ...s.h2 }}>21. Weather Data</h2>
@@ -188,7 +188,7 @@ export default function PrivacyPolicy() {
         </div>
         <div style={{ ...s.section }}>
           <h2 style={{ ...s.h2 }}>24. MC/DOT Numbers for Fraud Prevention</h2>
-          <p style={{ ...s.p }}>MC (Motor Carrier) and DOT numbers collected from carrier accounts are used for identity verification and fraud prevention. This data is cross-referenced with FMCSA public records. MC/DOT data is stored securely, is not sold, and is only shared with law enforcement or regulatory authorities when required by law or to investigate fraud on the Platform.</p>
+          <p style={{ ...s.p }}>MC (Motor Carrier) and DOT numbers collected from carrier accounts are used for account records and fraud prevention. We do not verify them. MC/DOT data is stored securely, is not sold, and is only shared with law enforcement or regulatory authorities when required by law or to investigate fraud on the Platform.</p>
         </div> <div style={{...s.section}}><h2 style={{...s.h2}}>25. Escort Availability Board</h2><p style={{...s.p}}>When escorts post on the Availability Board, their stated location, certifications, and availability window are stored and displayed to carriers. This information is public within the platform.</p></div><div style={{...s.section}}><h2 style={{...s.h2}}>26. SMS Load Posting</h2><p style={{...s.p}}>When you use SMS load posting, your phone number and message content are processed to create load listings. Message logs are retained for moderation purposes. You must have opted in to SMS services.</p></div><div style={{...s.section}}><h2 style={{...s.h2}}>27. BGC Badge</h2><p style={{...s.p}}>Background check data is processed by a third-party provider. OEH stores only the verification status (pass/fail) and badge issuance date. Raw background check results are not stored by OEH.</p></div><div style={{...s.section}}><h2 style={{...s.h2}}>28. Canadian Operations</h2><p style={{...s.p}}>Users in Canadian provinces are subject to applicable Canadian privacy laws including PIPEDA. Location and load data involving Canadian addresses is processed on the same infrastructure as US data.</p></div>
         
           <div style={{ ...s.section }}>

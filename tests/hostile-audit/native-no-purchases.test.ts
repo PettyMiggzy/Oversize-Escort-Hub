@@ -7,7 +7,7 @@ const root = path.resolve(__dirname, '../..')
 const read = (f: string) => fs.readFileSync(path.join(root, f), 'utf8')
 
 test('whole-page checkout screens are wrapped so the app shows a plain note instead', () => {
-  for (const f of ['app/checkout/page.tsx', 'app/bgc-checkout/page.tsx', 'app/join/page.tsx']) {
+  for (const f of ['app/checkout/page.tsx', 'app/join/page.tsx']) {
     const src = read(f)
     expect(src, f).toContain("from '@/components/WebOnly'")
     expect(src, f).toMatch(/<WebOnly>/)
@@ -18,9 +18,8 @@ test('whole-page checkout screens are wrapped so the app shows a plain note inst
 })
 
 test('payment buttons on mixed pages stop inside the app', () => {
-  const verify = read('app/verify/page.tsx')
-  expect(verify).toMatch(/startBgcCheckout = async \(\) => \{\s*if \(isNativeApp\(\)\)/)
-  expect(verify).toMatch(/startPevoCheckout = async \(tier: 'member'\|'pro'\) => \{\s*if \(isNativeApp\(\)\)/)
+  // the old verification pages no longer sell anything: they send everyone to the "not live" page
+  for (const f of ['app/verify/page.tsx', 'app/bgc/page.tsx', 'app/bgc-checkout/page.tsx', 'app/bgc-badge/page.tsx', 'app/verification/page.tsx']) expect(read(f), f).toContain("redirect('/coming-later')")
   const dash = read('app/dashboard/_client.tsx')
   expect(dash).toContain('isNativeApp')
   expect(dash).toMatch(/\{!inApp && \(\s*<section>/)
@@ -46,18 +45,11 @@ test('the signed-in home page makes no unverifiable market claims', () => {
   for (const claim of ['$800+', '50,000+', '$670M', 'FastPay Fill Speed']) expect(home).not.toContain(claim)
 })
 
-test('the sponsored-zone card on /verify is hidden inside the app', () => {
-  expect(read('app/verify/page.tsx')).toMatch(/\{!isNativeApp\(\) && \(\s*<div className="ui-card"[^>]*>\s*<div>\s*<div className="ui-k">Sponsored zone/)
-})
-
-test('upgrade prices and pay buttons on the home page and /bgc are hidden inside the app', () => {
+test('upgrade prices and pay buttons on the home page are hidden inside the app', () => {
   const home = read('app/page.tsx')
   for (const label of ['Upgrade to Member \u2014 $19.99/mo', 'Go Pro \u2014 $29.99/mo', 'Upgrade to Pro \u2014 $29.99/mo']) {
     const i = home.indexOf(label)
     expect(i, label).toBeGreaterThan(-1)
     expect(home.slice(Math.max(0, i - 260), i), label).toContain('<HideInApp>')
   }
-  const bgc = read('app/bgc/page.tsx')
-  expect(bgc.slice(bgc.indexOf('Pay for BGC Badge') - 330, bgc.indexOf('Pay for BGC Badge'))).toContain('<HideInApp>')
-  expect(bgc).toMatch(/<HideInApp>\s*<li[^>]*>\s*<span>[^<]*<\/span>\s*<span>One-time fee of \$9\.99/)
 })

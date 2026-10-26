@@ -27,7 +27,7 @@ export default function FMCSAPage() {
     if (!res.ok) {
       setError(json.error || "Not found");
     } else if (json.verified === false) {
-      setError(json.reason || "Carrier not verified");
+      setError(json.reason || "Carrier not found");
       setData(json);
     } else {
       setData(json);
@@ -41,7 +41,7 @@ export default function FMCSAPage() {
     <div className="min-h-screen bg-gray-900 text-white p-8">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-3xl font-bold mb-2">FMCSA Carrier Lookup</h1>
-        <p className="text-gray-400 mb-8">Verify carrier operating status via FMCSA QCMobile</p>
+        <p className="text-gray-400 mb-8">Look up a carrier in the FMCSA database. This is public government data; we do not check or vouch for it.</p>
         <form onSubmit={lookup} className="flex gap-3 mb-8">
           <input
             value={dotNumber}

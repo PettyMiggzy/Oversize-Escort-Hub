@@ -26,7 +26,6 @@ const PLANS: Plan[] = [
     description: "For independent pilot car operators and escorts.",
     features: [
       "Up to 5 load postings/month",
-      "BGC Badge eligible",
       "Fleet search access",
       "FMCSA carrier lookup",
       "Veteran discount eligible",
@@ -43,7 +42,6 @@ const PLANS: Plan[] = [
     features: [
       "Unlimited load postings",
       "Priority listing in search",
-      "BGC Badge included",
       "SMS job alerts (coming soon)",
       "Push notifications",
       "Veteran discount eligible",
@@ -109,7 +107,7 @@ function CheckoutPageInner() {
         <PageTitle
           eyebrow="Checkout"
           title="Choose your plan"
-          lead={FREE_LAUNCH ? "Plans are free while we launch: every feature is unlocked for your account, no card needed. Add-ons such as the BGC badge and P/EVO cert review are one-time purchases." : "All plans include core platform access. Cancel anytime."}
+          lead={FREE_LAUNCH ? "Plans are free while we launch: every feature is unlocked for your account, no card needed. Sponsored zones are a one-time purchase." : "All plans include core platform access. Cancel anytime."}
         />
 
         <div className="ui-fit" style={{ marginBottom: 24 }}>

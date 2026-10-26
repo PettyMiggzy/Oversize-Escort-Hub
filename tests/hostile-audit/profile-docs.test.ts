@@ -102,17 +102,11 @@ test('uploads: a PDF or a real photo, judged by the file itself; insurance needs
   // the browser's word is not enough: an HTML file dressed as an image is refused
   expect((await send('<html>hi</html>', 'x.jpg', 'image/jpeg')).status).toBe(400)
   expect((await send('MZ-binary', 'x.pdf', 'application/pdf')).status).toBe(400)
-  // a P/EVO certificate still needs the review purchase
+  // verification is off: a P/EVO certificate is an ordinary upload, stored as uploaded, never waiting for our review
   getDb().tables.profiles[0].pevo_paid = false
-  expect((await send('%PDF-1.4', 'c.pdf', 'application/pdf', 'pevo')).status).toBe(402)
-  // insurance and other papers are just uploaded (we do not check them); only a P/EVO certificate waits for our review
-  expect(getDb().tables.certifications.every((c) => c.type !== 'insurance' || c.status === 'uploaded')).toBe(true)
-  getDb().tables.profiles[0].pevo_paid = true
-  expect((await send('%PDF-1.4', 'c1.pdf', 'application/pdf', 'pevo')).status).toBe(200)
-  expect(getDb().tables.certifications.find((c) => c.type === 'pevo')!.status).toBe('pending')
-  // only five waiting for review at once
-  for (let i = 0; i < 4; i++) expect((await send('%PDF-1.4', `p${i}.pdf`, 'application/pdf', 'pevo')).status).toBe(200)
-  expect((await send('%PDF-1.4', 'p9.pdf', 'application/pdf', 'pevo')).status).toBe(429)
+  expect((await send('%PDF-1.4', 'c.pdf', 'application/pdf', 'pevo')).status).toBe(200)
+  expect(getDb().tables.certifications.find((c) => c.type === 'pevo')!.status).toBe('uploaded')
+  expect(getDb().tables.certifications.every((c) => c.status === 'uploaded')).toBe(true)
   // and a sensible total
   for (let i = getDb().tables.certifications.length; i < 15; i++) getDb().tables.certifications.push({ id: 'x' + i, user_id: 'esc', type: 'insurance', status: 'uploaded' })
   expect((await send('%PDF-1.4', 'z.pdf', 'application/pdf', 'insurance')).status).toBe(429)

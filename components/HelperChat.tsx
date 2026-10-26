@@ -4,7 +4,7 @@ import { isNativeApp } from '@/lib/native'
 
 type Turn = { role: 'user' | 'assistant'; content: string }
 const KEY = 'oeh-helper-chat'
-const HELLO = 'Hi, I am the OEH assistant. Ask me how the boards work, what is free, or how to get verified. If I cannot help, I can pass your question to the team.'
+const HELLO = 'Hi, I am the OEH assistant. Ask me how the boards work, what is free, or how to get started. If I cannot help, I can pass your question to the team.'
 
 // A small help chat on every page (not inside the phone app). Answers come from /api/helper.
 export default function HelperChat() {

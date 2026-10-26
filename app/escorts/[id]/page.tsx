@@ -5,6 +5,7 @@ import SiteHeader from '@/components/SiteHeader'
 import PageTitle from '@/components/PageTitle'
 import EmptyState from '@/components/EmptyState'
 import { DOC_DISCLAIMER, canUseDocs, docLabel, isPublic, type DocRow } from '@/lib/profile-docs'
+import { VERIFICATION_LIVE } from '@/lib/verification'
 const svc = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -46,7 +47,7 @@ export default async function EscortProfilePage({ params }: { params: Promise<{ 
             <span className={profile.tier === 'pro' ? 'ui-badge orange' : 'ui-badge dim'}>
               {profile.tier === 'pro' ? '⭐ Pro' : 'Member'}
             </span>
-            {profile.bgc_verified && <span className="ui-badge green">✓ Background Check Verified</span>}
+            {VERIFICATION_LIVE && profile.bgc_verified && <span className="ui-badge green">✓ Background Check Verified</span>}
             {profile.role === 'escort' && <span className="ui-badge blue">P/EVO Escort</span>}
           </div>
           {profile.bio && <p className="ui-note">{profile.bio}</p>}
