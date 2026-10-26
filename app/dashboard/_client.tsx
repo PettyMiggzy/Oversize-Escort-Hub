@@ -7,11 +7,14 @@ import { createClient } from '@/lib/supabase/client'
 import { isAdminEmail } from '@/lib/supabase'
 import { isNativeApp } from '@/lib/native'
 import { withFreeLaunch, effectiveTier } from '@/lib/free-launch'
-const BG = '#060b16'
-const SURFACE = '#0d1117'
-const ORANGE = '#f0a500'
-const TEXT = '#e2e8f0'
-const MUTED = '#6b7280'
+import SiteHeader from '@/components/SiteHeader'
+import PageTitle from '@/components/PageTitle'
+import EmptyState from '@/components/EmptyState'
+const BG = 'transparent'
+const SURFACE = 'transparent'
+const ORANGE = 'var(--ui-or)'
+const TEXT = 'var(--ui-text)'
+const MUTED = 'var(--ui-muted)'
 
 interface Profile {
   tier?: string;
@@ -397,17 +400,19 @@ export function DashboardPageClient() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p style={{ color: MUTED }}>Loading dashboard…</p>
-      </div>
+      <>
+        <SiteHeader />
+        <div className="ui-page"><div className="ui-wrap" style={{ textAlign: 'center' }}><p className="ui-meta">Loading dashboard…</p></div></div>
+      </>
     )
   }
 
   if (!profile) {
     return (
-      <div style={{ minHeight: '100vh', background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p style={{ color: MUTED }}>Profile not found.</p>
-      </div>
+      <>
+        <SiteHeader />
+        <div className="ui-page"><div className="ui-wrap"><EmptyState title="Profile not found" text="Profile not found." /></div></div>
+      </>
     )
   }
 
@@ -416,17 +421,13 @@ export function DashboardPageClient() {
   const isPro = profile.tier === 'pro' || profile.tier === 'fleet_pro' || profile.role === 'pro'
 
   return (
-    <div style={{ minHeight: '100vh', background: BG, color: TEXT, padding: '2rem' }}>
+    <>
+    <SiteHeader />
+    <div className="ui-page">
+    <div className="ui-wrap">
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
-        <div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: ORANGE, margin: 0 }}>
-            Dashboard
-          </h1>
-          <p style={{ color: MUTED, margin: '4px 0 0', fontSize: '0.875rem' }}>
-            {profile.full_name || profile.company_name || 'Welcome'} &mdash; {profile.role}{isPro ? ' • Pro' : ''}
-          </p>
-        </div>
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+        <PageTitle eyebrow="Account" title="Dashboard" lead={`${profile.full_name || profile.company_name || 'Welcome'} — ${profile.role}${isPro ? ' • Pro' : ''}`} />
         {unreadCount > 0 && (
           <div style={{ background: ORANGE, color: '#000', borderRadius: '9999px', padding: '4px 12px', fontWeight: 700, fontSize: '0.875rem' }}>
             {unreadCount} unread
@@ -444,19 +445,20 @@ export function DashboardPageClient() {
       {isCarrier && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           {/* Verify DOT Number (E2) */}
-          <section style={{ background: SURFACE, borderRadius: 8, padding: '1rem', border: '1px solid #1e2736' }}>
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: ORANGE, marginBottom: '0.75rem' }}>Verify DOT Number</h2>
+          <section className="ui-load">
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#fff', marginBottom: '0.75rem' }}>Verify DOT Number</h2>
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
               <input
                 value={dotInput}
                 onChange={(e) => setDotInput(e.target.value)}
                 placeholder="Enter DOT number"
-                style={{ flex: 1, minWidth: 180, background: BG, border: '1px solid #1e2736', borderRadius: 6, color: TEXT, padding: '8px 12px', fontSize: 13 }}
+                className="ui-input"
+                style={{ flex: '1 1 180px', minWidth: 0 }}
               />
               <button
                 onClick={handleDotLookup}
                 disabled={dotLoading}
-                style={{ background: ORANGE, color: '#000', border: 'none', borderRadius: 6, padding: '8px 16px', fontWeight: 700, cursor: dotLoading ? 'default' : 'pointer', fontSize: 13 }}
+                className={dotLoading ? 'ui-btn dim' : 'ui-btn'}
               >
                 {dotLoading ? 'Looking up…' : 'Look Up'}
               </button>
@@ -471,7 +473,8 @@ export function DashboardPageClient() {
                   <button
                     onClick={handleMarkFmcsaVerified}
                     disabled={fmcsaVerifying}
-                    style={{ marginTop: 6, background: 'transparent', color: ORANGE, border: `1px solid ${ORANGE}`, borderRadius: 6, padding: '6px 12px', cursor: fmcsaVerifying ? 'default' : 'pointer', fontSize: 12, fontWeight: 600, alignSelf: 'flex-start' }}
+                    className={fmcsaVerifying ? 'ui-btn ghost dim' : 'ui-btn ghost'}
+                    style={{ marginTop: 6, alignSelf: 'flex-start' }}
                   >
                     {fmcsaVerifying ? 'Updating…' : 'Mark as FMCSA Verified'}
                   </button>
@@ -484,22 +487,22 @@ export function DashboardPageClient() {
           </section>
           {/* Active Loads */}
           <section>
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: ORANGE, marginBottom: '1rem' }}>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#fff', marginBottom: '1rem' }}>
               Active Loads ({loads.length})
             </h2>
             {loads.length === 0 ? (
-              <p style={{ color: MUTED }}>No active loads.</p>
+              <EmptyState title="No active loads" text="No active loads." />
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {loads.map(load => (
-                  <div key={load.id} style={{ background: SURFACE, borderRadius: 8, padding: '1rem', border: '1px solid #1e2736' }}>
+                  <div key={load.id} className="ui-load">
                     <p style={{ margin: 0, fontWeight: 600 }}>{loadLabel(load)}</p>
                     <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>
                       {load.pu_city}, {load.pu_state} → {load.dl_city}, {load.dl_state}
                     </p>
                     <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>Needed: {load.start_date || '—'}</p>
                     <div style={{ marginTop: 8 }}>
-                      <button onClick={() => handleDownloadInvoice(load.id)} style={{ fontSize: 11, color: '#f0a500', background: 'none', border: '1px solid #f0a500', borderRadius: 4, padding: '3px 10px', cursor: 'pointer' }}>
+                      <button onClick={() => handleDownloadInvoice(load.id)} className="ui-btn ghost">
                         📄 Invoice
                       </button>
                     </div>
@@ -511,24 +514,24 @@ export function DashboardPageClient() {
 
           {/* Pending Bids */}
           <section>
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: ORANGE, marginBottom: '1rem' }}>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#fff', marginBottom: '1rem' }}>
               Pending Bids ({bids.length})
             </h2>
             {bids.length === 0 ? (
-              <p style={{ color: MUTED }}>No pending bids.</p>
+              <EmptyState title="No pending bids" text="No pending bids." />
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {bids.map((bid: any) => {
                   const load = loads.find(l => l.id === bid.load_id)
                   const prof = bid.profiles || {}
                   return (
-                    <div key={bid.id} style={{ background: SURFACE, borderRadius: 8, padding: '1rem', border: '1px solid #1e2736' }}>
+                    <div key={bid.id} className="ui-load">
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
                         <div>
                           <p style={{ margin: 0, fontWeight: 600 }}>
                             {prof.full_name || 'Escort'}
                             {prof.bgc_verified && (
-                              <span style={{ marginLeft: 8, fontSize: 11, color: '#22c55e', border: '1px solid #22c55e', borderRadius: 4, padding: '2px 6px' }}>✓ BGC</span>
+                              <span className="ui-badge green" style={{ marginLeft: 8 }}>✓ BGC</span>
                             )}
                           </p>
                           <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>
@@ -548,11 +551,11 @@ export function DashboardPageClient() {
                       <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
                         <button
                           onClick={() => handleBidAccept(bid)}
-                          style={{ background: '#22c55e', color: '#000', border: 'none', borderRadius: 6, padding: '8px 16px', fontWeight: 700, cursor: 'pointer' }}
+                          className="ui-btn ok"
                         >✓ Accept</button>
                         <button
                           onClick={() => handleBidReject(bid)}
-                          style={{ background: 'transparent', color: '#ef4444', border: '1px solid #ef4444', borderRadius: 6, padding: '8px 16px', fontWeight: 600, cursor: 'pointer' }}
+                          className="ui-btn danger"
                         >✗ Reject</button>
                       </div>
                     </div>
@@ -564,15 +567,15 @@ export function DashboardPageClient() {
 
           {/* Pending Matches */}
           <section>
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: ORANGE, marginBottom: '1rem' }}>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#fff', marginBottom: '1rem' }}>
               Pending Matches ({matches.length})
             </h2>
             {matches.length === 0 ? (
-              <p style={{ color: MUTED }}>No pending matches.</p>
+              <EmptyState title="No pending matches" text="No pending matches." />
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {matches.map(match => (
-                  <div key={match.id} style={{ background: SURFACE, borderRadius: 8, padding: '1rem', border: '1px solid #1e2736' }}>
+                  <div key={match.id} className="ui-load">
                     <p style={{ margin: 0, fontWeight: 600 }}>{loadLabel(match.loads)}</p>
                     {match.loads && (
                       <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>
@@ -582,13 +585,13 @@ export function DashboardPageClient() {
                     <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem' }}>
                       <button
                         onClick={() => handleMatchAction(match.id, 'accept', match.load_id)}
-                        style={{ background: ORANGE, color: '#000', border: 'none', borderRadius: 6, padding: '6px 16px', fontWeight: 700, cursor: 'pointer' }}
+                        className="ui-btn"
                       >
                         Accept
                       </button>
                       <button
                         onClick={() => handleMatchAction(match.id, 'decline', match.load_id)}
-                        style={{ background: 'transparent', color: MUTED, border: `1px solid ${MUTED}`, borderRadius: 6, padding: '6px 16px', cursor: 'pointer' }}
+                        className="ui-btn ghost"
                       >
                         Decline
                       </button>
@@ -601,15 +604,15 @@ export function DashboardPageClient() {
 
           {/* Completed Loads */}
           <section>
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: ORANGE, marginBottom: '1rem' }}>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#fff', marginBottom: '1rem' }}>
               Completed Loads ({completedLoads.length})
             </h2>
             {completedLoads.length === 0 ? (
-              <p style={{ color: MUTED }}>No completed loads yet.</p>
+              <EmptyState title="No completed loads yet" text="No completed loads yet." />
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {completedLoads.map(load => (
-                  <div key={load.id} style={{ background: SURFACE, borderRadius: 8, padding: '1rem', border: '1px solid #1e2736', opacity: 0.75 }}>
+                  <div key={load.id} className="ui-load" style={{ opacity: 0.75 }}>
                     <p style={{ margin: 0, fontWeight: 600 }}>{loadLabel(load)}</p>
                     <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>
                       {load.pu_city}, {load.pu_state} → {load.dl_city}, {load.dl_state}
@@ -627,17 +630,17 @@ export function DashboardPageClient() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           {/* Earnings */}
           <section>
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: ORANGE, marginBottom: '1rem' }}>Earnings</h2>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#fff', marginBottom: '1rem' }}>Earnings</h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
-              <div style={{ background: SURFACE, borderRadius: 8, padding: '1rem', border: '1px solid #1e2736' }}>
+              <div className="ui-load">
                 <p style={{ margin: 0, color: MUTED, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: 1 }}>This Month</p>
                 <p style={{ margin: '6px 0 0', fontSize: '1.5rem', fontWeight: 700, color: ORANGE }}>${earnings ? earnings.month.toFixed(2) : '0.00'}</p>
               </div>
-              <div style={{ background: SURFACE, borderRadius: 8, padding: '1rem', border: '1px solid #1e2736' }}>
+              <div className="ui-load">
                 <p style={{ margin: 0, color: MUTED, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: 1 }}>Lifetime</p>
                 <p style={{ margin: '6px 0 0', fontSize: '1.5rem', fontWeight: 700, color: ORANGE }}>${earnings ? earnings.lifetime.toFixed(2) : '0.00'}</p>
               </div>
-              <div style={{ background: SURFACE, borderRadius: 8, padding: '1rem', border: '1px solid #1e2736' }}>
+              <div className="ui-load">
                 <p style={{ margin: 0, color: MUTED, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: 1 }}>Jobs Completed</p>
                 <p style={{ margin: '6px 0 0', fontSize: '1.5rem', fontWeight: 700, color: ORANGE }}>{earnings ? earnings.jobsCount : 0}</p>
               </div>
@@ -646,15 +649,15 @@ export function DashboardPageClient() {
 
           {/* Active Jobs */}
           <section>
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: ORANGE, marginBottom: '1rem' }}>Active Jobs ({escortJobs.length})</h2>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#fff', marginBottom: '1rem' }}>Active Jobs ({escortJobs.length})</h2>
             {escortJobs.length === 0 ? (
-              <p style={{ color: MUTED }}>No active jobs. <a href="/loads" style={{ color: ORANGE }}>Browse available loads →</a></p>
+              <EmptyState title="No active jobs" text="No active jobs." action={<a href="/loads" className="ui-btn">Browse available loads →</a>} />
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {escortJobs.map((bid: any) => {
                   const ld = bid.loads || {}
                   return (
-                    <div key={bid.id} style={{ background: SURFACE, borderRadius: 8, padding: '1rem', border: '1px solid #1e2736' }}>
+                    <div key={bid.id} className="ui-load">
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
                         <div>
                           <p style={{ margin: 0, fontWeight: 600 }}>{loadLabel(ld)}</p>
@@ -667,7 +670,7 @@ export function DashboardPageClient() {
                       </div>
                       {ld.id && (
                         <div style={{ marginTop: 8 }}>
-                          <button onClick={() => handleDownloadInvoice(ld.id)} style={{ fontSize: 11, color: ORANGE, background: 'none', border: '1px solid ' + ORANGE, borderRadius: 4, padding: '3px 10px', cursor: 'pointer' }}>
+                          <button onClick={() => handleDownloadInvoice(ld.id)} className="ui-btn ghost">
                             📄 Invoice
                           </button>
                         </div>
@@ -681,10 +684,10 @@ export function DashboardPageClient() {
 
           {/* Mileage / Expense Tracker */}
           <section>
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: ORANGE, marginBottom: '1rem' }}>Mileage &amp; Expenses</h2>
-            <div style={{ background: SURFACE, borderRadius: 8, padding: '1rem', border: '1px solid #1e2736' }}>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#fff', marginBottom: '1rem' }}>Mileage &amp; Expenses</h2>
+            <div className="ui-load">
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.5rem' }}>
-                <select value={expKind} onChange={e => setExpKind(e.target.value as any)} style={{ background: BG, border: '1px solid #1e2736', borderRadius: 6, color: TEXT, padding: '8px', fontSize: 13 }}>
+                <select value={expKind} onChange={e => setExpKind(e.target.value as any)} className="ui-select">
                   <option value="mileage">Mileage</option>
                   <option value="fuel">Fuel</option>
                   <option value="lodging">Lodging</option>
@@ -692,17 +695,17 @@ export function DashboardPageClient() {
                   <option value="toll">Toll</option>
                   <option value="other">Other</option>
                 </select>
-                <input value={expAmount} onChange={e => setExpAmount(e.target.value)} placeholder="Amount $" type="number" step="0.01" style={{ background: BG, border: '1px solid #1e2736', borderRadius: 6, color: TEXT, padding: '8px', fontSize: 13 }} />
-                <input value={expMiles} onChange={e => setExpMiles(e.target.value)} placeholder="Miles (opt)" type="number" style={{ background: BG, border: '1px solid #1e2736', borderRadius: 6, color: TEXT, padding: '8px', fontSize: 13 }} />
-                <input value={expNote} onChange={e => setExpNote(e.target.value)} placeholder="Note" style={{ background: BG, border: '1px solid #1e2736', borderRadius: 6, color: TEXT, padding: '8px', fontSize: 13 }} />
-                <button onClick={handleAddExpense} disabled={expSubmitting} style={{ background: ORANGE, color: '#000', border: 'none', borderRadius: 6, padding: '8px 16px', fontWeight: 700, cursor: expSubmitting ? 'default' : 'pointer', fontSize: 13 }}>
+                <input value={expAmount} onChange={e => setExpAmount(e.target.value)} placeholder="Amount $" type="number" step="0.01" className="ui-input" />
+                <input value={expMiles} onChange={e => setExpMiles(e.target.value)} placeholder="Miles (opt)" type="number" className="ui-input" />
+                <input value={expNote} onChange={e => setExpNote(e.target.value)} placeholder="Note" className="ui-input" />
+                <button onClick={handleAddExpense} disabled={expSubmitting} className={expSubmitting ? 'ui-btn dim' : 'ui-btn'}>
                   {expSubmitting ? 'Saving…' : 'Add'}
                 </button>
               </div>
               {expenses.length > 0 && (
                 <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   {expenses.map((ex: any) => (
-                    <div key={ex.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0.75rem', background: BG, borderRadius: 6, border: '1px solid #1e2736' }}>
+                    <div key={ex.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0.75rem', background: BG, borderRadius: 6, border: '1px solid rgba(255,255,255,.12)' }}>
                       <div style={{ fontSize: 13 }}>
                         <strong style={{ color: ORANGE, textTransform: 'capitalize' }}>{ex.kind}</strong>
                         <span style={{ color: MUTED, marginLeft: 8 }}>{ex.incurred_on}</span>
@@ -711,25 +714,25 @@ export function DashboardPageClient() {
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <span style={{ fontWeight: 700, color: ORANGE }}>${Number(ex.amount).toFixed(2)}</span>
-                        <button onClick={() => handleDeleteExpense(ex.id)} style={{ background: 'transparent', color: '#ef4444', border: 'none', cursor: 'pointer', fontSize: 14 }}>✕</button>
+                        <button onClick={() => handleDeleteExpense(ex.id)} className="ui-btn danger" aria-label="Delete expense">✕</button>
                       </div>
                     </div>
                   ))}
                 </div>
               )}
-              {expenses.length === 0 && <p style={{ color: MUTED, fontSize: 13, marginTop: 12, marginBottom: 0 }}>No expenses logged yet.</p>}
+              {expenses.length === 0 && <EmptyState title="No expenses logged yet" text="No expenses logged yet." />}
             </div>
           </section>
 
           {/* Breakdown Protocol Toggle */}
           <section>
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: ORANGE, marginBottom: '1rem' }}>Breakdown Protocol</h2>
-            <div style={{ background: SURFACE, borderRadius: 8, padding: '1rem', border: '1px solid #1e2736', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#fff', marginBottom: '1rem' }}>Breakdown Protocol</h2>
+            <div style={{ background: SURFACE, borderRadius: 8, padding: '1rem', border: '1px solid rgba(255,255,255,.12)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
               <div>
                 <p style={{ margin: 0, fontWeight: 600 }}>{breakdownOn ? 'Enabled' : 'Disabled'}</p>
                 <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>When enabled, you receive automated breakdown alerts and route safety prompts during active jobs.</p>
               </div>
-              <button onClick={handleToggleBreakdown} disabled={breakdownSaving} style={{ background: breakdownOn ? '#22c55e' : 'transparent', color: breakdownOn ? '#000' : ORANGE, border: '1px solid ' + (breakdownOn ? '#22c55e' : ORANGE), borderRadius: 6, padding: '8px 20px', fontWeight: 700, cursor: breakdownSaving ? 'default' : 'pointer', fontSize: 13 }}>
+              <button onClick={handleToggleBreakdown} disabled={breakdownSaving} className={breakdownSaving ? 'ui-btn dim' : breakdownOn ? 'ui-btn ok' : 'ui-btn ghost'}>
                 {breakdownSaving ? 'Saving…' : breakdownOn ? 'Turn Off' : 'Turn On'}
               </button>
             </div>
@@ -737,32 +740,32 @@ export function DashboardPageClient() {
 
           {/* Find Work */}
           <section>
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: ORANGE, marginBottom: '1rem' }}>Find Work</h2>
-            <a href="/loads" style={{ display: 'inline-block', background: ORANGE, color: '#000', borderRadius: 6, padding: '10px 24px', fontWeight: 700, textDecoration: 'none' }}>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#fff', marginBottom: '1rem' }}>Find Work</h2>
+            <a href="/loads" className="ui-btn">
               Browse Available Loads
             </a>
           </section>
 
           {/* Profile Summary */}
           <section>
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: ORANGE, marginBottom: '1rem' }}>Profile</h2>
-            <div style={{ background: SURFACE, borderRadius: 8, padding: '1rem', border: '1px solid #1e2736' }}>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#fff', marginBottom: '1rem' }}>Profile</h2>
+            <div className="ui-load">
               <p style={{ margin: 0 }}><span style={{ color: MUTED }}>Name:</span> {profile.full_name || '—'}</p>
               <p style={{ margin: '8px 0 0' }}><span style={{ color: MUTED }}>Role:</span> {profile.role}</p>
-              <a href="/profile" style={{ display: 'inline-block', marginTop: '0.75rem', color: ORANGE, fontSize: '0.875rem' }}>Edit Profile →</a>
+              <a href="/profile" className="ui-link" style={{ display: 'inline-block', marginTop: '0.75rem' }}>Edit Profile →</a>
             </div>
           </section>
 
           {!inApp && (
           <section>
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: ORANGE, marginBottom: '1rem' }}>Subscription</h2>
-            <div style={{ background: SURFACE, borderRadius: 8, padding: '1rem', border: '1px solid #1e2736', textAlign: 'center', marginTop: 8 }}>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#fff', marginBottom: '1rem' }}>Subscription</h2>
+            <div style={{ background: SURFACE, borderRadius: 8, padding: '1rem', border: '1px solid rgba(255,255,255,.12)', textAlign: 'center', marginTop: 8 }}>
               {(profile.stripe_customer_id || isPro) ? (
-                <button onClick={handleStripePortal} style={{ background: ORANGE, color: '#000', border: 'none', borderRadius: 6, padding: '10px 24px', fontWeight: 700, cursor: 'pointer' }}>
+                <button onClick={handleStripePortal} className="ui-btn">
                   Manage Subscription
                 </button>
               ) : (
-                <a href="/checkout" style={{ display: 'inline-block', background: ORANGE, color: '#000', borderRadius: 6, padding: '10px 24px', fontWeight: 700, textDecoration: 'none' }}>
+                <a href="/checkout" className="ui-btn">
                   Upgrade to Pro
                 </a>
               )}
@@ -779,20 +782,20 @@ export function DashboardPageClient() {
       {/* Deadhead Destination Modal */}
       {deadheadModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: '#1e2736', borderRadius: 12, padding: '2rem', width: '100%', maxWidth: 400 }}>
-            <h2 style={{ color: '#f59e0b', margin: '0 0 0.5rem' }}>🚛 Where do you want to end up?</h2>
-            <p style={{ color: '#94a3b8', marginBottom: '1.5rem', fontSize: '0.875rem' }}>After this job — so we can match you with nearby loads.</p>
+          <div style={{ background: 'rgba(255,255,255,.12)', borderRadius: 12, padding: '2rem', width: '100%', maxWidth: 400 }}>
+            <h2 style={{ color: '#fff', margin: '0 0 0.5rem' }}>🚛 Where do you want to end up?</h2>
+            <p style={{ color: 'var(--ui-muted)', marginBottom: '1.5rem', fontSize: '0.875rem' }}>After this job — so we can match you with nearby loads.</p>
             <input
               placeholder="City"
               value={dhCity}
               onChange={e => setDhCity(e.target.value)}
-              style={{ width: '100%', padding: '0.6rem', borderRadius: 6, border: '1px solid #334155', background: '#0f172a', color: '#e2e8f0', marginBottom: '0.75rem', boxSizing: 'border-box' as const }}
+              style={{ width: '100%', padding: '12px 14px', borderRadius: 12, border: '1px solid rgba(255,255,255,.16)', background: 'rgba(255,255,255,.05)', color: '#e2e8f0', marginBottom: '0.75rem', fontSize: 16, minHeight: 44, boxSizing: 'border-box' as const }}
             />
             <input
               placeholder="State (e.g. TX)"
               value={dhState}
               onChange={e => setDhState(e.target.value)}
-              style={{ width: '100%', padding: '0.6rem', borderRadius: 6, border: '1px solid #334155', background: '#0f172a', color: '#e2e8f0', marginBottom: '1rem', boxSizing: 'border-box' as const }}
+              style={{ width: '100%', padding: '12px 14px', borderRadius: 12, border: '1px solid rgba(255,255,255,.16)', background: 'rgba(255,255,255,.05)', color: '#e2e8f0', marginBottom: '1rem', fontSize: 16, minHeight: 44, boxSizing: 'border-box' as const }}
             />
             <div style={{ display: 'flex', gap: '0.75rem' }}>
               <button
@@ -815,11 +818,12 @@ export function DashboardPageClient() {
                   setDhState('')
                   setDhSubmitting(false)
                 }}
-                style={{ flex: 1, padding: '0.6rem', background: '#f59e0b', color: '#000', border: 'none', borderRadius: 6, fontWeight: 700, cursor: 'pointer' }}
+                className={dhSubmitting || !dhCity || !dhState ? 'ui-btn dim' : 'ui-btn'}
+                style={{ flex: 1 }}
               >
                 {dhSubmitting ? 'Saving…' : 'Save Destination'}
               </button>
-              <button onClick={() => setDeadheadModal(null)} style={{ padding: '0.6rem 1rem', background: '#334155', color: '#e2e8f0', border: 'none', borderRadius: 6, cursor: 'pointer' }}>
+              <button onClick={() => setDeadheadModal(null)} className="ui-btn ghost">
                 Skip
               </button>
             </div>
@@ -835,12 +839,12 @@ export function DashboardPageClient() {
         if (dhOk && deadheadOpps.length > 0) {
           return (
             <section style={{ marginTop: '2rem' }}>
-              <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#f59e0b', marginBottom: '1rem' }}>🚛 Deadhead Opportunities</h2>
+              <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff', marginBottom: '1rem' }}>🚛 Deadhead Opportunities</h2>
               {deadheadOpps.map((load: any) => (
-                <div key={load.id} style={{ background: '#1e2736', borderRadius: 8, padding: '1rem', marginBottom: '0.75rem', border: '1px solid #334155' }}>
+                <div key={load.id} style={{ background: 'rgba(255,255,255,.12)', borderRadius: 8, padding: '1rem', marginBottom: '0.75rem', border: '1px solid rgba(255,255,255,.16)' }}>
                   <p style={{ margin: 0, fontWeight: 600 }}>{load.pu_city}, {load.pu_state} → {load.dl_city}, {load.dl_state}</p>
-                  <p style={{ margin: '0.25rem 0 0', color: '#94a3b8', fontSize: '0.875rem' }}>${load.per_mile_rate ?? '—'}{load.per_mile_rate != null ? '/mi' : ''} &bull; {load.escort_type}</p>
-                  <a href={`/loads/${load.id}`} style={{ color: '#f59e0b', fontSize: '0.875rem', display: 'inline-block', marginTop: '0.5rem' }}>Claim load →</a>
+                  <p style={{ margin: '0.25rem 0 0', color: 'var(--ui-muted)', fontSize: '0.875rem' }}>${load.per_mile_rate ?? '—'}{load.per_mile_rate != null ? '/mi' : ''} &bull; {load.escort_type}</p>
+                  <a href={`/loads/${load.id}`} style={{ color: 'var(--ui-or)', fontSize: '0.875rem', display: 'inline-block', marginTop: '0.5rem' }}>Claim load →</a>
                 </div>
               ))}
             </section>
@@ -848,13 +852,15 @@ export function DashboardPageClient() {
         }
         if (!dhOk && isEscort) {
           return (
-            <section style={{ marginTop: '2rem', padding: '1rem', background: '#1e2736', borderRadius: 8, border: '1px solid #334155' }}>
-              <p style={{ margin: 0, color: '#94a3b8' }}>🚛 <strong style={{ color: '#f59e0b' }}>Deadhead Opportunities</strong> — available to Pro and Fleet members. <a href="/pricing" style={{ color: '#f59e0b' }}>Upgrade to Pro</a></p>
+            <section style={{ marginTop: '2rem', padding: '1rem', background: 'rgba(255,255,255,.12)', borderRadius: 8, border: '1px solid rgba(255,255,255,.16)' }}>
+              <p style={{ margin: 0, color: 'var(--ui-muted)' }}>🚛 <strong style={{ color: 'var(--ui-or)' }}>Deadhead Opportunities</strong> — available to Pro and Fleet members. <a href="/pricing" style={{ color: 'var(--ui-or)' }}>Upgrade to Pro</a></p>
             </section>
           )
         }
         return null
       })()}
     </div>
+    </div>
+    </>
   )
 }
