@@ -4,7 +4,7 @@ import { isNativeApp } from '@/lib/native'
 
 type Turn = { role: 'user' | 'assistant'; content: string }
 const KEY = 'oeh-helper-chat'
-const HELLO = 'Hi, I am the site helper. Ask me how the boards work, what is free, or how to get verified. If I cannot help, I can pass your question to the team.'
+const HELLO = 'Hi, I am the OEH assistant. Ask me how the boards work, what is free, or how to get verified. If I cannot help, I can pass your question to the team.'
 
 // A small help chat on every page (not inside the phone app). Answers come from /api/helper.
 export default function HelperChat() {
@@ -49,9 +49,9 @@ export default function HelperChat() {
         <button className="hc-fab" onClick={() => setOpen(true)} aria-label="Open the help chat">Help</button>
       )}
       {open && (
-        <div className="hc-panel" role="dialog" aria-label="Site helper">
+        <div className="hc-panel" role="dialog" aria-label="OEH assistant">
           <div className="hc-head">
-            <div><strong>OEH helper</strong><span>Automated. It can message the team.</span></div>
+            <div><strong>OEH assistant</strong><span>Automated. It can message the team.</span></div>
             <button onClick={() => setOpen(false)} aria-label="Close the help chat">×</button>
           </div>
           <div className="hc-body">
