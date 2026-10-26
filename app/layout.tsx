@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     default: "Oversize Escort Hub | Verified P/EVO Escorts & Oversize Load Board",
     template: "%s | Oversize Escort Hub",
   },
-  description: "The #1 marketplace for oversize load carriers and verified P/EVO pilot car escorts. Post loads, find escorts, bid on jobs. No commissions. Flat subscription only.",
+  description: "The marketplace for oversize load carriers and verified P/EVO pilot car escorts. Post loads, find escorts, bid on jobs. No commissions. Flat subscription only.",
   keywords: [
     "oversize escort", "pilot car escort", "PEVO escort", "P/EVO operator",
     "oversize load board", "pilot car driver", "oversize load escort",
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     url: "https://www.oversize-escort-hub.com",
     siteName: "Oversize Escort Hub",
     title: "Oversize Escort Hub | Verified P/EVO Escorts & Oversize Load Board",
-    description: "The #1 marketplace for oversize load carriers and verified P/EVO pilot car escorts. Post loads, find escorts, bid on jobs. No commissions. Flat subscription only.",
+    description: "The marketplace for oversize load carriers and verified P/EVO pilot car escorts. Post loads, find escorts, bid on jobs. No commissions. Flat subscription only.",
     images: [
       {
         url: "/og-image.png",
@@ -57,7 +57,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Oversize Escort Hub | Verified P/EVO Escorts & Load Board",
-    description: "The #1 marketplace for oversize carriers and verified P/EVO escorts. No commissions. Post loads, find escorts, bid on jobs.",
+    description: "The marketplace for oversize carriers and verified P/EVO escorts. No commissions. Post loads, find escorts, bid on jobs.",
     images: ["/og-image.png"],
     creator: "@OversizeEscort",
   },
@@ -83,7 +83,7 @@ export default function RootLayout({
               "@type": "WebSite",
               name: "Oversize Escort Hub",
               url: "https://www.oversize-escort-hub.com",
-              description: "The #1 marketplace for oversize load carriers and verified P/EVO pilot car escorts.",
+              description: "The marketplace for oversize load carriers and verified P/EVO pilot car escorts.",
             }),
           }}
         />

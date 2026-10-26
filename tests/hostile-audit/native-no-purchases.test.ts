@@ -35,3 +35,13 @@ test('the board ad column is hidden inside the app', () => {
 test('the sponsored-zone price card on /pricing is hidden inside the app', () => {
   expect(read('app/pricing/page.tsx')).toMatch(/\{!isNativeApp\(\) && \(<Card>\s*<div id="sponsored" \/>/)
 })
+
+test('paid sponsored escort strips are hidden inside the app', () => {
+  expect(read('app/flat-rate/_client.tsx')).toMatch(/!inApp && stateFilter && sponsoredEscorts\.length > 0/)
+  expect(read('app/find-escorts/page.tsx')).toMatch(/!inApp && sponsored\.length > 0/)
+})
+
+test('the signed-in home page makes no unverifiable market claims', () => {
+  const home = read('app/page.tsx')
+  for (const claim of ['$800+', '50,000+', '$670M', 'FastPay Fill Speed']) expect(home).not.toContain(claim)
+})

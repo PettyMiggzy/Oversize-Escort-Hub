@@ -8,6 +8,9 @@ import { isAdminEmail } from '@/lib/supabase';
 import { getAccessLevel, secondsUntilClaimable } from '@/lib/board-access';
 import { BoardAdSidebar } from '@/components/BoardAdSidebar';
 import { effectiveTier } from '@/lib/free-launch';
+import { isNativeApp } from '@/lib/native';
+import PageTitle from '@/components/PageTitle';
+import EmptyState from '@/components/EmptyState';
 
 const toTitleCase = (str?: string) =>
   str ? str.replace(/\w\S*/g, t => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()) : '';
@@ -62,6 +65,8 @@ export function FlatRateBoardClient() {
   const [claimedLoads, setClaimedLoads] = useState<Set<string>>(new Set());
   const [claimError, setClaimError] = useState<Record<string, string>>({});
 
+  const [inApp, setInApp] = useState(false);
+  useEffect(() => { setInApp(isNativeApp()); }, []);
   const [windowWidth, setWindowWidth] = useState(1200);
   // Tick every second so per-load Member countdowns re-render in real time.
   // One setState/sec for the whole board; cheaper than per-row timers.
@@ -202,207 +207,111 @@ export function FlatRateBoardClient() {
     }
   };
 
+  const claimBtn = (load: Load) => {
+    // Tier-aware claim CTA. See lib/board-access.ts for the rules.
+    if (userRole === 'carrier' || userRole === 'broker') {
+      // Posting accounts do not claim loads; no upgrade prompt for them.
+      return <div className="ui-meta" style={{ textAlign: 'center' }}>Escorts claim loads from here</div>;
+    }
+    if (!userId) return <Link href="/signin?redirect=/flat-rate" className="ui-btn block ghost">Sign in to claim</Link>;
+    const access = getAccessLevel(userTier, isAdminEmail(userEmail));
+    const claimed = claimedLoads.has(load.id);
+    const remaining = access === 'delayed' ? secondsUntilClaimable(load.created_at, now) : 0;
+    const locked = access === 'delayed' && remaining > 0;
+    if (access === 'none') {
+      // Free / trial / unknown tier: hard upgrade CTA.
+      return <Link href="/pricing" className="ui-btn block ghost">Upgrade to Member &rarr;</Link>;
+    }
+    return (
+      <button
+        className={`ui-btn block${locked ? ' dim' : ''}`}
+        onClick={() => handleClaim(load.id)}
+        disabled={claimed || locked}
+        style={claimed ? { background: '#35d489', color: '#04140c', boxShadow: 'none' } : undefined}
+      >
+        {claimed ? 'Request sent \u2713' : locked ? `Available in ${remaining}s...` : 'Claim load'}
+      </button>
+    );
+  };
+
   return (
     <>
       <SiteHeader />
-      <div style={{ background: '#0a0a0a', minHeight: '100vh', color: '#ccc' }}>
-        <div style={{ maxWidth: 1400, margin: '0 auto', padding: isMobile ? '20px 12px' : '32px 24px' }}>
-          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 16 : 24, alignItems: 'flex-start' }}>
-            <div style={{ flex: 1, minWidth: 0 }}>
-          {/* Header row */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-            <h1 style={{ fontSize: 22, fontWeight: 700 }}>Flat Rate Board</h1>
-          </div>
-          <p style={{ color: '#6b7280', fontSize: 13, marginBottom: 16 }}>Fixed-rate loads · Direct hire · No bidding</p>
-
-          {/* State filter */}
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ fontSize: 11, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em', marginRight: 8 }}>
-              Filter by state:
-            </label>
-            <select
-              value={stateFilter}
-              onChange={(e) => setStateFilter(e.target.value)}
-              style={{
-                background: '#111',
-                color: '#fff',
-                border: '1px solid #333',
-                borderRadius: 6,
-                padding: '6px 10px',
-                fontSize: 13
-              }}
-            >
-              <option value="">All states</option>
-              {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </div>
-
-          {/* Sponsored strip — only when state selected + escorts exist */}
-          {stateFilter && sponsoredEscorts.length > 0 && (
-            <div style={{ display: 'flex', gap: 10, overflowX: 'auto', marginBottom: 20, paddingBottom: 4 }}>
-              {sponsoredEscorts.map(esc => (
-                <div
-                  key={esc.id}
-                  style={{
-                    background: '#111',
-                    border: '1px solid #f0a500',
-                    borderRadius: 6,
-                    padding: '8px 14px',
-                    minWidth: 160,
-                    flexShrink: 0,
-                    fontSize: 12
-                  }}
-                >
-                  <div style={{ fontWeight: 600, color: '#fff' }}>{esc.full_name || 'Escort'}</div>
-                  {esc.bgc_verified && <span style={{ color: '#22c55e', fontSize: 11 }}>✓ BGC</span>}
+      <div className="ui-page">
+        <div className="ui-wrap">
+          <PageTitle
+            eyebrow="Flat rate board"
+            title="Flat rate board"
+            lead="Fixed-rate loads. Direct hire. No bidding."
+            right={
+              <div style={{ minWidth: 180 }}>
+                <label className="ui-label" htmlFor="state-filter">Filter by state</label>
+                <select id="state-filter" className="ui-select" value={stateFilter} onChange={(e) => setStateFilter(e.target.value)}>
+                  <option value="">All states</option>
+                  {US_STATES.map(st => <option key={st} value={st}>{st}</option>)}
+                </select>
+              </div>
+            }
+          />
+          <div className="ui-two">
+            <div style={{ minWidth: 0 }}>
+              {/* Sponsored strip: only when a state is selected and sponsored escorts exist. Not shown inside the phone app. */}
+              {!inApp && stateFilter && sponsoredEscorts.length > 0 && (
+                <div style={{ display: 'flex', gap: 10, overflowX: 'auto', marginBottom: 20, paddingBottom: 4 }}>
+                  {sponsoredEscorts.map(esc => (
+                    <div key={esc.id} className="ui-side-card" style={{ minWidth: 170, flexShrink: 0, margin: 0, padding: '10px 14px', borderColor: 'rgba(255,196,107,.4)' }}>
+                      <div className="t" style={{ margin: '0 0 4px', fontSize: 14 }}>{esc.full_name || 'Escort'}</div>
+                      {esc.bgc_verified && <span className="ui-badge green">&#10003; BGC</span>}
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
+              )}
 
-          {loading && <p>Loading...</p>}
-          {!loading && filteredLoads.length === 0 && (
-            <p style={{ color: '#6b7280' }}>
-              No open flat-rate loads{stateFilter ? ` in ${stateFilter}` : ''} right now.
-            </p>
-          )}
+              {loading && <p className="ui-meta">Loading&hellip;</p>}
+              {!loading && filteredLoads.length === 0 && (
+                <EmptyState
+                  title={stateFilter ? `No flat-rate loads in ${stateFilter}` : 'No flat-rate loads right now'}
+                  text="New loads appear here the moment a carrier posts them. Try another state, or check back soon."
+                  action={<Link href="/post-load" className="ui-btn">Post a load</Link>}
+                />
+              )}
 
-          {/* Cards grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
-            {filteredLoads.map((load) => (
-                          <div
-                            key={load.id}
-                            style={{
-                              background: '#111',
-                              border: '1px solid #222',
-                              borderLeft: '4px solid #f0a500',
-                              borderRadius: 8,
-                              padding: '20px 24px',
-                              marginBottom: 16,
-                              display: 'grid',
-                              gridTemplateColumns: '1fr',
-                              gap: 16,
-                              alignItems: 'start'
-                            }}
-                          >
-                            <div>
-                              {load.load_type === 'breakdown' && (
-          <div style={{ display: 'inline-block', background: '#7a1f1f', color: '#fff', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4, marginBottom: 6 }}>
-            🚨 BREAKDOWN ASSISTANCE
-          </div>
-        )}
-        <div style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginBottom: 6 }}>
-                                {toTitleCase(load.pu_city)}, {load.pu_state} → {toTitleCase(load.dl_city)}, {load.dl_state}
-                              </div>
-                              <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 8 }}>
-                                <span style={{ fontSize: 13, color: '#f0a500' }}>
-                                  {load.escort_type || 'Position TBD'}
-                                </span>
-                                <span style={{ fontSize: 13, color: '#9ca3af' }}>
-                                  {load.escort_count || 1} escort{(load.escort_count || 1) > 1 ? 's' : ''} needed
-                                </span>
-                                {load.cert_types && load.cert_types.length > 0 && (
-                                  <span style={{ fontSize: 12, color: '#6b7280' }}>
-                                    Certs: {(load.cert_types as string[]).join(', ')}
-                                  </span>
-                                )}
-                              </div>
-                              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
-                                {load.bgc_verified && (
-                                  <span style={{ background: '#14532d', color: '#22c55e', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4 }}>✓ BGC</span>
-                                )}
-                                {load.fmcsa_verified && (
-                                  <span style={{ background: '#1e3a5f', color: '#60a5fa', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4 }}>✓ FMCSA</span>
-                                )}
-                                {load.poster_rating && (
-                                  <span style={{ fontSize: 11, color: '#f0a500' }}>★ {Number(load.poster_rating).toFixed(1)} ({load.poster_jobs || 0} jobs)</span>
-                                )}
-                              </div>
-                              <div style={{ fontSize: 12, color: '#6b7280' }}>
-                                Posted {new Date(load.created_at).toLocaleDateString()} · Expires {load.expires_at ? new Date(load.expires_at).toLocaleDateString() : '24hr'}
-                              </div>
-                            </div>
-                            <div style={{ textAlign: 'left', minWidth: undefined }}>
-                              <div style={{ fontSize: 22, fontWeight: 800, color: '#f0a500', marginBottom: 4 }}>
-                                {load.per_mile_rate != null
-                                  ? `$${load.per_mile_rate}/mi`
-                                  : 'Negotiable'}
-                              </div>
-                              <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 12 }}>
-                                $250 no-go · $100 overnight
-                              </div>
-                              {claimError[load.id] && (
-                                <div style={{ fontSize: 11, color: '#ef4444', marginBottom: 6 }}>{claimError[load.id]}</div>
-                              )}
-                              {(() => {
-                                // Tier-aware claim CTA. See lib/board-access.ts for the rules.
-                                if (userRole === 'carrier' || userRole === 'broker') {
-                                  // Posting accounts do not claim loads; no upgrade prompt for them.
-                                  return <div style={{ fontSize: 12, color: '#6b7280', textAlign: 'center' }}>Escorts claim loads from here</div>;
-                                }
-                                const access = getAccessLevel(userTier, isAdminEmail(userEmail));
-                                const claimed = claimedLoads.has(load.id);
-                                const remaining = access === 'delayed'
-                                  ? secondsUntilClaimable(load.created_at, now)
-                                  : 0;
-                                const locked = access === 'delayed' && remaining > 0;
-                                if (access === 'none') {
-                                  // Free / trial / unknown tier: hard upgrade CTA.
-                                  return (
-                                    <Link
-                                      href="/pricing"
-                                      style={{
-                                        display: 'block',
-                                        background: '#2a2a2a',
-                                        color: '#f0a500',
-                                        border: '1px solid #f0a500',
-                                        borderRadius: 6,
-                                        padding: '8px 20px',
-                                        fontWeight: 700,
-                                        fontSize: 13,
-                                        textAlign: 'center',
-                                        textDecoration: 'none',
-                                        width: '100%',
-                                        boxSizing: 'border-box',
-                                      }}
-                                    >
-                                      Upgrade to Member →
-                                    </Link>
-                                  );
-                                }
-                                return (
-                                  <button
-                                    onClick={() => handleClaim(load.id)}
-                                    disabled={claimed || locked}
-                                    style={{
-                                      background: claimed ? '#22c55e' : locked ? '#3a3a3a' : '#f0a500',
-                                      color: claimed ? '#fff' : locked ? '#9ca3af' : '#000',
-                                      border: 'none',
-                                      borderRadius: 6,
-                                      padding: '8px 20px',
-                                      fontWeight: 700,
-                                      fontSize: 13,
-                                      cursor: claimed || locked ? 'default' : 'pointer',
-                                      width: '100%'
-                                    }}
-                                  >
-                                    {claimed
-                                      ? 'Request Sent ✓'
-                                      : locked
-                                        ? `Available in ${remaining}s...`
-                                        : 'Claim Load'}
-                                  </button>
-                                );
-                              })()}
-                              {userId && load.status === 'filled' && (
-                                <a href={`/review/${load.id}`} style={{ fontSize: 11, color: '#9ca3af', textAlign: 'center', display: 'block', marginTop: 6 }}>
-                                  Leave a Review
-                                </a>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-          </div>
+              <div className="ui-grid" style={isMobile ? { gridTemplateColumns: '1fr' } : undefined}>
+                {filteredLoads.map((load) => (
+                  <div key={load.id} className="ui-load">
+                    <div>
+                      {load.load_type === 'breakdown' && (
+                        <span className="ui-badge" style={{ background: 'rgba(255,90,90,.16)', color: '#ff8a8a', border: '1px solid rgba(255,90,90,.45)', marginBottom: 8 }}>&#128680; Breakdown assistance</span>
+                      )}
+                      <div className="ui-route">{toTitleCase(load.pu_city)}, {load.pu_state} &rarr; {toTitleCase(load.dl_city)}, {load.dl_state}</div>
+                      <div className="ui-meta" style={{ marginTop: 6 }}>
+                        <span style={{ color: '#ffc46b', fontWeight: 600 }}>{load.escort_type || 'Position TBD'}</span>
+                        {' '}&middot; {load.escort_count || 1} escort{(load.escort_count || 1) > 1 ? 's' : ''} needed
+                      </div>
+                      {load.cert_types && load.cert_types.length > 0 && (
+                        <div className="ui-meta" style={{ marginTop: 6, color: '#6b7686' }}>Certs: {(load.cert_types as string[]).join(', ')}</div>
+                      )}
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginTop: 10 }}>
+                        {load.bgc_verified && <span className="ui-badge green">&#10003; BGC</span>}
+                        {load.fmcsa_verified && <span className="ui-badge blue">&#10003; FMCSA</span>}
+                        {load.poster_rating && <span className="ui-meta" style={{ color: '#ffc46b' }}>&#9733; {Number(load.poster_rating).toFixed(1)} ({load.poster_jobs || 0} jobs)</span>}
+                      </div>
+                      <div className="ui-meta" style={{ marginTop: 8 }}>
+                        Posted {new Date(load.created_at).toLocaleDateString()} &middot; Expires {load.expires_at ? new Date(load.expires_at).toLocaleDateString() : '24hr'}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="ui-v or" style={{ fontSize: 26 }}>{load.per_mile_rate != null ? `$${load.per_mile_rate}/mi` : 'Negotiable'}</div>
+                      <div className="ui-meta" style={{ margin: '2px 0 14px', color: '#6b7686' }}>$250 no-go &middot; $100 overnight</div>
+                      {claimError[load.id] && <div className="ui-meta" style={{ color: '#ff8a8a', marginBottom: 8 }}>{claimError[load.id]}</div>}
+                      {claimBtn(load)}
+                      {userId && load.status === 'filled' && (
+                        <a href={`/review/${load.id}`} className="ui-meta" style={{ display: 'block', textAlign: 'center', marginTop: 8 }}>Leave a review</a>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
             <BoardAdSidebar />
           </div>

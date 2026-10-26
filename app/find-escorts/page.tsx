@@ -3,6 +3,9 @@ import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import SiteHeader from "@/components/SiteHeader"
+import PageTitle from "@/components/PageTitle"
+import EmptyState from "@/components/EmptyState"
+import { isNativeApp } from "@/lib/native"
 
 const supabase = createClient()
 
@@ -15,6 +18,8 @@ export default function FindEscortsPage() {
   const [loading, setLoading] = useState(true)
   const [stateFilter, setStateFilter] = useState("")
   const [memberFilter, setMemberFilter] = useState("all")
+  const [inApp, setInApp] = useState(false)
+  useEffect(() => { setInApp(isNativeApp()) }, [])
 
   useEffect(() => {
     fetchEscorts()
@@ -84,94 +89,91 @@ export default function FindEscortsPage() {
     setLoading(false)
   }
 
-  const S = {
-    page: { minHeight: "100vh", background: "#060b16", color: "#e5e7eb", fontFamily: "system-ui,sans-serif" },
-    header: { padding: "16px 24px", borderBottom: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "space-between" },
-    brand: { fontWeight: 900, color: "#f0a500", textDecoration: "none", fontSize: 18, cursor: "pointer" },
-    hero: { background: "linear-gradient(135deg,#0d1117 0%,#060b16 100%)", padding: "48px 24px 32px", textAlign: "center" as const },
-    h1: { fontSize: 32, fontWeight: 800, marginBottom: 8 },
-    sub: { color: "#9ca3af", fontSize: 16, marginBottom: 24 },
-    filters: { display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" as const, padding: "0 24px 24px" },
-    select: { background: "#0d1117", border: "1px solid rgba(255,255,255,0.12)", color: "#e5e7eb", borderRadius: 8, padding: "8px 14px", fontSize: 14, cursor: "pointer" },
-    section: { maxWidth: 1100, margin: "0 auto", padding: "0 24px 40px" },
-    sponsoredBanner: { background: "rgba(240,165,0,0.06)", border: "1px solid rgba(240,165,0,0.2)", borderRadius: 12, padding: "16px 20px", marginBottom: 24 },
-    sponsoredTitle: { color: "#f0a500", fontWeight: 700, fontSize: 13, textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 12 },
-    grid: { display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))", gap: 16 },
-    card: { background: "#0d1117", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: 20, cursor: "pointer", transition: "border-color 0.2s" },
-    cardName: { fontWeight: 700, fontSize: 16, marginBottom: 6 },
-    badges: { display: "flex", gap: 6, flexWrap: "wrap" as const, marginBottom: 10 },
-    badge: (c: string) => ({ background: c, color: "#000", fontWeight: 700, fontSize: 11, padding: "2px 8px", borderRadius: 20 }),
-    zones: { fontSize: 12, color: "#6b7280", marginBottom: 8 },
-    rating: { color: "#f0a500", fontSize: 13, fontWeight: 600 },
-    btn: { background: "#f0a500", color: "#000", fontWeight: 700, border: "none", borderRadius: 8, padding: "7px 14px", cursor: "pointer", fontSize: 13, width: "100%", marginTop: 10 },
-    empty: { textAlign: "center" as const, padding: "60px 24px", color: "#6b7280" },
-  }
-
   return (
-    <div style={S.page}>
+    <>
       <SiteHeader />
-      <div style={S.hero}>
-        <h1 style={S.h1}>Find P/EVO Escorts</h1>
-        <p style={S.sub}>Browse verified oversize escort pilots available in your area.</p>
-      </div>
-      <div style={S.filters}>
-        <select style={S.select} value={stateFilter} onChange={e => setStateFilter(e.target.value)}>
-          <option value="">All States</option>
-          {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
-        </select>
-        <select style={S.select} value={memberFilter} onChange={e => setMemberFilter(e.target.value)}>
-          <option value="all">All Members</option>
-          <option value="pro">Pro Only</option>
-          <option value="bgc">BGC Verified</option>
-        </select>
-      </div>
-      <div style={S.section}>
-        {sponsored.length > 0 && (
-          <div style={S.sponsoredBanner}>
-            <div style={S.sponsoredTitle}>⭐ Sponsored Escorts — {stateFilter}</div>
-            <div style={S.grid}>
-              {sponsored.map((e: any) => (
-                <div key={e.id} style={{ ...S.card, border: "1px solid rgba(240,165,0,0.4)" }} onClick={() => router.push(`/escorts/${e.id}`)}>
-                  <div style={S.cardName}>{e.full_name || "Unnamed"}</div>
-                  <div style={S.badges}>
-                    <span style={S.badge("#f0a500")}>Sponsored</span>
-                    <span style={S.badge(e.tier === "pro" ? "#f0a500" : "#6b7280")}>{e.tier === "pro" ? "Pro" : "Member"}</span>
-                    {e.bgc_verified && <span style={S.badge("#22c55e")}>✓ BGC</span>}
+      <div className="ui-page">
+        <div className="ui-wrap">
+          <PageTitle
+            eyebrow="Find escorts"
+            title="Find P/EVO escorts"
+            lead="Browse oversize escort pilots available in your area."
+            right={
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                <div style={{ minWidth: 150 }}>
+                  <label className="ui-label" htmlFor="fe-state">State</label>
+                  <select id="fe-state" className="ui-select" value={stateFilter} onChange={e => setStateFilter(e.target.value)}>
+                    <option value="">All states</option>
+                    {US_STATES.map(st => <option key={st} value={st}>{st}</option>)}
+                  </select>
+                </div>
+                <div style={{ minWidth: 150 }}>
+                  <label className="ui-label" htmlFor="fe-member">Members</label>
+                  <select id="fe-member" className="ui-select" value={memberFilter} onChange={e => setMemberFilter(e.target.value)}>
+                    <option value="all">All members</option>
+                    <option value="pro">Pro only</option>
+                    <option value="bgc">BGC verified</option>
+                  </select>
+                </div>
+              </div>
+            }
+          />
+
+          {!inApp && sponsored.length > 0 && (
+            <div className="ui-card" style={{ marginBottom: 24, borderColor: 'rgba(255,196,107,.35)' }}>
+              <div style={{ marginBottom: 14 }}><span className="ui-badge amber">Sponsored escorts{stateFilter ? ` \u2014 ${stateFilter}` : ''}</span></div>
+              <div className="ui-grid">
+                {sponsored.map((e: any) => (
+                  <div key={e.id} className="ui-load" style={{ cursor: 'pointer' }} onClick={() => router.push(`/escorts/${e.id}`)}>
+                    <div>
+                      <div className="ui-route">{e.full_name || "Unnamed"}</div>
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
+                        <span className="ui-badge amber">Sponsored</span>
+                        <span className={`ui-badge ${e.tier === "pro" ? 'orange' : 'blue'}`}>{e.tier === "pro" ? "Pro" : "Member"}</span>
+                        {e.bgc_verified && <span className="ui-badge green">&#10003; BGC</span>}
+                      </div>
+                    </div>
+                    <button className="ui-btn block ghost">View profile</button>
                   </div>
-                  <button style={S.btn}>View Profile</button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {loading ? (
+            <p className="ui-meta" style={{ textAlign: 'center', padding: 40 }}>Loading escorts&hellip;</p>
+          ) : escorts.length === 0 ? (
+            <EmptyState
+              title={`No escorts found${stateFilter ? ` in ${stateFilter}` : ""}`}
+              text="Try another state or filter. New escorts join every day."
+            />
+          ) : (
+            <div className="ui-grid">
+              {escorts.map((e: any) => (
+                <div key={e.id} className="ui-load" style={{ cursor: 'pointer' }} onClick={() => router.push(`/escorts/${e.id}`)}>
+                  <div>
+                    <div className="ui-route">{e.full_name || "Unnamed"}</div>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
+                      <span className={`ui-badge ${e.tier === "pro" ? 'orange' : 'blue'}`}>{e.tier === "pro" ? "\u2B50 Pro" : "Member"}</span>
+                      {e.bgc_verified && <span className="ui-badge green">&#10003; BGC</span>}
+                    </div>
+                    {e.zones.length > 0 && (
+                      <div className="ui-meta" style={{ marginTop: 10 }}>Zones: {e.zones.slice(0,5).map((z: any) => z.location_state).join(", ")}{e.zones.length > 5 ? ` +${e.zones.length-5}` : ""}</div>
+                    )}
+                    {e.cert_types.length > 0 && (
+                      <div className="ui-meta" style={{ marginTop: 6 }}>Certs: {e.cert_types.join(", ")}</div>
+                    )}
+                    {e.avgRating && (
+                      <div className="ui-meta" style={{ marginTop: 6, color: '#ffc46b', fontWeight: 600 }}>&#9733; {e.avgRating} ({e.reviewCount})</div>
+                    )}
+                  </div>
+                  <button className="ui-btn block ghost">View profile</button>
                 </div>
               ))}
             </div>
-          </div>
-        )}
-        {loading ? (
-          <div style={S.empty}>Loading escorts...</div>
-        ) : escorts.length === 0 ? (
-          <div style={S.empty}>No escorts found{stateFilter ? ` in ${stateFilter}` : ""}.</div>
-        ) : (
-          <div style={S.grid}>
-            {escorts.map((e: any) => (
-              <div key={e.id} style={S.card} onClick={() => router.push(`/escorts/${e.id}`)}>
-                <div style={S.cardName}>{e.full_name || "Unnamed"}</div>
-                <div style={S.badges}>
-                  <span style={S.badge(e.tier === "pro" ? "#f0a500" : "#6b7280")}>{e.tier === "pro" ? "⭐ Pro" : "Member"}</span>
-                  {e.bgc_verified && <span style={S.badge("#22c55e")}>✓ BGC</span>}
-                </div>
-                {e.zones.length > 0 && (
-                  <div style={S.zones}>Zones: {e.zones.slice(0,5).map((z: any) => z.location_state).join(", ")}{e.zones.length > 5 ? ` +${e.zones.length-5}` : ""}</div>
-                )}
-                {e.cert_types.length > 0 && (
-                  <div style={{ fontSize: 12, color: "#9ca3af", marginBottom: 8 }}>Certs: {e.cert_types.join(", ")}</div>
-                )}
-                {e.avgRating && (
-                  <div style={S.rating}>★ {e.avgRating} ({e.reviewCount})</div>
-                )}
-                <button style={S.btn}>View Profile</button>
-              </div>
-            ))}
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+    </>
   )
 }

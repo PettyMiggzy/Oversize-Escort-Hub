@@ -622,9 +622,9 @@ function HomePage({ setPage, user, profile, setSigninMode, setPendingRole }: { s
             <p className="hero-sub">On many runs, permits and escorts come straight out of your load revenue — <strong style={{ color: "var(--t1)" }}>overhead that adds up fast with no tools to control it.</strong> Until now.</p>
             <p className="hero-sub">Industry standard is $2.00/mi or $500/day. Carriers who bid smart and book direct <strong style={{ color: "var(--t1)" }}>keep more of every load.</strong></p>
             <div className="stat-row">
-              <div className="stat"><div className="stat-n" style={{ color: "var(--or)" }}>$800+</div><div className="stat-l">Saved/Month (Top Users)</div></div>
+              <div className="stat"><div className="stat-n" style={{ color: "var(--or)" }}>$0</div><div className="stat-l">Commissions</div></div>
               <div className="stat"><div className="stat-n" style={{ color: "var(--gr)" }}>Free</div><div className="stat-l">Always Post Loads</div></div>
-              <div className="stat"><div className="stat-n" style={{ color: "var(--or)" }}>3×</div><div className="stat-l">FastPay Fill Speed</div></div>
+              <div className="stat"><div className="stat-n" style={{ color: "var(--or)" }}>3</div><div className="stat-l">Load Boards</div></div>
             </div>
             <div className="btn-row">
               <button className="btn btn-or" onClick={() => setPage("postload")}>Post a Load Free →</button>
@@ -636,7 +636,6 @@ function HomePage({ setPage, user, profile, setSigninMode, setPendingRole }: { s
           <span className="mo" style={{ fontSize: 9, letterSpacing: ".16em", textTransform: "uppercase", color: "var(--t2)" }}>Platform</span>
           <span style={{ width: 1, height: 16, background: "var(--l1)" }} />
           <span className="mo" style={{ fontSize: 10, color: "var(--t2)" }}>Three boards · Verified escorts · Real-time bidding · No commissions · No job fees · Ever</span>
-          <span className="mo" style={{ marginLeft: "auto", fontSize: 9, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--t2)" }}>$670M US Market · 50,000+ P/EVO Operators</span>
         </div>
         <FlatBoardPreview setPage={setPage} />
         <EscortsPreview setPage={setPage} />
