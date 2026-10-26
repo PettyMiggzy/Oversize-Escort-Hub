@@ -103,6 +103,9 @@ async function loads(args: Json): Promise<ToolResult> {
     (!l.created_at || Date.parse(l.created_at) < now - 60000) &&
     (!l.deadhead_notified_at || Date.parse(l.deadhead_notified_at) < now - 300000) &&
     (!l.expires_at || Date.parse(l.expires_at) > now) &&
+    // a date that has passed, or a post with no expiry that is a month old, is not a live job
+    (!l.start_date || Date.parse(l.start_date + 'T23:59:59Z') > now) &&
+    (l.expires_at || !l.created_at || Date.parse(l.created_at) > now - 30 * 86400000) &&
     (l.source !== 'quick_post' || !!l.reviewed_at) &&
     (!code || l.pu_state?.toUpperCase() === code || l.dl_state?.toUpperCase() === code))
   const list = rows.slice(0, limitOf(args.limit)).map((l) => ({

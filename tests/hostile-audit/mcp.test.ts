@@ -28,6 +28,8 @@ beforeEach(() => {
     { ...open, id: 'exp', pu_city: 'A', pu_state: 'TX', dl_city: 'B', dl_state: 'OK', expires_at: old },
     { ...open, id: 'filled', pu_city: 'A', pu_state: 'TX', dl_city: 'B', dl_state: 'OK', status: 'filled' },
     { ...open, id: 'qp', pu_city: 'A', pu_state: 'TX', dl_city: 'B', dl_state: 'OK', source: 'quick_post', reviewed_at: null },
+    { ...open, id: 'past', pu_city: 'A', pu_state: 'TX', dl_city: 'B', dl_state: 'OK', start_date: '2026-03-31' },
+    { ...open, id: 'ancient', pu_city: 'A', pu_state: 'TX', dl_city: 'B', dl_state: 'OK', expires_at: null, created_at: new Date(Date.now() - 40 * 86400000).toISOString() },
     { ...open, id: 'qp-ok', pu_city: 'Q', pu_state: 'TX', dl_city: 'R', dl_state: 'OK', source: 'quick_post', reviewed_at: old },
   ]
 })
