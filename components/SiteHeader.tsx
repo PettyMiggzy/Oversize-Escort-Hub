@@ -13,6 +13,7 @@ const NAV: NavItem[] = [
   { label: "Post a Load",   href: "/post-load", also: ["/quick-post"] },
   { label: "How it works",  href: "/how-it-works" },
 ];
+const JOBS: NavItem = { label: "Jobs", href: "/jobs" }
 
 export default function SiteHeader() {
   const [open, setOpen] = useState(false);
@@ -40,7 +41,7 @@ export default function SiteHeader() {
 
   const isMobile = windowWidth < 900;
   const navHref = (n: NavItem) => (n.href === "/post-load" && !userProfile ? "/quick-post" : n.href);
-  const isActive = (n: NavItem) => pathname === n.href || (n.also ?? []).includes(pathname);
+  const isActive = (n: NavItem) => pathname === n.href || (n.also ?? []).includes(pathname) || (n.href === "/jobs" && pathname.startsWith("/jobs/"));
 
   const navContainerStyle: React.CSSProperties = {
     display: "flex",
@@ -174,6 +175,9 @@ export default function SiteHeader() {
                     {n.label}
                   </Link>
                 ))}
+                <Link href={JOBS.href} style={isActive(JOBS) ? { ...navLinkStyle, color: "#fff", borderBottom: "2px solid #ff6a13" } : navLinkStyle}>
+                  {JOBS.label}
+                </Link>
               </div>
             )}
 
@@ -208,6 +212,9 @@ export default function SiteHeader() {
               {n.label}
             </Link>
           ))}
+          <Link href={JOBS.href} style={mobileLinkStyle} onClick={() => setOpen(false)}>
+            {JOBS.label}
+          </Link>
           <div style={mobileCtaStyle}>
           {userProfile ? (
             <Link href="/dashboard" style={{ ...btnPrimeStyle, textAlign: "center", padding: "10px 0" }} onClick={() => setOpen(false)}>Dashboard</Link>

@@ -5,6 +5,7 @@ const TABS = [
   { key: 'flat', label: 'Flat rate', href: '/flat-rate', hint: 'Claim it' },
   { key: 'open', label: 'Open bid', href: '/open-loads', hint: 'Escorts bid' },
   { key: 'bid', label: '5-minute bid', href: '/bid-board', hint: 'Fast timer' },
+  { key: 'jobs', label: 'Jobs', href: '/jobs', hint: 'Hiring' },
 ] as const
 
 export default function BoardTabs({ active }: { active: (typeof TABS)[number]['key'] }) {

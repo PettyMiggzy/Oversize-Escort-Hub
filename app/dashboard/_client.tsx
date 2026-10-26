@@ -129,6 +129,256 @@ function ShareProfileCard({ userId }: { userId: string }) {
   )
 }
 
+type MyJob = {
+  id: string
+  title: string
+  status: string
+  applications?: { total?: number; fresh?: number }
+}
+
+type JobApplicant = {
+  id: string
+  message: string | null
+  status: string
+  applicant: {
+    full_name?: string | null
+    tier?: string | null
+    bgc_verified?: boolean | null
+    p_evo_verified?: boolean | null
+    pevo_verified?: boolean | null
+    rating?: number | null
+    avg_rating?: number | null
+  } | null
+}
+
+const JOB_STATUS: Record<string, string> = {
+  open: 'Open',
+  filled: 'Filled',
+  closed: 'Closed',
+  removed: 'Removed',
+  new: 'New',
+  accepted: 'Accepted',
+  declined: 'Declined',
+  withdrawn: 'Withdrawn',
+}
+
+function jobStatus(value: string) {
+  return JOB_STATUS[value] || value
+}
+
+function MyApplications() {
+  // TODO: My applications needs GET /api/jobs/applications for the signed-in applicant
+  // (application id, status, job id, job title). Withdraw and contact already exist.
+  // Do not read applications from the browser. This section renders nothing until that route exists.
+  return null
+}
+
+function ApplicantContact({ applicationId }: { applicationId: string }) {
+  const [info, setInfo] = useState<null | 'loading' | { name: string; phone: string; email: string; error: string }>(null)
+
+  async function load() {
+    setInfo('loading')
+    try {
+      const res = await fetch(`/api/jobs/contact?applicationId=${encodeURIComponent(applicationId)}`)
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setInfo({ name: '', phone: '', email: '', error: typeof data.error === 'string' ? data.error : 'Could not load contact details' })
+        return
+      }
+      setInfo({
+        name: typeof data.name === 'string' ? data.name : '',
+        phone: typeof data.phone === 'string' ? data.phone : '',
+        email: typeof data.email === 'string' ? data.email : '',
+        error: '',
+      })
+    } catch {
+      setInfo({ name: '', phone: '', email: '', error: 'Could not load contact details' })
+    }
+  }
+
+  if (!info) {
+    return <button type="button" className="ui-btn ghost" onClick={load}>Contact</button>
+  }
+  if (info === 'loading') return <p className="ui-meta">Loading contact…</p>
+  if (info.error) return <p className="ui-err">{info.error}</p>
+  return (
+    <div className="ui-note">
+      {info.name ? <div style={{ color: '#fff', fontWeight: 700 }}>{info.name}</div> : null}
+      <div>{info.phone ? <a className="ui-link" href={`tel:${info.phone}`}>{info.phone}</a> : 'No phone listed'}</div>
+      <div>{info.email ? <a className="ui-link" href={`mailto:${info.email}`}>{info.email}</a> : 'No email listed'}</div>
+    </div>
+  )
+}
+
+function MyJobsSection() {
+  const [jobs, setJobs] = useState<MyJob[] | null>(null)
+  const [openId, setOpenId] = useState<string | null>(null)
+  const [apps, setApps] = useState<Record<string, JobApplicant[]>>({})
+  const [err, setErr] = useState('')
+  const [busy, setBusy] = useState('')
+
+  async function load() {
+    const res = await fetch('/api/jobs')
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      setErr(typeof data.error === 'string' ? data.error : 'Could not load your jobs')
+      setJobs([])
+      return
+    }
+    setJobs(Array.isArray(data.jobs) ? data.jobs : [])
+  }
+
+  useEffect(() => { load().catch(() => setErr('Could not load your jobs')) }, [])
+
+  async function act(id: string, action: 'close' | 'filled' | 'reopen') {
+    setBusy(id + action)
+    setErr('')
+    try {
+      const res = await fetch(`/api/jobs/${id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setErr(typeof data.error === 'string' ? data.error : 'Could not update the job')
+        return
+      }
+      await load()
+    } catch {
+      setErr('Could not update the job')
+    } finally {
+      setBusy('')
+    }
+  }
+
+  async function loadApps(id: string) {
+    setErr('')
+    try {
+      const res = await fetch(`/api/jobs/${id}/applications`)
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setErr(typeof data.error === 'string' ? data.error : 'Could not load applicants')
+        setApps((prev) => ({ ...prev, [id]: [] }))
+        return
+      }
+      setApps((prev) => ({ ...prev, [id]: Array.isArray(data.applications) ? data.applications : [] }))
+    } catch {
+      setErr('Could not load applicants')
+    }
+  }
+
+  function expand(id: string) {
+    if (openId === id) { setOpenId(null); return }
+    setOpenId(id)
+    loadApps(id)
+  }
+
+  async function decide(jobId: string, appId: string, action: 'accept' | 'decline') {
+    setBusy(appId)
+    setErr('')
+    try {
+      const res = await fetch(`/api/jobs/applications/${appId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setErr(typeof data.error === 'string' ? data.error : 'Could not update the application')
+        return
+      }
+      await load()
+      await loadApps(jobId)
+    } catch {
+      setErr('Could not update the application')
+    } finally {
+      setBusy('')
+    }
+  }
+
+  return (
+    <section>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: '1rem' }}>
+        <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#fff', margin: 0 }}>My jobs</h2>
+        <a href="/post-job" className="ui-btn ghost">Post a job</a>
+      </div>
+      {err ? <p className="ui-err">{err}</p> : null}
+      {jobs === null ? (
+        <p className="ui-meta">Loading your jobs…</p>
+      ) : jobs.length === 0 ? (
+        <EmptyState title="No jobs posted" text="Jobs you post show up here, with the people who apply." />
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          {jobs.map((job) => {
+            const fresh = job.applications?.fresh || 0
+            const total = job.applications?.total || 0
+            const open = openId === job.id
+            const people = apps[job.id]
+            return (
+              <div key={job.id} className="ui-load">
+                <div style={{ minWidth: 0 }}>
+                  <p style={{ margin: 0, fontWeight: 700 }}>{job.title}</p>
+                  <div className="ui-chips" style={{ marginTop: 8 }}>
+                    <span className="ui-badge dim">{jobStatus(job.status)}</span>
+                    <span className="ui-badge dim">{total} applicant{total === 1 ? '' : 's'}</span>
+                    {fresh > 0 ? <span className="ui-badge orange">{fresh} new</span> : null}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {job.status === 'open' ? (
+                    <>
+                      <button type="button" className="ui-btn ghost" disabled={busy === job.id + 'close'} onClick={() => act(job.id, 'close')}>Close</button>
+                      <button type="button" className="ui-btn ghost" disabled={busy === job.id + 'filled'} onClick={() => act(job.id, 'filled')}>Mark filled</button>
+                    </>
+                  ) : null}
+                  {job.status === 'closed' || job.status === 'filled' ? (
+                    <button type="button" className="ui-btn ghost" disabled={busy === job.id + 'reopen'} onClick={() => act(job.id, 'reopen')}>Reopen</button>
+                  ) : null}
+                  <button type="button" className="ui-btn" onClick={() => expand(job.id)}>{open ? 'Hide applicants' : 'Applicants'}</button>
+                </div>
+                {open ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {!people ? <p className="ui-meta">Loading applicants…</p> : null}
+                    {people && people.length === 0 ? <p className="ui-note">No applicants yet.</p> : null}
+                    {people?.map((app) => {
+                      const person = app.applicant
+                      const rating = person?.avg_rating ?? person?.rating
+                      const pevo = Boolean(person?.p_evo_verified || person?.pevo_verified)
+                      return (
+                        <div key={app.id} style={{ borderTop: '1px solid rgba(255,255,255,.1)', paddingTop: 10 }}>
+                          <p style={{ margin: 0, fontWeight: 700 }}>{person?.full_name || 'Applicant'}</p>
+                          <div className="ui-chips" style={{ marginTop: 8 }}>
+                            {person?.tier ? <span className="ui-badge dim">{person.tier}</span> : null}
+                            {person?.bgc_verified ? <span className="ui-badge green">BGC</span> : null}
+                            {pevo ? <span className="ui-badge blue">P/EVO</span> : null}
+                            {typeof rating === 'number' ? <span className="ui-badge dim">Rating {Number(rating).toFixed(1)}</span> : null}
+                            <span className={app.status === 'new' ? 'ui-badge orange' : 'ui-badge dim'}>{jobStatus(app.status)}</span>
+                          </div>
+                          {app.message ? <p className="ui-note" style={{ marginTop: 8 }}>{app.message}</p> : null}
+                          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
+                            {app.status === 'new' ? (
+                              <>
+                                <button type="button" className="ui-btn" disabled={busy === app.id} onClick={() => decide(job.id, app.id, 'accept')}>Accept</button>
+                                <button type="button" className="ui-btn ghost" disabled={busy === app.id} onClick={() => decide(job.id, app.id, 'decline')}>Decline</button>
+                              </>
+                            ) : null}
+                            {app.status === 'accepted' ? <ApplicantContact applicationId={app.id} /> : null}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : null}
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </section>
+  )
+}
+
 export function DashboardPageClient() {
   const [inApp, setInApp] = useState(false)
   useEffect(() => { setInApp(isNativeApp()) }, [])
@@ -584,6 +834,8 @@ export function DashboardPageClient() {
             )}
           </section>
 
+          <MyJobsSection />
+
           {/* Pending Bids */}
           <section>
             <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#fff', marginBottom: '1rem' }}>
@@ -762,6 +1014,9 @@ export function DashboardPageClient() {
             )}
           </section>
 
+          <MyJobsSection />
+          <MyApplications />
+
           {/* Mileage / Expense Tracker */}
           <section>
             <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#fff', marginBottom: '1rem' }}>Mileage &amp; Expenses</h2>
@@ -856,7 +1111,10 @@ export function DashboardPageClient() {
       )}
 
       {!isCarrier && !isEscort && (
-        <p style={{ color: MUTED }}>Unrecognized role: {profile.role}</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          <p style={{ color: MUTED }}>Unrecognized role: {profile.role}</p>
+          <MyJobsSection />
+        </div>
       )}
 
       {/* Deadhead Destination Modal */}

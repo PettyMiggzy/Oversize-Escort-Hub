@@ -11,6 +11,12 @@ export const US_STATE_CODES = [
 
 export const STATIC_STATE_CODES = [...US_STATE_CODES, 'DC'] as const
 
+export const CA_PLACE_CODES = [
+  'AB', 'BC', 'MB', 'NB', 'NL', 'NS', 'NT', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT',
+] as const
+
+export const ALL_PLACE_CODES = [...STATIC_STATE_CODES, ...CA_PLACE_CODES] as const
+
 const NAMES: Record<string, string> = {
   AL: 'Alabama',
   AK: 'Alaska',

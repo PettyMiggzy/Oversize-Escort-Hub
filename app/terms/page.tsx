@@ -170,7 +170,11 @@ export default function TermsOfService() {
           <p style={{ color: "#ccc" }}>Using the Platform is free while we launch. Add-ons are one-time purchases made on our website, never inside the mobile app: the BGC badge review ($9.99), the P/EVO certificate review ($14.99), and a Sponsored Zone ($29.99 for 30 days, one sponsor per state). The BGC and certificate fees pay for our review of your documents, not for approval: a review that ends in a rejection is still a completed review. Once a review has started, the fee is not refundable. If you paid and we have not started the review, ask within 7 days at support@oversize-escort-hub.com and we will refund you. A Sponsored Zone can be refunded in full if you ask within 24 hours of purchase and your listing has not been shown; after that it runs for its 30 days and is not refundable, and it ends on its own without renewing. We may remove a listing or refuse a purchase that breaks these Terms, and in that case we will refund the unused part. Payments are handled by Stripe. We do not store your card number.</p>
         </section>
         <section style={{ marginBottom: 32 }}>
-          <h2 style={{ color: "#fff", fontSize: 18, marginBottom: 12 }}>36. Contact</h2>
+          <h2 style={{ color: "#fff", fontSize: 18, marginBottom: 12 }}>36. Jobs board</h2>
+          <p>Oversize Escort Hub is a marketplace, not the employer. Posters and applicants agree the work, pay and classification between themselves. Do not put contact details in posts or applications. Oversize Escort Hub may remove posts.</p>
+        </section>
+        <section style={{ marginBottom: 32 }}>
+          <h2 style={{ color: "#fff", fontSize: 18, marginBottom: 12 }}>37. Contact</h2>
           <p>Questions? <a href="mailto:support@oversize-escort-hub.com" style={{ color: "#f90" }}>support@oversize-escort-hub.com</a></p>
         </section>
         <div style={{ borderTop: "1px solid #333", paddingTop: 24, fontSize: 11, color: "#555" }}>
