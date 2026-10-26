@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { FREE_LAUNCH } from '@/lib/free-launch'
+import SiteHeader from '@/components/SiteHeader'
+import PageTitle from '@/components/PageTitle'
 
 export const metadata = {
   title: 'How to Become a Pilot Car / P/EVO Escort | OEH',
@@ -24,28 +26,28 @@ export default async function GettingStartedPage() {
   const certs = [
     {
       name: 'P/EVO Certification',
-      color: '#f0a500',
+      color: 'var(--ui-or)',
       icon: '🚗',
       desc: 'Required in most states. Washington State cert through Evergreen Safety Council. The foundational credential for oversize escort work.',
       link: 'https://www.esc.org/courses',
     },
     {
       name: 'WITPAC',
-      color: '#4ade80',
+      color: 'var(--ui-green)',
       icon: '🗺️',
       desc: 'Western Interstate Traffic Patrol Association Certification. Required for multi-state runs across WA, OR, ID, and MT corridors.',
       link: 'https://www.esc.org/courses',
     },
     {
       name: 'Flagger Certification',
-      color: '#60a5fa',
+      color: 'var(--ui-blue)',
       icon: '🚩',
       desc: 'WA, Idaho, Federal online options available. Valid for 3 years. Accepted in WA, OR, ID, and MT. Required for many oversize moves.',
       link: 'https://www.esc.org/courses',
     },
     {
       name: 'Traffic Control Supervisor',
-      color: '#c084fc',
+      color: 'var(--ui-amber)',
       icon: '🎖️',
       desc: 'TCS certification available through WA, Oregon, and Idaho state programs. Required when directing other flaggers on site.',
       link: 'https://www.esc.org/courses',
@@ -78,57 +80,29 @@ export default async function GettingStartedPage() {
   ]
 
   return (
-    <div style={{ background: '#0a0a0a', minHeight: '100vh', color: '#fff', fontFamily: 'system-ui, sans-serif' }}>
-      {/* Header */}
-      <div style={{ borderBottom: '1px solid #222', padding: '16px 24px', display: 'flex', alignItems: 'center', gap: 16 }}>
-        <a href="/" style={{ color: '#f0a500', fontWeight: 700, fontSize: 18, textDecoration: 'none' }}>OEH</a>
-        <span style={{ color: '#444' }}>/</span>
-        <span style={{ color: '#888', fontSize: 14 }}>Getting Started</span>
-        <div style={{ marginLeft: 'auto' }}>
-          {user ? (
-            <a href="/dashboard" style={{ color: '#f0a500', fontSize: 13, textDecoration: 'none' }}>Dashboard →</a>
-          ) : (
-            <a href="/signin" style={{ background: '#f0a500', color: '#000', padding: '8px 16px', borderRadius: 6, fontSize: 13, fontWeight: 700, textDecoration: 'none' }}>Sign In</a>
-          )}
+    <>
+      <SiteHeader />
+      <div className="ui-page">
+      <div className="ui-wrap">
+        <PageTitle
+          eyebrow="Career guide"
+          title="How to become a pilot car / P/EVO escort"
+          lead="Everything you need to know to start your career in oversize load escort — certifications, equipment, standard rates, and where to find your first load."
+        />
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 28 }}>
+          <a href="/join" className="ui-btn">Join OEH — Find Loads</a>
+          <a href="#certifications" className="ui-btn ghost">View Certifications ↓</a>
         </div>
-      </div>
+        <div className="ui-stack">
 
-      {/* Hero */}
-      <div style={{ background: 'linear-gradient(180deg, #111 0%, #0a0a0a 100%)', borderBottom: '1px solid #1a1a1a', padding: '64px 24px 48px' }}>
-        <div style={{ maxWidth: 800, margin: '0 auto', textAlign: 'center' }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#f0a500', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 16 }}>
-            Career Guide
-          </div>
-          <h1 style={{ fontSize: 40, fontWeight: 800, marginBottom: 16, lineHeight: 1.2 }}>
-            How to Become a Pilot Car /<br />P/EVO Escort
-          </h1>
-          <p style={{ color: '#888', fontSize: 16, lineHeight: 1.7, marginBottom: 32, maxWidth: 600, margin: '0 auto 32px' }}>
-            Everything you need to know to start your career in oversize load escort — certifications, equipment, standard rates, and where to find your first load.
-          </p>
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <a href="/join" style={{ background: '#f0a500', color: '#000', fontWeight: 700, fontSize: 14, padding: '12px 28px', borderRadius: 8, textDecoration: 'none' }}>
-              Join OEH — Find Loads
-            </a>
-            <a href="#certifications" style={{ background: 'transparent', color: '#fff', fontWeight: 700, fontSize: 14, padding: '12px 28px', borderRadius: 8, textDecoration: 'none', border: '1px solid #333' }}>
-              View Certifications ↓
-            </a>
-          </div>
-        </div>
-      </div>
-
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '48px 24px' }}>
-
-        {/* What is a P/EVO */}
-        <div style={{ marginBottom: 56 }}>
-          <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 16, borderBottom: '1px solid #222', paddingBottom: 12 }}>
-            What Is a P/EVO Escort?
-          </h2>
-          <p style={{ color: '#aaa', fontSize: 15, lineHeight: 1.8 }}>
+        <div className="ui-card">
+          <h2>What Is a P/EVO Escort?</h2>
+          <p className="ui-note">
             Pilot car operators (also called Pilot/Escort Vehicle Operators, or P/EVOs) guide oversize loads safely through traffic.
             They drive ahead of or behind loads that exceed legal road dimensions — wide loads, tall structures, heavy equipment, manufactured homes, and more.
             Escorts are essential for any move that needs flagging, route scouting, or height clearance verification.
           </p>
-          <p style={{ color: '#aaa', fontSize: 15, lineHeight: 1.8, marginTop: 12 }}>
+          <p className="ui-note" style={{ marginTop: 12 }}>
             It's a career you can start with just a vehicle, proper certification, and the right equipment.
             Most escorts work independently, setting their own schedules and routes.
             OEH connects certified escorts with carriers who need them — no middlemen, no commissions.
@@ -136,20 +110,18 @@ export default async function GettingStartedPage() {
         </div>
 
         {/* Certifications */}
-        <div id="certifications" style={{ marginBottom: 56 }}>
-          <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 8, borderBottom: '1px solid #222', paddingBottom: 12 }}>
-            What Certifications Do You Need?
-          </h2>
-          <p style={{ color: '#888', fontSize: 14, lineHeight: 1.7, marginBottom: 28 }}>
+        <div id="certifications" className="ui-card">
+          <h2>What Certifications Do You Need?</h2>
+          <p className="ui-note" style={{ marginBottom: 18 }}>
             Requirements vary by state and load type. These are the core certifications for escorts in the western US.
           </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: 20 }}>
+          <div className="ui-fit">
             {certs.map(cert => (
-              <div key={cert.name} style={{ background: '#111', border: '1px solid #222', borderLeft: `3px solid ${cert.color}`, borderRadius: 12, padding: 24 }}>
+              <div key={cert.name} className="ui-card" style={{ boxShadow: 'none', borderColor: cert.color }}>
                 <div style={{ fontSize: 28, marginBottom: 10 }}>{cert.icon}</div>
-                <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 8, color: '#fff' }}>{cert.name}</div>
-                <p style={{ color: '#aaa', fontSize: 13, lineHeight: 1.7, marginBottom: 16 }}>{cert.desc}</p>
-                <a href={cert.link} target="_blank" rel="noopener noreferrer" style={{ color: cert.color, fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>
+                <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 8 }}>{cert.name}</div>
+                <p className="ui-note" style={{ marginBottom: 12 }}>{cert.desc}</p>
+                <a href={cert.link} target="_blank" rel="noopener noreferrer" style={{ color: cert.color, fontSize: 14, fontWeight: 700, textDecoration: 'none' }}>
                   View at ESC →
                 </a>
               </div>
@@ -157,50 +129,39 @@ export default async function GettingStartedPage() {
           </div>
         </div>
 
-        {/* Evergreen Partner Card */}
-        <div style={{ background: '#111', border: '1px solid #222', borderLeft: '3px solid #4ade80', borderRadius: 12, padding: 32, marginBottom: 56 }}>
+        <div className="ui-card good">
           <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-            <div style={{ flex: 1, minWidth: 260 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 8 }}>
-                Official ESC Member
-              </div>
-              <h2 style={{ fontSize: 20, fontWeight: 800, marginBottom: 12 }}>Training Partner: Evergreen Safety Council</h2>
-              <p style={{ color: '#aaa', fontSize: 14, lineHeight: 1.7, marginBottom: 20 }}>
+            <div style={{ flex: '1 1 260px', minWidth: 0 }}>
+              <div className="ui-k" style={{ color: 'var(--ui-green)' }}>Official ESC Member</div>
+              <h2>Training Partner: Evergreen Safety Council</h2>
+              <p className="ui-note" style={{ marginBottom: 16 }}>
                 OEH is an official Evergreen Safety Council member (INV14545).
                 ESC offers P/EVO, WITPAC, Flagger, TCS, and more — all the certs you need to work in the western US.
               </p>
-              <a
-                href="https://www.esc.org/courses"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ display: 'inline-block', background: '#4ade80', color: '#000', fontWeight: 700, fontSize: 13, padding: '10px 20px', borderRadius: 6, textDecoration: 'none' }}
-              >
+              <a href="https://www.esc.org/courses" target="_blank" rel="noopener noreferrer" className="ui-btn" style={{ background: 'var(--ui-green)', boxShadow: 'none' }}>
                 Browse ESC Courses →
               </a>
             </div>
 
-            {/* Promo code — gated */}
-            <div style={{ minWidth: 200 }}>
+            <div style={{ flex: '1 1 220px', minWidth: 0 }}>
               {isPaid ? (
-                <div style={{ background: '#0a0a0a', border: '1px solid #333', borderRadius: 10, padding: 20, textAlign: 'center' }}>
-                  <div style={{ fontSize: 11, color: '#888', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Your Member Discount</div>
-                  <div style={{ fontSize: 22, fontWeight: 800, color: '#f0a500', letterSpacing: '0.05em', marginBottom: 4 }}>OSEH2026</div>
-                  <div style={{ fontSize: 12, color: '#4ade80', marginBottom: 4 }}>Save 5% on all courses</div>
-                  <div style={{ fontSize: 11, color: '#555' }}>Valid through Apr 30, 2027</div>
+                <div className="ui-card" style={{ textAlign: 'center', boxShadow: 'none' }}>
+                  <div className="ui-k">Your Member Discount</div>
+                  <div className="ui-v or">OSEH2026</div>
+                  <div className="ui-ok" style={{ margin: '4px 0' }}>Save 5% on all courses</div>
+                  <div className="ui-meta">Valid through Apr 30, 2027</div>
                 </div>
               ) : (
-                <div style={{ background: '#0a0a0a', border: '1px solid #333', borderRadius: 10, padding: 20, textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+                <div className="ui-card" style={{ textAlign: 'center', position: 'relative', overflow: 'hidden', boxShadow: 'none', minHeight: 140 }}>
                   <div style={{ filter: 'blur(6px)', userSelect: 'none', pointerEvents: 'none' }}>
-                    <div style={{ fontSize: 11, color: '#888', marginBottom: 6 }}>Member Discount Code</div>
-                    <div style={{ fontSize: 22, fontWeight: 800, color: '#f0a500' }}>XXXXXXXX</div>
-                    <div style={{ fontSize: 12, color: '#4ade80' }}>Save 5% on all courses</div>
+                    <div className="ui-k">Member Discount Code</div>
+                    <div className="ui-v or">XXXXXXXX</div>
+                    <div className="ui-ok">Save 5% on all courses</div>
                   </div>
-                  <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(10,10,10,0.8)' }}>
+                  <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(6,8,10,.8)', padding: 12 }}>
                     <div style={{ fontSize: 16, marginBottom: 6 }}>🔒</div>
-                    <div style={{ fontSize: 12, color: '#888', marginBottom: 10, textAlign: 'center' }}>Upgrade to Member to unlock</div>
-                    <a href="/pricing" style={{ background: '#f0a500', color: '#000', fontWeight: 700, fontSize: 11, padding: '8px 14px', borderRadius: 5, textDecoration: 'none' }}>
-                      Upgrade →
-                    </a>
+                    <div className="ui-note" style={{ marginBottom: 10, textAlign: 'center' }}>Upgrade to Member to unlock</div>
+                    <a href="/pricing" className="ui-btn">Upgrade →</a>
                   </div>
                 </div>
               )}
@@ -208,87 +169,73 @@ export default async function GettingStartedPage() {
           </div>
         </div>
 
-        {/* Equipment */}
-        <div style={{ marginBottom: 56 }}>
-          <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 8, borderBottom: '1px solid #222', paddingBottom: 12 }}>
-            Equipment You'll Need
-          </h2>
-          <p style={{ color: '#888', fontSize: 14, marginBottom: 24 }}>Standard escort vehicle requirements in most western states:</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
+        <div className="ui-card">
+          <h2>Equipment You'll Need</h2>
+          <p className="ui-note" style={{ marginBottom: 16 }}>Standard escort vehicle requirements in most western states:</p>
+          <div className="ui-fit">
             {equipment.map(e => (
-              <div key={e.item} style={{ background: '#111', border: '1px solid #222', borderRadius: 8, padding: 16, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                <div style={{ color: '#f0a500', fontSize: 16, marginTop: 2 }}>✓</div>
+              <div key={e.item} className="ui-card" style={{ padding: 16, boxShadow: 'none', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                <div style={{ color: 'var(--ui-or)', fontSize: 16 }}>✓</div>
                 <div>
                   <div style={{ fontWeight: 600, fontSize: 14 }}>{e.item}</div>
-                  <div style={{ color: '#666', fontSize: 12, marginTop: 2 }}>{e.note}</div>
+                  <div className="ui-meta" style={{ marginTop: 2 }}>{e.note}</div>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Standard Rates */}
-        <div style={{ marginBottom: 56 }}>
-          <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 8, borderBottom: '1px solid #222', paddingBottom: 12 }}>
-            Industry Standard Rates
-          </h2>
-          <p style={{ color: '#888', fontSize: 14, marginBottom: 24 }}>OEH published standard rates for escort services:</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16 }}>
+        <div className="ui-card">
+          <h2>Industry Standard Rates</h2>
+          <p className="ui-note" style={{ marginBottom: 16 }}>OEH published standard rates for escort services:</p>
+          <div className="ui-fit">
             {rates.map(r => (
-              <div key={r.label} style={{ background: '#111', border: '1px solid #222', borderRadius: 12, padding: 24 }}>
-                <div style={{ fontSize: 11, color: '#888', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>{r.label}</div>
-                <div style={{ fontSize: 28, fontWeight: 800, color: '#f0a500', marginBottom: 6 }}>{r.rate}</div>
-                <div style={{ color: '#666', fontSize: 12 }}>{r.note}</div>
+              <div key={r.label} className="ui-card" style={{ boxShadow: 'none' }}>
+                <div className="ui-k">{r.label}</div>
+                <div className="ui-v or">{r.rate}</div>
+                <div className="ui-meta">{r.note}</div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* FAQ */}
-        <div style={{ marginBottom: 56 }}>
-          <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 24, borderBottom: '1px solid #222', paddingBottom: 12 }}>
-            Frequently Asked Questions
-          </h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div className="ui-card">
+          <h2>Frequently Asked Questions</h2>
+          <div className="ui-stack">
             {faqs.map(faq => (
-              <div key={faq.q} style={{ background: '#111', border: '1px solid #222', borderRadius: 10, padding: 20 }}>
-                <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 8, color: '#fff' }}>{faq.q}</div>
-                <div style={{ color: '#aaa', fontSize: 14, lineHeight: 1.6 }}>{faq.a}</div>
+              <div key={faq.q} className="ui-card" style={{ padding: 16, boxShadow: 'none' }}>
+                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>{faq.q}</div>
+                <div className="ui-note">{faq.a}</div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Cert Verification */}
-        <div style={{ background: '#111', border: '1px solid #222', borderLeft: '3px solid #4ade80', borderRadius: 12, padding: 24, marginBottom: 48 }}>
-          <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>Verify an Escort Certification</h3>
-          <p style={{ color: '#888', fontSize: 13, marginBottom: 12 }}>
+        <div className="ui-card good">
+          <h3>Verify an Escort Certification</h3>
+          <p className="ui-note" style={{ marginBottom: 12 }}>
             Need to verify a P/EVO, WITPAC, or Flagger cert? Use the official ESC lookup tool.
           </p>
-          <a href="https://www.esc.org/resources/certification-verification" target="_blank" rel="noopener noreferrer"
-            style={{ color: '#4ade80', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>
+          <a href="https://www.esc.org/resources/certification-verification" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--ui-green)', fontSize: 14, fontWeight: 700, textDecoration: 'none' }}>
             esc.org/resources/certification-verification →
           </a>
         </div>
 
-        {/* CTA */}
-        <div style={{ background: 'linear-gradient(135deg, #111 0%, #1a1200 100%)', border: '1px solid #333', borderRadius: 16, padding: 40, textAlign: 'center' }}>
-          <h2 style={{ fontSize: 26, fontWeight: 800, marginBottom: 12 }}>Ready to Get Started?</h2>
-          <p style={{ color: '#888', fontSize: 15, marginBottom: 28, lineHeight: 1.6 }}>
+        <div className="ui-card" style={{ textAlign: 'center' }}>
+          <h2>Ready to Get Started?</h2>
+          <p className="ui-note" style={{ margin: '0 auto 18px' }}>
             Join OEH and access the load board, bid on jobs, and connect with carriers across the western US.
             No commissions. No middlemen. Just loads.
           </p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <a href="/join" style={{ background: '#f0a500', color: '#000', fontWeight: 700, fontSize: 15, padding: '14px 32px', borderRadius: 8, textDecoration: 'none' }}>
-              Join OEH — Start Free
-            </a>
-            <a href="/pricing" style={{ background: 'transparent', color: '#fff', fontWeight: 700, fontSize: 15, padding: '14px 32px', borderRadius: 8, textDecoration: 'none', border: '1px solid #333' }}>
-              View Pricing
-            </a>
+            <a href="/join" className="ui-btn">Join OEH — Start Free</a>
+            <a href="/pricing" className="ui-btn ghost">View Pricing</a>
           </div>
         </div>
 
+        </div>
       </div>
-    </div>
+      </div>
+    </>
   )
 }

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import SiteHeader from '@/components/SiteHeader'
+import PageTitle from '@/components/PageTitle'
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -62,67 +63,43 @@ export default function ProfilePage() {
     setMsg('Saved.')
   }
 
-  const inp: React.CSSProperties = {
-    width: '100%',
-    padding: '10px 12px',
-    background: '#0f1a2e',
-    border: '1px solid #1e3a5f',
-    borderRadius: 6,
-    color: '#e2e8f0',
-    fontSize: 14,
-    boxSizing: 'border-box',
-  }
-
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0f1a', color: '#e2e8f0' }}>
+    <>
       <SiteHeader />
-      <main style={{ maxWidth: 480, margin: '0 auto', padding: '40px 24px' }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 8 }}>Edit Profile</h1>
-        <p style={{ color: '#9ca3af', fontSize: 14, marginBottom: 24 }}>
-          Update the basics carriers and escorts see on your account.
-        </p>
-        {loading ? (
-          <p style={{ color: '#9ca3af' }}>Loading…</p>
-        ) : (
-          <form onSubmit={save} style={{ display: 'grid', gap: 14 }}>
-            <label style={{ fontSize: 12, color: '#9ca3af' }}>
-              Full name
-              <input style={{ ...inp, marginTop: 6 }} value={fullName} onChange={(e) => setFullName(e.target.value)} />
-            </label>
-            <label style={{ fontSize: 12, color: '#9ca3af' }}>
-              Company
-              <input style={{ ...inp, marginTop: 6 }} value={company} onChange={(e) => setCompany(e.target.value)} />
-            </label>
-            <label style={{ fontSize: 12, color: '#9ca3af' }}>
-              Phone
-              <input style={{ ...inp, marginTop: 6 }} value={phone} onChange={(e) => setPhone(e.target.value)} />
-            </label>
-            <label style={{ fontSize: 12, color: '#9ca3af' }}>
-              Home state (2-letter)
-              <input style={{ ...inp, marginTop: 6 }} value={state} maxLength={2} onChange={(e) => setState(e.target.value)} />
-            </label>
-            <button
-              type="submit"
-              disabled={saving}
-              style={{
-                background: '#f60',
-                color: '#000',
-                border: 'none',
-                borderRadius: 6,
-                padding: '12px 20px',
-                fontWeight: 700,
-                cursor: saving ? 'default' : 'pointer',
-              }}
-            >
-              {saving ? 'Saving…' : 'Save Profile'}
-            </button>
-            {msg && (
-              <p style={{ fontSize: 13, color: msg === 'Saved.' ? '#22c55e' : '#ef4444' }}>{msg}</p>
-            )}
-            <a href="/dashboard" style={{ color: '#9ca3af', fontSize: 13 }}>← Back to dashboard</a>
-          </form>
-        )}
-      </main>
-    </div>
+      <div className="ui-page">
+        <div className="ui-wrap" style={{ maxWidth: 560 }}>
+          <PageTitle eyebrow="Account" title="Edit profile" lead="Update the basics carriers and escorts see on your account." />
+          {loading ? (
+            <p className="ui-meta">Loading…</p>
+          ) : (
+            <form onSubmit={save} className="ui-card ui-stack">
+              <div>
+                <label className="ui-label" htmlFor="full-name">Full name</label>
+                <input id="full-name" className="ui-input" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+              </div>
+              <div>
+                <label className="ui-label" htmlFor="company">Company</label>
+                <input id="company" className="ui-input" value={company} onChange={(e) => setCompany(e.target.value)} />
+              </div>
+              <div>
+                <label className="ui-label" htmlFor="phone">Phone</label>
+                <input id="phone" className="ui-input" value={phone} onChange={(e) => setPhone(e.target.value)} />
+              </div>
+              <div>
+                <label className="ui-label" htmlFor="home-state">Home state (2-letter)</label>
+                <input id="home-state" className="ui-input" value={state} maxLength={2} onChange={(e) => setState(e.target.value)} />
+              </div>
+              <button type="submit" disabled={saving} className={saving ? 'ui-btn dim' : 'ui-btn'}>
+                {saving ? 'Saving…' : 'Save Profile'}
+              </button>
+              {msg && (
+                <p className={msg === 'Saved.' ? 'ui-ok' : 'ui-err'}>{msg}</p>
+              )}
+              <a href="/dashboard" className="ui-back">← Back to dashboard</a>
+            </form>
+          )}
+        </div>
+      </div>
+    </>
   )
 }
