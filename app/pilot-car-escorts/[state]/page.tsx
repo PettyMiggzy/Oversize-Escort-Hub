@@ -101,7 +101,7 @@ export default async function PilotCarEscortsStatePage({ params }: Props) {
             lead={`Escorts who list ${place.name} on their profile are shown below. A listing means they added ${place.name}. It does not mean they can take a job today.`}
           />
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', margin: '-8px 0 28px' }}>
-            <Link className="ui-btn" href="/post-load">Post a load</Link>
+            <Link className="ui-btn" href="/quick-post">Post a load</Link>
             <Link className="ui-btn ghost" href="/signin?mode=signup">Join as an escort</Link>
           </div>
           {failed ? (
