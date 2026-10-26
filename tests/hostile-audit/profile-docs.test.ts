@@ -126,7 +126,7 @@ test('the public profile page never selects or prints the stored file address, a
   expect(src).not.toMatch(/document_url/)
   expect(src).toContain('isPublic(c)')
   // nothing on the page calls a document reviewed, verified or checked by us
-  const docsBlock = src.slice(src.indexOf('Documents from this escort'), src.indexOf('reviews && reviews.length > 0'))
+  const docsBlock = src.slice(src.indexOf('Documents from this escort'), src.indexOf('{reviews && reviews.length > 0 ? ('))
   expect(docsBlock.length).toBeGreaterThan(200)
   expect(docsBlock).not.toMatch(/reviewed|verified|checked/i)
   expect(src).toContain('DOC_DISCLAIMER')
