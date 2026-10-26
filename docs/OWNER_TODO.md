@@ -51,3 +51,6 @@ Last updated 2026-10-26. The owner says "I'm home" and we go down the "When you 
 
 ## Parked idea (owner, 2026-10-26): paid mini-sites for escorts and companies
 Own address (name.oversize-escort-hub.com, or a path first), 3 or 4 templates, quote/book button that feeds OEH. Paid add-on (costs little, so price on value). Leaning: about $9 a month or $79 a year, annual pushed, first few free to seed. Before building: ask 10 escorts if they would pay; reserve names, moderate (a subdomain of our domain can be abused for scams); a path like /c/name shares our search ranking better than a subdomain. Build after the boards have steady traffic.
+
+## Site helper (built 2026-10-26, switched OFF until the key is added)
+Model: Claude Haiku 5.5 (the cheapest current one, about a twentieth of a cent per question). To turn it on: Anthropic Console > create an API key (name it "oeh-helper", and set a monthly spend limit there, for example $20) > Vercel > project > Settings > Environment Variables > add ANTHROPIC_API_KEY (Production) > redeploy. Never paste the key in chat. Limits in code: 15 questions an hour and 60 a day per person, 1,500 a day for the whole site. What people ask is logged in the helper_usage table (first 300 characters). Facts it answers from: lib/helper-knowledge.ts (update when prices or rules change).
