@@ -18,6 +18,7 @@ const TEXT = 'var(--ui-text)'
 const MUTED = 'var(--ui-muted)'
 
 interface Profile {
+  availability_states?: string[] | null;
   tier?: string;
   email?: string;
   id: string
@@ -699,6 +700,13 @@ export function DashboardPageClient() {
       {/* ESCORT / PRO VIEW */}
       {isEscort && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          {(!Array.isArray(profile.availability_states) || profile.availability_states.length === 0) && (
+            <section className="ui-card warn">
+              <h2>Add the states you cover</h2>
+              <p className="ui-note">Right now no states are set on your profile. Add them to get load alerts for your area and to show up when carriers look for escorts in your state.</p>
+              <div style={{ marginTop: 14 }}><a href="/available" className="ui-btn">Choose my states</a></div>
+            </section>
+          )}
           <ShareProfileCard userId={profile.id} />
           {/* Earnings */}
           <section>

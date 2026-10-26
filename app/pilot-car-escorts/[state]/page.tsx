@@ -32,7 +32,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const place = placeFor(state)
   if (!place) return {}
   const code = place.code.toLowerCase()
+  // A page with nobody on it is thin content: keep it out of search results until an escort lists the state
+  const { rows } = await loadEscorts(place.code)
   return {
+    robots: rows.length === 0 ? { index: false, follow: true } : undefined,
     title: { absolute: `Pilot car escorts in ${place.name} | Oversize Escort Hub` },
     description: `Pilot car escorts who list ${place.name} on Oversize Escort Hub. Open a profile, post a load, or join as an escort.`,
     alternates: { canonical: `/pilot-car-escorts/${code}` },
