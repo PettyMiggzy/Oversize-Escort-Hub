@@ -97,7 +97,7 @@ function SignInInner() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [success, setSuccess] = useState(searchParams.get('confirmed') === '1' ? 'Your email is confirmed. Sign in below.' : "");
   const [unconfirmedEmail, setUnconfirmedEmail] = useState<string>("");
   const [resendLoading, setResendLoading] = useState(false);
   const [resendNotice, setResendNotice] = useState<string>("");

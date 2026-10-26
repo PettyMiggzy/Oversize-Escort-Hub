@@ -157,3 +157,19 @@ test('close, fill, remove: poster or admin only; a removed job stays removed for
   expect((await run('reopen')).status).toBe(403)
   expect(getDb().tables.job_posts[0].status).toBe('removed')
 })
+
+test('escort earnings: rate times miles, loads without miles add no dollars, anonymous is refused', async () => {
+  const { GET: earn } = await import('@/app/api/escort/earnings/route')
+  getDb().sessionUser = null
+  expect((await earn()).status).toBe(401)
+  as('escort')
+  const now = new Date().toISOString()
+  getDb().tables.loads = [{ id: 'l1', miles: 200 }, { id: 'l2', miles: null, estimated_miles: null }]
+  getDb().tables.bids = [
+    { id: 'b1', escort_id: 'escort', load_id: 'l1', rate: 2.5, status: 'accepted', created_at: now },
+    { id: 'b2', escort_id: 'escort', load_id: 'l2', rate: 3, status: 'accepted', created_at: now },
+    { id: 'b3', escort_id: 'escort', load_id: 'l1', rate: 9, status: 'pending', created_at: now },
+    { id: 'b4', escort_id: 'other', load_id: 'l1', rate: 9, status: 'accepted', created_at: now },
+  ]
+  expect(await (await earn()).json()).toEqual({ month: 500, lifetime: 500, jobsCount: 2 })
+})

@@ -26,7 +26,10 @@ export async function GET(req: NextRequest) {
         },
       }
     )
-    await supabase.auth.exchangeCodeForSession(code)
+    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+    // The link was opened in a different browser than the one that signed up (a phone mail app, say): the email is
+    // confirmed all the same, there is just no session here. Say so instead of dropping them on a bare sign-in page.
+    if (exchangeError) return NextResponse.redirect(new URL('/signin?confirmed=1', requestUrl.origin))
 
     // Ensure a profiles row exists for this user. Pulls signup metadata
     // (full_name, company_name, role) from auth.users.raw_user_meta_data.

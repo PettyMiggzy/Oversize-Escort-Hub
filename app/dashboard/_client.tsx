@@ -713,15 +713,15 @@ export function DashboardPageClient() {
             <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#fff', marginBottom: '1rem' }}>Earnings</h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
               <div className="ui-load">
-                <p style={{ margin: 0, color: MUTED, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: 1 }}>This Month</p>
+                <p style={{ margin: 0, color: MUTED, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: 1 }}>Est. this month</p>
                 <p style={{ margin: '6px 0 0', fontSize: '1.5rem', fontWeight: 700, color: ORANGE }}>${earnings ? earnings.month.toFixed(2) : '0.00'}</p>
               </div>
               <div className="ui-load">
-                <p style={{ margin: 0, color: MUTED, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: 1 }}>Lifetime</p>
+                <p style={{ margin: 0, color: MUTED, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: 1 }}>Est. lifetime</p>
                 <p style={{ margin: '6px 0 0', fontSize: '1.5rem', fontWeight: 700, color: ORANGE }}>${earnings ? earnings.lifetime.toFixed(2) : '0.00'}</p>
               </div>
               <div className="ui-load">
-                <p style={{ margin: 0, color: MUTED, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: 1 }}>Jobs Completed</p>
+                <p style={{ margin: 0, color: MUTED, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: 1 }}>Jobs accepted</p>
                 <p style={{ margin: '6px 0 0', fontSize: '1.5rem', fontWeight: 700, color: ORANGE }}>{earnings ? earnings.jobsCount : 0}</p>
               </div>
             </div>

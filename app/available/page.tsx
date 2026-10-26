@@ -12,9 +12,9 @@ const US_STATES = [
   "HI","ID","IL","IN","IA","KS","KY","LA","ME","MD",
   "MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ",
   "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC",
-  "SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"
+  "SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC"
 ]
-const CA_PROVINCES = ["BC","AB","ON","SK","MB"]
+const CA_PROVINCES = ["BC","AB","ON","SK","MB","QC","NB","NS","NL","PE","NT","NU","YT"]
 const ALL_ZONES = [...US_STATES, ...CA_PROVINCES]
 
 export default function AvailabilityPage() {
