@@ -35,7 +35,7 @@ See also the "Where things stand" section at the bottom of `CLAUDE.md` (written 
 - Google Play: upload key becomes valid Oct 28, 12:19 AM UTC (Oct 27, 8:19 PM Eastern).
 
 ## Parked
-- Native push notifications and iOS app (needs a Mac; Apple may reject a plain website wrapper, so native features like push help).
+- Native push notifications (Apple may reject a plain website wrapper, so native features like push help).
 - BIMI logo with a certificate (paid).
 - State-by-state escort requirements reference (needs official sources; review by you).
 

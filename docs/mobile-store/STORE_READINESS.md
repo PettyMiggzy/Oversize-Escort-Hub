@@ -23,8 +23,9 @@ Risks: Google can reject apps that are only a website in a wrapper (minimum func
 
 ## iPhone (App Store)
 
-Not started. Needs a Mac with Xcode (`npx cap add ios`), the same bundle id, a privacy manifest, camera and photo-library
-usage strings, and screenshots at 1290x2796 and 1284x2778. Apple guideline 4.2 (web wrapper) is a bigger risk than on Android.
+iOS project added 2026-10-26 (`ios/`, Capacitor 8, Swift Package Manager, iOS 15+). Built by the "iOS release" GitHub workflow on a Mac runner and uploaded to
+App Store Connect; steps, listing text and privacy answers are in [IOS_RELEASE.md](./IOS_RELEASE.md). Not yet built on a real Mac runner: the first workflow run is the first real test.
+Waiting on the owner: App Store Connect app record, API key and four GitHub secrets, reviewer accounts, screenshots. Guideline 4.2 (web wrapper) is the main rejection risk.
 
 ## How to run the Play Console work
 
