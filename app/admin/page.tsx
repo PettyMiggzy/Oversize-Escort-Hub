@@ -6,11 +6,32 @@ import QuickPostReview from '@/components/admin/QuickPostReview'
 
 const TABS = ['users', 'bgc', 'certs', 'verification', 'dd214', 'sponsored', 'disputes', 'loads', 'revenue', 'sms', 'quickposts']
 
+const FUNNEL_FIELDS: { key: string; label: string }[] = [
+  { key: 'signupsTotal', label: 'Signups' },
+  { key: 'signups7', label: 'Signups, 7 days' },
+  { key: 'signups30', label: 'Signups, 30 days' },
+  { key: 'roleEscort', label: 'Escorts' },
+  { key: 'roleCarrier', label: 'Carriers' },
+  { key: 'roleBroker', label: 'Brokers' },
+  { key: 'roleFleetManager', label: 'Fleet managers' },
+  { key: 'withState', label: 'Accounts with a state' },
+  { key: 'withBgc', label: 'Accounts with BGC' },
+  { key: 'withPevo', label: 'Accounts with P/EVO' },
+  { key: 'loadsTotal', label: 'Loads posted' },
+  { key: 'loads7', label: 'Loads, 7 days' },
+  { key: 'loads30', label: 'Loads, 30 days' },
+  { key: 'loadsWithBid', label: 'Loads with a bid' },
+  { key: 'bidsTotal', label: 'Bids' },
+  { key: 'loadsFilled', label: 'Loads filled' },
+  { key: 'loadsOpen', label: 'Open now' },
+]
+
 export default function AdminPage() {
   const supabase = createClient()
   const [activeTab, setActiveTab] = useState('users')
   const [isAdmin, setIsAdmin] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [funnel, setFunnel] = useState<Record<string, number> | null>(null)
 
   // Users tab
   const [users, setUsers] = useState<any[]>([])
@@ -50,6 +71,11 @@ export default function AdminPage() {
       const { data: p } = await supabase.from('profiles').select('role').eq('id', user.id).single()
       if (p?.role !== 'admin' && !isAdminEmail(user.email ?? '')) { setLoading(false); return }
       setIsAdmin(true)
+      fetch('/api/admin/funnel').then(async (r) => {
+        if (!r.ok) return
+        const data = await r.json()
+        if (data && typeof data === 'object') setFunnel(data)
+      }).catch(() => {})
 
       // Review queues load only for confirmed admins
       // The three review queues (BGC, certs, verification) come from the server: the table is closed to the browser
@@ -202,6 +228,21 @@ export default function AdminPage() {
   return (
     <div style={{ minHeight: '100vh', background: bg, color: '#fff' }}>
       <main style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 24px' }}>
+        <div className="ui-card" style={{ marginBottom: 24 }}>
+          <h2>Funnel</h2>
+          {funnel ? (
+            <div className="ui-fit">
+              {FUNNEL_FIELDS.map((row) => (
+                <div key={row.key}>
+                  <div className="ui-k">{row.label}</div>
+                  <div className="ui-v">{funnel[row.key] ?? 0}</div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="ui-meta">Loading…</p>
+          )}
+        </div>
         <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 24 }}>Admin Panel</h1>
 
         {/* Tabs */}

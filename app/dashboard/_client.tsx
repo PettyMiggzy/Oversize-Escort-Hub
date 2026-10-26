@@ -3,6 +3,7 @@
 import '@/app/globals.css'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import * as QRCode from 'qrcode'
 import { createClient } from '@/lib/supabase/client'
 import { isAdminEmail } from '@/lib/supabase'
 import { isNativeApp } from '@/lib/native'
@@ -53,6 +54,78 @@ interface Match {
   status: string
   loads: Load | null
   escort?: { full_name?: string; phone?: string; tier?: string; bgc_verified?: boolean } | null
+}
+
+function ShareProfileCard({ userId }: { userId: string }) {
+  const url = `https://www.oversize-escort-hub.com/escorts/${userId}`
+  const [svg, setSvg] = useState('')
+  const [note, setNote] = useState('')
+  const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
+
+  useEffect(() => {
+    let live = true
+    QRCode.toString(url, { type: 'svg', margin: 1 }).then((markup) => {
+      if (!live) return
+      const start = markup.indexOf('<svg')
+      const body = start >= 0 ? markup.slice(start) : ''
+      setSvg(body.replace('<svg ', '<svg width="180" height="180" '))
+    }).catch(() => {
+      if (live) setSvg('')
+    })
+    return () => { live = false }
+  }, [url])
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(url)
+      setNote('Copied')
+    } catch {
+      try {
+        const area = document.createElement('textarea')
+        area.value = url
+        area.setAttribute('readonly', '')
+        area.style.position = 'fixed'
+        area.style.left = '-9999px'
+        document.body.appendChild(area)
+        area.select()
+        const ok = document.execCommand('copy')
+        document.body.removeChild(area)
+        setNote(ok ? 'Copied' : 'Select the link and copy it')
+      } catch {
+        setNote('Select the link and copy it')
+      }
+    }
+  }
+
+  async function share() {
+    if (typeof navigator.share !== 'function') return
+    try {
+      await navigator.share({ url, title: 'My escort profile' })
+    } catch {
+      /* dismissed */
+    }
+  }
+
+  return (
+    <section className="ui-card">
+      <h2>Share your profile</h2>
+      <p className="ui-note">This link opens your public profile. Anyone with it can view the page.</p>
+      <p style={{ margin: '12px 0 0', wordBreak: 'break-all', color: '#fff', fontWeight: 700 }}>{url}</p>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
+        <button type="button" className="ui-btn" onClick={copy}>Copy</button>
+        {canShare && (
+          <button type="button" className="ui-btn ghost" onClick={share}>Share</button>
+        )}
+      </div>
+      {note && <p className="ui-ok">{note}</p>}
+      {svg && (
+        <div
+          style={{ marginTop: 16, background: '#fff', width: 196, padding: 8, borderRadius: 12, lineHeight: 0 }}
+          dangerouslySetInnerHTML={{ __html: svg }}
+        />
+      )}
+    </section>
+  )
 }
 
 export function DashboardPageClient() {
@@ -626,6 +699,7 @@ export function DashboardPageClient() {
       {/* ESCORT / PRO VIEW */}
       {isEscort && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          <ShareProfileCard userId={profile.id} />
           {/* Earnings */}
           <section>
             <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#fff', marginBottom: '1rem' }}>Earnings</h2>

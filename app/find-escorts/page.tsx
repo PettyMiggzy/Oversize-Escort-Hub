@@ -173,6 +173,15 @@ export default function FindEscortsPage() {
               ))}
             </div>
           )}
+
+          <nav aria-label="Find escorts by state" style={{ marginTop: 48 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 12px', color: '#fff' }}>Find escorts by state</h2>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 14px' }}>
+              {US_STATES.map(st => (
+                <a key={st} href={`/pilot-car-escorts/${st.toLowerCase()}`} className="ui-link" style={{ fontSize: 13 }}>{st}</a>
+              ))}
+            </div>
+          </nav>
         </div>
       </div>
     </>
