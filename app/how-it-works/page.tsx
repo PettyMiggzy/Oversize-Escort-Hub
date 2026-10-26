@@ -1,11 +1,11 @@
 'use client';
 import { useState } from 'react';
 import SiteHeader from '@/components/SiteHeader';
-import PageHero from '@/components/PageHero';
+import PageTitle from '@/components/PageTitle';
 
 const TABS = [
   {
-    key: 'escort', label: 'Pilot car / P/EVO', color: '#f0a500', cta: 'Join as an escort', href: '/signin?mode=signup&role=escort',
+    key: 'escort', label: 'Pilot car / P/EVO', color: '#ff6a13', cta: 'Join as an escort', href: '/signin?mode=signup&role=escort',
     steps: [
       ['Create a free account', 'Pick pilot car / P/EVO as your role.'],
       ['Build your profile', 'Add your certifications, the states you cover, your vehicle and your verification badges.'],
@@ -54,40 +54,37 @@ export default function HowItWorks() {
   const current = TABS.find((t) => t.key === tab)!;
 
   return (
-    <div style={{ background: '#0a0b0d', color: '#e6e9ef', minHeight: '100vh', fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div className="ui-page">
       <SiteHeader />
-      <PageHero image="/photos/band-how.webp" position="50% 62%" title="How it works" lead="From sign-up to a confirmed job. Everything is free while we launch." />
-      <div style={{ maxWidth: 860, margin: '0 auto', padding: '36px 20px 70px' }}>
-        <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginBottom: 28, flexWrap: 'wrap' }}>
+      <div className="ui-wrap" style={{ maxWidth: 860 }}>
+        <PageTitle eyebrow="Start here" title="How it works" lead="From sign-up to a confirmed job. Everything is free while we launch." />
+        <div className="ui-chips" style={{ justifyContent: 'center', marginBottom: 28 }}>
           {TABS.map((t) => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              style={{
-                padding: '11px 20px', borderRadius: 999, cursor: 'pointer', fontSize: 14, fontWeight: 700,
-                background: tab === t.key ? t.color : '#12141a', color: tab === t.key ? '#120800' : '#c9ced8',
-                border: `1px solid ${tab === t.key ? t.color : '#2a2f3c'}`,
-              }}
+              className="ui-chip"
+              style={tab === t.key ? { background: t.color, color: '#160800', borderColor: t.color, fontWeight: 700 } : undefined}
             >
               {t.label}
             </button>
           ))}
         </div>
 
-        <div style={{ display: 'grid', gap: 12 }}>
+        <div className="ui-stack">
           {current.steps.map(([title, text], i) => (
-            <div key={title} style={{ display: 'flex', gap: 16, background: '#12141a', border: '1px solid #232733', borderRadius: 14, padding: '18px 20px' }}>
-              <div className="bb" style={{ fontSize: 40, lineHeight: 1, color: current.color, minWidth: 34 }}>{i + 1}</div>
+            <div key={title} className="ui-card" style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+              <div className="ui-step" style={{ color: current.color }}>{i + 1}</div>
               <div>
-                <div style={{ fontWeight: 700, fontSize: 17, marginBottom: 2 }}>{title}</div>
-                <div style={{ color: '#9aa3b2', fontSize: 15, lineHeight: 1.55 }}>{text}</div>
+                <div style={{ fontWeight: 700, fontSize: 17, marginBottom: 2, color: '#fff' }}>{title}</div>
+                <div style={{ color: 'var(--ui-muted)', fontSize: 15, lineHeight: 1.55 }}>{text}</div>
               </div>
             </div>
           ))}
         </div>
 
         <div style={{ textAlign: 'center', marginTop: 34 }}>
-          <a href={current.href} style={{ display: 'inline-block', background: '#ff6a13', color: '#120800', fontWeight: 800, fontSize: 16, padding: '15px 28px', borderRadius: 10, textDecoration: 'none' }}>
+          <a className="ui-btn" href={current.href}>
             {current.cta} &rarr;
           </a>
         </div>

@@ -3,10 +3,7 @@ import { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import WebOnly from '@/components/WebOnly';
 import SiteHeader from '@/components/SiteHeader';
-
-const bg = '#060b16';
-const surface = '#0d1117';
-const orange = '#f0a500';
+import PageTitle from '@/components/PageTitle';
 
 // ── Fleet tier definitions ───────────────────────────────────────────────────
 // Fleet Starter  price_1TMT9fLmfugPCRbA0Tu65Ui0  ← existing "Fleet Pro" ID
@@ -23,7 +20,6 @@ const fleetTiers = [
     sub: 'per month',
     escorts: 'Up to 5 escorts',
     priceId: FLEET_STARTER_PRICE_ID,
-    color: '#3d8ef8',
     popular: false,
   },
   {
@@ -32,7 +28,6 @@ const fleetTiers = [
     sub: 'per month',
     escorts: 'Up to 10 escorts',
     priceId: FLEET_PLUS_PRICE_ID,
-    color: '#f5a200',
     popular: true,
   },
   {
@@ -41,7 +36,6 @@ const fleetTiers = [
     sub: 'per month',
     escorts: 'Unlimited escorts',
     priceId: FLEET_PRO_PRICE_ID,
-    color: '#ff6200',
     popular: false,
   },
 ];
@@ -88,99 +82,59 @@ function JoinPageInner() {
     }
   }
 
-  const btn: React.CSSProperties = {
-    display: 'block',
-    width: '100%',
-    padding: '12px 0',
-    border: 'none',
-    borderRadius: '6px',
-    fontWeight: 700,
-    fontSize: '15px',
-    cursor: 'pointer',
-    marginTop: '12px',
-    transition: 'opacity 0.2s',
-  };
-
-  const card: React.CSSProperties = {
-    background: surface,
-    border: '1px solid #1e2533',
-    borderRadius: '12px',
-    padding: '32px 28px',
-    flex: '1 1 280px',
-    maxWidth: '360px',
-  };
-
   return (
-    <div style={{ minHeight: '100vh', background: bg, color: '#eee', fontFamily: 'sans-serif' }}>
+    <div className="ui-page">
       <SiteHeader />
-      <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '60px 20px' }}>
-        <h1 style={{ textAlign: 'center', fontSize: '36px', fontWeight: 800, marginBottom: '8px' }}>
-          Join <span style={{ color: orange }}>Oversize Escort Hub</span>
-        </h1>
-        <p style={{ textAlign: 'center', color: '#888', marginBottom: '48px', fontSize: '16px' }}>
-          {fleetOnly ? 'Choose your Fleet plan' : 'Choose the plan that fits your role'}
-        </p>
+      <div className="ui-wrap">
+        <PageTitle
+          eyebrow="Account"
+          title="Join Oversize Escort Hub"
+          lead={fleetOnly ? 'Choose your Fleet plan' : 'Choose the plan that fits your role'}
+        />
 
         {!fleetOnly && (
-          <div
-            style={{
-              textAlign: 'center',
-              marginTop: '-32px',
-              marginBottom: '40px',
-              fontSize: '13px',
-              color: '#888',
-            }}
-          >
+          <p className="ui-note" style={{ textAlign: 'center', marginTop: -12, marginBottom: 28 }}>
             Carrier or Freight Broker?{' '}
-            <a href="/signin?role=carrier" style={{ color: orange, textDecoration: 'none', fontWeight: 600 }}>
+            <a href="/signin?role=carrier" className="ui-link">
               Sign in as Carrier →
             </a>
-            <span style={{ margin: '0 10px', color: '#444' }}>•</span>
-            <a href="/signin?role=broker" style={{ color: orange, textDecoration: 'none', fontWeight: 600 }}>
+            <span style={{ margin: '0 10px', color: 'var(--ui-dim)' }}>•</span>
+            <a href="/signin?role=broker" className="ui-link">
               Sign in as Freight Broker →
             </a>
-          </div>
+          </p>
         )}
 
-        {/* ── Non-fleet cards (hidden when ?role=fleet) ── */}
         {!fleetOnly && (
-          <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', justifyContent: 'center', marginBottom: '48px' }}>
+          <div className="ui-fit" style={{ marginBottom: 48 }}>
 
-            {/* Card 1 – P/EVO Escort */}
-            <div style={{ ...card, borderTop: `4px solid ${orange}` }}>
-              <h2 style={{ color: orange, fontSize: '22px', fontWeight: 700, margin: '0 0 8px' }}>
-                P/EVO Escort
-              </h2>
-              <p style={{ color: '#aaa', fontSize: '14px', marginBottom: '20px', lineHeight: '1.5' }}>
+            <div className="ui-card" style={{ display: 'flex', flexDirection: 'column' }}>
+              <h2 style={{ color: 'var(--ui-or)' }}>P/EVO Escort</h2>
+              <p className="ui-note" style={{ marginBottom: 20 }}>
                 Pilot/escort vehicle operators. Access load matching, escort profiles, BGC badge, and more.
               </p>
-
-              <div style={{ borderTop: '1px solid #1e2533', paddingTop: '20px' }}>
-                <div style={{ marginBottom: '16px' }}>
-                  <div style={{ fontSize: '13px', color: '#aaa', marginTop: '4px' }}>Member – Free</div>
-                  <div style={{ fontSize: '13px', color: '#aaa', marginTop: '4px' }}>No subscription required</div>
-                  <a href="/signin" style={{ textDecoration: 'none' }}>
-                    <button style={{ ...btn, background: '#1e2533', color: '#fff', border: '1px solid #333' }}>
-                      Sign In / Register Free
-                    </button>
-                  </a>
-                </div>
+              <div style={{ borderTop: '1px solid var(--ui-line)', paddingTop: 20, marginTop: 'auto' }}>
+                <div className="ui-note">Member – Free</div>
+                <div className="ui-note">No subscription required</div>
+                <a href="/signin" style={{ textDecoration: 'none' }}>
+                  <button className="ui-btn ghost block" style={{ marginTop: 12 }}>
+                    Sign In / Register Free
+                  </button>
+                </a>
               </div>
             </div>
 
-            {/* Card 2 – Escort Pro */}
-            <div style={{ ...card, borderTop: `4px solid ${orange}` }}>
-              <h2 style={{ color: orange, fontSize: '22px', fontWeight: 700, margin: '0 0 8px' }}>
-                Escort Pro
-              </h2>
-              <p style={{ color: '#aaa', fontSize: '14px', marginBottom: '20px', lineHeight: '1.5' }}>
+            <div className="ui-card" style={{ display: 'flex', flexDirection: 'column' }}>
+              <h2 style={{ color: 'var(--ui-or)' }}>Escort Pro</h2>
+              <p className="ui-note" style={{ marginBottom: 20 }}>
                 Advanced tools for serious operators. Priority matching, Deadhead Minimizer, sponsored zones, and more.
               </p>
-              <div style={{ borderTop: '1px solid #1e2533', paddingTop: '20px' }}>
-                <div style={{ fontSize: '28px', fontWeight: 800, color: orange }}>$29.99<span style={{ fontSize: '14px', color: '#888', fontWeight: 400 }}>/mo</span></div>
-                <div style={{ fontSize: '13px', color: '#aaa', marginTop: '4px' }}>All Pro escort features</div>
+              <div style={{ borderTop: '1px solid var(--ui-line)', paddingTop: 20, marginTop: 'auto' }}>
+                <div className="ui-v or">$29.99<span style={{ fontSize: 14, color: 'var(--ui-muted)', fontWeight: 500 }}>/mo</span></div>
+                <div className="ui-note">All Pro escort features</div>
                 <button
-                  style={{ ...btn, background: orange, color: bg }}
+                  className="ui-btn block"
+                  style={{ marginTop: 12 }}
                   disabled={loading === 'price_1TF021LmfugPCRbA7CGgLhC0'}
                   onClick={() => checkout('price_1TF021LmfugPCRbA7CGgLhC0')}
                 >
@@ -189,19 +143,17 @@ function JoinPageInner() {
               </div>
             </div>
 
-            {/* Card 3 – Fleet Manager (legacy single card, hidden in fleet mode) */}
-            <div style={{ ...card, borderTop: `4px solid ${orange}` }}>
-              <h2 style={{ color: orange, fontSize: '22px', fontWeight: 700, margin: '0 0 8px' }}>
-                Fleet Manager
-              </h2>
-              <p style={{ color: '#aaa', fontSize: '14px', marginBottom: '20px', lineHeight: '1.5' }}>
+            <div className="ui-card" style={{ display: 'flex', flexDirection: 'column' }}>
+              <h2 style={{ color: 'var(--ui-or)' }}>Fleet Manager</h2>
+              <p className="ui-note" style={{ marginBottom: 20 }}>
                 Manage an entire fleet of escorts under one account. Zones, jobs, dashboards, and multi-escort coordination.
               </p>
-              <div style={{ borderTop: '1px solid #1e2533', paddingTop: '20px' }}>
-                <div style={{ fontSize: '28px', fontWeight: 800, color: orange }}>$99.99<span style={{ fontSize: '14px', color: '#888', fontWeight: 400 }}>/mo</span></div>
-                <div style={{ fontSize: '13px', color: '#aaa', marginTop: '4px' }}>Full fleet dashboard, all Pro features for all escorts</div>
+              <div style={{ borderTop: '1px solid var(--ui-line)', paddingTop: 20, marginTop: 'auto' }}>
+                <div className="ui-v or">$99.99<span style={{ fontSize: 14, color: 'var(--ui-muted)', fontWeight: 500 }}>/mo</span></div>
+                <div className="ui-note">Full fleet dashboard, all Pro features for all escorts</div>
                 <button
-                  style={{ ...btn, background: orange, color: bg }}
+                  className="ui-btn block"
+                  style={{ marginTop: 12 }}
                   disabled={loading === FLEET_PRO_PRICE_ID}
                   onClick={() => checkout(FLEET_PRO_PRICE_ID)}
                 >
@@ -213,87 +165,44 @@ function JoinPageInner() {
           </div>
         )}
 
-        {/* ── Fleet tier 3-column grid (shown when ?role=fleet) ── */}
         {fleetOnly && (
           <>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', maxWidth: '1060px', margin: '0 auto 48px' }}>
+            <div className="ui-fit" style={{ marginBottom: 28 }}>
               {fleetTiers.map((tier) => (
                 <div
                   key={tier.name}
-                  style={{
-                    background: surface,
-                    border: tier.popular ? `2px solid ${tier.color}` : '1px solid #1e2533',
-                    borderTop: `4px solid ${tier.color}`,
-                    borderRadius: '12px',
-                    padding: '32px 28px',
-                    position: 'relative',
-                  }}
+                  className={tier.popular ? 'ui-card warn' : 'ui-card'}
+                  style={{ position: 'relative', display: 'flex', flexDirection: 'column' }}
                 >
-                  {/* Most Popular badge */}
                   {tier.popular && (
-                    <div style={{
-                      position: 'absolute',
-                      top: '-14px',
-                      left: '50%',
-                      transform: 'translateX(-50%)',
-                      background: tier.color,
-                      color: '#fff',
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      padding: '3px 14px',
-                      borderRadius: '20px',
-                      letterSpacing: '0.05em',
-                      textTransform: 'uppercase',
-                      whiteSpace: 'nowrap',
-                    }}>
+                    <div className="ui-badge orange" style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)' }}>
                       Most Popular
                     </div>
                   )}
 
-                  {/* Tier name */}
-                  <h2 style={{ color: tier.color, fontSize: '20px', fontWeight: 700, margin: '0 0 6px' }}>
-                    {tier.name}
-                  </h2>
+                  <h2 style={{ color: 'var(--ui-or)' }}>{tier.name}</h2>
 
-                  {/* Escort slots — prominent */}
-                  <div style={{
-                    background: `${tier.color}18`,
-                    border: `1px solid ${tier.color}44`,
-                    borderRadius: '8px',
-                    padding: '10px 14px',
-                    marginBottom: '20px',
-                    textAlign: 'center',
-                  }}>
-                    <span style={{ color: tier.color, fontWeight: 800, fontSize: '16px' }}>
-                      {tier.escorts}
-                    </span>
+                  <div className="ui-badge orange" style={{ marginBottom: 16, alignSelf: 'flex-start' }}>
+                    {tier.escorts}
                   </div>
 
-                  {/* Price */}
-                  <div style={{ marginBottom: '20px' }}>
-                    <span style={{ fontSize: '32px', fontWeight: 800, color: '#eee' }}>{tier.price}</span>
-                    <span style={{ fontSize: '14px', color: '#888', marginLeft: '4px' }}>{tier.sub}</span>
+                  <div style={{ marginBottom: 16 }}>
+                    <span className="ui-v">{tier.price}</span>
+                    <span className="ui-note" style={{ marginLeft: 6 }}>{tier.sub}</span>
                   </div>
 
-                  {/* Features list */}
-                  <div style={{ borderTop: '1px solid #1e2533', paddingTop: '16px', marginBottom: '20px' }}>
+                  <div style={{ borderTop: '1px solid var(--ui-line)', paddingTop: 16, marginBottom: 20 }}>
                     {fleetFeatures.map((f) => (
-                      <div key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '8px' }}>
-                        <span style={{ color: tier.color, fontSize: '14px', marginTop: '1px', flexShrink: 0 }}>✓</span>
-                        <span style={{ color: '#ccc', fontSize: '13px', lineHeight: '1.4' }}>{f}</span>
+                      <div key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 8 }}>
+                        <span style={{ color: 'var(--ui-or)', fontSize: 14, marginTop: 1, flexShrink: 0 }}>✓</span>
+                        <span className="ui-note">{f}</span>
                       </div>
                     ))}
                   </div>
 
-                  {/* CTA button */}
                   <button
-                    style={{
-                      ...btn,
-                      background: tier.popular ? tier.color : 'transparent',
-                      color: tier.popular ? bg : tier.color,
-                      border: `2px solid ${tier.color}`,
-                      marginTop: '0',
-                    }}
+                    className={tier.popular ? 'ui-btn block' : 'ui-btn ghost block'}
+                    style={{ marginTop: 'auto' }}
                     disabled={loading === tier.priceId}
                     onClick={() => checkout(tier.priceId)}
                   >
@@ -303,15 +212,15 @@ function JoinPageInner() {
               ))}
             </div>
 
-            <p style={{ textAlign: 'center', color: '#555', fontSize: '13px' }}>
+            <p className="ui-note" style={{ textAlign: 'center' }}>
               All Fleet plans include every Member &amp; Pro escort feature. Only escort slot count differs.
             </p>
           </>
         )}
 
-        <p style={{ textAlign: 'center', color: '#666', marginTop: '40px', fontSize: '13px' }}>
+        <p className="ui-note" style={{ textAlign: 'center', marginTop: 40 }}>
           Already have an account?{' '}
-          <a href="/signin" style={{ color: orange }}>Sign in here</a>
+          <a href="/signin" className="ui-link">Sign in here</a>
         </p>
       </div>
     </div>

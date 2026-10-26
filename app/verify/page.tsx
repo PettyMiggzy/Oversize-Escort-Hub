@@ -1,5 +1,6 @@
 'use client'
 import SiteHeader from '@/components/SiteHeader'
+import PageTitle from '@/components/PageTitle'
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { FREE_LAUNCH } from '@/lib/free-launch'
@@ -134,171 +135,162 @@ export default function VerifyPage() {
     finally { setPevoCheckoutLoading('') }
   }
 
-  const card: React.CSSProperties = { background: '#111', border: '1px solid #1e3a5f', borderRadius: 12, padding: 32, display: 'flex', flexDirection: 'column', gap: 16 }
-  const cardDisabled: React.CSSProperties = { ...card, opacity: 0.45, pointerEvents: 'none', filter: 'grayscale(0.5)' }
-  const btn: React.CSSProperties = { background: '#ff6600', color: '#fff', border: 'none', borderRadius: 8, padding: '12px 24px', fontWeight: 700, fontSize: 15, cursor: 'pointer' }
-  const btnGhost: React.CSSProperties = { background: 'transparent', color: '#ff6600', border: '1px solid #ff6600', borderRadius: 8, padding: '12px 24px', fontWeight: 700, fontSize: 15, cursor: 'pointer' }
+  const fileStyle: React.CSSProperties = { fontSize: 16, color: '#fff', marginBottom: 12, display: 'block', maxWidth: '100%' }
 
   return (
     <>
       <SiteHeader />
-      <main style={{ minHeight: '100vh', background: '#0d0d0d', color: '#fff', fontFamily: 'sans-serif', padding: '60px 24px' }}>
-        <div style={{ maxWidth: 800, margin: '0 auto' }}>
-          <p style={{ color: '#ff6600', fontSize: 13, fontWeight: 600, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>OEH VERIFICATION</p>
-          <h1 style={{ fontSize: 'clamp(28px,5vw,48px)', fontWeight: 800, marginBottom: 8, lineHeight: 1.2 }}>Build Trust. Get More Loads.</h1>
-          <p style={{ color: '#9ca3af', marginBottom: 40 }}>Verified escorts get priority placement on the load board.</p>
+      <div className="ui-page">
+        <div className="ui-wrap">
+          <PageTitle eyebrow="Verification" title="Build trust. Get more loads." lead="Verified escorts get priority placement on the load board." />
 
           {!userId && !loading && (
-            <div style={{ ...card, marginBottom: 32 }}>
-              <p style={{ margin: 0 }}>You must <a href="/signin?redirect=/verify" style={{ color: '#ff6600' }}>sign in</a> to verify.</p>
+            <div className="ui-card" style={{ marginBottom: 24 }}>
+              <p className="ui-note">You must <a href="/signin?redirect=/verify" style={{ color: 'var(--ui-or)' }}>sign in</a> to verify.</p>
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
-            {/* BGC Badge */}
-            <div style={card}>
+          <div className="ui-grid">
+            <div className="ui-card" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
-                <div style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 8 }}>BACKGROUND CHECK</div>
-                <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>BGC Badge</h2>
-                <div style={{ fontSize: 32, fontWeight: 800, color: '#ff6600' }}>$9.99</div>
-                <div style={{ fontSize: 12, color: '#9ca3af' }}>one-time</div>
+                <div className="ui-k">Background check</div>
+                <h2>BGC Badge</h2>
+                <div className="ui-v or">$9.99</div>
+                <div className="ui-meta">one-time</div>
               </div>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {['National background check', 'BGC badge on profile', 'Higher carrier trust', 'Priority load placement'].map(f => (
-                  <li key={f} style={{ fontSize: 14, color: '#d1d5db', display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ color: '#22c55e' }}>✓</span> {f}</li>
+                  <li key={f} className="ui-note" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span className="ui-ok" style={{ margin: 0 }}>✓</span> {f}</li>
                 ))}
               </ul>
 
-              {/* State machine */}
               {flags.bgc_verified ? (
-                <div style={{ background: '#0a2818', border: '1px solid #22c55e', borderRadius: 8, padding: 16 }}>
-                  <p style={{ margin: 0, fontWeight: 700, color: '#22c55e' }}>✓ Verified</p>
-                  <p style={{ margin: '6px 0 0', fontSize: 12, color: '#9ca3af' }}>Need to re-upload? Email <a href="mailto:verify@oversize-escort-hub.com" style={{ color: '#ff6600' }}>verify@oversize-escort-hub.com</a></p>
+                <div className="ui-card good" style={{ padding: 16, boxShadow: 'none' }}>
+                  <p className="ui-ok" style={{ margin: 0, fontWeight: 700 }}>✓ Verified</p>
+                  <p className="ui-note" style={{ marginTop: 6 }}>Need to re-upload? Email <a href="mailto:verify@oversize-escort-hub.com" style={{ color: 'var(--ui-or)' }}>verify@oversize-escort-hub.com</a></p>
                 </div>
               ) : bgcSubmitted || flags.bgc_pending ? (
-                <div style={{ background: '#1a1407', border: '1px solid #ff6600', borderRadius: 8, padding: 16 }}>
-                  <p style={{ margin: 0, fontWeight: 700, color: '#ff6600' }}>✅ Submitted!</p>
-                  <p style={{ margin: '6px 0 0', fontSize: 13, color: '#d1d5db' }}>We’ll review within 24–48 hours.</p>
+                <div className="ui-card warn" style={{ padding: 16, boxShadow: 'none' }}>
+                  <p className="ui-v or" style={{ fontSize: 16, margin: 0 }}>✅ Submitted!</p>
+                  <p className="ui-note" style={{ marginTop: 6 }}>We’ll review within 24–48 hours.</p>
                 </div>
               ) : flags.bgc_paid ? (
                 <div>
-                  <label style={{ display: 'block', fontSize: 13, color: '#9ca3af', marginBottom: 8 }}>Upload BGC Authorization PDF</label>
-                  <input type="file" accept=".pdf" onChange={e => setBgcFile(e.target.files?.[0] ?? null)} style={{ fontSize: 13, color: '#fff', marginBottom: 12, display: 'block' }} />
-                  {bgcFile && <p style={{ fontSize: 12, color: '#9ca3af', marginBottom: 12 }}>{bgcFile.name}</p>}
-                  <button onClick={submitBgc} disabled={bgcSubmitting || !bgcFile} style={{ ...btn, opacity: (bgcSubmitting || !bgcFile) ? 0.6 : 1 }}>
+                  <label className="ui-label">Upload BGC Authorization PDF</label>
+                  <input type="file" accept=".pdf" onChange={e => setBgcFile(e.target.files?.[0] ?? null)} style={fileStyle} />
+                  {bgcFile && <p className="ui-meta" style={{ marginBottom: 12 }}>{bgcFile.name}</p>}
+                  <button onClick={submitBgc} disabled={bgcSubmitting || !bgcFile} className={(bgcSubmitting || !bgcFile) ? 'ui-btn dim' : 'ui-btn'}>
                     {bgcSubmitting ? 'Uploading…' : 'Submit for Review'}
                   </button>
-                  {bgcMsg && <p style={{ fontSize: 13, color: '#f87171', marginTop: 10 }}>{bgcMsg}</p>}
+                  {bgcMsg && <p className="ui-err">{bgcMsg}</p>}
                 </div>
               ) : (
                 <div>
-                  <p style={{ fontSize: 13, color: '#9ca3af', marginBottom: 12 }}>Pay first to unlock the upload form.</p>
-                  <button onClick={startBgcCheckout} disabled={bgcCheckoutLoading || !userId} style={{ ...btn, opacity: (bgcCheckoutLoading || !userId) ? 0.6 : 1 }}>
+                  <p className="ui-note" style={{ marginBottom: 12 }}>Pay first to unlock the upload form.</p>
+                  <button onClick={startBgcCheckout} disabled={bgcCheckoutLoading || !userId} className={(bgcCheckoutLoading || !userId) ? 'ui-btn dim' : 'ui-btn'}>
                     {bgcCheckoutLoading ? 'Redirecting…' : 'Pay $9.99 to Unlock Upload'}
                   </button>
-                  {bgcMsg && <p style={{ fontSize: 13, color: '#f87171', marginTop: 10 }}>{bgcMsg}</p>}
+                  {bgcMsg && <p className="ui-err">{bgcMsg}</p>}
                 </div>
               )}
             </div>
 
-            {/* P/EVO Member */}
-            <div style={card}>
+            <div className="ui-card" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
-                <div style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 8 }}>CERT REVIEW</div>
-                <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>P/EVO Cert — Member</h2>
-                <div style={{ fontSize: 32, fontWeight: 800, color: '#ff6600' }}>$14.99</div>
-                <div style={{ fontSize: 12, color: '#9ca3af' }}>one-time</div>
+                <div className="ui-k">Cert review</div>
+                <h2>P/EVO Cert — Member</h2>
+                <div className="ui-v or">$14.99</div>
+                <div className="ui-meta">one-time</div>
               </div>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {['Admin reviews your cert', 'Verified P/EVO badge', 'Higher carrier trust', 'Priority placement'].map(f => (
-                  <li key={f} style={{ fontSize: 14, color: '#d1d5db', display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ color: '#22c55e' }}>✓</span> {f}</li>
+                  <li key={f} className="ui-note" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span className="ui-ok" style={{ margin: 0 }}>✓</span> {f}</li>
                 ))}
               </ul>
               {flags.pevo_paid ? (
                 <div>
-                  <label style={{ display: 'block', fontSize: 13, color: '#9ca3af', marginBottom: 8 }}>Upload P/EVO Certificate (PDF or image)</label>
-                  <input type="file" accept=".pdf,image/*" onChange={e => setPevoFile(e.target.files?.[0] ?? null)} style={{ fontSize: 13, color: '#fff', marginBottom: 12, display: 'block' }} />
-                  {pevoFile && <p style={{ fontSize: 12, color: '#9ca3af', marginBottom: 12 }}>{pevoFile.name}</p>}
-                  <button onClick={() => submitPevo('member')} disabled={!!pevoCheckoutLoading || !pevoFile} style={{ ...btn, opacity: (pevoCheckoutLoading || !pevoFile) ? 0.6 : 1 }}>
+                  <label className="ui-label">Upload P/EVO Certificate (PDF or image)</label>
+                  <input type="file" accept=".pdf,image/*" onChange={e => setPevoFile(e.target.files?.[0] ?? null)} style={fileStyle} />
+                  {pevoFile && <p className="ui-meta" style={{ marginBottom: 12 }}>{pevoFile.name}</p>}
+                  <button onClick={() => submitPevo('member')} disabled={!!pevoCheckoutLoading || !pevoFile} className={(pevoCheckoutLoading || !pevoFile) ? 'ui-btn dim' : 'ui-btn'}>
                     {pevoCheckoutLoading === 'member' ? 'Uploading…' : 'Submit for Review'}
                   </button>
                 </div>
               ) : (
                 <div>
-                  <p style={{ fontSize: 13, color: '#9ca3af', marginBottom: 12 }}>Pay first to unlock the upload form.</p>
-                  <button onClick={() => startPevoCheckout('member')} disabled={!!pevoCheckoutLoading || !userId} style={{ ...btn, opacity: (pevoCheckoutLoading || !userId) ? 0.6 : 1 }}>
+                  <p className="ui-note" style={{ marginBottom: 12 }}>Pay first to unlock the upload form.</p>
+                  <button onClick={() => startPevoCheckout('member')} disabled={!!pevoCheckoutLoading || !userId} className={(pevoCheckoutLoading || !userId) ? 'ui-btn dim' : 'ui-btn'}>
                     {pevoCheckoutLoading === 'member' ? 'Redirecting…' : 'Pay $14.99 to Unlock Upload'}
                   </button>
                 </div>
               )}
             </div>
 
-            {/* P/EVO Pro */}
-            <div style={card}>
+            <div className="ui-card" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
-                <div style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 8 }}>CERT REVIEW (PRO)</div>
-                <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>P/EVO Cert — Pro</h2>
-                <div style={{ fontSize: 32, fontWeight: 800, color: '#ff6600' }}>$9.99</div>
-                <div style={{ fontSize: 12, color: '#9ca3af' }}>Pro subscriber rate</div>
+                <div className="ui-k">Cert review (Pro)</div>
+                <h2>P/EVO Cert — Pro</h2>
+                <div className="ui-v or">$9.99</div>
+                <div className="ui-meta">Pro subscriber rate</div>
               </div>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {['Discounted for Pro tier', 'Admin cert review', 'Verified P/EVO badge', 'Priority placement'].map(f => (
-                  <li key={f} style={{ fontSize: 14, color: '#d1d5db', display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ color: '#22c55e' }}>✓</span> {f}</li>
+                  <li key={f} className="ui-note" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span className="ui-ok" style={{ margin: 0 }}>✓</span> {f}</li>
                 ))}
               </ul>
               {flags.pevo_paid ? (
                 <div>
-                  <label style={{ display: 'block', fontSize: 13, color: '#9ca3af', marginBottom: 8 }}>Upload P/EVO Certificate (PDF or image)</label>
-                  <input type="file" accept=".pdf,image/*" onChange={e => setPevoFile(e.target.files?.[0] ?? null)} style={{ fontSize: 13, color: '#fff', marginBottom: 12, display: 'block' }} />
-                  {pevoFile && <p style={{ fontSize: 12, color: '#9ca3af', marginBottom: 12 }}>{pevoFile.name}</p>}
-                  <button onClick={() => submitPevo('pro')} disabled={!!pevoCheckoutLoading || !pevoFile} style={{ ...btn, opacity: (pevoCheckoutLoading || !pevoFile) ? 0.6 : 1 }}>
+                  <label className="ui-label">Upload P/EVO Certificate (PDF or image)</label>
+                  <input type="file" accept=".pdf,image/*" onChange={e => setPevoFile(e.target.files?.[0] ?? null)} style={fileStyle} />
+                  {pevoFile && <p className="ui-meta" style={{ marginBottom: 12 }}>{pevoFile.name}</p>}
+                  <button onClick={() => submitPevo('pro')} disabled={!!pevoCheckoutLoading || !pevoFile} className={(pevoCheckoutLoading || !pevoFile) ? 'ui-btn dim' : 'ui-btn'}>
                     {pevoCheckoutLoading === 'pro' ? 'Uploading…' : 'Submit for Review'}
                   </button>
                 </div>
               ) : (
                 <div>
-                  <p style={{ fontSize: 13, color: '#9ca3af', marginBottom: 12 }}>Pay first to unlock the upload form.</p>
-                  <button onClick={() => startPevoCheckout('pro')} disabled={!!pevoCheckoutLoading || !userId} style={{ ...btn, opacity: (pevoCheckoutLoading || !userId) ? 0.6 : 1 }}>
+                  <p className="ui-note" style={{ marginBottom: 12 }}>Pay first to unlock the upload form.</p>
+                  <button onClick={() => startPevoCheckout('pro')} disabled={!!pevoCheckoutLoading || !userId} className={(pevoCheckoutLoading || !userId) ? 'ui-btn dim' : 'ui-btn'}>
                     {pevoCheckoutLoading === 'pro' ? 'Redirecting…' : 'Pay $9.99 to Unlock Upload'}
                   </button>
                 </div>
               )}
             </div>
 
-            {pevoMsg && <p style={{ fontSize: 13, color: pevoMsg.startsWith('✅') ? '#22c55e' : '#f87171', gridColumn: '1 / -1' }}>{pevoMsg}</p>}
+            {pevoMsg && <p className={pevoMsg.startsWith('✅') ? 'ui-ok' : 'ui-err'} style={{ gridColumn: '1 / -1' }}>{pevoMsg}</p>}
 
-            {/* Sponsored */}
-            <div style={card}>
+            {!isNativeApp() && (
+            <div className="ui-card" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
-                <div style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 8 }}>SPONSORED ZONE</div>
-                <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>State Sponsorship</h2>
-                <div style={{ fontSize: 32, fontWeight: 800, color: '#ff6600' }}>$29.99<span style={{ fontSize: 14, color: '#9ca3af' }}>/30 days</span></div>
+                <div className="ui-k">Sponsored zone</div>
+                <h2>State Sponsorship</h2>
+                <div className="ui-v or">$29.99<span className="ui-meta">/30 days</span></div>
               </div>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {['1 carrier per state', 'Top of load list', 'Sponsored badge', 'Exclusive placement'].map(f => (
-                  <li key={f} style={{ fontSize: 14, color: '#d1d5db', display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ color: '#22c55e' }}>✓</span> {f}</li>
+                  <li key={f} className="ui-note" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span className="ui-ok" style={{ margin: 0 }}>✓</span> {f}</li>
                 ))}
               </ul>
-              <a href="/pricing#sponsored" style={{ ...btn, textAlign: 'center', textDecoration: 'none', display: 'block' }}>Pick a Zone →</a>
+              <a href="/pricing#sponsored" className="ui-btn block">Pick a Zone →</a>
             </div>
+            )}
 
-            {/* DD-214 coming soon */}
-            <div style={cardDisabled}>
+            <div className="ui-card" style={{ display: 'flex', flexDirection: 'column', gap: 16, opacity: 0.45, pointerEvents: 'none' }}>
               <div>
-                <div style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 8 }}>VETERAN VERIFICATION</div>
-                <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>DD-214 Veteran</h2>
-                <div style={{ display: 'inline-block', background: '#374151', color: '#9ca3af', fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 20, marginTop: 4 }}>Coming Soon</div>
+                <div className="ui-k">Veteran verification</div>
+                <h2>DD-214 Veteran</h2>
+                <span className="ui-badge dim">Coming Soon</span>
               </div>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {['Veteran verified badge', 'Veteran Discount — Coming Soon', 'Priority support'].map(f => (
-                  <li key={f} style={{ fontSize: 14, color: '#d1d5db', display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ color: '#6b7280' }}>○</span> {f}</li>
+                  <li key={f} className="ui-note" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span>○</span> {f}</li>
                 ))}
               </ul>
-              <button disabled style={{ ...btn, background: '#374151', color: '#6b7280', cursor: 'not-allowed' }}>Coming Soon</button>
+              <button disabled className="ui-btn dim">Coming Soon</button>
             </div>
           </div>
         </div>
-      </main>
+      </div>
     </>
   )
 }

@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import HideInApp from "@/components/HideInApp";
 
 type BadgeStatus = {
   status: "none" | "pending" | "approved" | "rejected";
@@ -103,12 +104,14 @@ export default function BGCPage() {
                 >
                   Submit Background Check
                 </a>
+<HideInApp>
                 <a
                   href="/bgc-checkout"
                   className="block w-full text-center border border-blue-600 text-blue-600 hover:bg-blue-50 font-semibold py-3 px-6 rounded-lg transition"
                 >
                   Pay for BGC Badge — $9.99
                 </a>
+                </HideInApp>
               </div>
             )}
           </div>
@@ -131,10 +134,12 @@ export default function BGCPage() {
               <span>⭐</span>
               <span>Badge displayed on your public profile</span>
             </li>
+<HideInApp>
             <li className="flex gap-2">
               <span>💰</span>
               <span>One-time fee of $9.99</span>
             </li>
+            </HideInApp>
           </ul>
         </div>
       </div>

@@ -1,6 +1,9 @@
 import { createClient } from '@supabase/supabase-js'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import SiteHeader from '@/components/SiteHeader'
+import PageTitle from '@/components/PageTitle'
+import EmptyState from '@/components/EmptyState'
 const svc = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -23,104 +26,84 @@ export default async function EscortProfilePage({ params }: { params: Promise<{ 
     ? (reviews.reduce((s, r) => s + (r.rating || 0), 0) / reviews.length).toFixed(1)
     : null
 
-  const S = {
-    page: { minHeight: '100vh', background: '#060b16', color: '#e5e7eb', fontFamily: 'system-ui,sans-serif' },
-    header: { padding: '16px 24px', borderBottom: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
-    brand: { fontWeight: 900, color: '#f0a500', textDecoration: 'none', fontSize: 18 },
-    back: { color: '#9ca3af', textDecoration: 'none', fontSize: 14 },
-    wrap: { maxWidth: 720, margin: '0 auto', padding: '40px 24px' },
-    card: { background: '#0d1117', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: 32, marginBottom: 24 },
-    name: { fontSize: 28, fontWeight: 800, marginBottom: 8 },
-    badges: { display: 'flex', gap: 8, flexWrap: 'wrap' as const, marginBottom: 16 },
-    badge: (color: string) => ({ background: color, color: '#000', fontWeight: 700, fontSize: 12, padding: '3px 10px', borderRadius: 20 }),
-    section: { marginTop: 24 },
-    sectionTitle: { fontSize: 14, fontWeight: 700, color: '#f0a500', textTransform: 'uppercase' as const, letterSpacing: '0.08em', marginBottom: 12 },
-    stars: { color: '#f0a500', fontSize: 20, marginRight: 6 },
-    ratingNum: { fontSize: 18, fontWeight: 700 },
-    reviewCard: { background: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: '14px 16px', marginBottom: 10 },
-    reviewHeader: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 },
-    reviewName: { fontWeight: 600, fontSize: 14 },
-    reviewDate: { color: '#6b7280', fontSize: 12 },
-    reviewText: { fontSize: 14, color: '#d1d5db' },
-    zoneGrid: { display: 'flex', flexWrap: 'wrap' as const, gap: 8 },
-    zone: { background: 'rgba(240,165,0,0.12)', border: '1px solid rgba(240,165,0,0.3)', color: '#f0a500', borderRadius: 8, padding: '4px 12px', fontSize: 13, fontWeight: 600 },
-    certRow: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 },
-    certDot: (approved: boolean) => ({ width: 8, height: 8, borderRadius: '50%', background: approved ? '#22c55e' : '#6b7280' }),
-  }
-
   return (
-    <div style={S.page}>
-      <header style={S.header}>
-        <Link href="/" style={S.brand}>OVERSIZE ESCORT HUB</Link>
-        <Link href="/find-escorts" style={S.back}>← Back to Find Escorts</Link>
-      </header>
-      <div style={S.wrap}>
-        <div style={S.card}>
-          <div style={S.name}>{profile.full_name || 'Unnamed Escort'}</div>
-          <div style={S.badges}>
-            <span style={S.badge(profile.tier === 'pro' ? '#f0a500' : '#6b7280')}>
+    <>
+      <SiteHeader />
+      <div className="ui-page">
+        <div className="ui-wrap" style={{ maxWidth: 760 }}>
+          <Link href="/find-escorts" className="ui-back">← Back to Find Escorts</Link>
+          <PageTitle
+            eyebrow="Escorts"
+            title={profile.full_name || 'Unnamed Escort'}
+            lead="Zones, certifications and reviews for this escort."
+          />
+          <div className="ui-stack">
+        <div className="ui-card">
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
+            <span className={profile.tier === 'pro' ? 'ui-badge orange' : 'ui-badge dim'}>
               {profile.tier === 'pro' ? '⭐ Pro' : 'Member'}
             </span>
-            {profile.bgc_verified && <span style={{ background: '#16a34a', color: '#fff', fontWeight: 700, fontSize: 13, padding: '4px 12px', borderRadius: 20, display: 'inline-flex', alignItems: 'center', gap: 4 }}>✓ Background Check Verified</span>}
-            {profile.role === 'escort' && <span style={S.badge('#3b82f6')}>P/EVO Escort</span>}
+            {profile.bgc_verified && <span className="ui-badge green">✓ Background Check Verified</span>}
+            {profile.role === 'escort' && <span className="ui-badge blue">P/EVO Escort</span>}
           </div>
-          {profile.bio && <p style={{ color: '#9ca3af', fontSize: 14, lineHeight: 1.6 }}>{profile.bio}</p>}
+          {profile.bio && <p className="ui-note">{profile.bio}</p>}
 
           {avgRating && (
-            <div style={{ display: 'flex', alignItems: 'center', marginTop: 12 }}>
-              <span style={S.stars}>★</span>
-              <span style={S.ratingNum}>{avgRating}</span>
-              <span style={{ color: '#6b7280', fontSize: 13, marginLeft: 6 }}>({reviews?.length} review{reviews?.length !== 1 ? 's' : ''})</span>
+            <div style={{ display: 'flex', alignItems: 'center', marginTop: 12, gap: 6 }}>
+              <span className="ui-v or" style={{ fontSize: 20 }}>★</span>
+              <span className="ui-v" style={{ fontSize: 18 }}>{avgRating}</span>
+              <span className="ui-meta">({reviews?.length} review{reviews?.length !== 1 ? 's' : ''})</span>
             </div>
           )}
         </div>
 
         {zones && zones.length > 0 && (
-          <div style={S.card}>
-            <div style={S.sectionTitle}>Availability Zones</div>
-            <div style={S.zoneGrid}>
+          <div className="ui-card">
+            <h2>Availability Zones</h2>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {zones.map((z: any) => (
-                <span key={z.id || z.location_state} style={S.zone}>{z.location_state}</span>
+                <span key={z.id || z.location_state} className="ui-badge orange">{z.location_state}</span>
               ))}
             </div>
           </div>
         )}
 
         {certs && certs.length > 0 && (
-          <div style={S.card}>
-            <div style={S.sectionTitle}>Certifications</div>
+          <div className="ui-card">
+            <h2>Certifications</h2>
             {certs.map((c: any) => (
-              <div key={c.id} style={S.certRow}>
-                <div style={S.certDot(c.status === 'approved')} />
+              <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: c.status === 'approved' ? 'var(--ui-green)' : 'var(--ui-dim)' }} />
                 <span style={{ fontSize: 14, fontWeight: 600 }}>{c.type?.toUpperCase()}</span>
-                <span style={{ fontSize: 12, color: c.status === 'approved' ? '#22c55e' : '#6b7280' }}>{c.status}</span>
+                <span className={c.status === 'approved' ? 'ui-ok' : 'ui-meta'} style={{ margin: 0 }}>{c.status}</span>
               </div>
             ))}
           </div>
         )}
 
-        {reviews && reviews.length > 0 && (
-          <div style={S.card}>
-            <div style={S.sectionTitle}>Reviews</div>
+        {reviews && reviews.length > 0 ? (
+          <div className="ui-card">
+            <h2>Reviews</h2>
             {reviews.map((r: any) => (
-              <div key={r.id} style={S.reviewCard}>
-                <div style={S.reviewHeader}>
-                  <span style={S.reviewName}>{r.reviewer_name || 'Anonymous'}</span>
-                  <span style={{ color: '#f0a500' }}>{'★'.repeat(r.rating || 0)}</span>
-                  <span style={S.reviewDate}>{r.created_at ? new Date(r.created_at).toLocaleDateString() : ''}</span>
+              <div key={r.id} className="ui-card" style={{ padding: '14px 16px', marginBottom: 10, boxShadow: 'none' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6, flexWrap: 'wrap' }}>
+                  <span style={{ fontWeight: 600, fontSize: 14 }}>{r.reviewer_name || 'Anonymous'}</span>
+                  <span style={{ color: 'var(--ui-amber)' }}>{'★'.repeat(r.rating || 0)}</span>
+                  <span className="ui-meta">{r.created_at ? new Date(r.created_at).toLocaleDateString() : ''}</span>
                 </div>
-                {r.comment && <p style={S.reviewText}>{r.comment}</p>}
+                {r.comment && <p className="ui-note">{r.comment}</p>}
               </div>
             ))}
           </div>
+        ) : (
+          <EmptyState
+            title={(!zones || zones.length === 0) && (!certs || certs.length === 0) ? 'No additional profile details yet' : 'No reviews yet'}
+            text={(!zones || zones.length === 0) && (!certs || certs.length === 0) ? 'Zones, certifications and reviews will show here once this escort adds them.' : 'Reviews show up here after a finished job.'}
+          />
         )}
-
-        {(!reviews || reviews.length === 0) && (!zones || zones.length === 0) && (!certs || certs.length === 0) && (
-          <div style={{ ...S.card, textAlign: 'center', color: '#6b7280' }}>
-            No additional profile details yet.
           </div>
-        )}
+        </div>
       </div>
-    </div>
+    </>
   )
 }

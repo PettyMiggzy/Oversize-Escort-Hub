@@ -45,3 +45,19 @@ test('the signed-in home page makes no unverifiable market claims', () => {
   const home = read('app/page.tsx')
   for (const claim of ['$800+', '50,000+', '$670M', 'FastPay Fill Speed']) expect(home).not.toContain(claim)
 })
+
+test('the sponsored-zone card on /verify is hidden inside the app', () => {
+  expect(read('app/verify/page.tsx')).toMatch(/\{!isNativeApp\(\) && \(\s*<div className="ui-card"[^>]*>\s*<div>\s*<div className="ui-k">Sponsored zone/)
+})
+
+test('upgrade prices and pay buttons on the home page and /bgc are hidden inside the app', () => {
+  const home = read('app/page.tsx')
+  for (const label of ['Upgrade to Member \u2014 $19.99/mo', 'Go Pro \u2014 $29.99/mo', 'Upgrade to Pro \u2014 $29.99/mo']) {
+    const i = home.indexOf(label)
+    expect(i, label).toBeGreaterThan(-1)
+    expect(home.slice(Math.max(0, i - 260), i), label).toContain('<HideInApp>')
+  }
+  const bgc = read('app/bgc/page.tsx')
+  expect(bgc.slice(bgc.indexOf('Pay for BGC Badge') - 330, bgc.indexOf('Pay for BGC Badge'))).toContain('<HideInApp>')
+  expect(bgc).toMatch(/<HideInApp>\s*<li[^>]*>\s*<span>[^<]*<\/span>\s*<span>One-time fee of \$9\.99/)
+})
