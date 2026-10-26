@@ -18,6 +18,7 @@ Last updated 2026-10-26. The owner says "I'm home" and we go down the "When you 
 9. **Outreach**: message 30 to 50 carriers and brokers you know. Claude drafts the message and a one-page "why post here". Run the first 10 jobs by hand.
 
 ## Claude does next (no action needed from you)
+- **Jobs board (owner's idea 2026-10-26): fleets and escort companies hiring 1099 subcontractors or drivers.** Poster picks: bring-your-own vehicle and gear, company provides vehicle, or company provides gear only; pay as percent of load, flat per week, day rate or per mile; certs required; states; start date. Escorts apply from their profile, contact details are released only when the poster accepts (same privacy rule as loads). Also an "open to work" flag on escort profiles so fleets can search. Google "JobPosting" markup for free search traffic. Free to post while launching, paid or featured listings later. Phase 1: post, browse, apply, accept. Phase 2: search escorts open to work. Phase 3: paid featured jobs. Needs owner decisions: free to post for now? allow W-2 as well as 1099 labels? (default: both, poster chooses, Terms say OEH is not the employer).
 - Review Cursor's growth branch when it reports (state pages, share link + QR, admin funnel).
 - Ignore `cursor/premium-pages-v2` (redundant: the pages already shipped).
 - Admin "recent quick-posts" list with one-click remove (spam guard for account-free posting).
