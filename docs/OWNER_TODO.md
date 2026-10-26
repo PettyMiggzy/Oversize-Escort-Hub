@@ -6,6 +6,8 @@ Last updated 2026-10-26 (evening). The owner says "I'm home" and we go down the 
 - **Everything is free except add-ons.** Free to post a load, free to bid, free to accept, free to post a job. The only add-on sold today is sponsored zones. We do NOT check or verify anyone (BGC badge and cert review were removed 2026-10-26; owner: no liability). Charge for more only after the site is busy.
 
 ## When you are home (owner does these, Claude walks you through)
+See also the "Where things stand" section at the bottom of `CLAUDE.md` (written 2026-10-26 night for the next session).
+
 1. **Email DNS: DONE 2026-10-26.** SPF (`v=spf1 include:spf.protection.outlook.com -all`), DKIM (Microsoft 365, Valid and Enabled) and one DMARC record (`p=none`, reports to the owner's Precision Pilot Services mailbox) are live and checked. In about two weeks, if reports are clean, raise DMARC to `p=quarantine`. The same SPF fix is still to do on `precisionpilotservices.com` (it still lists only GoDaddy).
 2. **Profile picture for outgoing email**: make a Google account using a real domain mailbox (for example support@oversize-escort-hub.com), upload `oeh-profile-picture-1024.png` (Claude sent it), then tell Claude the address so the site's sender switches to it (Vercel setting `EMAIL_FROM`, no deploy). Send a screenshot of the next email. Logo in Gmail for sure needs BIMI plus a paid certificate: decide later, do not buy yet.
 3. **Cursor**: tell it "pull main, the task is docs/cursor/CURSOR_TASK_D_growth.md, branch cursor/growth-pages". Claude reviews before anything goes live.

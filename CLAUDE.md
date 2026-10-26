@@ -32,3 +32,30 @@ Read this first. Update it when the owner decides something new (short entry, sa
 - The phone app is a wrapper around the live site (Capacitor, `com.oversizeescorthub.app`). Android is ready on our side, waiting on the owner (signing key, Play Console).
   iPhone is not started (needs a Mac and an Apple Developer account); see `docs/mobile-store/STORE_READINESS.md`.
 - The owner's to-do list is `docs/OWNER_TODO.md`; things not live are in `docs/NOT_LIVE_YET.md`.
+
+## Where things stand (2026-10-26, night) and what is next
+Done today: verification removed from the whole site; Terms/Privacy/About/footer name the operator; DD-214 routes off; leftover BGC text removed; AI-directory (MCP) listing published
+(registry shows `io.github.PettyMiggzy/oversize-escort-hub` active); test accounts deleted; email SPF, DKIM (Microsoft 365, Valid) and one DMARC (`p=none`) live and checked; share image and Play graphic
+redrawn (no "verified", no "flat subscription"); company page live on precisionpilotservices.com (Vercel, same project) with the owner's public phone; Google Business Profile cleaned up (below).
+
+**Google Business Profile** (listing "Precision Pilot Services LLC", service-area, address hidden, none on file; done through the owner's browser extension, which is slow and sometimes crashes):
+service area United States + Canada (whole countries), website precisionpilotservices.com, new description (no word "escort", no web address), phone (317) 625-2831, old flyer photo deleted (it had the dead USDOT number).
+Google rejected a rename to "Oversize Escort Hub" (the word "escort" trips its filters: avoid it in profile text and in ads; say "pilot car"). Never resubmit the name. Duplicate listing removed.
+Pending: category change to "Business to business service" (up to 7 days). Then the owner renames two services in the Business Profile app ("Pilot car jobs", "Find a pilot car driver by state").
+Owner to do: Search Console, request indexing of precisionpilotservices.com (old Google snippet still says "certified escort"); lock down precisionpilotservice@gmail.com. Google Ads: wait until the listing and site settle ($500 new-advertiser credit is offered: claim only when ready to run ads).
+
+**Android:** old release keystore password lost (key is dead, never use it; the repo's public history has the old keystore). Upload key was reset: new key `C:\Users\samah\oeh-upload.keystore` on the owner's PC (password not in the repo). It becomes valid
+**Oct 27, 8:19 PM Eastern**; then upload `oeh-1.0.0-code1.aab` (owner's Desktop) to a closed test (answers in `docs/mobile-store/PLAY_CONSOLE_BRIEF.md`). The GitHub "Android release" workflow failed on Oct 25 at the signing-key step (secrets not set): fix when a new build is needed.
+**iPhone:** owner has an Apple developer account under Precision Pilot Services, LLC (organization). Nothing built yet: needs the iOS project, a macOS GitHub workflow, and an App Store Connect API key (owner creates; secrets never in chat). Apple rejects plain website wrappers, so push first.
+**Push notifications:** not built. Android native push goes through Firebase Cloud Messaging; the owner says his other sessions did not use Firebase (not verified, ask which service). Waiting until after the Android test. iPhone push uses Apple's service directly.
+
+**Evergreen:** Terms §28, Privacy §29, home page, getting-started and coming-soon say OEH is an "official member/partner" of Evergreen Safety Council (membership INV14545, promo code OSEH2026 for 5% off courses to 2027-04-30).
+Plan awaiting the owner's yes that the membership is real and current: change "partner/partnership" to "member", add "not endorsed by Evergreen Safety Council". Evergreen has no API (2026-10-26; they verify only through a web form; the owner says they planned to build one).
+
+**Still open:** the Google account address for the email logo (domain mailbox, logo as profile picture; sender switch is the `EMAIL_FROM` Vercel setting); SPF on precisionpilotservices.com still lists only GoDaddy (set `v=spf1 include:spf.protection.outlook.com -all`);
+DMARC to `p=quarantine` after ~2 weeks of clean reports; Twilio texting still off; escorts have no states set (prompt exists); outreach needs the owner's OK; the repo is public, so never put passwords, keys or the owner's home address in it
+(`docs/OWNER_TODO.md` lists a Play reviewer password to change after review).
+
+**How to work with the owner:** plain short words, he is often on his phone, "drive" means decide and do (ask only when it needs his money, accounts or a legal call), he forgets context so keep these notes current in the same commit as each change.
+**Where things live:** Vercel team `monpad` (id `team_5gyTli5bGixqlpqUSQvFJeeG`), project `oversize-escort-hub` (`prj_cXPBVE0G223ZOw99zpU9njSXjk1h`); Supabase project `rcdezyugannbyqqtowrc`; Resend domain verified; GitHub `PettyMiggzy/Oversize-Escort-Hub`, deploys from `main`.
+Domains on the Vercel project: oversize-escort-hub.com (+www) and precisionpilotservices.com (+www; its Microsoft 365 mail records must never be touched).
