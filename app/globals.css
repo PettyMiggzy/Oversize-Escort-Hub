@@ -313,7 +313,7 @@ html, body {
 .ui-btn.danger{background:rgba(255,90,90,.14);color:#ff8a8a;border:1px solid rgba(255,90,90,.4);box-shadow:none}
 .ui-btn.ok{background:rgba(53,212,137,.18);color:#d7ffee;border:1px solid rgba(53,212,137,.45);box-shadow:none}
 .ui-input,.ui-select,.ui-textarea{width:100%;min-height:44px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#fff;padding:12px 14px;font-size:16px;font-family:inherit;outline:none;transition:border-color .15s,box-shadow .15s;box-sizing:border-box}
-.ui-select{color-scheme:dark}
+.ui-input,.ui-select,.ui-textarea{color-scheme:dark}
 .ui-input::placeholder,.ui-textarea::placeholder{color:#6b7686}
 .ui-input:focus,.ui-select:focus,.ui-textarea:focus{border-color:var(--ui-or);box-shadow:0 0 0 3px rgba(255,106,19,.18)}
 .ui-label{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ui-muted);font-weight:600;margin:0 0 7px}
@@ -352,4 +352,9 @@ html, body {
 .ui-card.warn{border-color:rgba(255,106,19,.55)}
 .ui-card.good{border-color:rgba(53,212,137,.55)}
 .ui-card,.ui-load,.ui-empty{overflow-wrap:anywhere}
+.ui-fit{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+.ui-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ui-city{display:grid;grid-template-columns:minmax(0,1fr) 120px;gap:12px}
+.ui-chips{display:flex;flex-wrap:wrap;gap:8px}
+@media(max-width:700px){.ui-fit,.ui-form-grid{grid-template-columns:1fr}}
 @media(max-width:900px){.ui-two{grid-template-columns:1fr}.ui-wrap{padding:24px 16px 56px}.ui-pt h1{font-size:30px}.ui-grid{grid-template-columns:1fr}}

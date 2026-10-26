@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { isAdminEmail } from '@/lib/supabase'
+import PageTitle from '@/components/PageTitle'
+import EmptyState from '@/components/EmptyState'
 
 const US_STATES = [
   'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA',
@@ -142,38 +144,29 @@ export function PostLoadPageClient() {
     }
   }
 
-  const inp: React.CSSProperties = {
-    width: '100%', padding: '10px 12px', background: '#0f1a2e',
-    border: '1px solid #1e3a5f', borderRadius: 6, color: '#e2e8f0',
-    fontSize: 14, boxSizing: 'border-box'
-  }
-  const lbl: React.CSSProperties = { display: 'block', fontSize: 12, color: '#9ca3af', marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }
-  const grp: React.CSSProperties = { marginBottom: 16 }
-
-  if (loading) return <div style={{ background: '#0a0f1a', minHeight: '100vh', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>
+  if (loading) return (<><SiteHeader /><div className="ui-page"><div className="ui-wrap" style={{ textAlign: 'center' }}><p className="ui-meta">Loading...</p></div></div></>)
 
   return (
       <>
       <SiteHeader />
-    <div style={{ minHeight: '100vh', background: '#0a0f1a', color: '#fff' }}>
-      <main style={{ maxWidth: 560, margin: '0 auto', padding: '40px 24px' }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>Post a Load</h1>
-        <p style={{ color: '#9ca3af', fontSize: 13, marginBottom: 24 }}>Complete in under 2 minutes. Expires in 24 hours.</p>
+    <div className="ui-page">
+      <div className="ui-wrap" style={{ maxWidth: 720 }}>
+        <PageTitle eyebrow="Loads" title="Post a load" lead="Complete in under 2 minutes. Expires in 24 hours." />
 
         {!allowed ? (
-          <div style={{ background: '#16213a', borderRadius: 8, padding: 24, color: '#9ca3af' }}>{roleMsg}</div>
+          <EmptyState title="Posting is closed" text={roleMsg || 'Please sign in to post a load.'} />
         ) : (
-          <form onSubmit={handleSubmit}>
-            <div style={{ background: '#0f1a2e', border: '1px solid #1e3a5f', borderRadius: 10, padding: '20px 24px', marginBottom: 16 }}>
-              <p style={{ fontSize: 12, fontWeight: 700, color: '#f60', textTransform: 'uppercase', marginBottom: 16 }}>Pickup Location</p>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px', gap: 12 }}>
-                <div style={grp}>
-                  <label style={lbl}>City *</label>
-                  <input style={inp} value={pickupCity} onChange={e => setPickupCity(e.target.value)} placeholder="e.g. Houston" required />
+          <form onSubmit={handleSubmit} className="ui-stack">
+            <div className="ui-card">
+              <p className="ui-label">Pickup Location</p>
+              <div className="ui-city">
+                <div>
+                  <label className="ui-label" htmlFor="pu-city">City *</label>
+                  <input id="pu-city" className="ui-input" value={pickupCity} onChange={e => setPickupCity(e.target.value)} placeholder="e.g. Houston" required />
                 </div>
-                <div style={grp}>
-                  <label style={lbl}>State *</label>
-                  <select style={inp} value={pickupState} onChange={e => setPickupState(e.target.value)} required>
+                <div>
+                  <label className="ui-label" htmlFor="pu-state">State *</label>
+                  <select id="pu-state" className="ui-select" value={pickupState} onChange={e => setPickupState(e.target.value)} required>
                     <option value="">--</option>
                     <optgroup label="US States">
                       {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
@@ -186,16 +179,16 @@ export function PostLoadPageClient() {
               </div>
             </div>
 
-            <div style={{ background: '#0f1a2e', border: '1px solid #1e3a5f', borderRadius: 10, padding: '20px 24px', marginBottom: 16 }}>
-              <p style={{ fontSize: 12, fontWeight: 700, color: '#f60', textTransform: 'uppercase', marginBottom: 16 }}>Destination</p>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px', gap: 12 }}>
-                <div style={grp}>
-                  <label style={lbl}>City *</label>
-                  <input style={inp} value={destCity} onChange={e => setDestCity(e.target.value)} placeholder="e.g. Dallas" required />
+            <div className="ui-card">
+              <p className="ui-label">Destination</p>
+              <div className="ui-city">
+                <div>
+                  <label className="ui-label" htmlFor="dl-city">City *</label>
+                  <input id="dl-city" className="ui-input" value={destCity} onChange={e => setDestCity(e.target.value)} placeholder="e.g. Dallas" required />
                 </div>
-                <div style={grp}>
-                  <label style={lbl}>State *</label>
-                  <select style={inp} value={destState} onChange={e => setDestState(e.target.value)} required>
+                <div>
+                  <label className="ui-label" htmlFor="dl-state">State *</label>
+                  <select id="dl-state" className="ui-select" value={destState} onChange={e => setDestState(e.target.value)} required>
                     <option value="">--</option>
                     <optgroup label="US States">
                       {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
@@ -208,92 +201,94 @@ export function PostLoadPageClient() {
               </div>
             </div>
 
-            <div style={{ background: '#0f1a2e', border: '1px solid #1e3a5f', borderRadius: 10, padding: '20px 24px', marginBottom: 16 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div style={grp}>
-                  <label style={lbl}>Date Needed *</label>
-                  <input type="date" style={inp} value={dateNeeded} onChange={e => setDateNeeded(e.target.value)} required />
+            <div className="ui-card">
+              <div className="ui-form-grid">
+                <div>
+                  <label className="ui-label" htmlFor="date-needed">Date Needed *</label>
+                  <input id="date-needed" type="date" className="ui-input" value={dateNeeded} onChange={e => setDateNeeded(e.target.value)} required />
                 </div>
               <div style={{ gridColumn: '1 / -1' }}>
                 <div style={{ marginBottom: 16 }}>
-                  <label style={lbl}>Position *</label>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 6 }}>
+                  <label className="ui-label">Position *</label>
+                  <div className="ui-chips">
                     {['Lead','Chase','High Pole','Lineman','Rear Steer','Survey','Flagger'].map(opt => (
-                      <label key={opt} style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 12px', background: positions.includes(opt) ? '#1a1a1a' : '#111', border: positions.includes(opt) ? '1px solid #f60' : '1px solid #1e3a5f', borderRadius:6, cursor:'pointer', color: positions.includes(opt) ? '#f60' : '#9ca3af', fontSize:13 }}>
-                        <input type="checkbox" checked={positions.includes(opt)} onChange={() => setPositions(prev => toggle(prev, opt))} style={{ accentColor:'#f60' }} />
+                      <label key={opt} className={positions.includes(opt) ? 'ui-chip on' : 'ui-chip'}>
+                        <input type="checkbox" checked={positions.includes(opt)} onChange={() => setPositions(prev => toggle(prev, opt))} style={{ accentColor: 'var(--ui-or)' }} />
                         {opt}
                       </label>
                     ))}
                   </div>
                 </div>
-                <div style={{ marginBottom: 16 }}>
-                  <label style={lbl}>Required Certifications</label>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 6 }}>
+                <div>
+                  <label className="ui-label">Required Certifications</label>
+                  <div className="ui-chips">
                     {['NY Cert','CSE (Ontario MTO)','BC Pilot Car','WITPAC','TWIC','AZ Cert','CTTS BC','CTTS AB','OAPC','Saskatchewan'].map(opt => (
-                      <label key={opt} style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 12px', background: certTypes.includes(opt) ? '#1a1a1a' : '#111', border: certTypes.includes(opt) ? '1px solid #f60' : '1px solid #1e3a5f', borderRadius:6, cursor:'pointer', color: certTypes.includes(opt) ? '#f60' : '#9ca3af', fontSize:13 }}>
-                        <input type="checkbox" checked={certTypes.includes(opt)} onChange={() => setCertTypes(prev => toggle(prev, opt))} style={{ accentColor:'#f60' }} />
+                      <label key={opt} className={certTypes.includes(opt) ? 'ui-chip on' : 'ui-chip'}>
+                        <input type="checkbox" checked={certTypes.includes(opt)} onChange={() => setCertTypes(prev => toggle(prev, opt))} style={{ accentColor: 'var(--ui-or)' }} />
                         {opt}
                       </label>
                     ))}
                   </div>
                 </div>
               </div>
-                <div style={grp}>
-                  <label style={lbl}>Load Type</label>
-                  <select style={inp} value={loadType} onChange={e => setLoadType(e.target.value)}>
+                <div>
+                  <label className="ui-label" htmlFor="load-type">Load Type</label>
+                  <select id="load-type" className="ui-select" value={loadType} onChange={e => setLoadType(e.target.value)}>
                     <option value="oversize">Oversize</option>
                     <option value="overweight">Overweight</option>
                     <option value="both">Both</option>
                   </select>
                 </div>
-                <div style={grp}>
-                  <label style={lbl}>Board Type</label>
-                  <select style={inp} value={boardType} onChange={e => setBoardType(e.target.value)}>
+                <div>
+                  <label className="ui-label" htmlFor="board-type">Board Type</label>
+                  <select id="board-type" className="ui-select" value={boardType} onChange={e => setBoardType(e.target.value)}>
                     <option value="flat-rate">Flat Rate</option>
                     <option value="open-bid">Open Bid (24–48hr)</option>
                     <option value="bid">5-Min Bid</option>
                   </select>
                 </div>
-        <div style={grp}>
-          <label style={lbl}>Rate Per Mile (USD)</label>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ color: '#f0a500', fontWeight: 700 }}>$</span>
+        <div style={{ gridColumn: '1 / -1' }}>
+          <label className="ui-label" htmlFor="rate">Rate Per Mile (USD)</label>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <span className="ui-v or" style={{ fontSize: 18 }}>$</span>
             <input
+              id="rate"
               type="number"
               min="0.50"
               max="99.99"
               step="0.25"
               value={rate}
               onChange={(e) => setRate(Number(e.target.value))}
-              style={{ ...inp, width: 100 }}
+              className="ui-input"
+              style={{ width: 140, flex: '0 1 140px' }}
               placeholder="2.00"
             />
-            <span style={{ color: '#9ca3af', fontSize: 13 }}>/mi</span>
+            <span className="ui-meta">/mi</span>
           </div>
-          <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>
+          <div className="ui-meta" style={{ marginTop: 6 }}>
             Standard: $2.00/mi · No-go: $250 · Overnight: $100
           </div>
         </div>
               </div>
-              <div style={grp}>
-                <label style={lbl}>Notes (optional)</label>
-                <textarea style={{ ...inp, minHeight: 60, resize: 'vertical' }} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Special instructions, access notes, etc." />
+              <div style={{ marginTop: 16 }}>
+                <label className="ui-label" htmlFor="notes">Notes (optional)</label>
+                <textarea id="notes" className="ui-textarea" style={{ minHeight: 80, resize: 'vertical' }} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Special instructions, access notes, etc." />
               </div>
-              <div style={grp}>
-                <label style={lbl}>Permit Upload (optional PDF)</label>
+              <div style={{ marginTop: 16 }}>
+                <label className="ui-label">Permit Upload (optional PDF)</label>
                 <input ref={permitRef} type="file" accept=".pdf" style={{ display: 'none' }} onChange={e => setPermitFile(e.target.files?.[0] ?? null)} />
-                <button type="button" onClick={() => permitRef.current?.click()} style={{ ...inp, cursor: 'pointer', textAlign: 'left', color: permitFile ? '#f60' : '#4a5568' }}>
+                <button type="button" onClick={() => permitRef.current?.click()} className="ui-btn ghost block">
                   {permitFile ? permitFile.name : 'Click to upload permit PDF'}
                 </button>
               </div>
             </div>
 
-            <button type="submit" disabled={submitting} style={{ width: '100%', padding: '12px 0', background: submitting ? '#1e3a5f' : '#f60', color: '#fff', border: 'none', borderRadius: 8, fontSize: 15, fontWeight: 700, cursor: submitting ? 'not-allowed' : 'pointer' }}>
+            <button type="submit" disabled={submitting} className={submitting ? 'ui-btn block dim' : 'ui-btn block'}>
               {submitting ? 'Posting...' : 'Post Load'}
             </button>
           </form>
         )}
-      </main>
+      </div>
     </div>
       </>
   )

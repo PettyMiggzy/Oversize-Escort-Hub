@@ -1,5 +1,7 @@
 "use client"
 import SiteHeader from '@/components/SiteHeader';
+import PageTitle from '@/components/PageTitle'
+import EmptyState from '@/components/EmptyState'
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 
@@ -67,62 +69,45 @@ export default function AvailabilityPage() {
     setSaved(true)
   }
 
-  const S = {
-    page: { minHeight: "100vh", background: "#060b16", color: "#e5e7eb", fontFamily: "system-ui,sans-serif" },
-    header: { padding: "16px 24px", borderBottom: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "space-between" },
-    brand: { fontWeight: 900, color: "#f0a500", textDecoration: "none", fontSize: 18 },
-    wrap: { maxWidth: 860, margin: "0 auto", padding: "40px 24px" },
-    h1: { fontSize: 28, fontWeight: 800, marginBottom: 8 },
-    sub: { color: "#9ca3af", marginBottom: 32, fontSize: 15 },
-    sectionTitle: { fontSize: 13, fontWeight: 700, color: "#f0a500", textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 12 },
-    grid: { display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(64px,1fr))", gap: 8, marginBottom: 32 },
-    zone: (active: boolean) => ({
-      background: active ? "#f0a500" : "rgba(255,255,255,0.04)",
-      color: active ? "#000" : "#e5e7eb",
-      border: active ? "1px solid #f0a500" : "1px solid rgba(255,255,255,0.10)",
-      borderRadius: 8, padding: "8px 4px", textAlign: "center" as const,
-      fontWeight: active ? 700 : 400, fontSize: 13, cursor: "pointer",
-      transition: "all 0.15s"
-    }),
-    btn: { background: "#f0a500", color: "#000", fontWeight: 700, border: "none", borderRadius: 10, padding: "12px 28px", cursor: "pointer", fontSize: 15 },
-    count: { color: "#9ca3af", fontSize: 14, marginBottom: 16 },
-    saved: { color: "#22c55e", fontSize: 14, marginLeft: 12 },
-  }
-
-  if (loading) return <div style={S.page}><div style={{ padding: 40, color: "#9ca3af" }}>Loading...</div></div>
-  if (!userId) return <div style={S.page}><div style={{ padding: 40, color: "#ef4444" }}>Please sign in to manage your availability zones.</div></div>
+  if (loading) return (<><SiteHeader /><div className="ui-page"><div className="ui-wrap"><p className="ui-meta">Loading...</p></div></div></>)
+  if (!userId) return (
+    <>
+      <SiteHeader />
+      <div className="ui-page">
+        <div className="ui-wrap">
+          <EmptyState title="Sign in to set your zones" text="Please sign in to manage your availability zones." action={<a href="/signin?redirect=/available" className="ui-btn">Sign in</a>} />
+        </div>
+      </div>
+    </>
+  )
 
   return (
       <>
       <SiteHeader />
-    <div style={S.page}>
-      <header style={S.header}>
-        <a href="/" style={S.brand}>OVERSIZE ESCORT HUB</a>
-      </header>
-      <div style={S.wrap}>
-        <h1 style={S.h1}>Availability Zones</h1>
-        <p style={S.sub}>Select the states and provinces you cover. Click a zone to toggle it on/off.</p>
-        <p style={S.count}>{selected.size} zone{selected.size !== 1 ? "s" : ""} selected</p>
+    <div className="ui-page">
+      <div className="ui-wrap">
+        <PageTitle eyebrow="Account" title="Availability zones" lead="Select the states and provinces you cover. Click a zone to toggle it on or off." />
+        <p className="ui-meta" style={{ marginBottom: 16 }}>{selected.size} zone{selected.size !== 1 ? "s" : ""} selected</p>
 
-        <div style={S.sectionTitle}>United States</div>
-        <div style={S.grid}>
+        <div className="ui-label">United States</div>
+        <div className="ui-chips" style={{ marginBottom: 24 }}>
           {US_STATES.map(s => (
-            <div key={s} style={S.zone(selected.has(s))} onClick={() => toggle(s)}>{s}</div>
+            <button type="button" key={s} className={selected.has(s) ? 'ui-chip on' : 'ui-chip'} onClick={() => toggle(s)}>{s}</button>
           ))}
         </div>
 
-        <div style={S.sectionTitle}>Canada</div>
-        <div style={{ ...S.grid, gridTemplateColumns: "repeat(auto-fill,minmax(64px,1fr))", maxWidth: 400 }}>
+        <div className="ui-label">Canada</div>
+        <div className="ui-chips" style={{ marginBottom: 24 }}>
           {CA_PROVINCES.map(p => (
-            <div key={p} style={S.zone(selected.has(p))} onClick={() => toggle(p)}>{p}</div>
+            <button type="button" key={p} className={selected.has(p) ? 'ui-chip on' : 'ui-chip'} onClick={() => toggle(p)}>{p}</button>
           ))}
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", marginTop: 8 }}>
-          <button style={S.btn} onClick={save} disabled={saving}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <button className={saving ? 'ui-btn dim' : 'ui-btn'} onClick={save} disabled={saving}>
             {saving ? "Saving..." : "Save Zones"}
           </button>
-          {saved && <span style={S.saved}>✓ Saved!</span>}
+          {saved && <span className="ui-ok" style={{ margin: 0 }}>✓ Saved!</span>}
         </div>
       </div>
     </div>
