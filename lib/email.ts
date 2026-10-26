@@ -1,4 +1,4 @@
-export async function sendEmail({ to, subject, html }: { to: string; subject: string; html: string }): Promise<boolean> {
+export async function sendEmail({ to, subject, html, replyTo }: { to: string; subject: string; html: string; replyTo?: string }): Promise<boolean> {
   try {
     const resendKey = process.env.RESEND_API_KEY;
 
@@ -16,7 +16,7 @@ export async function sendEmail({ to, subject, html }: { to: string; subject: st
         'Content-Type': 'application/json',
         Authorization: `Bearer ${resendKey}`,
       },
-      body: JSON.stringify({ from, to, subject, html }),
+      body: JSON.stringify({ from, to, subject, html, ...(replyTo ? { reply_to: replyTo } : {}) }),
     }).catch(() => null);
 
     if (!response?.ok) {

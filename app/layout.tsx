@@ -2,6 +2,7 @@ import './globals.css'
 import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 import PushInit from './components/PushInit'
+import HelperChat from '@/components/HelperChat'
 
 export const viewport = {
   width: 'device-width',
@@ -113,7 +114,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body style={{ margin: 0 }}><PushInit />{children}<Analytics /></body>
+      <body style={{ margin: 0 }}><PushInit />{children}<HelperChat /><Analytics /></body>
     </html>
   );
 }

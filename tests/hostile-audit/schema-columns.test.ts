@@ -13,6 +13,7 @@ const SCHEMA = {
   external_loads: ['id', 'source', 'board', 'escort_type', 'pickup_city', 'pickup_state', 'destination_city', 'destination_state', 'rate', 'rate_type', 'raw_title', 'raw_text', 'posted_at', 'expires_at', 'status', 'created_at', 'screen_content'],
   fleet_escorts: ['id', 'fleet_manager_id', 'name', 'phone', 'location', 'available', 'created_at'],
   fleet_searches: ['id', 'user_id', 'escort_count', 'created_at'],
+  helper_usage: ['id', 'key', 'kind', 'question', 'created_at'],
   invoices: ['id', 'escort_id', 'carrier_id', 'load_id', 'amount', 'miles', 'rate', 'date', 'status', 'pdf_url', 'created_at'],
   job_logs: ['id', 'escort_id', 'load_id', 'mileage', 'expenses', 'notes', 'logged_at'],
   job_posts: ['id', 'poster_id', 'title', 'company', 'description', 'classification', 'equipment', 'pay_model', 'pay_min', 'pay_max', 'pay_note', 'schedule', 'travel', 'base_city', 'base_state', 'states', 'cert_types', 'start_date', 'status', 'created_at', 'expires_at'],
