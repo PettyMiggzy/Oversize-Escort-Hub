@@ -1,4 +1,5 @@
 import { MetadataRoute } from "next";
+import { STATIC_STATE_CODES } from "@/lib/state-codes";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
@@ -26,5 +27,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.5,
     },
+    ...STATIC_STATE_CODES.map((code) => ({
+      url: `https://www.oversize-escort-hub.com/pilot-car-escorts/${code.toLowerCase()}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    })),
   ];
 }
