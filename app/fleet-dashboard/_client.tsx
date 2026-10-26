@@ -3,6 +3,9 @@ import '@/app/globals.css'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { isAdminEmail } from '@/lib/supabase'
+import SiteHeader from '@/components/SiteHeader'
+import PageTitle from '@/components/PageTitle'
+import EmptyState from '@/components/EmptyState'
 
 
 export function FleetDashboardPageClient() {
@@ -91,98 +94,80 @@ export function FleetDashboardPageClient() {
     setFleetEscorts(prev => prev.filter((e: any) => e.escort_id !== escortId))
   }
 
-  const bg = '#0a0f1a'
-  const card = { background: '#0f1a2e', border: '1px solid #1e3a5f', borderRadius: 10, padding: '20px 24px', marginBottom: 16 }
-  const inp = { background: '#0f1a2e', border: '1px solid #1e3a5f', borderRadius: 6, color: '#e2e8f0', padding: '8px 12px', fontSize: 13 }
-  const th = { textAlign: 'left' as const, padding: '8px 12px', fontSize: 11, color: '#9ca3af', fontWeight: 700, textTransform: 'uppercase' as const, borderBottom: '1px solid #1e3a5f' }
-  const td = { padding: '10px 12px', fontSize: 13, color: '#e2e8f0', borderBottom: '1px solid rgba(30,58,95,0.4)' }
-
-  if (loading) return <div style={{ background: bg, minHeight: '100vh', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>
+  if (loading) return (<><SiteHeader /><div className="ui-page"><div className="ui-wrap" style={{ textAlign: 'center' }}><p className="ui-meta">Loading...</p></div></div></>)
 
   return (
-    <div style={{ minHeight: '100vh', background: bg, color: '#fff' }}>
-      <main style={{ maxWidth: 900, margin: '0 auto', padding: '40px 24px' }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 24 }}>Fleet Dashboard</h1>
+    <>
+      <SiteHeader />
+      <div className="ui-page">
+      <div className="ui-wrap">
+        <PageTitle eyebrow="Fleet" title="Fleet dashboard" lead="Escorts on your fleet, the loads they are on, and a short earnings summary." />
+        <div className="ui-stack">
 
         {deadheadOpps.length > 0 && (
-          <div style={{ ...card, borderColor: '#f59e0b' }}>
-            <h2 style={{ fontSize: 16, fontWeight: 600, color: '#f59e0b', marginBottom: 12 }}>🚛 Deadhead Opportunities</h2>
-            <p style={{ fontSize: 12, color: '#9ca3af', marginBottom: 12 }}>Exclusive 5-minute window — claim before Members see these loads.</p>
+          <div className="ui-card warn">
+            <h2>Deadhead opportunities</h2>
+            <p className="ui-note" style={{ marginBottom: 12 }}>Exclusive 5-minute window — claim before Members see these loads.</p>
+            <div className="ui-stack">
             {deadheadOpps.map((load: any) => (
-              <div key={load.id} style={{ background: '#0a0f1a', borderRadius: 8, padding: 12, marginBottom: 8, border: '1px solid #1e3a5f' }}>
-                <p style={{ margin: 0, fontWeight: 600 }}>{load.pu_city}, {load.pu_state} → {load.dl_city}, {load.dl_state}</p>
-                <p style={{ margin: '4px 0 0', color: '#9ca3af', fontSize: 13 }}>${load.per_mile_rate ?? '—'}{load.per_mile_rate != null ? '/mi' : ''} · {load.escort_type}</p>
-                <a href={`/loads/${load.id}`} style={{ color: '#f59e0b', fontSize: 13, display: 'inline-block', marginTop: 6 }}>Claim load →</a>
+              <div key={load.id} className="ui-load">
+                <p className="ui-route" style={{ margin: 0 }}>{load.pu_city}, {load.pu_state} → {load.dl_city}, {load.dl_state}</p>
+                <p className="ui-meta" style={{ margin: '4px 0 0' }}>${load.per_mile_rate ?? '—'}{load.per_mile_rate != null ? '/mi' : ''} · {load.escort_type}</p>
+                <a href={`/loads/${load.id}`} className="ui-btn" style={{ marginTop: 8 }}>Claim load →</a>
               </div>
             ))}
+            </div>
           </div>
         )}
 
-        {/* Fleet Escorts */}
-        <div style={card}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <h2 style={{ fontSize: 16, fontWeight: 600 }}>Fleet Escorts ({fleetEscorts.length})</h2>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <input style={{ ...inp, width: 220 }} placeholder="Escort email to add..." value={addEmail} onChange={e => setAddEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && addEscort()} />
-              <button onClick={addEscort} style={{ background: '#f60', color: '#fff', border: 'none', borderRadius: 6, padding: '8px 16px', fontWeight: 600, cursor: 'pointer', fontSize: 13 }}>Add Escort</button>
-            </div>
+        <div className="ui-card">
+          <h2>Fleet escorts ({fleetEscorts.length})</h2>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+            <input className="ui-input" style={{ flex: '1 1 200px', minWidth: 0 }} placeholder="Escort email to add..." value={addEmail} onChange={e => setAddEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && addEscort()} />
+            <button onClick={addEscort} className="ui-btn">Add Escort</button>
           </div>
-          {addStatus && <p style={{ fontSize: 12, color: addStatus.startsWith('Error') ? '#ef4444' : '#22c55e', marginBottom: 8 }}>{addStatus}</p>}
+          {addStatus && <p className={addStatus.startsWith('Error') ? 'ui-err' : 'ui-ok'}>{addStatus}</p>}
           {fleetEscorts.length === 0 ? (
-            <p style={{ color: '#9ca3af', fontSize: 13 }}>No escorts in your fleet yet. Add them by email above.</p>
+            <EmptyState title="No escorts in your fleet yet" text="Add them by email above." />
           ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr>{['Name', 'Tier', 'BGC', 'Actions'].map(h => <th key={h} style={th}>{h}</th>)}</tr>
-              </thead>
-              <tbody>
-                {fleetEscorts.map((e: any) => (
-                  <tr key={e.escort_id}>
-                    <td style={td}>{e.profiles?.full_name ?? '—'}</td>
-                    <td style={td}>{e.profiles?.tier ?? '—'}</td>
-                    <td style={td}>{e.profiles?.bgc_verified ? '✅' : '—'}</td>
-                    <td style={td}>
-                      <button onClick={() => removeEscort(e.escort_id)} style={{ background: '#7f1d1d', color: '#fca5a5', border: 'none', borderRadius: 4, padding: '4px 10px', fontSize: 12, cursor: 'pointer' }}>Remove</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="ui-stack">
+              {fleetEscorts.map((e: any) => (
+                <div key={e.escort_id} className="ui-load">
+                  <div className="ui-route" style={{ fontSize: 16 }}>{e.profiles?.full_name ?? '—'}</div>
+                  <div className="ui-meta" style={{ marginTop: 6 }}>Tier: {e.profiles?.tier ?? '—'} · BGC: {e.profiles?.bgc_verified ? '✅' : '—'}</div>
+                  <button onClick={() => removeEscort(e.escort_id)} className="ui-btn danger" style={{ marginTop: 10 }}>Remove</button>
+                </div>
+              ))}
+            </div>
           )}
         </div>
 
-        {/* Active Loads */}
-        <div style={card}>
-          <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>Active Loads ({activeLoads.length})</h2>
+        <div className="ui-card">
+          <h2>Active loads ({activeLoads.length})</h2>
           {activeLoads.length === 0 ? (
-            <p style={{ color: '#9ca3af', fontSize: 13 }}>No active loads for your fleet escorts.</p>
+            <EmptyState title="No active loads" text="No active loads for your fleet escorts." />
           ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr>{['Route', 'Type', 'Status', 'Rate', 'Date'].map(h => <th key={h} style={th}>{h}</th>)}</tr>
-              </thead>
-              <tbody>
-                {activeLoads.map((l: any) => (
-                  <tr key={l.id}>
-                    <td style={td}>{l.pu_city}, {l.pu_state} → {l.dl_city}, {l.dl_state}</td>
-                    <td style={td}>{l.escort_type ?? '—'}</td>
-                    <td style={td}><span style={{ background: '#1e3a5f', borderRadius: 4, padding: '2px 8px', fontSize: 11 }}>{l.status}</span></td>
-                    <td style={td}>${l.per_mile_rate ?? '—'}</td>
-                    <td style={td}>{l.start_date ?? '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="ui-stack">
+              {activeLoads.map((l: any) => (
+                <div key={l.id} className="ui-load">
+                  <div className="ui-route">{l.pu_city}, {l.pu_state} → {l.dl_city}, {l.dl_state}</div>
+                  <div className="ui-meta" style={{ marginTop: 6 }}>{l.escort_type ?? '—'} · <span className="ui-badge blue">{l.status}</span></div>
+                  <div className="ui-v or" style={{ fontSize: 18, marginTop: 8 }}>${l.per_mile_rate ?? '—'}</div>
+                  <div className="ui-meta">{l.start_date ?? '—'}</div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
 
-        {/* Fleet Earnings Summary */}
-        <div style={card}>
-          <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Fleet Earnings Summary</h2>
-          <p style={{ color: '#9ca3af', fontSize: 13 }}>Completed loads: <strong style={{ color: '#f60' }}>{activeLoads.filter(l => l.status === 'filled').length}</strong></p>
-          <p style={{ color: '#9ca3af', fontSize: 13 }}>Est. total earned: <strong style={{ color: '#f60' }}>${activeLoads.filter(l => l.status === 'filled').reduce((s: number, l: any) => s + (l.per_mile_rate ?? 0), 0).toFixed(2)}</strong></p>
+        <div className="ui-card">
+          <h2>Fleet earnings summary</h2>
+          <p className="ui-note">Completed loads: <strong className="ui-v or" style={{ fontSize: 16 }}>{activeLoads.filter(l => l.status === 'filled').length}</strong></p>
+          <p className="ui-note">Est. total earned: <strong className="ui-v or" style={{ fontSize: 16 }}>${activeLoads.filter(l => l.status === 'filled').reduce((s: number, l: any) => s + (l.per_mile_rate ?? 0), 0).toFixed(2)}</strong></p>
         </div>
-      </main>
-    </div>
+        </div>
+      </div>
+      </div>
+    </>
   )
 }
