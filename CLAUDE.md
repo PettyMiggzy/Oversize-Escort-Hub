@@ -3,8 +3,8 @@
 Read this first. Update it when the owner decides something new (short entry, same commit as the change).
 
 ## The business
-- Run by the owner (Brian). Operating business on the About page: Precision Pilot Services LLC. The owner also uses
-  "Precision Pilot Escorts" and says the site runs under a DBA: exact legal name and DBA NOT CONFIRMED yet; Terms and Privacy do not name the operator yet.
+- Operated by **Precision Pilot Services, LLC**, doing business as (DBA) **Oversize Escort Hub** (owner, 2026-10-26). Terms, Privacy, About and the footer say so.
+  Owner: Brian Ahmed. (He also called it "Precision Pilot Escorts" once: the LLC name above is the one he confirmed.)
 - `brian@precisionpilotservices.com` is the owner's own address, not a customer (test emails that land there are harmless).
 - Mailboxes at the domain: `support@oversize-escort-hub.com` is the public contact (used across the site). `verification@oversize-escort-hub.com`
   also exists (owner, 2026-10-26) but verification is no longer offered; the veteran DD-214 route and `lib/email-utils.ts` still send to it.

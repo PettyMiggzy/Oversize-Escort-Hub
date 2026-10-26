@@ -16,12 +16,13 @@ export default function PrivacyPolicy() {
         <div style={{ marginBottom: 48 }}>
           <div style={{ fontSize: 10, letterSpacing: ".2em", color: "#f90", marginBottom: 10 }}>LEGAL</div>
           <h1 style={{ fontSize: 34, color: "#fff", marginBottom: 8, fontWeight: 700 }}>Privacy Policy</h1>
-          <p style={{ fontSize: 12, color: "#555" }}>Effective Date: April 2, 2026 &nbsp;|&nbsp; Last Updated: April 2, 2026</p>
+          <p style={{ fontSize: 12, color: "#555" }}>Effective Date: April 2, 2026 &nbsp;|&nbsp; Last Updated: October 26, 2026</p>
         </div>
 
         <div style={{ ...s.section }}>
           <h2 style={{ ...s.h2 }}>1. Introduction & Company Information</h2>
           <p style={{ ...s.p }}>This Privacy Policy describes how Oversize Escort Hub ("Company," "we," "us," or "our") collects, uses, and protects your personal information when you access or use our platform at <a href="https://www.oversize-escort-hub.com" style={{ color: "#f90" }}>www.oversize-escort-hub.com</a> (the "Platform").</p>
+          <p style={{ ...s.p }}>Oversize Escort Hub is operated by Precision Pilot Services, LLC, doing business as Oversize Escort Hub.</p>
           <p style={{ ...s.p }}>Oversize Escort Hub is a marketplace connecting oversize load carriers with pilot car (P/EVO) escorts and freight brokers.</p>
           <p style={{ ...s.p }}><strong style={{ color: "#fff" }}>Contact:</strong> <a href="mailto:support@oversize-escort-hub.com" style={{ color: "#f90" }}>support@oversize-escort-hub.com</a></p>
         </div>
@@ -189,7 +190,7 @@ export default function PrivacyPolicy() {
         <div style={{ ...s.section }}>
           <h2 style={{ ...s.h2 }}>24. MC/DOT Numbers for Fraud Prevention</h2>
           <p style={{ ...s.p }}>MC (Motor Carrier) and DOT numbers collected from carrier accounts are used for account records and fraud prevention. We do not verify them. MC/DOT data is stored securely, is not sold, and is only shared with law enforcement or regulatory authorities when required by law or to investigate fraud on the Platform.</p>
-        </div> <div style={{...s.section}}><h2 style={{...s.h2}}>25. Escort Availability Board</h2><p style={{...s.p}}>When escorts post on the Availability Board, their stated location, certifications, and availability window are stored and displayed to carriers. This information is public within the platform.</p></div><div style={{...s.section}}><h2 style={{...s.h2}}>26. SMS Load Posting</h2><p style={{...s.p}}>When you use SMS load posting, your phone number and message content are processed to create load listings. Message logs are retained for moderation purposes. You must have opted in to SMS services.</p></div><div style={{...s.section}}><h2 style={{...s.h2}}>27. BGC Badge</h2><p style={{...s.p}}>Background check data is processed by a third-party provider. OEH stores only the verification status (pass/fail) and badge issuance date. Raw background check results are not stored by OEH.</p></div><div style={{...s.section}}><h2 style={{...s.h2}}>28. Canadian Operations</h2><p style={{...s.p}}>Users in Canadian provinces are subject to applicable Canadian privacy laws including PIPEDA. Location and load data involving Canadian addresses is processed on the same infrastructure as US data.</p></div>
+        </div> <div style={{...s.section}}><h2 style={{...s.h2}}>25. Escort Availability Board</h2><p style={{...s.p}}>When escorts post on the Availability Board, their stated location, certifications, and availability window are stored and displayed to carriers. This information is public within the platform.</p></div><div style={{...s.section}}><h2 style={{...s.h2}}>26. SMS Load Posting</h2><p style={{...s.p}}>When you use SMS load posting, your phone number and message content are processed to create load listings. Message logs are retained for moderation purposes. You must have opted in to SMS services.</p></div><div style={{...s.section}}><h2 style={{...s.h2}}>27. No Background Checks</h2><p style={{...s.p}}>OEH does not run background checks or verify identity or documents, and does not collect background check results. Documents an escort chooses to upload are stored privately and shown only if the escort chooses to show them on their profile.</p></div><div style={{...s.section}}><h2 style={{...s.h2}}>28. Canadian Operations</h2><p style={{...s.p}}>Users in Canadian provinces are subject to applicable Canadian privacy laws including PIPEDA. Location and load data involving Canadian addresses is processed on the same infrastructure as US data.</p></div>
         
           <div style={{ ...s.section }}>
             <h2 style={{ ...s.h2 }}>29. Evergreen Safety Council Partnership Data</h2>
@@ -209,6 +210,7 @@ export default function PrivacyPolicy() {
           <p style={{ ...s.p }}>If you have any questions, concerns, or requests regarding this Privacy Policy or how we handle your personal information, please contact us:</p>
           <div style={{ background: "#111", border: "1px solid #1a1a1a", borderRadius: 6, padding: 20, marginTop: 12 }}>
             <p style={{ color: "#fff", marginBottom: 4, fontWeight: 600 }}>Oversize Escort Hub</p>
+            <p style={{ color: "#888", marginBottom: 4 }}>Precision Pilot Services, LLC (doing business as Oversize Escort Hub)</p>
             <p style={{ color: "#888", marginBottom: 4 }}>Email: <a href="mailto:support@oversize-escort-hub.com" style={{ color: "#f90" }}>support@oversize-escort-hub.com</a></p>
             <p style={{ color: "#888" }}>Website: <a href="https://www.oversize-escort-hub.com" style={{ color: "#f90" }}>www.oversize-escort-hub.com</a></p>
           </div>

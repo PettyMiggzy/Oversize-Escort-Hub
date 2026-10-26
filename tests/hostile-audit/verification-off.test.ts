@@ -70,3 +70,11 @@ test('badges only render behind the switch', () => {
 test('the helper is told there is no verification', () => {
   expect(read('lib/helper-knowledge.ts')).toMatch(/NO VERIFICATION/)
 })
+
+test('Terms and Privacy name the operator and no longer describe a background-check badge or its fee', () => {
+  for (const f of ['app/terms/page.tsx', 'app/privacy/page.tsx']) {
+    const src = read(f)
+    expect(src, f).toContain('Precision Pilot Services, LLC')
+    expect(src, f).not.toMatch(/\$9\.99|BGC Badge|badge issuance/i)
+  }
+})

@@ -68,7 +68,7 @@ export default function AboutPage() {
             <div>
               <p style={{ fontWeight: 700, fontSize: 16 }}>Brian Ahmed</p>
               <p style={{ color: '#f60', fontSize: 13, marginBottom: 4 }}>Founder & CEO</p>
-              <p style={{ color: '#9ca3af', fontSize: 13 }}>Precision Pilot Services LLC · Former Law Enforcement · Licensed P/EVO Escort · CDL Driver</p>
+              <p style={{ color: '#9ca3af', fontSize: 13 }}>Precision Pilot Services, LLC (doing business as Oversize Escort Hub) · Former Law Enforcement · Licensed P/EVO Escort · CDL Driver</p>
             </div>
           </div>
         </div>

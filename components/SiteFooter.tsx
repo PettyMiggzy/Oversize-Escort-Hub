@@ -32,7 +32,7 @@ export default function SiteFooter() {
         </div>
 
         {/* Copyright */}
-        <span>&copy; {new Date().getFullYear()} Oversize Escort Hub</span>
+        <span>&copy; {new Date().getFullYear()} Oversize Escort Hub · Precision Pilot Services, LLC</span>
 
             {/* Evergreen Safety Council membership badge */}
             <span
