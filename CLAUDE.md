@@ -9,6 +9,7 @@ Read this first. Update it when the owner decides something new (short entry, sa
 - Mailboxes at the domain: `support@oversize-escort-hub.com` is the public contact (used across the site). `verification@oversize-escort-hub.com`
   also exists (owner, 2026-10-26) but verification is no longer offered. The veteran discount is parked "way later" (owner, 2026-10-26): the DD-214 routes
   answer 410 behind `VERIFICATION_LIVE`; never collect DD-214s (SSN, birth date, and we cannot verify them). `lib/email-utils.ts` still points at the mailbox.
+- `precisionpilotservices.com` is the owner's (registered to Aug 2027; the old Netlify site is gone; USDOT number no longer active, never show it). It serves one page (`app/company`) through a host rule in `middleware.ts`. The Google Business Profile is the listing for this LLC (home-based service area business, address hidden); the owner no longer does escort jobs himself, so never describe it as an escort service.
 - Live site: https://www.oversize-escort-hub.com. Hosting: Vercel project `oversize-escort-hub`, deploys from `main`. Database: Supabase. Email: Resend.
 - Emails go out as `OEH <noreply@oversize-escort-hub.com>` (`EMAIL_FROM` in Vercel). Gmail shows a letter "O" because there is no logo set (owner will make the Google account and send its address): the free route is a
   Google account on a domain mailbox with the logo as its profile picture; a logo for everyone (BIMI) needs a paid certificate, about $650-$1,400 a year: not bought.

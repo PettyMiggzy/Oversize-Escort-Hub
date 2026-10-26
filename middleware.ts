@@ -17,7 +17,23 @@ const PROTECTED_ROUTES = [
   '/verify',
 ]
 
+// The company's own domain shows one page; every other path there goes back to it
+const COMPANY_HOSTS = ['precisionpilotservices.com', 'www.precisionpilotservices.com']
+
 export async function middleware(req: NextRequest) {
+  const host = (req.headers.get('host') || '').split(':')[0].toLowerCase()
+  if (COMPANY_HOSTS.includes(host)) {
+    const url = req.nextUrl.clone()
+    if (url.pathname === '/') {
+      url.pathname = '/company'
+      return NextResponse.rewrite(url)
+    }
+    if (url.pathname === '/company' || url.pathname.startsWith('/api/')) return NextResponse.next()
+    url.pathname = '/'
+    url.search = ''
+    return NextResponse.redirect(url)
+  }
+
   let res = NextResponse.next({ request: { headers: req.headers } })
 
   const supabase = createServerClient(
