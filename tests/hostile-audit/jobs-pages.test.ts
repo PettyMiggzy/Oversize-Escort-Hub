@@ -17,6 +17,9 @@ const NEW_BROWSER = [
   'app/jobs/query.ts',
   'app/jobs/[id]/page.tsx',
   'app/jobs/[id]/apply-box.tsx',
+  'app/post-job/page.tsx',
+  'app/post-job/_client.tsx',
+  'app/dashboard/_client.tsx',
 ]
 
 test('new jobs pages do not select email or phone', () => {
