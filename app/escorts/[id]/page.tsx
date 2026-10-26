@@ -4,7 +4,7 @@ import Link from 'next/link'
 import SiteHeader from '@/components/SiteHeader'
 import PageTitle from '@/components/PageTitle'
 import EmptyState from '@/components/EmptyState'
-import { docLabel, isPublic, type DocRow } from '@/lib/profile-docs'
+import { canUseDocs, docLabel, isPublic, type DocRow } from '@/lib/profile-docs'
 const svc = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -75,7 +75,7 @@ export default async function EscortProfilePage({ params }: { params: Promise<{ 
           <div className="ui-card">
             <h2>Certifications and documents</h2>
             {certs.map((c) => {
-              const shown = isPublic(c)
+              const shown = isPublic(c) && canUseDocs(profile.tier, profile.role)
               return (
                 <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
                   <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--ui-green)' }} />

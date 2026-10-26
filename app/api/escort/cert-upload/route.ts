@@ -3,7 +3,7 @@ import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/api-auth";
 import { signedDocUrl } from "@/lib/signed-url";
-import { DOC_EXT, DOC_LIMITS, DOC_MIME, sniffDocType } from "@/lib/profile-docs";
+import { DOC_EXT, DOC_LIMITS, DOC_MIME, canUseDocs, sniffDocType } from "@/lib/profile-docs";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +26,12 @@ export async function POST(req: NextRequest) {
     const expiryDate = formData.get("expiryDate") as string | null;
     // a short plain label ("pevo", "insurance", "state_cert"); anything else is cleaned, never trusted as markup
     const certType = String(formData.get("certType") || "pevo").toLowerCase().replace(/[^a-z0-9_/ -]/g, "").slice(0, 30) || "pevo";
+
+    // uploading documents is part of a paid plan (open to everyone while plans are free)
+    const { data: me } = await serviceClient().from("profiles").select("tier, role").eq("id", user.id).maybeSingle();
+    if (!canUseDocs(me?.tier, me?.role)) {
+      return NextResponse.json({ error: "Uploading documents is part of a paid plan.", upgrade: true }, { status: 402 });
+    }
 
     if (!pdfFile || !expiryDate) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });

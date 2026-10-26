@@ -1,3 +1,5 @@
+import { FREE_LAUNCH } from '@/lib/free-launch'
+
 // Documents an escort can show on the public profile (certificate, insurance, vehicle). The files stay in private buckets;
 // a visitor gets a link that works for five minutes, and only for a document that is approved, switched on by the escort and not expired.
 
@@ -38,4 +40,13 @@ export type DocRow = { id: string; user_id: string; type: string | null; status:
 /** Shown to visitors only when approved, switched on, and not past its expiry date. */
 export function isPublic(row: DocRow, today = new Date().toISOString().slice(0, 10)): boolean {
   return row.status === 'approved' && row.show_on_profile === true && (!row.expiry_date || String(row.expiry_date).slice(0, 10) >= today)
+}
+
+// Uploading documents (and keeping them on the public profile) belongs to a paid plan. While plans are free (FREE_LAUNCH)
+// everyone has it; when charging starts, only a paid plan does, and a lapsed one takes the documents off the profile.
+const PAID_PLANS = ['member', 'pro', 'fleet_starter', 'fleet_plus', 'fleet_pro']
+export function canUseDocs(tier: string | null | undefined, role: string | null | undefined, freeLaunch = FREE_LAUNCH): boolean {
+  if (role === 'admin') return true
+  if (freeLaunch) return true
+  return !!tier && PAID_PLANS.includes(tier)
 }

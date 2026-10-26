@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { serviceClient } from '@/lib/service-client'
-import { DOC_LIMITS, isPublic, parseStorageUrl, type DocRow } from '@/lib/profile-docs'
+import { DOC_LIMITS, canUseDocs, isPublic, parseStorageUrl, type DocRow } from '@/lib/profile-docs'
 
 export const dynamic = 'force-dynamic'
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -14,6 +14,9 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ certId: st
   const svc = serviceClient()
   const { data: row } = await svc.from('certifications').select('id, user_id, type, status, expiry_date, show_on_profile, document_url').eq('id', certId).maybeSingle()
   if (!row || !isPublic(row as DocRow)) return gone()
+  // a lapsed plan takes the documents off the profile
+  const { data: owner } = await svc.from('profiles').select('tier, role').eq('id', (row as DocRow).user_id).maybeSingle()
+  if (!canUseDocs(owner?.tier, owner?.role)) return gone()
   const where = parseStorageUrl((row as DocRow).document_url)
   if (!where) return gone()
   const { data, error } = await svc.storage.from(where.bucket).createSignedUrl(where.path, DOC_LIMITS.linkSeconds)

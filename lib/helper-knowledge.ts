@@ -17,6 +17,9 @@ Quick post: a carrier can also post a load without an account at oversize-escort
 FLEETS
 Fleet managers can add escort drivers, set coverage for the whole fleet and see jobs and invoices on the fleet dashboard.
 
+ESCORT DOCUMENTS (OPTIONAL)
+Escorts can upload a certificate, proof of insurance or vehicle papers under My documents (dashboard > My documents). It is optional: bidding, alerts and the profile work without it. We review each document, then the escort chooses whether it shows on their public profile (off unless they turn it on). Uploading and showing documents is free while plans are free and becomes part of a paid plan when plans start costing money; reviewing a P/EVO certificate is a one-time add-on either way. Escorts should cover birth date, address, license and policy numbers before showing a document.
+
 BEGINNER'S GUIDE
 For people new to pilot car work there is a plain-words guide at oversize-escort-hub.com/pilot-car-guide: what a P/EVO does, the escort positions, which states required certification as of 2016, gear, insurance, safety, and links to the public sources (FHWA training manual and each state's permit office list). Point newcomers there. It says rules are set by each state and change; confirm with the state before driving in it.
 

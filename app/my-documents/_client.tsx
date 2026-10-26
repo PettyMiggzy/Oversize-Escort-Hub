@@ -11,6 +11,7 @@ const STATUS: Record<string, string> = { pending: 'Waiting for review', approved
 
 export default function Documents() {
   const [docs, setDocs] = useState<Doc[] | null>(null)
+  const [canUpload, setCanUpload] = useState(true)
   const [err, setErr] = useState('')
   const [ok, setOk] = useState('')
   const [busy, setBusy] = useState('')
@@ -25,6 +26,7 @@ export default function Documents() {
     if (res.status === 401) { window.location.href = '/signin?redirect=/my-documents'; return }
     const d = await res.json().catch(() => ({}))
     setDocs(Array.isArray(d.documents) ? d.documents : [])
+    setCanUpload(d.canUpload !== false)
   }
   // eslint-disable-next-line react-hooks/set-state-in-effect -- first load of this page's own list
   useEffect(() => { load().catch(() => { setErr('Could not load your documents'); setDocs([]) }) }, [])
@@ -33,7 +35,7 @@ export default function Documents() {
     setBusy(id); setErr(''); setOk('')
     const res = await fetch('/api/escort/docs', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ certId: id, show }) })
     const d = await res.json().catch(() => ({}))
-    if (!res.ok) setErr(d.error || 'Could not change that')
+    if (!res.ok) setErr(d.upgrade ? 'Showing documents on your profile is part of a paid plan.' : d.error || 'Could not change that')
     else setOk(show ? (d.live ? 'It now shows on your public profile.' : 'It will show on your profile once we have reviewed it.') : 'It is hidden from your public profile.')
     await load()
     setBusy('')
@@ -48,7 +50,7 @@ export default function Documents() {
     try {
       const res = await fetch('/api/escort/cert-upload', { method: 'POST', body: fd })
       const d = await res.json().catch(() => ({}))
-      if (!res.ok) setErr(res.status === 402 ? 'A P/EVO certificate is reviewed after you buy the review on our website. Insurance and vehicle documents can be uploaded now.' : d.error || 'Upload failed')
+      if (!res.ok) setErr(res.status === 402 && d.upgrade ? 'Uploading documents is part of a paid plan.' : res.status === 402 ? 'A P/EVO certificate is reviewed after you buy the review on our website. Insurance and vehicle documents can be uploaded now.' : d.error || 'Upload failed')
       else { setOk('Uploaded. We will review it and email you.'); setFile(null); setFileKey((k) => k + 1); setExpiry('') }
     } catch { setErr('Could not connect. Try again.') }
     setSending(false)
@@ -57,7 +59,14 @@ export default function Documents() {
 
   return (
     <div className="ui-stack">
-      <div className="ui-card">
+      {!canUpload ? (
+        <div className="ui-card">
+          <h2>Documents are part of a paid plan</h2>
+          <p className="ui-note">Uploading a certificate or proof of insurance, and showing it on your profile, comes with a paid plan. It is optional: your profile, bids and alerts work without it.</p>
+          <HideInApp><p style={{ margin: '12px 0 0' }}><a className="ui-btn" href="/pricing">See plans</a></p></HideInApp>
+        </div>
+      ) : null}
+      <div className="ui-card" style={canUpload ? undefined : { opacity: 0.5, pointerEvents: 'none' }} aria-disabled={!canUpload}>
         <h2>Add a document</h2>
         <p className="ui-note" style={{ marginBottom: 12 }}>A PDF or a photo (JPG, PNG or WebP), up to 10 MB. We look at every document before it counts. If you turn on &quot;show on my profile&quot;, anyone can open it, so cover your date of birth, home address, license number and policy number first.</p>
         <form onSubmit={upload} className="ui-stack">
