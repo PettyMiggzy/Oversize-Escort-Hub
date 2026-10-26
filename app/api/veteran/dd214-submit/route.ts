@@ -1,3 +1,4 @@
+import { VERIFICATION_LIVE, NOT_AVAILABLE } from '@/lib/verification'
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { sendEmail } from "@/lib/email";
@@ -5,6 +6,7 @@ import { escapeHtml, DOC_TYPES } from "@/lib/security";
 import { isAdminEmail } from "@/lib/supabase";
 
 export async function POST(req: NextRequest) {
+  if (!VERIFICATION_LIVE) return NextResponse.json({ error: NOT_AVAILABLE }, { status: 410 })
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -51,6 +53,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
+  if (!VERIFICATION_LIVE) return NextResponse.json({ error: NOT_AVAILABLE }, { status: 410 })
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();

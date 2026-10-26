@@ -6,7 +6,7 @@ Switched off in one place: `lib/verification.ts` (`VERIFICATION_LIVE`, default o
 - "Verified" badges (BGC, P/EVO, vehicle, admin, FMCSA ticks on loads) no longer shown anywhere; the DOT "Mark as FMCSA Verified" card is hidden; admin cannot hand out badges.
 - Marketing and legal copy that said "verified" (site title and descriptions, About, Terms, Privacy, Features, How it works, Pricing, Join, Checkout, home page) now says we do not check or verify anyone.
 - Existing flags in the database were left as they are (two accounts: the owner's test escort has bgc/pevo, one carrier has fmcsa). Nothing reads or shows them while `VERIFICATION_LIVE` is off.
-- NOT touched: the veteran discount (DD-214 document review, shown as Coming Soon), the "Official Evergreen Safety Council Member / partner" wording, public images that may say "verified" (og-image, verified.png). Decide on those.
+- Veteran discount: switched off 2026-10-26 (the DD-214 upload and review routes answer 410; DD-214s carry SSN and birth date and we cannot verify them). Owner: "way later". If it returns, use a status-check service so we never hold a DD-214. Still NOT touched:, the "Official Evergreen Safety Council Member / partner" wording, public images that may say "verified" (og-image, verified.png). Decide on those.
  (so they do not take space while we make the free stuff work)
 
 Rule from the owner (2026-10-26): focus on the free parts, make sure every one works, build nothing from this list until he says.

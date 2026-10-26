@@ -78,3 +78,15 @@ test('Terms and Privacy name the operator and no longer describe a background-ch
     expect(src, f).not.toMatch(/\$9\.99|BGC Badge|badge issuance/i)
   }
 })
+
+test('the DD-214 upload and review routes are switched off', async () => {
+  const { POST: dd214 } = await import('@/app/api/dd214/route')
+  const { POST: submit, PUT: decide } = await import('@/app/api/veteran/dd214-submit/route')
+  const { POST: adminDd214 } = await import('@/app/api/admin/dd214/route')
+  const req = (m: string) => new NextRequest('http://localhost/x', { method: m, body: new FormData() })
+  expect((await dd214(req('POST'))).status).toBe(410)
+  expect((await submit(req('POST'))).status).toBe(410)
+  expect((await decide(req('PUT'))).status).toBe(410)
+  expect((await adminDd214(req('POST'))).status).toBe(410)
+  expect(getDb().tables.dd214_submissions ?? []).toEqual([])
+})

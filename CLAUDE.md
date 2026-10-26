@@ -7,8 +7,8 @@ Read this first. Update it when the owner decides something new (short entry, sa
   Owner: Brian Ahmed. (He also called it "Precision Pilot Escorts" once: the LLC name above is the one he confirmed.)
 - `brian@precisionpilotservices.com` is the owner's own address, not a customer (test emails that land there are harmless).
 - Mailboxes at the domain: `support@oversize-escort-hub.com` is the public contact (used across the site). `verification@oversize-escort-hub.com`
-  also exists (owner, 2026-10-26) but verification is no longer offered; the veteran DD-214 route and `lib/email-utils.ts` still send to it.
-  The owner may move to another address: change it in those two places only when he says.
+  also exists (owner, 2026-10-26) but verification is no longer offered. The veteran discount is parked "way later" (owner, 2026-10-26): the DD-214 routes
+  answer 410 behind `VERIFICATION_LIVE`; never collect DD-214s (SSN, birth date, and we cannot verify them). `lib/email-utils.ts` still points at the mailbox.
 - Live site: https://www.oversize-escort-hub.com. Hosting: Vercel project `oversize-escort-hub`, deploys from `main`. Database: Supabase. Email: Resend.
 - Emails go out as `OEH <noreply@oversize-escort-hub.com>` (`EMAIL_FROM` in Vercel). Gmail shows a letter "O" because there is no logo set: the free route is a
   Google account on a domain mailbox with the logo as its profile picture; a logo for everyone (BIMI) needs a paid certificate, about $650-$1,400 a year: not bought.
