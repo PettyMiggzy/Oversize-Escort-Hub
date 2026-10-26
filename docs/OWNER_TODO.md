@@ -48,3 +48,6 @@ Last updated 2026-10-26. The owner says "I'm home" and we go down the "When you 
 ## Test accounts made by Claude (delete when testing is finished)
 - bahmed3170+e2eesc@gmail.com (escort) and bahmed3170+e2ecar@gmail.com (carrier). Both are the owner's own inbox; delete them in the admin panel or Supabase before launch outreach. The test load and bid were already removed.
 - Live end-to-end check 2026-10-26: sign-up (escort and carrier), email confirm, sign-in, bid, accept, contact release (both sides; anonymous refused 401), phone-width check of the main boards: all work. Not tested live on purpose: posting a load through the form (it would email about 25 real escorts who have no states set).
+
+## Parked idea (owner, 2026-10-26): paid mini-sites for escorts and companies
+Own address (name.oversize-escort-hub.com, or a path first), 3 or 4 templates, quote/book button that feeds OEH. Paid add-on (costs little, so price on value). Leaning: about $9 a month or $79 a year, annual pushed, first few free to seed. Before building: ask 10 escorts if they would pay; reserve names, moderate (a subdomain of our domain can be abused for scams); a path like /c/name shares our search ranking better than a subdomain. Build after the boards have steady traffic.
