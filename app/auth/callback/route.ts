@@ -3,6 +3,8 @@ import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { safeRedirectPath } from '@/lib/security'
+import { alertWelcome, runAfter } from '@/lib/alerts'
+import { serviceClient } from '@/lib/service-client'
 
 export async function GET(req: NextRequest) {
   const requestUrl = new URL(req.url)
@@ -49,6 +51,17 @@ export async function GET(req: NextRequest) {
           },
           { onConflict: 'id', ignoreDuplicates: true }
         )
+        // A phone number typed at sign-up goes on the profile once (the browser cannot read or write it, so the server does)
+        const metaPhone = typeof meta.phone === 'string' ? meta.phone.replace(/[^\d+()\-.\s]/g, '').trim().slice(0, 30) : ''
+        if (metaPhone.replace(/\D/g, '').length >= 10) {
+          await serviceClient().from('profiles').update({ phone: metaPhone }).eq('id', user.id).is('phone', null)
+        }
+        // First sign-in of a brand new account (made in the last 10 minutes): send the welcome email once
+        const { data: mine } = await supabase.from('profiles').select('created_at').eq('id', user.id).maybeSingle()
+        if (mine?.created_at && Date.now() - new Date(String(mine.created_at)).getTime() < 10 * 60000) {
+          const uid = user.id
+          runAfter(async () => { await alertWelcome(uid) })
+        }
       }
     } catch {
       // Non-fatal: if the profiles row can't be created here (RLS,

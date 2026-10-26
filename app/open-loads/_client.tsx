@@ -9,6 +9,7 @@ import { getAccessLevel, secondsUntilClaimable, type AccessLevel } from '@/lib/b
 import { effectiveTier } from '@/lib/free-launch'
 import { BoardAdSidebar } from '@/components/BoardAdSidebar';
 import PageTitle from '@/components/PageTitle'
+import BoardTabs from '@/components/BoardTabs'
 import EmptyState from '@/components/EmptyState'
 
 function TimeRemaining({ expiresAt }: { expiresAt: string }) {
@@ -153,14 +154,15 @@ export function OpenLoadsBoardClient() {
       <SiteHeader />
       <div className="ui-page">
         <div className="ui-wrap">
-          <PageTitle eyebrow="Bid board" title="Open bid board" lead="Loads sorted by time remaining. Escorts bid, carriers see every bid on their dashboard." />
-          <div className="ui-two">
+          <PageTitle eyebrow="Find loads" title="Open bid board" lead="Loads sorted by time remaining. Escorts bid, carriers see every bid on their dashboard." />
+          <BoardTabs active="open" />
+          <div className={loads.length === 0 ? undefined : "ui-two"}>
             <main style={{ minWidth: 0 }}>
               {loads.length === 0 ? (
                 <EmptyState
                   title="No open loads right now"
                   text="New loads show up here the moment a carrier posts them. Check back soon, or post one yourself."
-                  action={<Link href="/post-load" className="ui-btn">Post a load</Link>}
+                  action={<Link href={userId ? "/post-load" : "/quick-post"} className="ui-btn">Post a load</Link>}
                 />
               ) : (
                 <div className="ui-grid" style={isMobile ? { gridTemplateColumns: '1fr' } : undefined}>
@@ -217,7 +219,7 @@ export function OpenLoadsBoardClient() {
                 </div>
               )}
             </main>
-            <BoardAdSidebar />
+            {loads.length > 0 && <BoardAdSidebar />}
           </div>
         </div>
 

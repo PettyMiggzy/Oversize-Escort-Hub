@@ -10,6 +10,7 @@ import { BoardAdSidebar } from '@/components/BoardAdSidebar';
 import { effectiveTier } from '@/lib/free-launch';
 import { isNativeApp } from '@/lib/native';
 import PageTitle from '@/components/PageTitle';
+import BoardTabs from '@/components/BoardTabs';
 import EmptyState from '@/components/EmptyState';
 
 const toTitleCase = (str?: string) =>
@@ -241,7 +242,7 @@ export function FlatRateBoardClient() {
       <div className="ui-page">
         <div className="ui-wrap">
           <PageTitle
-            eyebrow="Flat rate board"
+            eyebrow="Find loads"
             title="Flat rate board"
             lead="Fixed-rate loads. Direct hire. No bidding."
             right={
@@ -254,7 +255,8 @@ export function FlatRateBoardClient() {
               </div>
             }
           />
-          <div className="ui-two">
+          <BoardTabs active="flat" />
+          <div className={filteredLoads.length === 0 ? undefined : "ui-two"}>
             <div style={{ minWidth: 0 }}>
               {/* Sponsored strip: only when a state is selected and sponsored escorts exist. Not shown inside the phone app. */}
               {!inApp && stateFilter && sponsoredEscorts.length > 0 && (
@@ -273,7 +275,7 @@ export function FlatRateBoardClient() {
                 <EmptyState
                   title={stateFilter ? `No flat-rate loads in ${stateFilter}` : 'No flat-rate loads right now'}
                   text="New loads appear here the moment a carrier posts them. Try another state, or check back soon."
-                  action={<Link href="/post-load" className="ui-btn">Post a load</Link>}
+                  action={<Link href={userId ? "/post-load" : "/quick-post"} className="ui-btn">Post a load</Link>}
                 />
               )}
 
@@ -314,7 +316,7 @@ export function FlatRateBoardClient() {
                 ))}
               </div>
             </div>
-            <BoardAdSidebar />
+            {filteredLoads.length > 0 && <BoardAdSidebar />}
           </div>
         </div>
       </div>

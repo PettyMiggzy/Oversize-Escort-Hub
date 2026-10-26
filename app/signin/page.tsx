@@ -91,6 +91,8 @@ function SignInInner() {
   const [trialBlocked, setTrialBlocked] = useState(false);
   const [fullName, setFullName] = useState("");
   const [company, setCompany] = useState("");
+  const [phone, setPhone] = useState("");
+  const [resetMsg, setResetMsg] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -159,6 +161,14 @@ function SignInInner() {
     }
   }
 
+  async function handleForgot() {
+    setResetMsg("")
+    if (!email) { setResetMsg("Type your email above first, then tap Forgot password."); return }
+    const { error: rErr } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/auth/callback?redirect=/reset-password` })
+    // Same answer whether or not the email has an account
+    setResetMsg(rErr ? "Could not send the email. Try again in a minute." : "If that email has an account, a reset link is on its way.")
+  }
+
   async function handleSubmit() {
     setError("");
     setSuccess("");
@@ -175,7 +185,7 @@ function SignInInner() {
           email,
           password,
           options: {
-            data: { full_name: fullName, company_name: company, role },
+            data: { full_name: fullName, company_name: company, role, ...(phone.trim() ? { phone: phone.trim().slice(0, 30) } : {}) },
             emailRedirectTo: `${window.location.origin}/auth/callback`,
           },
         });
@@ -434,6 +444,20 @@ function SignInInner() {
                 </div>
               )}
 
+              {mode === "signup" && (
+                <div className="field">
+                  <label className="label">Mobile phone (optional)</label>
+                  <input
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    placeholder="For load alerts when texting opens"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
+                </div>
+              )}
+
               <button
                 className={`btn ${role === "carrier" ? "btn-or" : role === "fleet_manager" ? "btn-fleet" : "btn-am"}`}
                 onClick={handleSubmit}
@@ -445,6 +469,13 @@ function SignInInner() {
                   ? "Create Free Account →"
                   : "Sign In →"}
               </button>
+
+              {mode !== "signup" && (
+                <div style={{ textAlign: "center", marginTop: 12 }}>
+                  <button type="button" onClick={handleForgot} style={{ background: "none", border: 0, color: "#ff9a5c", cursor: "pointer", fontSize: 14, fontWeight: 600, minHeight: 44 }}>Forgot password?</button>
+                  {resetMsg && <div style={{ color: "#c3c9d4", fontSize: 13, marginTop: 4 }}>{resetMsg}</div>}
+                </div>
+              )}
 
               <div className="switch">
                 <span>{mode === "signup" ? "Already have an account?" : "Don't have an account?"}</span>

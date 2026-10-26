@@ -124,3 +124,56 @@ export async function alertEscortMatch(loadId: string, escortId: string, accepte
     ? { subject: `Match accepted: ${line(load)}`, headline: 'Match accepted', body: `The carrier accepted you for ${line(load)}. Open the load for the details.`, path: `/loads/${loadId}` }
     : { subject: `Match declined: ${line(load)}`, headline: 'Match declined', body: `The carrier passed on your request for ${line(load)}. The load is back on the board.`, path: `/loads/${loadId}` })
 }
+
+/** First sign-in after sign-up: one friendly email that says what to do next. Sent once per account. */
+export async function alertWelcome(userId: string) {
+  const client = svc()
+  const { data: p } = await client.from('profiles').select(`${PERSON_COLS}, role`).eq('id', userId).maybeSingle()
+  if (!p) return false
+  const { data: done } = await client.from('notifications').select('id').eq('user_id', userId).ilike('message', 'Welcome to Oversize Escort Hub%').limit(1)
+  if (done && done.length > 0) return false
+  const role = (p as any).role as string | null
+  const escort = role === 'escort'
+  const a: Alert = {
+    subject: 'Welcome to Oversize Escort Hub',
+    headline: 'Welcome to Oversize Escort Hub',
+    body: escort
+      ? 'Add the states you cover and your vehicle, then watch the boards. When a load goes up in your states you get an email, and you can claim it or bid.'
+      : 'Post your first load in under two minutes. Escorts in your states are alerted the moment it goes up, and you see every bid on your dashboard.',
+    path: escort ? '/dashboard' : '/post-load',
+  }
+  // The notification row doubles as the "already welcomed" marker; welcome emails ignore the alerts opt-out only for this one message
+  return deliver(client, p as Person, a)
+}
+
+/** Monday digest: new open loads from the last 7 days in each escort's states. Sends nothing to escorts with nothing new. */
+export async function alertWeeklyDigest() {
+  const client = svc()
+  const since = new Date(Date.now() - 7 * 86400000).toISOString()
+  const { data: loads } = await client.from('loads')
+    .select('id, pu_city, pu_state, dl_city, dl_state, per_mile_rate, created_at')
+    .eq('status', 'open').gte('created_at', since).order('created_at', { ascending: false }).limit(200)
+  if (!loads || loads.length === 0) return { sent: 0, considered: 0, loads: 0 }
+  const { data: escorts } = await client.from('profiles')
+    .select(`${PERSON_COLS}, availability_states`).eq('role', 'escort').limit(2000)
+  let sent = 0, considered = 0
+  for (const e of (escorts || []) as any[]) {
+    if (!e.email || e.suspended || e.email_alerts === false) continue
+    const states: string[] = (e.availability_states || []).map((s: string) => String(s).toUpperCase())
+    const mine = (loads as any[]).filter((l) => !states.length || states.includes(String(l.pu_state).toUpperCase()) || states.includes(String(l.dl_state).toUpperCase()))
+    if (mine.length === 0) continue
+    if (considered >= MAX_LOAD_RECIPIENTS) break
+    considered++
+    const list = mine.slice(0, 5).map(line).join(' · ')
+    const more = mine.length > 5 ? ` and ${mine.length - 5} more` : ''
+    const a: Alert = {
+      subject: `${mine.length} open load${mine.length === 1 ? '' : 's'} ${states.length ? 'in your states' : 'on the board'} this week`,
+      headline: 'Open loads this week',
+      body: `${list}${more}. Open the board to claim or bid.`,
+      path: '/flat-rate',
+    }
+    if (await deliver(client, e as Person, a)) sent++
+    await sleep(SEND_GAP_MS)
+  }
+  return { sent, considered, loads: loads.length }
+}

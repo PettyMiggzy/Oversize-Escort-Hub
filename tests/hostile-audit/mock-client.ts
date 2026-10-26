@@ -2,7 +2,7 @@
 // Route modules call createClient() at import time, so this state lives on globalThis
 // and is read on every query rather than snapshotted.
 
-export type Filter = { op: 'eq' | 'neq' | 'in' | 'lt' | 'gt' | 'gte' | 'or'; col: string; val: unknown }
+export type Filter = { op: 'eq' | 'neq' | 'in' | 'lt' | 'gt' | 'gte' | 'or' | 'ilike' | 'is'; col: string; val: unknown }
 
 export type HostileDb = {
   tables: Record<string, Record<string, unknown>[]>
@@ -70,6 +70,18 @@ function matches(row: Record<string, unknown>, filters: Filter[]): boolean {
     if (f.op === 'lt') return String(row[f.col] ?? '') < String(f.val ?? '')
     if (f.op === 'gt') return String(row[f.col] ?? '') > String(f.val ?? '')
     if (f.op === 'gte') return String(row[f.col] ?? '') >= String(f.val ?? '')
+    if (f.op === 'ilike') {
+      // SQL ILIKE: % any run, _ any one char, backslash escapes the next character
+      let re = ''
+      const pat = String(f.val ?? '')
+      for (let i = 0; i < pat.length; i++) {
+        const c = pat[i]
+        if (c === '\\' && i + 1 < pat.length) { re += pat[++i].replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); continue }
+        re += c === '%' ? '.*' : c === '_' ? '.' : c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      }
+      return new RegExp('^' + re + '$', 'i').test(String(row[f.col] ?? ''))
+    }
+    if (f.op === 'is') return f.val === null ? row[f.col] == null : row[f.col] === f.val
     if (f.op === 'or') {
       const parts = String(f.val).split(',')
       return parts.some((part) => {
@@ -142,6 +154,14 @@ class Query {
     this.filters.push({ op: 'gte', col, val })
     return this
   }
+  ilike(col: string, val: string) {
+    this.filters.push({ op: 'ilike', col, val })
+    return this
+  }
+  is(col: string, val: unknown) {
+    this.filters.push({ op: 'is', col, val })
+    return this
+  }
   or(val: string) {
     this.filters.push({ op: 'or', col: '', val })
     return this
@@ -196,7 +216,7 @@ class Query {
       const incoming = Array.isArray(this.payload) ? this.payload : [this.payload]
       const inserted: Record<string, unknown>[] = []
       for (const raw of incoming) {
-        const row = { id: crypto.randomUUID(), ...(raw as Record<string, unknown>) }
+        const row = { id: crypto.randomUUID(), created_at: new Date().toISOString(), ...(raw as Record<string, unknown>) }
         tableRows.push(row)
         inserted.push(row)
       }
@@ -268,6 +288,13 @@ export function createMockClient(_kind: 'service' | 'user') {
         deleteUser: async (id: string) => {
           getDb().authOps.push({ op: 'deleteUser', id })
           return { data: { user: null }, error: null }
+        },
+        createUser: async (attrs: { email: string; user_metadata?: Record<string, unknown> }) => {
+          const id = crypto.randomUUID()
+          getDb().authOps.push({ op: 'createUser', id, attrs })
+          const meta = attrs.user_metadata ?? {}
+          rowsOf('profiles').push({ id, email: attrs.email, role: String(meta.role ?? 'escort'), full_name: meta.full_name ?? null, company_name: meta.company_name ?? null })
+          return { data: { user: { id, email: attrs.email } }, error: null }
         },
         updateUserById: async (id: string, attrs: unknown) => {
           getDb().authOps.push({ op: 'updateUserById', id, attrs })

@@ -51,6 +51,9 @@ function walk(dir: string, rel: string, out: string[]) {
     if (ent.isDirectory()) {
       if (r === 'app/api') continue
       walk(abs, r, out)
+    } else if (ent.name === 'route.ts') {
+      // route handlers (like app/api) run on the server, never in a browser
+      continue
     } else if (/\.(ts|tsx)$/.test(ent.name)) out.push(r)
   }
 }

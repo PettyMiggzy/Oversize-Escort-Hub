@@ -6,15 +6,12 @@ import { createClient } from "@/lib/supabase/client";
 
 const supabase = createClient();
 
-const NAV = [
-  { label: "Flat Rate",     href: "/flat-rate" },
-  { label: "Open Loads",    href: "/open-loads" },
-  { label: "Bid Board",     href: "/bid-board" },
+type NavItem = { label: string; href: string; also?: string[] }
+const NAV: NavItem[] = [
+  { label: "Find Loads",    href: "/flat-rate", also: ["/open-loads", "/bid-board"] },
   { label: "Find Escorts",  href: "/find-escorts" },
-  { label: "Post a Load",   href: "/post-load" },
+  { label: "Post a Load",   href: "/post-load", also: ["/quick-post"] },
   { label: "How it works",  href: "/how-it-works" },
-  { label: "Pricing",       href: "/pricing" },
-  { label: "Verification",  href: "/verify" },
 ];
 
 export default function SiteHeader() {
@@ -42,6 +39,8 @@ export default function SiteHeader() {
   }, []);
 
   const isMobile = windowWidth < 900;
+  const navHref = (n: NavItem) => (n.href === "/post-load" && !userProfile ? "/quick-post" : n.href);
+  const isActive = (n: NavItem) => pathname === n.href || (n.also ?? []).includes(pathname);
 
   const navContainerStyle: React.CSSProperties = {
     display: "flex",
@@ -171,7 +170,7 @@ export default function SiteHeader() {
             {!isMobile && (
               <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 24 }}>
                 {NAV.map((n) => (
-                  <Link key={n.label} href={n.href} style={pathname === n.href ? { ...navLinkStyle, color: "#fff", borderBottom: "2px solid #ff6a13" } : navLinkStyle}>
+                  <Link key={n.label} href={navHref(n)} style={isActive(n) ? { ...navLinkStyle, color: "#fff", borderBottom: "2px solid #ff6a13" } : navLinkStyle}>
                     {n.label}
                   </Link>
                 ))}
@@ -202,7 +201,7 @@ export default function SiteHeader() {
           {NAV.map((n) => (
             <Link
               key={n.label}
-              href={n.href}
+              href={navHref(n)}
               style={mobileLinkStyle}
               onClick={() => setOpen(false)}
             >

@@ -83,6 +83,7 @@ export default function HomeLanding({ onCarrier, onEscort, onBroker, onFleet, on
                 <ArrowIcon />
               </button>
             </div>
+            <a href="/quick-post" className="hl-quick">Carrier or broker in a hurry? <strong>Post a load without an account</strong> &rarr;</a>
           </div>
         </div>
       </div>

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { BoardAdSidebar } from '@/components/BoardAdSidebar';
 import PageTitle from '@/components/PageTitle';
+import BoardTabs from '@/components/BoardTabs';
 import EmptyState from '@/components/EmptyState';
 
 interface Load {
@@ -85,14 +86,15 @@ export function BidBoardClient() {
       <SiteHeader />
       <div className="ui-page">
         <div className="ui-wrap">
-          <PageTitle eyebrow="Bid board" title="Bid board" lead="Live loads on a timer. Open one to see the details and place your bid." />
-          <div className="ui-two">
+          <PageTitle eyebrow="Find loads" title="5-minute bid board" lead="Live loads on a timer. Open one to see the details and place your bid." />
+          <BoardTabs active="bid" />
+          <div className={loads.length === 0 ? undefined : "ui-two"}>
             <div style={{ minWidth: 0 }}>
               {loads.length === 0 ? (
                 <EmptyState
                   title="No bid loads right now"
                   text="New loads appear here the moment a carrier posts them. Check back soon, or post one yourself."
-                  action={<a href="/post-load" className="ui-btn">Post a load</a>}
+                  action={<a href="/quick-post" className="ui-btn">Post a load</a>}
                 />
               ) : (
                 <div className="ui-grid" style={isMobile ? { gridTemplateColumns: '1fr' } : undefined}>
@@ -132,7 +134,7 @@ export function BidBoardClient() {
                 </div>
               )}
             </div>
-            <BoardAdSidebar />
+            {loads.length > 0 && <BoardAdSidebar />}
           </div>
         </div>
       </div>
