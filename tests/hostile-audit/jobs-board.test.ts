@@ -190,3 +190,11 @@ test('my applications: sign-in needed, only my own, with the job title', async (
   expect(r.applications[0].job.title).toBe('Lead escort TX')
   expect(JSON.stringify(r)).not.toMatch(/hello|other/)
 })
+
+test('the jobs board is public (search engines and AI assistants read it); the work log and the post form need sign-in', () => {
+  const mw = fs.readFileSync('middleware.ts', 'utf8')
+  const list = mw.slice(mw.indexOf('PROTECTED_ROUTES = ['), mw.indexOf(']', mw.indexOf('PROTECTED_ROUTES = [')))
+  expect(list).not.toMatch(/'\/jobs'/)
+  expect(list).toContain("'/job-log'")
+  expect(list).toContain("'/post-job'")
+})
