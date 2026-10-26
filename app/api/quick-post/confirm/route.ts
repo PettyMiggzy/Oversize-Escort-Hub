@@ -31,16 +31,18 @@ export async function POST(req: NextRequest) {
   const p = draft.payload as Omit<QuickPostInput, 'email'>
 
   // Existing account for this email?
-  const { data: found } = await svc.from('profiles').select('id, role, suspended').ilike('email', ilikeExact(email)).limit(1)
+  const { data: found } = await svc.from('profiles').select('id, role, suspended, created_at').ilike('email', ilikeExact(email)).limit(1)
   let userId: string
   let created = false
+  let accountAgeDays = 0
   if (found && found.length > 0) {
-    const row = found[0] as { id: string; role: string | null; suspended: boolean | null }
+    const row = found[0] as { id: string; role: string | null; suspended: boolean | null; created_at: string | null }
     if (row.suspended) return NextResponse.json({ error: 'This account cannot post loads.' }, { status: 403 })
     if (!['carrier', 'broker', 'admin'].includes(row.role ?? '')) {
       return NextResponse.json({ error: 'This email belongs to an escort account. Sign in to use it, or post with a carrier email.' }, { status: 409 })
     }
     userId = row.id
+    accountAgeDays = row.created_at ? (Date.now() - new Date(String(row.created_at)).getTime()) / 86400000 : 999
   } else {
     const { data: made, error: mkErr } = await svc.auth.admin.createUser({
       email,
@@ -59,10 +61,12 @@ export async function POST(req: NextRequest) {
   if (created) { patch.full_name = p.name; patch.company_name = p.company || null }
   if (Object.keys(patch).length) await svc.from('profiles').update(patch).eq('id', userId)
 
-  // Cap how many open loads one account can have, so one confirmed email cannot flood the board
-  const { data: open } = await svc.from('loads').select('id').eq('carrier_id', userId).eq('status', 'open').limit(LIMITS.openLoadsPerAccount + 1)
-  if ((open?.length ?? 0) >= LIMITS.openLoadsPerAccount) {
-    return NextResponse.json({ error: `You already have ${LIMITS.openLoadsPerAccount} open loads. Sign in to manage them.` }, { status: 429 })
+  // A brand new account can hold 5 open loads for its first week; an established account has no cap
+  if (accountAgeDays < LIMITS.newAccountDays) {
+    const { data: open } = await svc.from('loads').select('id').eq('carrier_id', userId).eq('status', 'open').limit(LIMITS.openLoadsNewAccount + 1)
+    if ((open?.length ?? 0) >= LIMITS.openLoadsNewAccount) {
+      return NextResponse.json({ error: `New accounts can have ${LIMITS.openLoadsNewAccount} open loads in the first week. Sign in to manage them.` }, { status: 429 })
+    }
   }
 
   const { data: load, error } = await svc.from('loads').insert({

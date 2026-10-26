@@ -13,7 +13,8 @@ export const POSITIONS = ['Lead', 'Chase', 'High Pole', 'Lineman', 'Rear Steer',
 export const BOARDS = ['flat-rate', 'open-bid'] as const
 
 // Limits that keep one person from flooding the board
-export const LIMITS = { perIpHour: 5, perIpDay: 15, perEmailDay: 3, perDayAll: 150, openLoadsPerAccount: 5, draftHours: 24, passwordWindowMin: 30 }
+// Without an account: 3 posts an hour per email. Anyone with a carrier or broker account (signed up) posts without this limit.
+export const LIMITS = { perEmailHour: 3, perIpHour: 12, perDayAll: 300, openLoadsNewAccount: 5, newAccountDays: 7, draftHours: 24, passwordWindowMin: 30 }
 
 export type QuickPostInput = {
   email: string

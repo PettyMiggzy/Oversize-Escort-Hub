@@ -50,12 +50,24 @@ test('bots are stopped: hidden field, instant submit, bad input', async () => {
   expect((await start(req('/api/quick-post', { ...good, dateNeeded: '2001-01-01' }))).status).toBe(400)
 })
 
-test('one email gets 3 drafts a day and one connection gets 5 an hour', async () => {
+test('without an account: 3 posts an hour per email and 12 an hour per connection', async () => {
   for (let i = 0; i < 3; i++) expect((await start(req('/api/quick-post', good, `1.1.1.${i}`))).status).toBe(200)
-  expect((await start(req('/api/quick-post', good, '1.1.1.9'))).status).toBe(429)
+  const blocked = await start(req('/api/quick-post', good, '1.1.1.9'))
+  expect(blocked.status).toBe(429)
+  expect(String((await blocked.json()).error)).toMatch(/3 posts this hour/)
   resetHostile()
-  for (let i = 0; i < 5; i++) expect((await start(req('/api/quick-post', { ...good, email: `p${i}@x.example` }))).status).toBe(200)
-  expect((await start(req('/api/quick-post', { ...good, email: 'p9@x.example' }))).status).toBe(429)
+  for (let i = 0; i < 12; i++) expect((await start(req('/api/quick-post', { ...good, email: `p${i}@x.example` }))).status).toBe(200)
+  expect((await start(req('/api/quick-post', { ...good, email: 'p99@x.example' }))).status).toBe(429)
+})
+
+test('a signed-up carrier is not held to the hourly limit', async () => {
+  getDb().tables.profiles = [{ id: 'c1', email: 'Dispatch@Carrier.example', role: 'carrier' }]
+  for (let i = 0; i < 8; i++) expect((await start(req('/api/quick-post', good))).status, `post ${i}`).toBe(200)
+  // an escort account does not get the exemption
+  resetHostile()
+  getDb().tables.profiles = [{ id: 'e1', email: 'dispatch@carrier.example', role: 'escort' }]
+  for (let i = 0; i < 3; i++) await start(req('/api/quick-post', good, `2.2.2.${i}`))
+  expect((await start(req('/api/quick-post', good, '2.2.2.9'))).status).toBe(429)
 })
 
 test('confirming creates a carrier account and the open load, once', async () => {
@@ -95,15 +107,22 @@ test('an escort or suspended account cannot be used to post', async () => {
   expect(getDb().tables.loads ?? []).toHaveLength(0)
 })
 
-test('an existing carrier gets the load on their account, and one account cannot hold more than 5 open loads', async () => {
+test('an existing carrier gets the load on their account; only accounts under a week old are capped at 5 open loads', async () => {
   plantDraft(T)
-  getDb().tables.profiles = [{ id: 'c1', email: 'DISPATCH@carrier.example', role: 'carrier' }]
+  getDb().tables.profiles = [{ id: 'c1', email: 'DISPATCH@carrier.example', role: 'carrier', created_at: new Date(Date.now() - 30 * 86400000).toISOString() }]
   const ok = await confirm(req('/api/quick-post/confirm', { t: T }))
   expect(ok.status).toBe(200)
   expect((await ok.json()).newAccount).toBe(false)
   expect(getDb().tables.loads[0].carrier_id).toBe('c1')
   expect(getDb().authOps.find((o) => o.op === 'createUser')).toBeUndefined()
-  getDb().tables.loads = Array.from({ length: 5 }, (_, i) => ({ id: `l${i}`, carrier_id: 'c1', status: 'open' }))
+  // an established account has no cap
+  getDb().tables.loads = Array.from({ length: 9 }, (_, i) => ({ id: `l${i}`, carrier_id: 'c1', status: 'open' }))
+  plantDraft(T)
+  expect((await confirm(req('/api/quick-post/confirm', { t: T }))).status).toBe(200)
+  // a new account is capped
+  resetHostile()
+  getDb().tables.profiles = [{ id: 'c2', email: 'dispatch@carrier.example', role: 'carrier', created_at: new Date().toISOString() }]
+  getDb().tables.loads = Array.from({ length: 5 }, (_, i) => ({ id: `n${i}`, carrier_id: 'c2', status: 'open' }))
   plantDraft(T)
   expect((await confirm(req('/api/quick-post/confirm', { t: T }))).status).toBe(429)
 })

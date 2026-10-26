@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { serviceClient } from '@/lib/service-client'
 import { sendEmail } from '@/lib/email'
-import { LIMITS, SITE, clientIp, hashIp, newToken, validateQuickPost } from '@/lib/quick-post'
+import { LIMITS, SITE, clientIp, hashIp, ilikeExact, newToken, validateQuickPost } from '@/lib/quick-post'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,8 +33,13 @@ export async function POST(req: NextRequest) {
   }
   const { data: all } = await svc.from('quick_post_drafts').select('id').gte('created_at', since(86400000)).limit(LIMITS.perDayAll + 1)
   if ((all?.length ?? 0) > LIMITS.perDayAll) return NextResponse.json({ error: 'We are getting a lot of posts right now. Please try again later.' }, { status: 429 })
-  if (await count('ip_hash', ip, 3600000) >= LIMITS.perIpHour || await count('ip_hash', ip, 86400000) >= LIMITS.perIpDay || await count('email', email, 86400000) >= LIMITS.perEmailDay) {
-    return NextResponse.json({ error: 'Too many posts from this email or connection. Please try again tomorrow.' }, { status: 429 })
+  // Signed-up carriers and brokers post as much as they like (they could use the normal form anyway), so the hourly limit
+  // only applies to an email that has no carrier or broker account
+  const { data: acct } = await svc.from('profiles').select('id, role, suspended').ilike('email', ilikeExact(email)).limit(1)
+  const a = (acct?.[0] ?? null) as { role: string | null; suspended: boolean | null } | null
+  const signedUp = !!a && !a.suspended && ['carrier', 'broker', 'admin'].includes(a.role ?? '')
+  if (!signedUp && (await count('email', email, 3600000) >= LIMITS.perEmailHour || await count('ip_hash', ip, 3600000) >= LIMITS.perIpHour)) {
+    return NextResponse.json({ error: 'That is 3 posts this hour without an account. Please wait a bit, or sign up free to post as many as you need.' }, { status: 429 })
   }
 
   const { token, hash } = newToken()
