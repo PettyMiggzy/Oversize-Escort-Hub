@@ -132,10 +132,10 @@ export default async function GettingStartedPage() {
         <div className="ui-card good">
           <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start', flexWrap: 'wrap' }}>
             <div style={{ flex: '1 1 260px', minWidth: 0 }}>
-              <div className="ui-k" style={{ color: 'var(--ui-green)' }}>Official ESC Member</div>
-              <h2>Training Partner: Evergreen Safety Council</h2>
+              <div className="ui-k" style={{ color: 'var(--ui-green)' }}>ESC Member</div>
+              <h2>Training: Evergreen Safety Council</h2>
               <p className="ui-note" style={{ marginBottom: 16 }}>
-                OEH is an official Evergreen Safety Council member (INV14545).
+                OEH is a member of the Evergreen Safety Council (INV14545). Evergreen does not endorse OEH.
                 ESC offers P/EVO, WITPAC, Flagger, TCS, and more — all the certs you need to work in the western US.
               </p>
               <a href="https://www.esc.org/courses" target="_blank" rel="noopener noreferrer" className="ui-btn" style={{ background: 'var(--ui-green)', boxShadow: 'none' }}>

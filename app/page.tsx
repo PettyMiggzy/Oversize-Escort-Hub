@@ -2338,7 +2338,7 @@ export default function OEHPlatform() {
                 <div style={{ fontSize: 28, marginBottom: 10 }}>🎓</div>
                 <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 6 }}>Get Certified — Save 5%</div>
                 <p style={{ fontSize: 12, color: "var(--t2,#888)", lineHeight: 1.7, marginBottom: 16 }}>
-                  P/EVO, WITPAC, Flagger, and TCS certs through our official partner Evergreen Safety Council. Member &amp; Pro subscribers save 5%.
+                  P/EVO, WITPAC, Flagger, and TCS certs from Evergreen Safety Council, which OEH is a member of (not endorsed by Evergreen). Member &amp; Pro subscribers save 5%.
                 </p>
                 <a href="/getting-started" style={{ display: "inline-block", background: "#4ade80", color: "#000", fontWeight: 700, fontSize: 12, padding: "10px 20px", borderRadius: 6, textDecoration: "none" }}>
                   Learn More →

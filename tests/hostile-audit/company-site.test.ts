@@ -32,3 +32,12 @@ test('the company page shows the owner-approved phone number as a tap-to-call li
   expect(src).toContain('tel:+13176252831')
   expect(src).toContain('(317) 625-2831')
 })
+
+test('Evergreen is described as a membership, never as an official partnership', () => {
+  for (const f of ['app/terms/page.tsx', 'app/privacy/page.tsx', 'app/page.tsx', 'app/getting-started/page.tsx', 'app/coming-soon/page.tsx', 'components/SiteFooter.tsx']) {
+    const src = fs.readFileSync(f, 'utf8')
+    expect(src, f).not.toMatch(/official (partner|member|evergreen)|training partner|evergreen safety council partnership/i)
+  }
+  expect(fs.readFileSync('app/terms/page.tsx', 'utf8')).toContain('does not endorse OEH')
+  expect(fs.readFileSync('app/terms/page.tsx', 'utf8')).toContain('OSEH2026')
+})

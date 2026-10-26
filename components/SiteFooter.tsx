@@ -51,10 +51,10 @@ export default function SiteFooter() {
                 fontWeight: 600,
                 whiteSpace: 'nowrap',
               }}
-              title="OEH is an official Evergreen Safety Council member (INV14545)."
+              title="OEH is a member of the Evergreen Safety Council (INV14545)."
             >
               <span aria-hidden="true">✓</span>
-              Official Evergreen Safety Council Member
+              Evergreen Safety Council Member
             </span>
 
         {/* Links */}

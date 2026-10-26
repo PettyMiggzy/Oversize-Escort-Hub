@@ -53,7 +53,7 @@ export default function ComingSoonPage() {
           />
         </div>
         <p className="ui-note" style={{ marginTop: -12, marginBottom: 28 }}>
-          Official Evergreen Safety Council Member.
+          Member of the Evergreen Safety Council.
         </p>
 
         <form
