@@ -76,7 +76,9 @@ export async function POST(req: NextRequest) {
   const question = turns[turns.length - 1].content
   await serviceClient().from('helper_usage').insert({ key, kind: 'msg', question: question.slice(0, 300) })
 
-  const client = new Anthropic({ maxRetries: 1, timeout: 25000 })
+  // A key made outside a named workspace (an identity-linked key) must say which workspace it acts in
+  const workspace = /^wrkspc_[A-Za-z0-9]+$/.test(process.env.ANTHROPIC_WORKSPACE_ID || '') ? process.env.ANTHROPIC_WORKSPACE_ID : ''
+  const client = new Anthropic({ maxRetries: 1, timeout: 25000, ...(workspace ? { defaultHeaders: { 'anthropic-workspace-id': workspace } } : {}) })
   let res: Anthropic.Message | null = null
   const models = helperModels()
   for (let i = 0; i < models.length && !res; i++) {
@@ -96,7 +98,7 @@ export async function POST(req: NextRequest) {
       const msg = e instanceof Error ? e.message : ''
       // 404/410, or a 400 about the model: the model was retired or renamed. Try the next one and tell the team.
       const gone = status === 404 || status === 410 || (status === 400 && /model/i.test(msg))
-      console.error('[helper] model error:', models[i], status, msg.slice(0, 120))
+      console.error('[helper] model error:', models[i], status, msg.slice(0, 400))
       if (gone) await tellTeamModelGone(models[i])
       if (!gone || i === models.length - 1) break
     }

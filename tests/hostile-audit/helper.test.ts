@@ -3,11 +3,12 @@ import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { NextRequest } from 'next/server'
 import { getDb, resetHostile } from './mock-client'
 
-const m = vi.hoisted(() => ({ calls: [] as Record<string, unknown>[], reply: null as unknown, emails: [] as Record<string, unknown>[] }))
+const m = vi.hoisted(() => ({ calls: [] as Record<string, unknown>[], reply: null as unknown, emails: [] as Record<string, unknown>[], clients: [] as Record<string, unknown>[] }))
 vi.mock('@anthropic-ai/sdk', () => {
   class APIError extends Error { status = 500; constructor(msg = '', status = 500) { super(msg); this.status = status } }
   class Anthropic {
     static APIError = APIError
+    constructor(public opts: Record<string, unknown> = {}) { m.clients.push(opts) }
     messages = { create: async (p: Record<string, unknown>) => { m.calls.push(p); const r = typeof m.reply === 'function' ? (m.reply as (p: Record<string, unknown>) => unknown)(p) : m.reply; if (r instanceof Error) throw r; return r } }
   }
   return { default: Anthropic }
@@ -23,7 +24,7 @@ const q = (t: string) => [{ role: 'user', content: t }]
 const say = (text: string) => ({ stop_reason: 'end_turn', content: [{ type: 'text', text }] })
 const tool = (input: Record<string, string>, text = '') => ({ stop_reason: 'tool_use', content: [...(text ? [{ type: 'text', text }] : []), { type: 'tool_use', id: 't1', name: 'send_to_team', input }] })
 
-beforeEach(() => { resetHostile(); m.calls.length = 0; m.emails.length = 0; m.reply = say('ok'); process.env.ANTHROPIC_API_KEY = 'sk-test' })
+beforeEach(() => { resetHostile(); m.clients.length = 0; delete process.env.ANTHROPIC_WORKSPACE_ID; m.calls.length = 0; m.emails.length = 0; m.reply = say('ok'); process.env.ANTHROPIC_API_KEY = 'sk-test' })
 afterEach(() => { delete process.env.ANTHROPIC_API_KEY })
 
 test('turns: alternate, end on the person, no system role, trimmed and bounded', () => {
@@ -153,4 +154,15 @@ test('the first-choice model can be changed only to another Haiku', () => {
   expect(helperModels('claude-haiku-6-0')).toEqual(['claude-haiku-6-0', 'claude-haiku-4-5'])
   expect(helperModels('claude-opus-5-5')).toEqual(['claude-haiku-5-5', 'claude-haiku-4-5'])
   expect(helperModels('claude-haiku-4-5')).toEqual(['claude-haiku-4-5'])
+})
+
+test('a key that is not tied to a workspace can be given one (header), and only a well-formed id is sent', async () => {
+  await ask(q('hi'))
+  expect(m.clients[0].defaultHeaders).toBeUndefined()
+  process.env.ANTHROPIC_WORKSPACE_ID = 'wrkspc_01AbC123'
+  await ask(q('hi'), '4.4.4.4')
+  expect(m.clients[1].defaultHeaders).toEqual({ 'anthropic-workspace-id': 'wrkspc_01AbC123' })
+  process.env.ANTHROPIC_WORKSPACE_ID = 'evil\r\nx: y'
+  await ask(q('hi'), '4.4.4.5')
+  expect(m.clients[2].defaultHeaders).toBeUndefined()
 })
