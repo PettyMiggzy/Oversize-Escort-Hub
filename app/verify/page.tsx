@@ -3,7 +3,6 @@ import SiteHeader from '@/components/SiteHeader'
 import PageTitle from '@/components/PageTitle'
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { FREE_LAUNCH } from '@/lib/free-launch'
 import { isNativeApp } from '@/lib/native'
 
 type ProfileFlags = {
@@ -35,7 +34,7 @@ export default function VerifyPage() {
     const res = await fetch('/api/profile/me')
     const body = await res.json().catch(() => ({}))
     const data = res.ok ? body.profile : null
-    setFlags(FREE_LAUNCH ? { ...(data || {}), bgc_paid: true, pevo_paid: true } : (data || {}))
+    setFlags(data || {})
   }, [])
 
   useEffect(() => {

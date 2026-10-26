@@ -33,9 +33,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unknown product' }, { status: 400 });
     }
 
-    // Free launch: plans and review fees are not sold; only sponsored zones can be bought
-    if (FREE_LAUNCH && priceId !== STRIPE_PRICE_IDS.SPONSORED_ZONE) {
-      return NextResponse.json({ error: 'Everything is free while we launch. No payment needed.' }, { status: 403 });
+    // Free launch: monthly plans are not sold. Add-ons (BGC badge, P/EVO cert review, sponsored zones) always are.
+    const isAddon = [
+      STRIPE_PRICE_IDS.BGC_BADGE,
+      STRIPE_PRICE_IDS.SPONSORED_ZONE,
+      STRIPE_PRICE_IDS.PEVO_MEMBER_REVIEW,
+      STRIPE_PRICE_IDS.PEVO_PRO_REVIEW,
+    ].includes(priceId)
+    if (FREE_LAUNCH && !isAddon) {
+      return NextResponse.json({ error: 'Plans are free while we launch. No payment needed.' }, { status: 403 });
     }
 
     // Sponsored zone one-time buy requires a state or the webhook inserts nothing

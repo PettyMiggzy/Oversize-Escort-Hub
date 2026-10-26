@@ -6,7 +6,7 @@ const PRICE_IDS = {
   P_EVO_MEMBER: 'price_1TF00LLmfugPCRbAl6sF0Oup',
   P_EVO_PRO: 'price_1TF021LmfugPCRbA7CGgLhC0',
   BGC_BADGE: 'price_1TF0EILmfugPCRbAvM6Q5rhW',
-  SPONSORED_ZONE: 'price_1TLSu3LmfugPCRbAsumfZjCf',
+  SPONSORED_ZONE: 'price_1UUdxgLmfugPCRbA7JaQsyIY',
   FLEET_STARTER: process.env.NEXT_PUBLIC_FLEET_STARTER_PRICE_ID || 'price_1TMUvjLmfugPCRbAa1HHd7f3',
   FLEET_PLUS: process.env.NEXT_PUBLIC_FLEET_PLUS_PRICE_ID || 'price_1TMUwaLmfugPCRbAxwDBbslg',
   FLEET_PRO: process.env.NEXT_PUBLIC_FLEET_PRO_PRICE_ID || 'price_1TMT9fLmfugPCRbA0Tu65Ui0',

@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
-import { FREE_LAUNCH } from '@/lib/free-launch';
 import { requireAdmin } from "@/lib/api-auth";
 import { signedDocUrl } from "@/lib/signed-url";
 
@@ -39,7 +38,7 @@ export async function POST(req: NextRequest) {
     // P/EVO cert review uploads require the pevo paywall purchase first
     const normalizedType = certType === "p_evo" ? "pevo" : certType;
     const lowered = normalizedType.toLowerCase();
-    if (!FREE_LAUNCH && (lowered.includes("pevo") || lowered.includes("p/evo"))) {
+    if (lowered.includes("pevo") || lowered.includes("p/evo")) {
       const { data: prof } = await serviceClient()
         .from("profiles")
         .select("pevo_paid")

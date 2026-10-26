@@ -1,4 +1,5 @@
-// Free launch: every plan feature is open to everyone while the marketplace fills up.
+// Free launch: every PLAN feature is open to everyone while the marketplace fills up.
+// Add-ons are never free: the BGC badge, P/EVO cert review and sponsored zones are one-time purchases at all times.
 // On by default. To start charging, set NEXT_PUBLIC_FREE_LAUNCH=false in Vercel and redeploy; nothing else changes.
 // (Plan rules, prices, checkout and the paywalls all stay in the code and switch back on with that one setting.)
 export const FREE_LAUNCH = process.env.NEXT_PUBLIC_FREE_LAUNCH !== 'false'

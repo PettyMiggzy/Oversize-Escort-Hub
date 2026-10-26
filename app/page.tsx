@@ -370,7 +370,7 @@ function Toast({ msg, type, onClose }: { msg: string; type: "gr" | "rd" | "am"; 
 
 function Ticker() {
   const items = [
-    { dot: "dot-gr", text: "Platform launching · Be an early member · Everything is free while we launch" },
+    { dot: "dot-gr", text: "Platform launching · Be an early member · Using the site is free while we launch" },
     { dot: "dot-am", text: "BID BOARD LIVE · 5-Min bids · Everyone sees new loads the moment they post" },
     { dot: "dot-gr", text: "Verified P/EVO escorts · Background checked · Vehicle verified · Admin approved" },
     { dot: "dot-or", text: "OPEN BID BOARD · 24-72h window · Post your pitch · Carrier picks the best fit" },

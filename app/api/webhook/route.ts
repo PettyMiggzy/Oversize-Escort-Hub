@@ -20,7 +20,7 @@ const PRICE_TO_TIER: Record<string, string> = {
 }
 
 const BGC_PRICE = 'price_1TF0EILmfugPCRbAvM6Q5rhW'
-const SPONSORED_PRICE = 'price_1TLSu3LmfugPCRbAsumfZjCf'
+const SPONSORED_PRICE = 'price_1UUdxgLmfugPCRbA7JaQsyIY'
 
 // Resolve a Supabase profile.id from whatever signal we have.
 // Order: explicit userId metadata -> client_reference_id -> email lookup.

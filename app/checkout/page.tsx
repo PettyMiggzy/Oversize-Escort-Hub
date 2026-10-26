@@ -109,7 +109,7 @@ function CheckoutPageInner() {
         <PageTitle
           eyebrow="Checkout"
           title="Choose your plan"
-          lead={FREE_LAUNCH ? "Everything is free while we launch. Every feature is unlocked for your account, no card needed." : "All plans include core platform access. Cancel anytime."}
+          lead={FREE_LAUNCH ? "Plans are free while we launch: every feature is unlocked for your account, no card needed. Add-ons such as the BGC badge and P/EVO cert review are one-time purchases." : "All plans include core platform access. Cancel anytime."}
         />
 
         <div className="ui-fit" style={{ marginBottom: 24 }}>

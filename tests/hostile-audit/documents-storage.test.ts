@@ -19,9 +19,9 @@ function signIn() {
     role: 'escort',
     tier: 'pro',
     suspended: false,
-    bgc_paid: false,
+    bgc_paid: true,
     bgc_verified: false,
-    pevo_paid: false,
+    pevo_paid: true,
     full_name: 'User',
     email: 'user@example.com',
   }]
@@ -133,4 +133,25 @@ test('posting a load rejects a permit url from another user', async () => {
   }))
   expect(res.status).toBe(400)
   expect(getDb().tables.loads ?? []).toEqual([])
+})
+
+test('add-ons are never free: BGC and P/EVO uploads need the purchase first', async () => {
+  getDb().tables.profiles[0].bgc_paid = false
+  getDb().tables.profiles[0].pevo_paid = false
+  const fd = new FormData()
+  fd.set('file', new File(['%PDF-1.4'], 'bgc.pdf', { type: 'application/pdf' }))
+  const bgc = await uploadBgc(new NextRequest('http://localhost/api/bgc', { method: 'POST', body: fd }))
+  expect(bgc.status).toBe(402)
+  const cert = new FormData()
+  cert.set('pdf', new File(['%PDF-1.4'], 'c.pdf', { type: 'application/pdf' }))
+  cert.set('certType', 'pevo')
+  cert.set('expiryDate', '2030-01-01')
+  const res = await uploadCert(new NextRequest('http://localhost/api/escort/cert-upload', { method: 'POST', body: cert }))
+  expect(res.status).toBe(402)
+  const vu = await verifyUpload(new NextRequest('http://localhost/api/verify-upload', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ tier: 1, fileName: 'mine.pdf', storagePath: `${USER}/mine.pdf`, documentUrl: `${SUPABASE}/storage/v1/object/public/pevo-certs/${USER}/mine.pdf` }),
+  }))
+  expect(vu.status).toBe(402)
 })
