@@ -27,7 +27,7 @@ export default function ComingSoonPage() {
         return;
       }
       setStatus('ok');
-      setMsg("You're on the list. We'll email you May 1st.");
+      setMsg("You're on the list. We'll email you when there is news.");
       setEmail('');
     } catch {
       setStatus('err');
@@ -47,7 +47,7 @@ export default function ComingSoonPage() {
 
         <div style={{ display: 'flex', justifyContent: 'center' }}>
           <PageTitle
-            eyebrow="Launching May 1st"
+            eyebrow="Now open"
             title="Oversize Escort Hub"
             lead="The marketplace for oversize carriers and P/EVO escorts."
           />

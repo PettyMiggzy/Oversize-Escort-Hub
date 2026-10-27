@@ -241,7 +241,7 @@ export default function PricingPage() {
             </Card>
             <Card highlight>
               <PriceHeader label="Carriers & brokers" price="$0" period=" while we launch" highlight />
-              <Features items={["Post loads in minutes", "Get bids and claims from escorts", "Review certifications, ratings and badges", "Email and in-app alerts", "Match and confirm in the app"]} />
+              <Features items={["Post loads in minutes", "Get bids and claims from escorts", "Review documents the escort uploaded, and ratings", "Email and in-app alerts", "Match and confirm in the app"]} />
               <CTA label="Post a load" onClick={() => { window.location.href = "/signin?mode=signup&role=carrier"; }} />
             </Card>
             <Card>
@@ -346,7 +346,7 @@ export default function PricingPage() {
             <PriceHeader label="Sponsored Zone" price="$29.99" period="/30 days" />
             <Features items={[
               "Featured at top of Find Escorts",
-              "Highlighted badge",
+              "Highlighted listing",
               "State-specific targeting",
             ]} />
             <CTA label="Get Sponsored" onClick={handleSponsoredClick} loading={false} />

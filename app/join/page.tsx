@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import WebOnly from '@/components/WebOnly';
 import SiteHeader from '@/components/SiteHeader';
 import PageTitle from '@/components/PageTitle';
+import { FREE_LAUNCH } from '@/lib/free-launch';
 
 // ── Fleet tier definitions ───────────────────────────────────────────────────
 // Fleet Starter  price_1TMT9fLmfugPCRbA0Tu65Ui0  ← existing "Fleet Pro" ID
@@ -129,15 +130,15 @@ function JoinPageInner() {
                 Advanced tools for serious operators. Priority matching, Deadhead Minimizer, sponsored zones, and more.
               </p>
               <div style={{ borderTop: '1px solid var(--ui-line)', paddingTop: 20, marginTop: 'auto' }}>
-                <div className="ui-v or">$29.99<span style={{ fontSize: 14, color: 'var(--ui-muted)', fontWeight: 500 }}>/mo</span></div>
+                <div className="ui-v or">{FREE_LAUNCH ? 'Free' : '$29.99'}<span style={{ fontSize: 14, color: 'var(--ui-muted)', fontWeight: 500 }}>{FREE_LAUNCH ? ' while we launch' : '/mo'}</span></div>
                 <div className="ui-note">All Pro escort features</div>
                 <button
                   className="ui-btn block"
                   style={{ marginTop: 12 }}
                   disabled={loading === 'price_1TF021LmfugPCRbA7CGgLhC0'}
-                  onClick={() => checkout('price_1TF021LmfugPCRbA7CGgLhC0')}
+                  onClick={() => (FREE_LAUNCH ? (window.location.href = '/signin') : checkout('price_1TF021LmfugPCRbA7CGgLhC0'))}
                 >
-                  {loading === 'price_1TF021LmfugPCRbA7CGgLhC0' ? 'Redirecting...' : 'Get Escort Pro – $29.99/mo'}
+                  {loading === 'price_1TF021LmfugPCRbA7CGgLhC0' ? 'Redirecting...' : (FREE_LAUNCH ? 'Sign up free' : 'Get Escort Pro – $29.99/mo')}
                 </button>
               </div>
             </div>
@@ -148,15 +149,15 @@ function JoinPageInner() {
                 Manage an entire fleet of escorts under one account. Zones, jobs, dashboards, and multi-escort coordination.
               </p>
               <div style={{ borderTop: '1px solid var(--ui-line)', paddingTop: 20, marginTop: 'auto' }}>
-                <div className="ui-v or">$99.99<span style={{ fontSize: 14, color: 'var(--ui-muted)', fontWeight: 500 }}>/mo</span></div>
+                <div className="ui-v or">{FREE_LAUNCH ? 'Free' : '$99.99'}<span style={{ fontSize: 14, color: 'var(--ui-muted)', fontWeight: 500 }}>{FREE_LAUNCH ? ' while we launch' : '/mo'}</span></div>
                 <div className="ui-note">Full fleet dashboard, all Pro features for all escorts</div>
                 <button
                   className="ui-btn block"
                   style={{ marginTop: 12 }}
                   disabled={loading === FLEET_PRO_PRICE_ID}
-                  onClick={() => checkout(FLEET_PRO_PRICE_ID)}
+                  onClick={() => (FREE_LAUNCH ? (window.location.href = '/signin') : checkout(FLEET_PRO_PRICE_ID))}
                 >
-                  {loading === FLEET_PRO_PRICE_ID ? 'Redirecting...' : 'Get Fleet Manager – $99.99/mo'}
+                  {loading === FLEET_PRO_PRICE_ID ? 'Redirecting...' : (FREE_LAUNCH ? 'Sign up free' : 'Get Fleet Manager – $99.99/mo')}
                 </button>
               </div>
             </div>
@@ -186,8 +187,8 @@ function JoinPageInner() {
                   </div>
 
                   <div style={{ marginBottom: 16 }}>
-                    <span className="ui-v">{tier.price}</span>
-                    <span className="ui-note" style={{ marginLeft: 6 }}>{tier.sub}</span>
+                    <span className="ui-v">{FREE_LAUNCH ? 'Free' : tier.price}</span>
+                    <span className="ui-note" style={{ marginLeft: 6 }}>{FREE_LAUNCH ? 'while we launch' : tier.sub}</span>
                   </div>
 
                   <div style={{ borderTop: '1px solid var(--ui-line)', paddingTop: 16, marginBottom: 20 }}>
@@ -203,9 +204,9 @@ function JoinPageInner() {
                     className={tier.popular ? 'ui-btn block' : 'ui-btn ghost block'}
                     style={{ marginTop: 'auto' }}
                     disabled={loading === tier.priceId}
-                    onClick={() => checkout(tier.priceId)}
+                    onClick={() => (FREE_LAUNCH ? (window.location.href = '/signin') : checkout(tier.priceId))}
                   >
-                    {loading === tier.priceId ? 'Redirecting...' : `Get ${tier.name} – ${tier.price}/mo`}
+                    {loading === tier.priceId ? 'Redirecting...' : (FREE_LAUNCH ? 'Sign up free' : `Get ${tier.name} – ${tier.price}/mo`)}
                   </button>
                 </div>
               ))}
