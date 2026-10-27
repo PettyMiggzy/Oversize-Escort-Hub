@@ -29,9 +29,11 @@ fields and in Notes (the owner has them; they are never written in this reposito
 6. Regulated industry: the app is a marketplace and is not itself regulated. Pilot car certification and permits are set by each state or province. The app does not issue,
    check or verify certificates, licences, insurance or documents, and says so in its Terms and on its screens. There is no protected third-party material.
 
-User-generated content: loads, jobs and profiles are posted by users. Content can be reported with the Report button on a load, the Conduct page sets the rules, support is at
-support@oversize-escort-hub.com, and our admin removes content and suspends accounts. There is no direct chat between users, and contact details are shared only after both
-sides agree on a job. (Blocking users is planned for a next update.)
+User-generated content: loads, jobs and profiles are posted by users. A user can report a load (Report button on the load) or report and block another user (Report and Block buttons
+on every profile and on every load's poster). Blocking works both ways: neither person sees the other's loads or profiles, and neither can bid on, claim, accept, review or get contact
+details of the other. Blocked users are listed under Blocked users in the menu, where a block can be undone. The Conduct page sets the rules, we aim to act on serious reports within
+24 hours, support is at support@oversize-escort-hub.com, and our admin removes content and suspends accounts. There is no direct chat between users, and contact details are shared
+only after a carrier accepts.
 
 ## The video (owner records it)
 
