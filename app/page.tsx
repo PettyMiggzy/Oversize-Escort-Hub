@@ -516,8 +516,9 @@ function Footer({ setPage, signedIn = false }: { setPage: (p: Page) => void; sig
             <span className="bb" style={{ fontSize: 14, letterSpacing: ".06em" }}>Oversize Escort Hub</span>
           </div>
           <p style={{ fontSize: 12, color: "var(--t2)", lineHeight: 1.75, maxWidth: 230 }}>
-            Marketplace for oversize carriers and P/EVO escorts. No commissions. No job fees. Ever.
+            Marketplace for oversize carriers and P/EVO escorts. Free while we launch. No commissions or job fees on loads today.
           </p>
+          <HideInApp><a href="https://play.google.com/store/apps/details?id=pevo.oversizeescorthub.app" target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", marginTop: 10, fontSize: 12, color: "var(--or)" }}>Get it on Google Play →</a></HideInApp>
         </div>
         <div className="footer-col">
           <h4>Platform</h4>
@@ -535,7 +536,7 @@ function Footer({ setPage, signedIn = false }: { setPage: (p: Page) => void; sig
       </div>
       <div className="footer-bottom">
         <span>© 2026 Precision Pilot Services LLC. All rights reserved.</span>
-        <span style={{ color: "var(--or)", letterSpacing: ".1em" }}>NO COMMISSIONS · NO JOB FEES · EVER</span>
+        <span style={{ color: "var(--or)", letterSpacing: ".1em" }}>FREE WHILE WE LAUNCH · NO COMMISSIONS ON LOADS</span>
         <span style={{ display: "inline-flex", alignItems: "center", gap: 8, marginTop: 8 }}>
           <span title="American Flag" style={{ fontSize: 20 }}>🇺🇸</span>
           <span title="Thin Blue Line Flag" style={{ display: "inline-flex", flexDirection: "column", width: 28, height: 20, overflow: "hidden", borderRadius: 2 }}>

@@ -105,3 +105,13 @@ test('the legacy home menu panel is shown when it is rendered (it is only render
   expect(src).toContain("createPortal(")
   expect(src).not.toMatch(/\.mobile-drawer\{display:none/)
 })
+
+test('the Google Play link is in both footers, hidden inside the app, and the footer has no forever promise', () => {
+  const play = 'https://play.google.com/store/apps/details?id=pevo.oversizeescorthub.app'
+  const footer = fs.readFileSync('components/SiteFooter.tsx', 'utf8')
+  expect(footer).toContain(play)
+  expect(footer).toMatch(/<HideInApp><a[^>]*play\.google\.com/)
+  const home = fs.readFileSync('app/page.tsx', 'utf8')
+  expect(home).toMatch(/<HideInApp><a href="https:\/\/play\.google\.com/)
+  expect(home).not.toContain('NO JOB FEES · EVER')
+})

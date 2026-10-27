@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import HideInApp from '@/components/HideInApp';
 
 export default function SiteFooter() {
   return (
@@ -63,6 +64,7 @@ export default function SiteFooter() {
           <Link className="hover:text-white" href="/privacy">Privacy</Link>
           <Link className="hover:text-white" href="/conduct">Code of Conduct</Link>
           <Link className="hover:text-white" href="/delete-account">Delete account</Link>
+          <HideInApp><a className="hover:text-white" href="https://play.google.com/store/apps/details?id=pevo.oversizeescorthub.app" target="_blank" rel="noopener noreferrer">Get it on Google Play</a></HideInApp>
         </div>
       </div>
     </footer>
