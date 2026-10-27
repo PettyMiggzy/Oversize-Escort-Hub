@@ -356,7 +356,7 @@ footer{background:rgba(8,9,12,.72);border-top:1px solid var(--l1);padding:40px 2
   .nav-get-started{font-size:9px;padding:7px 12px}}
 .ham-btn{display:none;background:none;border:none;cursor:pointer;padding:8px;color:var(--t1)}.nav-links{display:flex;flex-direction:row;align-items:center;gap:24px}
 .ham-btn span{display:block;width:22px;height:2px;background:var(--t1);margin:4px 0;transition:.3s}
-.mobile-drawer{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:999;background:rgba(0,0,0,.7)}
+.mobile-drawer{display:block;position:fixed;top:0;left:0;right:0;bottom:0;z-index:999;background:rgba(0,0,0,.7)}
 .mobile-drawer-inner{position:absolute;top:0;right:0;width:80%;max-width:300px;height:100%;background:var(--p1);border-left:1px solid var(--l1);overflow-y:auto;padding:20px 0}
 .drawer-header{display:flex;align-items:center;justify-content:space-between;padding:0 20px 20px;border-bottom:1px solid var(--l1);margin-bottom:10px}
 .drawer-close{background:none;border:none;color:var(--t1);font-size:24px;cursor:pointer;padding:4px}

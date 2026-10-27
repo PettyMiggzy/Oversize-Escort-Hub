@@ -98,3 +98,9 @@ test('phone app: pricing page leaves for the dashboard, features page hides pric
   expect(home).toMatch(/<HideInApp><div style=\{\{ padding: "12px 16px"/)
   expect(home).not.toMatch(/Not now, not at scale, not ever|pays for Pro 10/)
 })
+
+test('the legacy home menu panel is shown when it is rendered (it is only rendered while open)', () => {
+  const src = fs.readFileSync('app/page.tsx', 'utf8')
+  expect(src).toMatch(/\.mobile-drawer\{display:block;/)
+  expect(src).not.toMatch(/\.mobile-drawer\{display:none/)
+})
