@@ -672,9 +672,11 @@ function HomePage({ setPage, user, profile, setSigninMode, setPendingRole }: { s
             <div className="stat"><div className="stat-n" style={{ color: "var(--gr)" }}>Live</div><div className="stat-l">Bid board</div></div>
           </div>
           <div className="btn-row">
+            {!FREE_LAUNCH && (
             <HideInApp>
             <button className="btn btn-am" onClick={() => { window.location.href = '/pricing'; }}>Go Pro — $29.99/mo →</button>
             </HideInApp>
+            )}
             <button className="btn btn-ghost" onClick={() => setPage("signin")}>Create Free Account</button>
           </div>
         </div>

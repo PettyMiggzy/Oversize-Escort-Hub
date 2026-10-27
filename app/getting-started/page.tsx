@@ -105,7 +105,7 @@ export default async function GettingStartedPage() {
           <p className="ui-note" style={{ marginTop: 12 }}>
             It's a career you can start with just a vehicle, proper certification, and the right equipment.
             Most escorts work independently, setting their own schedules and routes.
-            OEH connects certified escorts with carriers who need them — no middlemen, no commissions.
+            OEH connects pilot car operators with carriers who need them — no middlemen, no commissions.
           </p>
         </div>
 

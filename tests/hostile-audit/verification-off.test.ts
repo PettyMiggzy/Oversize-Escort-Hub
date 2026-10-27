@@ -90,3 +90,9 @@ test('the DD-214 upload and review routes are switched off', async () => {
   expect((await adminDd214(req('POST'))).status).toBe(410)
   expect(getDb().tables.dd214_submissions ?? []).toEqual([])
 })
+
+test('no paid price or "certified" claim shows on the home page or guide while the launch is free', () => {
+  const home = read('app/page.tsx')
+  expect(home).toMatch(/\{!FREE_LAUNCH && \(\s*<HideInApp>\s*<button[\s\S]*?>Go Pro — \$29\.99\/mo/)
+  expect(read('app/getting-started/page.tsx')).not.toMatch(/connects certified escorts/)
+})
