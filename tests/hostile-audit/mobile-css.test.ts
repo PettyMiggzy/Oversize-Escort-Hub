@@ -29,3 +29,10 @@ test('the menu (hamburger) button really shows on phones: the later default rule
   const page = fs.readFileSync('app/page.tsx', 'utf8')
   expect(page).toMatch(/\.ham-btn\{display:flex!important;/)
 })
+
+test('the Deadhead Minimizer tool opens its dashboard tab and never links to a page that does not exist', () => {
+  const page = fs.readFileSync('app/page.tsx', 'utf8')
+  expect(page).toContain('label: "Deadhead Minimizer", href: "#deadhead", tab: "dh"')
+  expect(page).not.toContain('href: "/deadhead"')
+  expect(fs.existsSync('app/deadhead')).toBe(false)
+})

@@ -1228,7 +1228,7 @@ function EscortDashPage({ setPage, profile, showToast }: { setPage: (p: Page) =>
           <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 16, letterSpacing: ".06em" }}>🧰 MY TOOLS</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(160px,1fr))", gap: 10 }}>
             {[
-              { icon: "🗺️", label: "Deadhead Minimizer", href: "/deadhead" },
+              { icon: "🗺️", label: "Deadhead Minimizer", href: "#deadhead", tab: "dh" },
               { icon: "📋", label: "Permit Directory", href: "/tools/permits" },
               { icon: "📄", label: "Invoice Generator", href: "/tools/invoice", soon: true },
               { icon: "💰", label: "Expense Tracker", href: "/tools/expenses", soon: true },
@@ -1236,7 +1236,7 @@ function EscortDashPage({ setPage, profile, showToast }: { setPage: (p: Page) =>
             ].map(tool => (
               <a key={tool.label} href={tool.href} target={tool.ext ? "_blank" : "_self"} rel="noopener noreferrer"
                 style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 4, background: "var(--p2,#1a1a1a)", border: "1px solid var(--l1,#222)", borderRadius: 8, padding: "12px 14px", textDecoration: "none", color: "var(--t1,#fff)", opacity: tool.soon ? 0.6 : 1, cursor: tool.soon ? "default" : "pointer" }}
-                onClick={e => tool.soon && e.preventDefault()}>
+                onClick={e => { if (tool.soon) e.preventDefault(); if (tool.tab) { e.preventDefault(); setTab(tool.tab); window.scrollTo({ top: 0, behavior: "smooth" }) } }}>
                 <span style={{ fontSize: 20 }}>{tool.icon}</span>
                 <span style={{ fontSize: 11, fontWeight: 600 }}>{tool.label}</span>
                 {tool.soon && <span style={{ fontSize: 9, color: "var(--am,#f90)", fontWeight: 700 }}>COMING SOON</span>}
