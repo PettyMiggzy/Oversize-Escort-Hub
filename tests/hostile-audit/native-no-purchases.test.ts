@@ -32,7 +32,7 @@ test('the board ad column is hidden inside the app', () => {
 })
 
 test('the sponsored-zone price card on /pricing is hidden inside the app', () => {
-  expect(read('app/pricing/page.tsx')).toMatch(/\{!isNativeApp\(\) && \(<Card>\s*<div id="sponsored" \/>/)
+  expect(read("app/pricing/page.tsx")).toMatch(/\{!inApp && \(<Card>\s*<div id="sponsored" \/>/)
 })
 
 test('paid sponsored escort strips are hidden inside the app', () => {
