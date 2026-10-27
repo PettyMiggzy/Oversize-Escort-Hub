@@ -133,3 +133,9 @@ test('the top ticker moves at a readable speed with clear spacing and no invente
   expect(src).not.toContain('Standard rates: $2.00/mi')
   expect(src).not.toContain('Everyone sees new loads the moment they post')
 })
+
+test('testers can preview the phone-app view in a browser with ?app=1 (and turn it off with ?app=0)', () => {
+  const src = fs.readFileSync('lib/native.ts', 'utf8')
+  expect(src).toContain("get('app')")
+  expect(src).toContain('oeh_app_preview')
+})
