@@ -685,7 +685,7 @@ function HomePage({ setPage, user, profile, setSigninMode, setPendingRole }: { s
             <button className="btn btn-am" onClick={() => { window.location.href = '/pricing'; }}>Go Pro — $29.99/mo →</button>
             </HideInApp>
             )}
-            <button className="btn btn-ghost" onClick={() => setPage("signin")}>Create Free Account</button>
+            {!user && <button className="btn btn-ghost" onClick={() => setPage("signin")}>Create Free Account</button>}
           </div>
         </div>
       </div>
@@ -808,7 +808,7 @@ function DeadheadSection({ setPage }: { setPage: (p: Page) => void }) {
       <div style={{ background: "var(--p1)", border: "1px solid var(--l1)", borderLeft: "3px solid var(--am)", borderRadius: 4, padding: "24px 28px" }}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 36 }}>
           <div>
-            <p style={{ fontSize: 13, color: "var(--t2)", lineHeight: 1.85, marginBottom: 16 }}>6 empty return trips/month × 200mi avg = <strong style={{ color: "var(--rd)" }}>$240/month in fuel lost</strong> with zero revenue. Pro automatically surfaces return loads near your drop point, sorted toward home state first.</p>
+            <p style={{ fontSize: 13, color: "var(--t2)", lineHeight: 1.85, marginBottom: 16 }}>Every empty return trip costs <strong style={{ color: "var(--rd)" }}>fuel</strong> with zero revenue. Pro automatically surfaces return loads near your drop point, sorted toward home state first.</p>
             <div style={{ background: "var(--bg)", border: "1px solid var(--l1)", borderRadius: 3, padding: 14, marginBottom: 16 }}>
               <div className="mo" style={{ fontSize: 9, letterSpacing: ".15em", textTransform: "uppercase", color: "var(--t2)", marginBottom: 10 }}>Deadhead Calculator · Example</div>
               {[["Deadhead cost (80mi × $0.67/mi)", "−$53.60", "var(--rd)"], ["Load pay ($2.00/mi × 340mi)", "+$680.00", "var(--gr)"], ["Net after deadhead", "$626.40", "var(--gr)"]].map(([l, v, c], i) => (
@@ -818,10 +818,10 @@ function DeadheadSection({ setPage }: { setPage: (p: Page) => void }) {
                 </div>
               ))}
             </div>
-            <div style={{ padding: "12px 16px", background: "rgba(245,162,0,.07)", border: "1px solid rgba(245,162,0,.2)", borderRadius: 3, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" as const }}>
-              <div className="mo" style={{ fontSize: 11, color: "var(--am)", lineHeight: 1.55 }}>One recovered run at 150mi = $300. That pays for Pro 10× over.</div>
+            <HideInApp><div style={{ padding: "12px 16px", background: "rgba(245,162,0,.07)", border: "1px solid rgba(245,162,0,.2)", borderRadius: 3, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" as const }}>
+              <div className="mo" style={{ fontSize: 11, color: "var(--am)", lineHeight: 1.55 }}>Results vary. Free while we launch.</div>
               <button className="btn btn-am btn-sm" onClick={() => { window.location.href = '/pricing'; }}>GO PRO →</button>
-            </div>
+            </div></HideInApp>
           </div>
           <div style={{ display: "grid", gap: 8, alignContent: "start" }}>
             {[["Return Load Feed", "Phase 1 · Launch", "Mark job complete → loads within 100mi of drop sorted toward home. Refreshes every 15 min."],
@@ -861,7 +861,7 @@ function FeatureSection({ setPage }: { setPage: (p: Page) => void }) {
           { c: "var(--gr)", t: "Two-Way Reviews", d: "Escorts rate carriers: pay speed, professionalism, accuracy. Carriers rate escorts: reliability, skill, communication." },
           { c: "var(--or)", t: "Contact Info Wall", d: "Phone, email, company name hidden behind membership. Every conversation on record." },
           { c: "var(--bl)", t: "Multi-Escort Coordinator", d: "One load needs Lead + Rear + High Pole. Post once, award all three from one screen." },
-          { c: "var(--gr)", t: "No Commissions. Ever.", d: "Flat subscription. Zero job fees. Zero percentage cut. What you earn is yours. Not now, not at scale, not ever." },
+          { c: "var(--gr)", t: "No Commissions.", d: "No commissions or job fees on loads today, and everything is free while we launch. What you earn is yours." },
         ].map((f) => (
           <div key={f.t} className="feat-card" style={{ borderTopColor: f.c }}>
             <div className="feat-title">{f.t}</div>

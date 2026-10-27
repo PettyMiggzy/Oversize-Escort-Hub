@@ -1,6 +1,6 @@
 'use client';
 import SiteHeader from '@/components/SiteHeader';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { isNativeApp, openInBrowser, WEB_HOST } from "@/lib/native";
 import { FREE_LAUNCH } from "@/lib/free-launch";
@@ -142,6 +142,9 @@ export default function PricingPage() {
   const [selectedZone, setSelectedZone] = useState('');
   const [zoneLoading, setZoneLoading] = useState(false);
   const [takenZones, setTakenZones] = useState<string[]>([]);
+  // Inside the phone apps there is nothing to buy: go back to the dashboard.
+  const [inApp, setInApp] = useState(false);
+  useEffect(() => { if (isNativeApp()) { setInApp(true); window.location.replace('/dashboard'); } }, []);
 
   const handleSponsoredClick = async () => {
     const supabase = createClient();
@@ -192,7 +195,7 @@ export default function PricingPage() {
   return (
     <div className="ui-page">
       <SiteHeader />
-      {isNativeApp() && (
+      {inApp && (
         <div
           style={{
             background: 'rgba(255,255,255,.04)',
@@ -341,7 +344,7 @@ export default function PricingPage() {
         {/* SECTION 4 — ADD-ONS */}
         <SectionTitle subtitle="One-time purchases and boosts">Add-Ons</SectionTitle>
         <div className="ui-fit">
-          {!isNativeApp() && (<Card>
+          {!inApp && (<Card>
             <div id="sponsored" />
             <PriceHeader label="Sponsored Zone" price="$29.99" period="/30 days" />
             <Features items={[

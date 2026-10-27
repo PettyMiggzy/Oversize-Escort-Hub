@@ -86,3 +86,15 @@ test('phone app: no pricing link, no coming-soon tiles, no SMS-coming-soon text 
   expect(src).toContain('inApp ? allTools.filter')
   expect(src).not.toMatch(/SMS[^"\n]{0,60}coming soon|coming soon[^"\n]{0,40}SMS/i)
 })
+
+test('phone app: pricing page leaves for the dashboard, features page hides prices, home has no Pro prompt', () => {
+  const pricing = fs.readFileSync('app/pricing/page.tsx', 'utf8')
+  expect(pricing).toContain("window.location.replace('/dashboard')")
+  expect(pricing).not.toMatch(/\{\s*isNativeApp\(\)\s*&&/)
+  const features = fs.readFileSync('app/features/page.tsx', 'utf8')
+  expect(features).toContain('inApp ? features.filter')
+  expect(features).not.toMatch(/tier: '(Free\/Pro|Member\+|Fleet Pro|Coming Soon Pro)'/)
+  const home = fs.readFileSync('app/page.tsx', 'utf8')
+  expect(home).toMatch(/<HideInApp><div style=\{\{ padding: "12px 16px"/)
+  expect(home).not.toMatch(/Not now, not at scale, not ever|pays for Pro 10/)
+})
