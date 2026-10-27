@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isBlockedEitherWay } from '@/lib/blocks'
 import { createClient } from "@supabase/supabase-js";
 import { requireAuth } from "@/lib/api-auth";
 import { sendWebPushToUser } from "@/lib/push";
@@ -30,6 +31,9 @@ export async function POST(req: NextRequest) {
   if (!load) return NextResponse.json({ error: "Load not found" }, { status: 404 });
   if (load.carrier_id !== carrier_id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  }
+  if (load.matched_escort_id && await isBlockedEitherWay(supabase, carrier_id, load.matched_escort_id)) {
+    return NextResponse.json({ error: "Load is not pending" }, { status: 409 });
   }
   if (load.status !== "pending_match") {
     return NextResponse.json({ error: "Load is not pending" }, { status: 409 });

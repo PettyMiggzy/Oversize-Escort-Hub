@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isBlockedEitherWay } from '@/lib/blocks'
 import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
 import { createClient as createServerSupabase } from "@/lib/supabase/server";
 import { escortClaimant, claimRefusal } from "@/lib/access-server";
@@ -41,6 +42,9 @@ export async function POST(req: NextRequest) {
   }
   if (load.expires_at && Date.parse(load.expires_at) <= Date.now()) {
     return NextResponse.json({ error: "This load has expired" }, { status: 409 });
+  }
+  if (await isBlockedEitherWay(supabase, escort_id, load.carrier_id)) {
+    return NextResponse.json({ error: "This load is not available to you" }, { status: 403 });
   }
   if (load.carrier_id === escort_id) {
     return NextResponse.json({ error: "You cannot claim your own load" }, { status: 403 });

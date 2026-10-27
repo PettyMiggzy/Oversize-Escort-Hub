@@ -220,7 +220,7 @@ export default function SiteHeader() {
           {userProfile ? (
             <><Link href="/dashboard" style={{ ...btnPrimeStyle, textAlign: "center", padding: "10px 0" }} onClick={() => setOpen(false)}>Dashboard</Link>
             <button type="button" onClick={signOut} style={{ ...btnGhostStyle, textAlign: "center", padding: "10px 0" }}>Sign out</button>
-            <Link href="/delete-account" style={{ ...mobileLinkStyle, fontSize: 12, opacity: 0.7, textAlign: "center", padding: "8px 0" }} onClick={() => setOpen(false)}>Delete my account</Link></>
+            <Link href="/blocked" style={{ ...mobileLinkStyle, fontSize: 12, opacity: 0.7, textAlign: "center", padding: "8px 0" }} onClick={() => setOpen(false)}>Blocked users</Link><Link href="/delete-account" style={{ ...mobileLinkStyle, fontSize: 12, opacity: 0.7, textAlign: "center", padding: "8px 0" }} onClick={() => setOpen(false)}>Delete my account</Link></>
           ) : (
             <><Link href="/signin" style={{ ...btnGhostStyle, textAlign: "center", padding: "10px 0" }} onClick={() => setOpen(false)}>Sign in</Link><Link href="/signin?mode=signup" style={{ ...btnPrimeStyle, textAlign: "center", padding: "10px 0" }} onClick={() => setOpen(false)}>Get started</Link></>
           )}

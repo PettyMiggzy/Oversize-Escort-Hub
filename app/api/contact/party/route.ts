@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { isBlockedEitherWay } from '@/lib/blocks'
 import { requireAdmin, requireAuth } from '@/lib/api-auth'
 import { serviceClient } from '@/lib/service-client'
 
@@ -34,6 +35,7 @@ export async function GET(req: NextRequest) {
     if (!onLoad) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     const other = caller === load.carrier_id ? load.matched_escort_id : load.carrier_id
     if (!other || userId !== other) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    if (await isBlockedEitherWay(svc, caller, other)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
   const { data: profile } = await svc

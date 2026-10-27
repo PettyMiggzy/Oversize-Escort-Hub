@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useHiddenUsers } from '@/lib/use-hidden-users'
 import { createClient } from "@/lib/supabase/client";
 import SiteHeader from '@/components/SiteHeader'
 
@@ -20,7 +21,9 @@ interface Load {
 }
 
 function OpenLoadsPageInner() {
-  const [loads, setLoads] = useState<Load[]>([]);
+  const [allLoads, setLoads] = useState<Load[]>([]);
+  const hiddenUsers = useHiddenUsers();
+  const loads = allLoads.filter((l: any) => !hiddenUsers.has(l.carrier_id));
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { isBlockedEitherWay } from '@/lib/blocks'
+import { serviceClient as blockSvc } from '@/lib/service-client'
 import { createClient } from '@/lib/supabase/server'
 import { escortClaimant, claimRefusal } from '@/lib/access-server'
 import { alertCarrierNewBid, runAfter } from '@/lib/alerts'
@@ -73,6 +75,9 @@ export async function POST(req: NextRequest) {
     }
     if (load.carrier_id === user.id) {
       return NextResponse.json({ error: 'You cannot bid on your own load' }, { status: 403 })
+    }
+    if (await isBlockedEitherWay(blockSvc(), user.id, load.carrier_id)) {
+      return NextResponse.json({ error: 'This load is not available to you' }, { status: 403 })
     }
     // Bid boards use several historical labels for the biddable types:
     // 'bid'/'5-min bid' and 'open'/'open-bid'. Accept all of them.

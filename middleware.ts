@@ -14,6 +14,7 @@ const PROTECTED_ROUTES = [
   '/available',
   '/escort-cert',
   '/my-documents',
+  '/blocked',
   '/verify',
 ]
 

@@ -1,5 +1,6 @@
 "use client"
 import { VERIFICATION_LIVE } from '@/lib/verification'
+import { useHiddenUsers } from '@/lib/use-hidden-users'
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
@@ -14,7 +15,9 @@ const US_STATES = ["AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","
 
 export default function FindEscortsPage() {
   const router = useRouter()
-  const [escorts, setEscorts] = useState<any[]>([])
+  const [allEscorts, setEscorts] = useState<any[]>([])
+  const hiddenUsers = useHiddenUsers()
+  const escorts = allEscorts.filter((e: any) => !hiddenUsers.has(e.id))
   const [sponsored, setSponsored] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [stateFilter, setStateFilter] = useState("")

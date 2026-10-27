@@ -42,7 +42,7 @@ export default function ConductPage() {
             We read every report. We may remove content, limit features or suspend accounts that break these rules, with or without notice.
           </p>
           <p style={{ color: '#9ca3af', fontSize: 13, lineHeight: 1.7, margin: 0 }}>
-            You can delete your own account any time at <a href="/delete-account" style={{ color: '#f90' }}>Delete my account</a>. See also our <a href="/terms" style={{ color: '#f90' }}>Terms</a> and <a href="/privacy" style={{ color: '#f90' }}>Privacy Policy</a>.
+            You can block or report any user from their profile or from a load they posted, and undo a block under <a href="/blocked" style={{ color: '#f90' }}>Blocked users</a>. We read every report and aim to act on serious ones within 24 hours. You can delete your own account any time at <a href="/delete-account" style={{ color: '#f90' }}>Delete my account</a>. See also our <a href="/terms" style={{ color: '#f90' }}>Terms</a> and <a href="/privacy" style={{ color: '#f90' }}>Privacy Policy</a>.
           </p>
         </section>
       </main>

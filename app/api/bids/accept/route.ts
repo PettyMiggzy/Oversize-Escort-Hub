@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { isBlockedEitherWay } from '@/lib/blocks'
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { SMS_ENABLED } from '@/lib/features'
@@ -37,6 +38,9 @@ export async function POST(req: NextRequest) {
       .single()
     if (!bid || bid.status !== 'pending') return NextResponse.json({ error: 'Bid not available' }, { status: 409 })
     const escort_id = bid.escort_id as string
+    if (await isBlockedEitherWay(createServiceClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!), user.id, escort_id)) {
+      return NextResponse.json({ error: 'Bid not available' }, { status: 409 })
+    }
 
     // The database does not let a carrier write who a load is matched to, so these writes use the service key,
     // after the checks above (this is the load's carrier, and the bid is on this load).

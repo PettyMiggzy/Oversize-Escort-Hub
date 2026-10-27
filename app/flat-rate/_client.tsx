@@ -1,5 +1,6 @@
 "use client";
 import SiteHeader from '@/components/SiteHeader';
+import { useHiddenUsers } from '@/lib/use-hidden-users'
 
 import { useEffect, useMemo, useState } from "react";
 import Link from 'next/link';
@@ -56,7 +57,9 @@ interface SponsoredProfile {
 }
 
 export function FlatRateBoardClient() {
-  const [loads, setLoads] = useState<Load[]>([]);
+  const [allLoads, setLoads] = useState<Load[]>([]);
+  const hiddenUsers = useHiddenUsers();
+  const loads = allLoads.filter((l: any) => !hiddenUsers.has(l.carrier_id));
   const [loading, setLoading] = useState(true);
   const [stateFilter, setStateFilter] = useState<string>("");
   const [sponsoredEscorts, setSponsoredEscorts] = useState<SponsoredProfile[]>([]);

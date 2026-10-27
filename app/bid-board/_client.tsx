@@ -1,5 +1,6 @@
 'use client';
 import SiteHeader from '@/components/SiteHeader';
+import { useHiddenUsers } from '@/lib/use-hidden-users'
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { BoardAdSidebar } from '@/components/BoardAdSidebar';
@@ -27,7 +28,9 @@ interface Load {
 
 export function BidBoardClient() {
   const supabase = createClient();
-  const [loads, setLoads] = useState<Load[]>([]);
+  const [allLoads, setLoads] = useState<Load[]>([]);
+  const hiddenUsers = useHiddenUsers();
+  const loads = allLoads.filter((l: any) => !hiddenUsers.has(l.carrier_id));
   const [timers, setTimers] = useState<{ [key: string]: string }>({});
 
   const [windowWidth, setWindowWidth] = useState(1200);

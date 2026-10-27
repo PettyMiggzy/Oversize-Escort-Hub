@@ -1,5 +1,6 @@
 'use client'
 import '@/app/globals.css'
+import { useHiddenUsers } from '@/lib/use-hidden-users'
 import SiteHeader from '@/components/SiteHeader';
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
@@ -31,7 +32,9 @@ function TimeRemaining({ expiresAt }: { expiresAt: string }) {
 }
 
 export function OpenLoadsBoardClient() {
-  const [loads, setLoads] = useState<any[]>([])
+  const [allLoads, setLoads] = useState<any[]>([])
+  const hiddenUsers = useHiddenUsers()
+  const loads = allLoads.filter((l: any) => !hiddenUsers.has(l.carrier_id))
   const [bids, setBids] = useState<Record<string, any[]>>({})
   const [loading, setLoading] = useState(true)
   const [accessLevel, setAccessLevel] = useState<AccessLevel>('none')

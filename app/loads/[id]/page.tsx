@@ -7,6 +7,7 @@ import SiteHeader from '@/components/SiteHeader'
 import PageTitle from '@/components/PageTitle'
 import EmptyState from '@/components/EmptyState'
 import ReportLoad from '@/components/ReportLoad'
+import BlockUser from '@/components/BlockUser'
 import { isAdminEmail } from '@/lib/supabase'
 import { getAccessLevel, secondsUntilClaimable } from '@/lib/board-access'
 import { withFreeLaunch } from '@/lib/free-launch'
@@ -25,6 +26,7 @@ export default function LoadDetailPage() {
   const [claimStatus, setClaimStatus] = useState('')
   const [claiming, setClaiming] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [blockedPoster, setBlockedPoster] = useState(false)
 
   const supabase = createClient()
   const [now, setNow] = useState(() => Date.now())
@@ -47,6 +49,10 @@ export default function LoadDetailPage() {
 
       const { data: loadData } = await supabase.from('loads').select('*').eq('id', id).single()
       setLoad(loadData)
+      if (user && loadData?.carrier_id && loadData.carrier_id !== user.id) {
+        const hidden: string[] = await fetch('/api/blocks').then((r) => r.json()).then((d) => d.hidden || []).catch(() => [])
+        if (hidden.includes(loadData.carrier_id)) setBlockedPoster(true)
+      }
 
       if (loadData?.carrier_id) {
         const { data: c } = await supabase.from('profiles').select('full_name').eq('id', loadData.carrier_id).single()
@@ -124,7 +130,7 @@ export default function LoadDetailPage() {
   }
 
   if (loading) return (<><SiteHeader /><div className="ui-page"><div className="ui-wrap" style={{ textAlign: 'center' }}><p className="ui-meta">Loading...</p></div></div></>)
-  if (!load) return (
+  if (!load || blockedPoster) return (
     <>
       <SiteHeader />
       <div className="ui-page">
@@ -294,6 +300,7 @@ export default function LoadDetailPage() {
         )}
 
         {currentUser && load.carrier_id !== currentUser.id && <ReportLoad loadId={load.id} />}
+        {currentUser && load.carrier_id && load.carrier_id !== currentUser.id && <BlockUser userId={load.carrier_id} label="the poster" />}
           </div>
         </div>
       </div>

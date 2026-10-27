@@ -6,6 +6,9 @@ import PageTitle from '@/components/PageTitle'
 import EmptyState from '@/components/EmptyState'
 import { DOC_DISCLAIMER, canUseDocs, docLabel, isPublic, type DocRow } from '@/lib/profile-docs'
 import { VERIFICATION_LIVE } from '@/lib/verification'
+import BlockUser from '@/components/BlockUser'
+import { isBlockedEitherWay } from '@/lib/blocks'
+import { createClient as createServerClient } from '@/lib/supabase/server'
 const svc = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -15,6 +18,8 @@ export default async function EscortProfilePage({ params }: { params: Promise<{ 
   const { id } = await params
   const { data: profile } = await svc.from('profiles').select('id, full_name, role, tier, bio, bgc_verified, rating, review_count, avatar_url, pevo_verified, state, vehicle, states_licensed, availability_states, is_available, created_at').eq('id', id).single()
   if (!profile) notFound()
+  const { data: { user: viewer } } = await (await createServerClient()).auth.getUser()
+  if (viewer && await isBlockedEitherWay(svc, viewer.id, id)) notFound()
 
   // only the columns shown here: never the stored file address
   const { data: certRows } = await svc.from('certifications').select('id, user_id, type, status, expiry_date, show_on_profile').eq('user_id', id)
@@ -106,6 +111,7 @@ export default async function EscortProfilePage({ params }: { params: Promise<{ 
             text={(!zones || zones.length === 0) && certs.length === 0 ? 'Zones, certifications and reviews will show here once this escort adds them.' : 'Reviews show up here after a finished job.'}
           />
         )}
+          {viewer && viewer.id !== id && <BlockUser userId={id} label="this user" />}
           </div>
         </div>
       </div>

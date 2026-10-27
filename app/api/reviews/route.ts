@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isBlockedEitherWay } from '@/lib/blocks'
 import { createClient as createServerSupabase } from '@/lib/supabase/server';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { checkTierAccess } from '@/lib/tier-access';
@@ -52,6 +53,9 @@ export async function POST(req: NextRequest) {
 
     // written with the service key after the checks above: the table is closed to direct writes from the browser
     const svc = createServiceClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+    if (await isBlockedEitherWay(svc, userId, targetUserId)) {
+      return NextResponse.json({ error: 'You cannot review this user' }, { status: 403 });
+    }
     const { data, error } = await svc
       .from('reviews')
       .insert({
