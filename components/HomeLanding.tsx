@@ -1,4 +1,5 @@
 'use client'
+import HideInApp from '@/components/HideInApp'
 // The logged-out home page: a plain explanation of what OEH is, two main ways in, and every role.
 // Role choices keep the sign-up behaviour the old role picker had; the parent passes the handlers.
 type Props = {
@@ -44,6 +45,7 @@ export default function HomeLanding({ onCarrier, onEscort, onBroker, onFleet, on
           <a href="/find-escorts">Find escorts</a>
           <a href="/how-it-works">How it works</a>
           <a href="/pricing">Pricing</a>
+          <HideInApp><a className="hl-play" href="https://play.google.com/store/apps/details?id=pevo.oversizeescorthub.app" target="_blank" rel="noopener noreferrer">Android app</a></HideInApp>
           <button className="hl-si" onClick={onSignIn}>Sign in</button>
           <button className="hl-gs" onClick={onCarrier}>Get started</button>
         </div>
