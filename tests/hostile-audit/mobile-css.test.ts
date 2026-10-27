@@ -115,3 +115,13 @@ test('the Google Play link is in both footers, hidden inside the app, and the fo
   expect(home).toMatch(/<HideInApp><a href="https:\/\/play\.google\.com/)
   expect(home).not.toContain('NO JOB FEES · EVER')
 })
+
+test('desktop top bars carry an Android app link that is hidden on phones and inside the app', () => {
+  const play = 'https://play.google.com/store/apps/details?id=pevo.oversizeescorthub.app'
+  const header = fs.readFileSync('components/SiteHeader.tsx', 'utf8')
+  expect(header).toMatch(/<HideInApp><a href="https:\/\/play\.google\.com[^>]*>[\s\S]{0,200}Android app<\/a><\/HideInApp>/)
+  expect(header).toContain(play)
+  const home = fs.readFileSync('app/page.tsx', 'utf8')
+  expect(home).toMatch(/<HideInApp><a className="nav-play"/)
+  expect(home).toMatch(/\.nav-play\{display:none!important\}/)
+})

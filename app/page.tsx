@@ -350,6 +350,7 @@ footer{background:rgba(8,9,12,.72);border-top:1px solid var(--l1);padding:40px 2
   .dash-nav{display:flex}
   .ham-btn{display:flex!important;flex-direction:column;align-items:center;justify-content:center}
   .nav-links{display:none!important}
+  .nav-play{display:none!important}
   .nav{padding:0 14px;gap:10px;overflow:hidden}
   .nav-name{font-size:16px;white-space:nowrap}
   .nav-user-name,.nav-user .nav-signout,.nav-user select{display:none!important}
@@ -433,6 +434,7 @@ function Nav({ page, setPage, user, profile, onSignOut, unreadCount = 0, setSign
       </div>
       {/* Desktop right */}
       <div className="nav-right" style={{ display: "flex", alignItems: "center", gap: 10, marginLeft: "auto" }}>
+        <HideInApp><a className="nav-play" href="https://play.google.com/store/apps/details?id=pevo.oversizeescorthub.app" target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", padding: "6px 12px", border: "1px solid var(--or)", borderRadius: 999, color: "var(--or)", fontSize: 12, fontWeight: 600, textDecoration: "none", whiteSpace: "nowrap" }}>Android app</a></HideInApp>
         {user && profile ? (
           <span className="nav-user"><button onClick={()=>setPage(profile?.role==='escort'?'dashboard-e':'dashboard-c')} style={{position:'relative',background:'none',border:'none',cursor:'pointer',padding:'4px',color:'var(--t1)',fontSize:20}} title="Notifications">{String.fromCodePoint(128276)}{unreadCount>0&&<span style={{position:'absolute',top:0,right:0,background:'#ff6600',color:'#fff',borderRadius:'50%',fontSize:9,width:16,height:16,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700}}>{unreadCount>9?'9+':unreadCount}</span>}</button>
             <span style={{ display:"inline-flex",alignItems:"center",justifyContent:"center",width:26,height:26,borderRadius:"50%",background:profile.avatar_url?"transparent":"#ff6600",color:"#fff",fontSize:10,fontWeight:700,marginRight:6,flexShrink:0,overflow:"hidden" }}>{profile.avatar_url ? <img src={profile.avatar_url} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}} /> : (profile.full_name||"?").split(" ").filter(Boolean).map(function(w){return w[0]}).join("").toUpperCase().slice(0,2)||"?"}</span>

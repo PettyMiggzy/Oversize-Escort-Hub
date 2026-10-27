@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import HideInApp from '@/components/HideInApp';
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -184,6 +185,7 @@ export default function SiteHeader() {
 
           {/* Desktop CTA */}
           <div style={ctaAreaStyle}>
+            <HideInApp><a href="https://play.google.com/store/apps/details?id=pevo.oversizeescorthub.app" target="_blank" rel="noopener noreferrer" style={{ ...btnGhostStyle, display: "inline-flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}>Android app</a></HideInApp>
         {userProfile ? (
           <><Link href="/dashboard" style={btnPrimeStyle}>Dashboard</Link><button type="button" onClick={signOut} style={btnGhostStyle}>Sign out</button></>
         ) : (
