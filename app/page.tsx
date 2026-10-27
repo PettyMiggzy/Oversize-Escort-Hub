@@ -673,11 +673,10 @@ function HomePage({ setPage, user, profile, setSigninMode, setPendingRole }: { s
         <div className="hero-inner">
           <div className="hero-tag tag-am">For Pilot Car Escorts / P/EVO Operators</div>
           <div className="hero-hl" style={{ color: "var(--am)" }}>STOP<br />DRIVING<br />HOME<br />EMPTY.</div>
-          <p className="hero-sub">The average P/EVO escort deadheads home after <strong style={{ color: "var(--t1)" }}>40% of runs.</strong> At $2.00/mi that&apos;s real revenue sitting on the table every single week.</p>
+          <p className="hero-sub">Driving home empty after a job is money left on the table. Results vary, and nothing here is a promise of earnings.</p>
           <p className="hero-sub">The Deadhead Minimizer surfaces return loads near your drop, sorted toward home state first. <strong style={{ color: "var(--am)" }}>Every recovered run is money back in your pocket.</strong></p>
           <div className="stat-row">
-            <div className="stat"><div className="stat-n" style={{ color: "var(--am)" }}>$1,200</div><div className="stat-l">Recovered/Year</div></div>
-            <div className="stat"><div className="stat-n" style={{ color: "var(--am)" }}>$0</div><div className="stat-l">While we launch</div></div>
+                        <div className="stat"><div className="stat-n" style={{ color: "var(--am)" }}>$0</div><div className="stat-l">While we launch</div></div>
             <div className="stat"><div className="stat-n" style={{ color: "var(--gr)" }}>Live</div><div className="stat-l">Bid board</div></div>
           </div>
           <div className="btn-row">
@@ -1229,7 +1228,7 @@ function EscortDashPage({ setPage, profile, showToast }: { setPage: (p: Page) =>
                   <span style={{ fontSize: 14, fontWeight: 700 }}>Save on Every Fill-Up</span>
                 </div>
                 <p style={{ fontSize: 12, color: "var(--t2,#888)", lineHeight: 1.6, marginBottom: 14 }}>
-                  OEH members earn real cash back on fuel through Upside. The average escort saves $600+/year just by activating their free account.
+                  OEH members earn real cash back on fuel through Upside. Offers are from Upside, an affiliate, and OEH may earn a commission.
                 </p>
                 <a href="https://upside.app.link/9WR232" target="_blank" rel="noopener noreferrer"
                   style={{ display: "inline-block", background: "var(--or,#f60)", color: "#000", fontWeight: 700, fontSize: 12, padding: "10px 20px", borderRadius: 6, textDecoration: "none" }}>
@@ -1815,7 +1814,7 @@ function ToolsPage({ setPage, profile }: { setPage: (p: any) => void; profile: a
     { page: "expenses", icon: "📊", title: "Expense Tracker", desc: "Log jobs and expenses, export CSV/PDF for taxes", badge: "MEMBER" },
     { page: "job-history", icon: "📋", title: "Job History", desc: "View completed loads and earnings history", badge: "MEMBER" },
     { page: "permits", icon: "📄", title: "Permit Hub", desc: "Upload and receive permits day of load instantly", badge: "ALL" },
-    { page: "deadhead", icon: "🚗", title: "Stop Driving Home Empty", desc: "Find return loads and recover ~$4,800/yr", badge: "PRO" },
+    { page: "deadhead", icon: "🚗", title: "Stop Driving Home Empty", desc: "Find return loads near your drop-off", badge: "PRO" },
     { page: "dot-lookup", icon: "🔍", title: "DOT Carrier Lookup", desc: "Look up a carrier through the FMCSA free API", badge: "MEMBER" },
     { page: "state-reqs", icon: "🗺️", title: "State Escort Requirements", desc: "Escort requirements by state and load dimensions", badge: "MEMBER" },
     { page: "weather", icon: "⛅", title: "Weather Alerts", desc: "Weather conditions on your route via NWS free API", badge: "MEMBER" },
@@ -1952,7 +1951,7 @@ function DeadheadPage({ setPage, profile }: any) {
             <p style={{ fontSize: 24, marginBottom: 8 }}>🚛</p>
             <h2 style={{ color: "#ff6600", marginBottom: 8 }}>Pro Feature</h2>
             <p style={{ color: "#aaa", marginBottom: 20, maxWidth: 400, margin: "0 auto 20px" }}>
-              The Deadhead Minimizer and Fleet Manager Tools are available on Pro. The average escort recovers <strong style={{ color: "#fff" }}>$4,800/year</strong> with this feature.
+              The Deadhead Minimizer and Fleet Manager Tools are available on Pro. Results vary.
             </p>
             <HideInApp>
             <button style={{ ...S.btn, fontSize: 16 }} onClick={() => { window.location.href = '/pricing'; }}>Upgrade to Pro — $29.99/mo</button>
@@ -2347,7 +2346,7 @@ export default function OEHPlatform() {
                   <div style={{ fontSize: 28, marginBottom: 10 }}>⛽</div>
                   <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 6 }}>Save on Every Fill-Up</div>
                   <p style={{ fontSize: 12, color: "var(--t2,#888)", lineHeight: 1.7, marginBottom: 16 }}>
-                    OEH members earn real cash back on fuel through Upside. The average escort saves $600+/year just by activating their free account.
+                    OEH members earn real cash back on fuel through Upside. Offers are from Upside, an affiliate, and OEH may earn a commission.
                   </p>
                   <a href="https://upside.app.link/9WR232" target="_blank" rel="noopener noreferrer"
                     style={{ display: "inline-block", background: "var(--or,#f60)", color: "#000", fontWeight: 700, fontSize: 12, padding: "10px 20px", borderRadius: 6, textDecoration: "none" }}>

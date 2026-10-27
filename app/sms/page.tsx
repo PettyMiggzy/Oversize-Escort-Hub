@@ -14,6 +14,10 @@ export default function SmsProgramPage() {
       <p style={{ color: '#9aa3b2', marginBottom: 28 }}>Text number: (855) 601-4751 &middot; Operated by Oversize Escort Hub (oversize-escort-hub.com)</p>
 
       <section style={box}>
+        <p><strong>Text alerts are not turned on yet.</strong> This page describes how they will work when they start. Nothing is sent until then.</p>
+      </section>
+
+      <section style={box}>
         <h2 style={{ fontSize: 20, marginBottom: 8 }}>What we send</h2>
         <p>Account notices, alerts about new loads in the states you cover, updates on your bids and matches, and replies when you text us to post a load. We do not send marketing or promotional texts, and we do not share your number with anyone for their marketing.</p>
       </section>

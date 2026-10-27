@@ -22,7 +22,7 @@ export function BoardAdSidebar() {
         <div className="ui-side-card" style={{ borderColor: 'rgba(53,212,137,.4)' }}>
           <span className="ui-badge green">Save on fuel</span>
           <div className="t">Upside cash back</div>
-          <p>15&cent;/gal extra cash back on your first fill-up. The average escort saves $600+ a year.</p>
+          <p>15&cent;/gal extra cash back on your first fill-up. Upside is an affiliate; OEH may earn a commission.</p>
           <span className="ui-btn block" style={{ background: '#35d489', boxShadow: 'none' }}>Use code 9WR232</span>
         </div>
       </a>
