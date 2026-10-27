@@ -102,5 +102,6 @@ test('phone app: pricing page leaves for the dashboard, features page hides pric
 test('the legacy home menu panel is shown when it is rendered (it is only rendered while open)', () => {
   const src = fs.readFileSync('app/page.tsx', 'utf8')
   expect(src).toMatch(/\.mobile-drawer\{display:block;/)
+  expect(src).toContain("createPortal(")
   expect(src).not.toMatch(/\.mobile-drawer\{display:none/)
 })

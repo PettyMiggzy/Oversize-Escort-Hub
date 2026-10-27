@@ -8,6 +8,7 @@ import { withFreeLaunch, FREE_LAUNCH } from "@/lib/free-launch";
 import HomeLanding from "@/components/HomeLanding";
 import HideInApp from "@/components/HideInApp";
 import { isNativeApp } from "@/lib/native";
+import { createPortal } from "react-dom";
 
 // True only inside the phone apps (false on the server and on first paint, so the page hydrates cleanly).
 function useInApp() {
@@ -357,7 +358,7 @@ footer{background:rgba(8,9,12,.72);border-top:1px solid var(--l1);padding:40px 2
 .ham-btn{display:none;background:none;border:none;cursor:pointer;padding:8px;color:var(--t1)}.nav-links{display:flex;flex-direction:row;align-items:center;gap:24px}
 .ham-btn span{display:block;width:22px;height:2px;background:var(--t1);margin:4px 0;transition:.3s}
 .mobile-drawer{display:block;position:fixed;top:0;left:0;right:0;bottom:0;z-index:999;background:rgba(0,0,0,.7)}
-.mobile-drawer-inner{position:absolute;top:0;right:0;width:80%;max-width:300px;height:100%;background:var(--p1);border-left:1px solid var(--l1);overflow-y:auto;padding:20px 0}
+.mobile-drawer-inner{position:absolute;top:0;right:0;width:80%;max-width:300px;height:100%;background:var(--p1);border-left:1px solid var(--l1);overflow-y:auto;padding:calc(20px + var(--safe-top,0px)) 0 20px}
 .drawer-header{display:flex;align-items:center;justify-content:space-between;padding:0 20px 20px;border-bottom:1px solid var(--l1);margin-bottom:10px}
 .drawer-close{background:none;border:none;color:var(--t1);font-size:24px;cursor:pointer;padding:4px}
 .drawer-link{display:block;width:100%;text-align:left;background:none;border:none;color:var(--t2);font-family:"Inter",system-ui,sans-serif;font-weight:500;font-size:15px;letter-spacing:0;text-transform:none;min-height:44px;padding:14px 20px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05)}
@@ -471,7 +472,7 @@ function Nav({ page, setPage, user, profile, onSignOut, unreadCount = 0, setSign
         </button>
       </div>
       {/* Mobile drawer */}
-      {drawerOpen && (
+      {drawerOpen && typeof document !== "undefined" && createPortal(
         <div className="mobile-drawer" onClick={closeDrawer}>
           <div className="mobile-drawer-inner" onClick={e => e.stopPropagation()}>
             <div className="drawer-header">
@@ -498,7 +499,8 @@ function Nav({ page, setPage, user, profile, onSignOut, unreadCount = 0, setSign
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
