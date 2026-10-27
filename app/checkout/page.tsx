@@ -28,7 +28,6 @@ const PLANS: Plan[] = [
       "Up to 5 load postings/month",
       "Fleet search access",
       "FMCSA carrier lookup",
-      "Veteran discount eligible",
     ],
   },
   {
@@ -44,7 +43,6 @@ const PLANS: Plan[] = [
       "Priority listing in search",
       "SMS job alerts (coming soon)",
       "Push notifications",
-      "Veteran discount eligible",
     ],
   },
   {
@@ -160,22 +158,28 @@ function CheckoutPageInner() {
         </button>
 
         <p className="ui-note" style={{ textAlign: "center", marginTop: 16 }}>
-          Secured by Stripe · Cancel anytime
+          Secured by Stripe
         </p>
 
-        <p className="ui-note" style={{ textAlign: "center", marginTop: 12 }}>
-          Veteran? Upload your DD-214 at{" "}
-          <a href="/dd214" className="ui-link">
-            /dd214
-          </a>{" "}
-          before checkout — approved accounts get 30% off automatically.
-        </p>
       </div>
     </div>
   );
 }
 
 
+function FreeNotice() {
+  return (
+    <div className="ui-page">
+      <SiteHeader />
+      <div className="ui-wrap" style={{ maxWidth: 560, textAlign: 'center' }}>
+        <PageTitle eyebrow="Plans" title="Nothing to buy right now" lead="Every plan feature is free while we launch." />
+        <p className="ui-note">The only paid item today is the Sponsored Zone add-on. See <a href="/pricing" className="ui-link">Pricing</a>.</p>
+      </div>
+    </div>
+  );
+}
+
 export default function CheckoutPage() {
+  if (FREE_LAUNCH) return <WebOnly><FreeNotice /></WebOnly>
   return <WebOnly><CheckoutPageInner /></WebOnly>
 }

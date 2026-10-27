@@ -28,14 +28,14 @@ export default async function GettingStartedPage() {
       name: 'P/EVO Certification',
       color: 'var(--ui-or)',
       icon: '🚗',
-      desc: 'Required in most states. Washington State cert through Evergreen Safety Council. The foundational credential for oversize escort work.',
+      desc: 'Requirements differ by state, so check with the state you will work in. Washington State cert through Evergreen Safety Council. The foundational credential for oversize escort work.',
       link: 'https://www.esc.org/courses',
     },
     {
       name: 'WITPAC',
       color: 'var(--ui-green)',
       icon: '🗺️',
-      desc: 'Western Interstate Traffic Patrol Association Certification. Required for multi-state runs across WA, OR, ID, and MT corridors.',
+      desc: 'Western Interstate Traffic Patrol Association Certification. Some western states recognize it. Check each state rules before a multi-state run.',
       link: 'https://www.esc.org/courses',
     },
     {
@@ -160,8 +160,8 @@ export default async function GettingStartedPage() {
                   </div>
                   <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(6,8,10,.8)', padding: 12 }}>
                     <div style={{ fontSize: 16, marginBottom: 6 }}>🔒</div>
-                    <div className="ui-note" style={{ marginBottom: 10, textAlign: 'center' }}>Upgrade to Member to unlock</div>
-                    <a href="/pricing" className="ui-btn">Upgrade →</a>
+                    <div className="ui-note" style={{ marginBottom: 10, textAlign: 'center' }}>Sign in to see the member code</div>
+                    <a href="/signin" className="ui-btn">Sign in →</a>
                   </div>
                 </div>
               )}
@@ -186,8 +186,8 @@ export default async function GettingStartedPage() {
         </div>
 
         <div className="ui-card">
-          <h2>Industry Standard Rates</h2>
-          <p className="ui-note" style={{ marginBottom: 16 }}>OEH published standard rates for escort services:</p>
+          <h2>Example Rates</h2>
+          <p className="ui-note" style={{ marginBottom: 16 }}>Examples of what some pilot car drivers quote. OEH does not set rates: you and the other side agree on pay directly.</p>
           <div className="ui-fit">
             {rates.map(r => (
               <div key={r.label} className="ui-card" style={{ boxShadow: 'none' }}>

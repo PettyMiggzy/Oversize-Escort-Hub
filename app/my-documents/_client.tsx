@@ -7,7 +7,7 @@ type Doc = { id: string; type: string | null; status: string | null; expiry_date
 
 const TYPES: [string, string][] = [['pevo', 'P/EVO certificate'], ['insurance', 'Proof of insurance'], ['vehicle', 'Vehicle'], ['state_cert', 'Other certificate']]
 const LABEL: Record<string, string> = Object.fromEntries(TYPES)
-const STATUS: Record<string, string> = { uploaded: 'Uploaded (we do not check it)', pending: 'Waiting for review', approved: 'Reviewed', rejected: 'Not accepted' }
+const STATUS: Record<string, string> = { uploaded: 'Uploaded (we do not check it)', pending: 'Uploaded (we do not check it)', approved: 'Uploaded (we do not check it)', rejected: 'Removed by OEH' }
 
 export default function Documents() {
   const [docs, setDocs] = useState<Doc[] | null>(null)
@@ -36,7 +36,7 @@ export default function Documents() {
     const res = await fetch('/api/escort/docs', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ certId: id, show }) })
     const d = await res.json().catch(() => ({}))
     if (!res.ok) setErr(d.upgrade ? 'Showing documents on your profile is part of a paid plan.' : d.error || 'Could not change that')
-    else setOk(show ? (d.live ? 'It now shows on your public profile.' : 'It will show on your profile once we have reviewed it.') : 'It is hidden from your public profile.')
+    else setOk(show ? (d.live ? 'It now shows on your public profile.' : 'It is switched on. It will show once it is in date.') : 'It is hidden from your public profile.')
     await load()
     setBusy('')
   }
@@ -50,8 +50,8 @@ export default function Documents() {
     try {
       const res = await fetch('/api/escort/cert-upload', { method: 'POST', body: fd })
       const d = await res.json().catch(() => ({}))
-      if (!res.ok) setErr(res.status === 402 && d.upgrade ? 'Uploading documents is part of a paid plan.' : res.status === 402 ? 'A P/EVO certificate is reviewed after you buy the review on our website. Insurance and vehicle documents can be uploaded now.' : d.error || 'Upload failed')
-      else { setOk(type === 'pevo' ? 'Uploaded. We will review it and email you.' : 'Uploaded. Turn on "Show on my profile" if you want visitors to see it.'); setFile(null); setFileKey((k) => k + 1); setExpiry('') }
+      if (!res.ok) setErr(res.status === 402 && d.upgrade ? 'Uploading documents is part of a paid plan.' : res.status === 402 ? 'This document type is not open to your account right now. Insurance and vehicle documents can be uploaded now.' : d.error || 'Upload failed')
+      else { setOk('Uploaded. Turn on "Show on my profile" if you want visitors to see it. Do not upload anything with a Social Security number.'); setFile(null); setFileKey((k) => k + 1); setExpiry('') }
     } catch { setErr('Could not connect. Try again.') }
     setSending(false)
     await load()
@@ -68,7 +68,7 @@ export default function Documents() {
       ) : null}
       <div className="ui-card" style={canUpload ? undefined : { opacity: 0.5, pointerEvents: 'none' }} aria-disabled={!canUpload}>
         <h2>Add a document</h2>
-        <p className="ui-note" style={{ marginBottom: 12 }}>A PDF or a photo (JPG, PNG or WebP), up to 10 MB. We do not check insurance, vehicle or other documents, and we do not vouch for them. A P/EVO certificate can go through our paid review. If you turn on &quot;show on my profile&quot;, anyone can open the file and will be told you uploaded it yourself, so cover your date of birth, home address, license number and policy number first. You are responsible for what you upload and for keeping it current.</p>
+        <p className="ui-note" style={{ marginBottom: 12 }}>A PDF or a photo (JPG, PNG or WebP), up to 10 MB. We do not check insurance, vehicle or other documents, and we do not vouch for them. If you turn on &quot;show on my profile&quot;, anyone can open the file and will be told you uploaded it yourself, so cover your Social Security number, date of birth, home address, license number and policy number first. You are responsible for what you upload and for keeping it current.</p>
         <form onSubmit={upload} className="ui-stack">
           <div>
             <label className="ui-label" htmlFor="doc-type">What is it?</label>
@@ -87,7 +87,6 @@ export default function Documents() {
           {err ? <p className="ui-err">{err}</p> : null}
           {ok ? <p className="ui-ok">{ok}</p> : null}
           <div><button type="submit" className="ui-btn" disabled={!file || !expiry || sending}>{sending ? 'Uploading…' : 'Upload'}</button></div>
-          <HideInApp><p className="ui-note">Reviewing a P/EVO certificate is a one-time add-on. <a className="ui-link" href="/pricing">See the add-ons</a>.</p></HideInApp>
         </form>
       </div>
 
@@ -106,7 +105,7 @@ export default function Documents() {
                     <div className="ui-chips" style={{ marginTop: 8 }}>
                       <span className={d.status === 'approved' ? 'ui-badge green' : d.status === 'rejected' ? 'ui-badge red' : 'ui-badge dim'}>{STATUS[String(d.status)] || d.status}</span>
                       {d.expiry_date ? <span className={expired ? 'ui-badge red' : 'ui-badge dim'}>{expired ? 'Expired ' : 'Valid through '}{String(d.expiry_date).slice(0, 10)}</span> : null}
-                      {d.show_on_profile ? <span className="ui-badge orange">{(d.status === 'approved' || d.status === 'uploaded') && !expired ? 'Shown on profile' : 'Will show when reviewed'}</span> : null}
+                      {d.show_on_profile ? <span className="ui-badge orange">{(d.status === 'approved' || d.status === 'uploaded') && !expired ? 'Shown on profile' : 'Hidden for now'}</span> : null}
                     </div>
                     {d.status === 'rejected' && d.reject_reason ? <p className="ui-note" style={{ marginTop: 8 }}>{d.reject_reason}</p> : null}
                   </div>

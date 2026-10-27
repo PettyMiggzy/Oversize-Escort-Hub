@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     default: "Oversize Escort Hub | P/EVO Escorts & Oversize Load Board",
     template: "%s | Oversize Escort Hub",
   },
-  description: "The marketplace for oversize load carriers and P/EVO pilot car escorts. Post loads, find escorts, bid on jobs. No commissions. Flat subscription only.",
+  description: "The marketplace for oversize load carriers and P/EVO pilot car escorts. Post loads, find pilot cars, bid on jobs. Free while we launch, no commissions on loads. We do not check or verify anyone.",
   keywords: [
     "oversize escort", "pilot car escort", "PEVO escort", "P/EVO operator",
     "oversize load board", "pilot car driver", "oversize load escort",
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     url: "https://www.oversize-escort-hub.com",
     siteName: "Oversize Escort Hub",
     title: "Oversize Escort Hub | P/EVO Escorts & Oversize Load Board",
-    description: "The marketplace for oversize load carriers and P/EVO pilot car escorts. Post loads, find escorts, bid on jobs. No commissions. Flat subscription only.",
+    description: "The marketplace for oversize load carriers and P/EVO pilot car escorts. Post loads, find pilot cars, bid on jobs. Free while we launch, no commissions on loads. We do not check or verify anyone.",
     images: [
       {
         url: "/og-image.png",
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Oversize Escort Hub | P/EVO Escorts & Load Board",
-    description: "The marketplace for oversize carriers and P/EVO escorts. No commissions. Post loads, find escorts, bid on jobs.",
+    description: "The marketplace for oversize carriers and P/EVO escorts. Free while we launch. Post loads, find pilot cars, bid on jobs.",
     images: ["/og-image.png"],
     creator: "@OversizeEscort",
   },
