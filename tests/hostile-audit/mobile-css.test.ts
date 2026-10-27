@@ -148,5 +148,5 @@ test('the signed-out home top bar has the Android app link (hidden on phones by 
   expect(src).toMatch(/<HideInApp><a className="hl-play" href="https:\/\/play\.google\.com\/store\/apps\/details\?id=pevo\.oversizeescorthub\.app"/)
   const css = fs.readFileSync('app/globals.css', 'utf8')
   expect(css).toContain('.hl-links a.hl-play')
-  expect(css).toMatch(/@media\(max-width:700px\)\{\.hl-links a\{display:none\}/)
+  expect(css).toMatch(/@media\(max-width:700px\)\{\.hl-links a,\.hl-links a\.hl-play\{display:none\}/)
 })
