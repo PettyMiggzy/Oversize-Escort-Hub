@@ -98,11 +98,11 @@ input,select,textarea{font-family:'Inter',system-ui,sans-serif;background:var(--
 input:focus,select:focus,textarea:focus{border-color:var(--or)}
 table{width:100%;border-collapse:collapse}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
-@keyframes scrolltick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes scrolltick{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
 
 .ticker{color:#ffffff;height:28px;background:#030507;border-bottom:1px solid var(--l1);overflow:hidden;display:flex;align-items:center}
-.ticker-track{display:flex;animation:scrolltick 90s linear infinite;white-space:nowrap}
-.tick-item{display:inline-flex;align-items:center;gap:8px;padding:0 28px;border-right:1px solid var(--l1);height:28px;font-family:'Inter',system-ui,sans-serif;font-weight:500;font-size:12px;color:#ffffff;letter-spacing:0}
+.ticker-track{display:flex;animation:scrolltick 45s linear infinite;white-space:nowrap;will-change:transform;backface-visibility:hidden;transform:translate3d(0,0,0)}
+.tick-item{display:inline-flex;align-items:center;gap:10px;padding:0 36px;border-right:1px solid var(--l1);height:28px;font-family:'Inter',system-ui,sans-serif;font-weight:500;font-size:13px;color:#ffffff;letter-spacing:.02em;word-spacing:.12em;text-rendering:geometricPrecision;-webkit-font-smoothing:antialiased}
 .tick-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
 .dot-gr{background:var(--gr);box-shadow:0 0 5px var(--gr)}
 .dot-am{background:var(--am);box-shadow:0 0 5px var(--am)}
@@ -385,10 +385,9 @@ function Toast({ msg, type, onClose }: { msg: string; type: "gr" | "rd" | "am"; 
 function Ticker() {
   const items = [
     { dot: "dot-gr", text: "Platform launching · Be an early member · Using the site is free while we launch" },
-    { dot: "dot-am", text: "BID BOARD LIVE · 5-Min bids · Everyone sees new loads the moment they post" },
+    { dot: "dot-am", text: "BID BOARD LIVE · 5-Min bids · New loads show up right away" },
     { dot: "dot-gr", text: "Free to post · No commissions · Contact details stay private until a carrier accepts" },
     { dot: "dot-or", text: "OPEN BID BOARD · 24-72h window · Post your pitch · Carrier picks the best fit" },
-    { dot: "dot-gr", text: "Standard rates: $2.00/mi or $500/day · $100 overnight · $250 no-go fee" },
     { dot: "dot-am", text: "Deadhead Minimizer · Return loads near your drop · Stop driving home empty" },
     { dot: "dot-gr", text: "No commissions · No job fees · Free while we launch" },
     { dot: "dot-or", text: "Carriers: Post loads free · Escorts: Find loads · Both: No middleman" },
@@ -858,7 +857,7 @@ function FeatureSection({ setPage }: { setPage: (p: Page) => void }) {
       </div>
       <div className="feat-grid">
         {[
-          { c: "var(--am)", t: "5-Min Bid Board", d: "Industry first. Closes on timer, carrier fills it, or carrier cancels. Everyone sees new loads the moment they post." },
+          { c: "var(--am)", t: "5-Min Bid Board", d: "Closes on timer, carrier fills it, or carrier cancels. New loads show up right away; some escorts may get a short head start." },
           { c: "var(--gr)", t: "Deal directly", d: "Carriers and escorts agree the work and pay between themselves. We do not check or verify anyone, so confirm licenses and insurance before any job." },
           { c: "var(--am)", t: "Deadhead Minimizer", d: "Return load feed sorted toward home state. I'm Available broadcast. Every empty mile is money left on the table." },
           { c: "var(--or)", t: "Carrier Pay Score (Public)", d: "Pay speed, communication, load accuracy, no-go fee history — all public. 4.9 fills in minutes. 2.8 sits on the board." },

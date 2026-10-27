@@ -125,3 +125,11 @@ test('desktop top bars carry an Android app link that is hidden on phones and in
   expect(home).toMatch(/<HideInApp><a className="nav-play"/)
   expect(home).toMatch(/\.nav-play\{display:none!important\}/)
 })
+
+test('the top ticker moves at a readable speed with clear spacing and no invented rates', () => {
+  const src = fs.readFileSync('app/page.tsx', 'utf8')
+  expect(src).toMatch(/\.ticker-track\{[^}]*scrolltick 45s linear infinite/)
+  expect(src).toMatch(/\.tick-item\{[^}]*font-size:13px[^}]*letter-spacing:\.02em/)
+  expect(src).not.toContain('Standard rates: $2.00/mi')
+  expect(src).not.toContain('Everyone sees new loads the moment they post')
+})
