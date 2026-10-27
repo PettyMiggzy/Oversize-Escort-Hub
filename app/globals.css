@@ -214,7 +214,7 @@ html, body {
 
 /* ── Landing page (logged-out home) ───────────────────────────────────────── */
 .hl{position:fixed;inset:0;z-index:200;overflow-y:auto;background:#06080a;color:#dce0e6;font-family:'Inter',system-ui,sans-serif}
-.hl-bar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;padding:12px 40px;background:rgba(6,8,10,.72);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border-bottom:1px solid rgba(255,255,255,.07)}
+.hl-bar{position:sticky;top:var(--safe-top,0px);z-index:5;display:flex;align-items:center;justify-content:space-between;padding:12px 40px;background:rgba(6,8,10,.72);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border-bottom:1px solid rgba(255,255,255,.07)}
 .hl-logo{height:38px;width:auto;cursor:pointer}
 .hl-links{display:flex;align-items:center;gap:26px;font-size:14.5px;font-weight:500}
 .hl-links a{color:#a3acba;text-decoration:none;transition:color .15s}
@@ -372,3 +372,10 @@ html, body {
 .guide a:not(.ui-btn){color:#ff9a5c;text-decoration:underline;text-underline-offset:2px}
 .guide a:not(.ui-btn):hover{color:#ffb98a}
 .guide h2,.guide h3{color:#fff}
+
+/* Phone apps draw the page under the status bar (clock, battery): keep content below it. env() is 0 in a normal browser. */
+:root{--safe-top:0px}
+body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+html.native-app{--safe-top:env(safe-area-inset-top,0px)}
+html.native-app body{padding-top:env(safe-area-inset-top,0px)}
+html.native-app body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top,0px);background:#050608;z-index:9999;pointer-events:none}

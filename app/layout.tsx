@@ -3,11 +3,13 @@ import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 import PushInit from './components/PushInit'
 import HelperChat from '@/components/HelperChat'
+import NativeFlag from '@/components/NativeFlag'
 
 export const viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
+  viewportFit: 'cover',
 };
 
 export const metadata: Metadata = {
@@ -114,7 +116,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body style={{ margin: 0 }}><PushInit />{children}<HelperChat /><Analytics /></body>
+      <body style={{ margin: 0 }}><NativeFlag /><PushInit />{children}<HelperChat /><Analytics /></body>
     </html>
   );
 }

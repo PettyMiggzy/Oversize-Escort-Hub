@@ -55,7 +55,7 @@ export default function SiteHeader() {
     padding: "0 24px",
     gap: 20,
     position: "sticky",
-    top: 0,
+    top: "var(--safe-top, 0px)",
     zIndex: 100,
   };
 

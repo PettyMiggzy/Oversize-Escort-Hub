@@ -99,7 +99,7 @@ table{width:100%;border-collapse:collapse}
 .dot-am{background:var(--am);box-shadow:0 0 5px var(--am)}
 .dot-or{background:var(--or)}
 
-.nav{background:rgba(8,9,12,.82);border-bottom:1px solid var(--l1);min-height:64px;display:flex;flex-direction:row;align-items:center;padding:0 24px;gap:20px;position:sticky;top:0;z-index:100;backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%)}
+.nav{background:rgba(8,9,12,.82);border-bottom:1px solid var(--l1);min-height:64px;display:flex;flex-direction:row;align-items:center;padding:0 24px;gap:20px;position:sticky;top:var(--safe-top,0px);z-index:100;backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%)}
 .nav-name{font-family:'Plus Jakarta Sans','Inter',sans-serif;font-weight:800;font-size:18px;letter-spacing:-.02em;text-transform:none;color:#fff}
 .nav-div{width:1px;height:28px;background:var(--l1)}
 .nav-link{font-family:'Inter',system-ui,sans-serif;font-weight:500;font-size:14px;letter-spacing:0;text-transform:none;color:var(--t2);padding:0 10px;min-height:44px;display:flex;align-items:center;background:none;border:none;border-bottom:2px solid transparent;transition:color .15s}
@@ -341,7 +341,10 @@ footer{background:rgba(8,9,12,.72);border-top:1px solid var(--l1);padding:40px 2
   .dash-nav{display:flex}
   .ham-btn{display:flex;align-items:center;justify-content:center}
   .nav-links{display:none!important}
-  .nav-right{gap:6px}
+  .nav{padding:0 14px;gap:10px;overflow:hidden}
+  .nav-name{font-size:16px;white-space:nowrap}
+  .nav-user-name,.nav-user .nav-signout,.nav-user select{display:none!important}
+  .nav-right{gap:6px;min-width:0;flex-shrink:0}
   .nav-get-started{font-size:9px;padding:7px 12px}}
 .ham-btn{display:none;background:none;border:none;cursor:pointer;padding:8px;color:var(--t1)}.nav-links{display:flex;flex-direction:row;align-items:center;gap:24px}
 .ham-btn span{display:block;width:22px;height:2px;background:var(--t1);margin:4px 0;transition:.3s}
@@ -423,8 +426,8 @@ function Nav({ page, setPage, user, profile, onSignOut, unreadCount = 0, setSign
         {user && profile ? (
           <span className="nav-user"><button onClick={()=>setPage(profile?.role==='escort'?'dashboard-e':'dashboard-c')} style={{position:'relative',background:'none',border:'none',cursor:'pointer',padding:'4px',color:'var(--t1)',fontSize:20}} title="Notifications">{String.fromCodePoint(128276)}{unreadCount>0&&<span style={{position:'absolute',top:0,right:0,background:'#ff6600',color:'#fff',borderRadius:'50%',fontSize:9,width:16,height:16,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700}}>{unreadCount>9?'9+':unreadCount}</span>}</button>
             <span style={{ display:"inline-flex",alignItems:"center",justifyContent:"center",width:26,height:26,borderRadius:"50%",background:profile.avatar_url?"transparent":"#ff6600",color:"#fff",fontSize:10,fontWeight:700,marginRight:6,flexShrink:0,overflow:"hidden" }}>{profile.avatar_url ? <img src={profile.avatar_url} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}} /> : (profile.full_name||"?").split(" ").filter(Boolean).map(function(w){return w[0]}).join("").toUpperCase().slice(0,2)||"?"}</span>
-            {profile.full_name || "there"}{" · "}
-            <span style={{ color: "var(--or)", fontSize: 8 }}>{profile.tier?.toUpperCase()}</span>{" "}
+            <span className="nav-user-name">{profile.full_name || "there"}{" · "}
+            <span style={{ color: "var(--or)", fontSize: 8 }}>{profile.tier?.toUpperCase()}</span>{" "}</span>
             {profile?.role === "fleet_manager" && <button className="nav-signout" style={{ color:'#ff6600', borderColor:'#ff6600' }} onClick={() => { window.location.href = '/fleet-dashboard'; }}>FLEET DASHBOARD</button>}
             {profile?.role === "fleet_manager" && <button className="nav-signout" style={{ color:'#ff6600', borderColor:'#ff6600' }} onClick={() => { window.location.href = '/fleet-dashboard'; }}>FLEET DASHBOARD</button>} {profile?.role === 'admin' && (
             <select
