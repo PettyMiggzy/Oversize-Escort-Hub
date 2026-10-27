@@ -185,7 +185,7 @@ export default function SiteHeader() {
 
           {/* Desktop CTA */}
           <div style={ctaAreaStyle}>
-            <HideInApp><a href="https://play.google.com/store/apps/details?id=pevo.oversizeescorthub.app" target="_blank" rel="noopener noreferrer" style={{ ...btnGhostStyle, display: "inline-flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}>Android app</a></HideInApp>
+            <HideInApp><a href="https://play.google.com/store/apps/details?id=pevo.oversizeescorthub.app" target="_blank" rel="noopener noreferrer" aria-label="Get it on Google Play" style={{ display: "inline-flex", alignItems: "center" }}>{/* eslint-disable-next-line @next/next/no-img-element */}<img src="/badges/google-play-badge.png" alt="Get it on Google Play" width={646} height={250} style={{ height: 46, width: "auto", display: "block", margin: "-6px -4px" }} /></a></HideInApp>
         {userProfile ? (
           <><Link href="/dashboard" style={btnPrimeStyle}>Dashboard</Link><button type="button" onClick={signOut} style={btnGhostStyle}>Sign out</button></>
         ) : (

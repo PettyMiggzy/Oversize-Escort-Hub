@@ -223,8 +223,8 @@ html, body {
 .hl-links{display:flex;align-items:center;gap:26px;font-size:14.5px;font-weight:500}
 .hl-links a{color:#a3acba;text-decoration:none;transition:color .15s}
 .hl-links a:hover{color:#fff}
-.hl-links a.hl-play{color:#ff6a13;border:1px solid rgba(255,106,19,.6);padding:6px 14px;border-radius:999px;font-size:13px;font-weight:600;white-space:nowrap}
-.hl-links a.hl-play:hover{background:rgba(255,106,19,.12);color:#ff8a45}
+.hl-links a.hl-play{display:flex;align-items:center;padding:0;border:0;background:none}
+.hl-links a.hl-play:hover{opacity:.85}
 .hl-si{border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.04);color:#fff;padding:9px 22px;border-radius:999px;font-weight:600;font-size:14px;cursor:pointer;font-family:inherit}
 .hl-gs{border:0;background:#ff6a13;color:#120800;padding:10px 22px;border-radius:999px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;box-shadow:0 6px 22px rgba(255,106,19,.38)}
 .hl-hero{position:relative;overflow:hidden;padding:52px 40px 56px;background:linear-gradient(90deg,rgba(6,8,10,.9) 0%,rgba(6,8,10,.62) 42%,rgba(6,8,10,.22) 72%,rgba(6,8,10,.5) 100%),linear-gradient(180deg,rgba(6,8,10,.5) 0%,rgba(6,8,10,0) 30%,rgba(6,8,10,.55) 70%,#06080a 100%),url(/photos/hero.webp) center 62%/cover no-repeat}

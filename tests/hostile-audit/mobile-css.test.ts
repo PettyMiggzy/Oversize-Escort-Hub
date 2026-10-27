@@ -121,7 +121,7 @@ test('the Google Play link is in both footers, hidden inside the app, and the fo
 test('desktop top bars carry an Android app link that is hidden on phones and inside the app', () => {
   const play = 'https://play.google.com/store/apps/details?id=pevo.oversizeescorthub.app'
   const header = fs.readFileSync('components/SiteHeader.tsx', 'utf8')
-  expect(header).toMatch(/<HideInApp><a href="https:\/\/play\.google\.com[^>]*>[\s\S]{0,200}Android app<\/a><\/HideInApp>/)
+  expect(header).toMatch(/<HideInApp><a href="https:\/\/play\.google\.com[^>]*>[\s\S]{0,200}google-play-badge\.png/)
   expect(header).toContain(play)
   const home = fs.readFileSync('app/page.tsx', 'utf8')
   expect(home).toMatch(/<HideInApp><a className="nav-play"/)
@@ -144,6 +144,7 @@ test('testers can preview the phone-app view in a browser with ?app=1 (and turn 
 
 test('the signed-out home top bar has the Android app link (hidden on phones by the existing link rule, and in the app)', () => {
   const src = fs.readFileSync('components/HomeLanding.tsx', 'utf8')
+  expect(src).toContain('google-play-badge.png')
   expect(src).toMatch(/<HideInApp><a className="hl-play" href="https:\/\/play\.google\.com\/store\/apps\/details\?id=pevo\.oversizeescorthub\.app"/)
   const css = fs.readFileSync('app/globals.css', 'utf8')
   expect(css).toContain('.hl-links a.hl-play')
