@@ -24,3 +24,8 @@ test('the phone apps leave room for the status bar', () => {
   expect(fs.readFileSync('app/layout.tsx', 'utf8')).toContain('<NativeFlag />')
   expect(fs.readFileSync('components/SiteHeader.tsx', 'utf8')).toContain('var(--safe-top, 0px)')
 })
+
+test('the menu (hamburger) button really shows on phones: the later default rule must not hide it', () => {
+  const page = fs.readFileSync('app/page.tsx', 'utf8')
+  expect(page).toMatch(/\.ham-btn\{display:flex!important;/)
+})
