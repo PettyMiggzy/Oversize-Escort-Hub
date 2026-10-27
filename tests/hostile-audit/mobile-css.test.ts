@@ -78,3 +78,11 @@ test('no paid-plan price or "member access required" text on the home screen whi
   expect(page).toContain('{!signedIn && <a href="/signin?mode=signup">Create Account</a>}')
   expect(page).not.toMatch(/profile\??\.tier\??\.toUpperCase\(\)/)
 })
+
+test('phone app: no pricing link, no coming-soon tiles, no SMS-coming-soon text on the legacy home', () => {
+  const src = fs.readFileSync('app/page.tsx', 'utf8')
+  expect(src).toContain('inApp && p === "pricing"')
+  expect(src).toContain('inApp && tool.soon')
+  expect(src).toContain('inApp ? allTools.filter')
+  expect(src).not.toMatch(/SMS[^"\n]{0,60}coming soon|coming soon[^"\n]{0,40}SMS/i)
+})

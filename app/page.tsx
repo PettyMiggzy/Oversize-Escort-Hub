@@ -7,6 +7,14 @@ import type { User } from "@supabase/supabase-js";
 import { withFreeLaunch, FREE_LAUNCH } from "@/lib/free-launch";
 import HomeLanding from "@/components/HomeLanding";
 import HideInApp from "@/components/HideInApp";
+import { isNativeApp } from "@/lib/native";
+
+// True only inside the phone apps (false on the server and on first paint, so the page hydrates cleanly).
+function useInApp() {
+  const [inApp, setInApp] = useState(false);
+  useEffect(() => { setInApp(isNativeApp()); }, []);
+  return inApp;
+}
 
 const supabase = createClient();
 
@@ -72,7 +80,7 @@ type Load = {
 const TIERS = [
   { id: "trial", name: "Free Trial", price: 0, sub: "30 days · one per device", color: "#6e7a88", features: ["View load board (no contact info)", "Search escorts directory", "30-day limit", "No bidding · no alerts"], daily: null, popular: false, carrierPro: null },
   { id: "member", name: "Member", price: 19.99, sub: "per month", color: "#3d8ef8", features: ["Full bidding on all boards", "Email alerts on new loads", "60s after Pro on bid board", "In-platform messaging", "Multi-state load filters"], daily: 1.99, popular: false, carrierPro: null },
-  { id: "pro", name: "Pro", price: 29.99, sub: "per month", color: "#f5a200", features: ["Instant access to bid loads (60s head start)", "SMS alerts (coming soon)", "Deadhead Minimizer + return load feed", "I'm Available broadcast", "Deadhead calculator + savings dashboard", "Invoice generator"], daily: 4.99, popular: true, carrierPro: null },];
+  { id: "pro", name: "Pro", price: 29.99, sub: "per month", color: "#f5a200", features: ["Instant access to bid loads (60s head start)", "Deadhead Minimizer + return load feed", "I'm Available broadcast", "Deadhead calculator + savings dashboard", "Invoice generator"], daily: 4.99, popular: true, carrierPro: null },];
 
 // ─── STYLES ──────────────────────────────────────────────────────────────────
 
@@ -402,6 +410,7 @@ function Nav({ page, setPage, user, profile, onSignOut, unreadCount = 0, setSign
   page: Page; setPage: (p: Page) => void; user: User | null; profile: Profile | null; onSignOut: () => void; unreadCount?: number; setSigninMode: (m: "signup" | "signin") => void; profileOverride: Profile | null; setProfileOverride: (p: Profile | null) => void
 }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const inApp = useInApp();
   const navLinks: [Page, string][] = [
     ["flatboard", "Flat Rate"],
     ["openboard", "Open Loads"],
@@ -410,7 +419,7 @@ function Nav({ page, setPage, user, profile, onSignOut, unreadCount = 0, setSign
     ["postload", "Post a Load"],
     ["how-it-works", "How It Works"],
     ["pricing", "Pricing"],
-  ];
+  ].filter(([p]) => !(inApp && p === "pricing")) as [Page, string][];
   const closeDrawer = () => setDrawerOpen(false);
   return (
     <div className="nav">
@@ -845,7 +854,7 @@ function FeatureSection({ setPage }: { setPage: (p: Page) => void }) {
         {[
           { c: "var(--am)", t: "5-Min Bid Board", d: "Industry first. Closes on timer, carrier fills it, or carrier cancels. Everyone sees new loads the moment they post." },
           { c: "var(--gr)", t: "Deal directly", d: "Carriers and escorts agree the work and pay between themselves. We do not check or verify anyone, so confirm licenses and insurance before any job." },
-          { c: "var(--am)", t: "Deadhead Minimizer", d: "Return load feed sorted toward home state. Pre-arrival SMS alerts are coming soon. I'm Available broadcast. Every empty mile is money left on the table." },
+          { c: "var(--am)", t: "Deadhead Minimizer", d: "Return load feed sorted toward home state. I'm Available broadcast. Every empty mile is money left on the table." },
           { c: "var(--or)", t: "Carrier Pay Score (Public)", d: "Pay speed, communication, load accuracy, no-go fee history — all public. 4.9 fills in minutes. 2.8 sits on the board." },
           { c: "var(--bl)", t: "Open Bid Board", d: "24-72h window. Carrier reviews all bids, picks whoever they want. Escorts attach a personal pitch to every bid." },
           { c: "var(--gr)", t: "Two-Way Reviews", d: "Escorts rate carriers: pay speed, professionalism, accuracy. Carriers rate escorts: reliability, skill, communication." },
@@ -897,6 +906,7 @@ function PostLoadPage({ setPage }: { setPage: (p: Page) => void; user?: User | n
 }
 
 function EscortDashPage({ setPage, profile, showToast }: { setPage: (p: Page) => void; profile: Profile | null; showToast?: (msg: string, type: "gr" | "rd" | "am") => void }) {
+  const inApp = useInApp();
   const [tab, setTab] = useState("overview");
   const [myLoads, setMyLoads] = useState<Load[]>([]);
   const [myJobs, setMyJobs] = useState<any[]>([]);
@@ -1104,7 +1114,7 @@ function EscortDashPage({ setPage, profile, showToast }: { setPage: (p: Page) =>
             {profile?.tier !== "pro" ? (
               <div style={{ background: "rgba(245,162,0,.07)", border: "1px solid rgba(245,162,0,.2)", borderRadius: 4, padding: 24, textAlign: "center" }}>
                 <div className="bb" style={{ fontSize: 28, color: "var(--am)", marginBottom: 8 }}>PRO FEATURE</div>
-                <p className="mo" style={{ fontSize: 11, color: "var(--t2)", marginBottom: 16 }}>Return load feed, deadhead savings dashboard (pre-arrival SMS alerts coming soon)</p>
+                <p className="mo" style={{ fontSize: 11, color: "var(--t2)", marginBottom: 16 }}>Return load feed, deadhead savings dashboard</p>
                 <HideInApp>
                 <button className="btn btn-am" onClick={() => { window.location.href = '/pricing'; }}>Upgrade to Pro — $29.99/mo →</button>
                 </HideInApp>
@@ -1234,7 +1244,7 @@ function EscortDashPage({ setPage, profile, showToast }: { setPage: (p: Page) =>
               { icon: "📄", label: "Invoice Generator", href: "/tools/invoice", soon: true },
               { icon: "💰", label: "Expense Tracker", href: "/tools/expenses", soon: true },
               { icon: "⛽", label: "Fuel Savings (Upside)", href: "https://upside.app.link/9WR232", ext: true },
-            ].map(tool => (
+            ].filter(tool => !(inApp && tool.soon)).map(tool => (
               <a key={tool.label} href={tool.href} target={tool.ext ? "_blank" : "_self"} rel="noopener noreferrer"
                 style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 4, background: "var(--p2,#1a1a1a)", border: "1px solid var(--l1,#222)", borderRadius: 8, padding: "12px 14px", textDecoration: "none", color: "var(--t1,#fff)", opacity: tool.soon ? 0.6 : 1, cursor: tool.soon ? "default" : "pointer" }}
                 onClick={e => { if (tool.soon) e.preventDefault(); if (tool.tab) { e.preventDefault(); setTab(tool.tab); window.scrollTo({ top: 0, behavior: "smooth" }) } }}>
@@ -1256,7 +1266,7 @@ function EscortDashPage({ setPage, profile, showToast }: { setPage: (p: Page) =>
               </div>
               <div className="card" style={{ marginBottom: 24 }}>
                 <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>📍 Load Alert States</div>
-                <div style={{ fontSize: 12, color: 'var(--t2)', marginBottom: 12 }}>Select states you run. Alerts only for these states (SMS alerts coming soon). Leave blank for ALL loads.</div>
+                <div style={{ fontSize: 12, color: 'var(--t2)', marginBottom: 12 }}>Select states you run. Alerts only for these states. Leave blank for ALL loads.</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>{US_STATES_ALL.map((st: string) => { const sel = notifStates.includes(st); return (<button key={st} onClick={async () => { const { data: { user } } = await supabase.auth.getUser(); if (!user) return; const cur: string[] = ((profile?.notification_states as string[]) || []); const next = sel ? cur.filter((s: string) => s !== st) : [...cur, st]; await supabase.from('profiles').update({ notification_states: next }).eq('id', user.id); setNotifStates(next); }} style={{ padding:'4px 10px', borderRadius:4, fontSize:11, fontWeight:600, border: sel ? '2px solid #ff6600' : '1px solid var(--l2)', background: sel ? '#ff6600' : 'var(--card)', color: sel ? '#fff' : 'var(--t1)', cursor:'pointer' }}>{st}</button>); })}</div>
                 <div style={{ fontSize:11, color:'var(--t3)' }}>{notifStates.length === 0 ? 'All states (default)' : notifStates.join(', ')}</div>
               </div>
@@ -1482,13 +1492,6 @@ function CarrierDashPage({ setPage, user, profile, showToast }: { setPage: (p: P
               </a>
             ))}
           </div>
-          {/* SMS Post Instructions */}
-          <div style={{ background: "var(--p2,#1a1a1a)", border: "1px solid var(--l1,#222)", borderLeft: "3px solid var(--or,#f60)", borderRadius: 8, padding: "14px 16px" }}>
-            <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 6 }}>📱 SMS Load Posting — Coming soon</div>
-            <p style={{ fontSize: 11, color: "var(--t2,#888)", lineHeight: 1.7, margin: 0 }}>
-              Posting a load by text message is coming soon. Until then, post your load from this dashboard.
-            </p>
-          </div>
         </div>
       </div>
     </div>
@@ -1499,6 +1502,15 @@ function CarrierDashPage({ setPage, user, profile, showToast }: { setPage: (p: P
 // ─── PRICING PAGE ─────────────────────────────────────────────────────────────
 
 function PricingPage({ setPage }: { setPage: (p: Page) => void }) {
+  const inApp = useInApp();
+  if (inApp) {
+    return (
+      <div className="section" style={{ textAlign: "center" }}>
+        <p style={{ fontSize: 14, color: "var(--t2)" }}>Everything is free while we launch.</p>
+        <button className="btn" style={{ marginTop: 16 }} onClick={() => setPage("home")}>Back to home</button>
+      </div>
+    );
+  }
   return (
     <div className="section">
       <div style={{ textAlign: "center", marginBottom: 32 }}>
@@ -1795,7 +1807,8 @@ function Stub({ title, icon, desc, back, setPage }: { title: string; icon: strin
 
 // ─── TOOLS HUB ────────────────────────────────────────────────────────────────
 function ToolsPage({ setPage, profile }: { setPage: (p: any) => void; profile: any }) {
-  const tools = [
+  const inApp = useInApp();
+  const allTools = [
     { page: "invoice", icon: "🧾", title: "Invoice Generator", desc: "Create and send professional invoices to carriers", badge: "MEMBER" },
     { page: "expenses", icon: "📊", title: "Expense Tracker", desc: "Log jobs and expenses, export CSV/PDF for taxes", badge: "MEMBER" },
     { page: "job-history", icon: "📋", title: "Job History", desc: "View completed loads and earnings history", badge: "MEMBER" },
@@ -1807,9 +1820,11 @@ function ToolsPage({ setPage, profile }: { setPage: (p: any) => void; profile: a
     { page: "cb-radio", icon: "📻", title: "CB Radio Reference", desc: "Standard CB channels by state and highway", badge: "ALL" },
     { page: "fuel-calc", icon: "⛽", title: "Fuel Cost Estimator", desc: "Current diesel prices and trip fuel cost estimate", badge: "MEMBER" },
     { page: "per-diem", icon: "💰", title: "Per Diem Calculator", desc: "IRS standard rates for tax deductions", badge: "MEMBER" },
-    { page: "cert-tracker", icon: "🏅", title: "Cert Expiry Tracker", desc: "Track cert expiry dates (SMS reminders coming soon)", badge: "ALL" },
+    { page: "cert-tracker", icon: "🏅", title: "Cert Expiry Tracker", desc: "Track cert expiry dates", badge: "ALL" },
     { page: "factoring", icon: "💳", title: "Invoice Factoring", desc: "Get paid fast via partner factoring network", badge: "SOON" },
   ];
+  // In the phone apps only the tools that really work are listed; placeholder pages stay on the website.
+  const tools = inApp ? allTools.filter(t => t.page === "deadhead" || t.page === "cb-radio") : allTools;
   const badgeColor: Record<string, string> = { MEMBER: "var(--gr)", PRO: "var(--or)", ALL: "var(--am)", SOON: "var(--t3)" };
   return (
     <div className="section">
@@ -1838,7 +1853,7 @@ function ToolsPage({ setPage, profile }: { setPage: (p: any) => void; profile: a
 function InvoicePage({ setPage, user, profile }: any) { return <Stub title="Invoice Generator" icon="🧾" desc="Create professional invoices, track payment status, and send directly to carriers. Export to PDF for your records." back="tools" setPage={setPage} />; }
 function ExpensesPage({ setPage, user, profile }: any) { return <Stub title="Expense & Job Tracker" icon="📊" desc="Log jobs and expenses. Track fuel, lodging, equipment. Export CSV or PDF at tax time." back="tools" setPage={setPage} />; }
 function JobHistoryPage({ setPage }: any) { return <Stub title="Job History" icon="📋" desc="View all completed loads, earnings per job, and carrier history. Syncs automatically from OEH load board." back="tools" setPage={setPage} />; }
-function PermitHubPage({ setPage, user, profile }: any) { return <Stub title="Permit Hub" icon="📄" desc="Carriers upload permits to your load. Upload notifications by SMS are coming soon." back="tools" setPage={setPage} />; }
+function PermitHubPage({ setPage, user, profile }: any) { return <Stub title="Permit Hub" icon="📄" desc="Carriers upload permits to your load." back="tools" setPage={setPage} />; }
 function DeadheadPage({ setPage, profile }: any) {
   const isPro = ["pro", "fleet_starter", "fleet_plus", "fleet_pro"].includes(profile?.tier || "")
   const [mode, setMode] = useState<"single" | "fleet">("single")
@@ -2048,7 +2063,7 @@ function StateReqsPage({ setPage }: any) { return <Stub title="State Escort Requ
 function WeatherPage({ setPage }: any) { return <Stub title="Weather Alerts" icon="⛅" desc="Check weather and alerts along your route. Critical for wide loads — wind advisories, winter storms, visibility warnings." back="tools" setPage={setPage} />; }
 function FuelCalcPage({ setPage }: any) { return <Stub title="Fuel Cost Estimator" icon="⛽" desc="Estimate trip fuel cost with current diesel prices. Enter miles and MPG to see what the job really costs." back="tools" setPage={setPage} />; }
 function PerDiemPage({ setPage }: any) { return <Stub title="Per Diem Calculator" icon="💰" desc="IRS standard per diem rate for transportation workers is $69/day (80% deductible). Calculate your annual tax deduction." back="tools" setPage={setPage} />; }
-function CertTrackerPage({ setPage, profile }: any) { return <Stub title="Cert Expiry Tracker" icon="🏅" desc="Track all your cert expiry dates. SMS reminders before a cert lapses are coming soon. Never lose a job because of an expired cert." back="tools" setPage={setPage} />; }
+function CertTrackerPage({ setPage, profile }: any) { return <Stub title="Cert Expiry Tracker" icon="🏅" desc="Track all your cert expiry dates. Never lose a job because of an expired cert." back="tools" setPage={setPage} />; }
 function FactoringPage({ setPage }: any) { return <Stub title="Invoice Factoring" icon="💳" desc="Get paid within 24 hours. We are finalizing partnerships with RTS Financial, Triumph Business Capital, and OTR Solutions." back="tools" setPage={setPage} />; }
 
 // ─── CB RADIO (has real content) ──────────────────────────────────────────────
