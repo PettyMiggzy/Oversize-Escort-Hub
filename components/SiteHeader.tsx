@@ -39,6 +39,7 @@ export default function SiteHeader() {
     });
   }, []);
 
+  const signOut = async () => { try { await supabase.auth.signOut() } catch { /* already signed out */ } window.location.href = "/" };
   const isMobile = windowWidth < 900;
   const navHref = (n: NavItem) => (n.href === "/post-load" && !userProfile ? "/quick-post" : n.href);
   const isActive = (n: NavItem) => pathname === n.href || (n.also ?? []).includes(pathname) || (n.href === "/jobs" && pathname.startsWith("/jobs/"));
@@ -184,7 +185,7 @@ export default function SiteHeader() {
           {/* Desktop CTA */}
           <div style={ctaAreaStyle}>
         {userProfile ? (
-          <Link href="/dashboard" style={btnPrimeStyle}>Dashboard</Link>
+          <><Link href="/dashboard" style={btnPrimeStyle}>Dashboard</Link><button type="button" onClick={signOut} style={btnGhostStyle}>Sign out</button></>
         ) : (
           <><Link href="/signin" style={btnGhostStyle}>Sign in</Link><Link href="/signin?mode=signup" style={btnPrimeStyle}>Get started</Link></>
         )}
@@ -217,7 +218,9 @@ export default function SiteHeader() {
           </Link>
           <div style={mobileCtaStyle}>
           {userProfile ? (
-            <Link href="/dashboard" style={{ ...btnPrimeStyle, textAlign: "center", padding: "10px 0" }} onClick={() => setOpen(false)}>Dashboard</Link>
+            <><Link href="/dashboard" style={{ ...btnPrimeStyle, textAlign: "center", padding: "10px 0" }} onClick={() => setOpen(false)}>Dashboard</Link>
+            <button type="button" onClick={signOut} style={{ ...btnGhostStyle, textAlign: "center", padding: "10px 0" }}>Sign out</button>
+            <Link href="/delete-account" style={{ ...mobileLinkStyle, fontSize: 12, opacity: 0.7, textAlign: "center", padding: "8px 0" }} onClick={() => setOpen(false)}>Delete my account</Link></>
           ) : (
             <><Link href="/signin" style={{ ...btnGhostStyle, textAlign: "center", padding: "10px 0" }} onClick={() => setOpen(false)}>Sign in</Link><Link href="/signin?mode=signup" style={{ ...btnPrimeStyle, textAlign: "center", padding: "10px 0" }} onClick={() => setOpen(false)}>Get started</Link></>
           )}

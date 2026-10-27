@@ -514,9 +514,8 @@ function Footer({ setPage }: { setPage: (p: Page) => void }) {
         </div>
         <div className="footer-col">
           <h4>Membership</h4>
-          {[["signin", "Create Account"], ["dashboard-e", "Escort Dashboard"], ["dashboard-c", "Carrier Dashboard"]].map(([p, l]) => (
-            <a key={p} onClick={() => p === "pricing" ? window.location.href = '/pricing' : setPage(p as Page)}>{l}</a>
-          ))}
+          <a href="/signin?mode=signup">Create Account</a>
+          <a href="/dashboard">My Dashboard</a>
         </div>
         <div className="footer-col">
           <h4>Company</h4>

@@ -7,6 +7,7 @@ import * as QRCode from 'qrcode'
 import { createClient } from '@/lib/supabase/client'
 import { isAdminEmail } from '@/lib/supabase'
 import { isNativeApp } from '@/lib/native'
+import { FREE_LAUNCH } from '@/lib/free-launch'
 import { withFreeLaunch, effectiveTier } from '@/lib/free-launch'
 import SiteHeader from '@/components/SiteHeader'
 import PageTitle from '@/components/PageTitle'
@@ -632,10 +633,16 @@ export function DashboardPageClient() {
   }
 
   const handleStripePortal = async () => {
-    const res = await fetch('/api/stripe/portal', { method: 'POST' })
-    if (res.ok) {
-      const { url } = await res.json()
-      if (url) window.location.href = url
+    setActionMsg('')
+    try {
+      const res = await fetch('/api/stripe/portal', { method: 'POST' })
+      if (res.ok) {
+        const { url } = await res.json()
+        if (url) { window.location.href = url; return }
+      }
+      setActionMsg('There is no paid subscription to manage on this account.')
+    } catch {
+      setActionMsg('Could not open subscription settings. Try again in a minute.')
     }
   }
 
@@ -711,6 +718,7 @@ export function DashboardPageClient() {
   const [expenses, setExpenses] = useState<any[]>([])
   const [expKind, setExpKind] = useState<'mileage'|'fuel'|'lodging'|'meal'|'toll'|'other'>('mileage')
   const [expAmount, setExpAmount] = useState('')
+  const [expMsg, setExpMsg] = useState('')
   const [expMiles, setExpMiles] = useState('')
   const [expNote, setExpNote] = useState('')
   const [expSubmitting, setExpSubmitting] = useState(false)
@@ -742,8 +750,8 @@ export function DashboardPageClient() {
   }, [profile])
 
   const handleAddExpense = async () => {
-    setActionMsg('')
-    if (!expAmount) { setActionMsg('Amount required'); return }
+    setActionMsg(''); setExpMsg('')
+    if (!expAmount) { setActionMsg('Amount required'); setExpMsg('Enter an amount first.'); return }
     setExpSubmitting(true)
     try {
       const res = await fetch('/api/expenses', {
@@ -752,10 +760,10 @@ export function DashboardPageClient() {
         body: JSON.stringify({ kind: expKind, amount: Number(expAmount), miles: expMiles || null, note: expNote || null }),
       })
       const d = await res.json()
-      if (!res.ok) { setActionMsg(d.error || 'Failed to add expense'); return }
+      if (!res.ok) { setActionMsg(d.error || 'Failed to add expense'); setExpMsg(d.error || 'Could not save the expense.'); return }
       setExpenses(prev => [d.expense, ...prev])
       setExpAmount(''); setExpMiles(''); setExpNote('')
-      setActionMsg('Expense saved.')
+      setActionMsg('Expense saved.'); setExpMsg('Expense saved.')
     } finally { setExpSubmitting(false) }
   }
 
@@ -1093,6 +1101,7 @@ export function DashboardPageClient() {
                   {expSubmitting ? 'Saving…' : 'Add'}
                 </button>
               </div>
+              {expMsg && <p role="status" style={{ color: MUTED, fontSize: 13, marginTop: 8, marginBottom: 0 }}>{expMsg}</p>}
               {expenses.length > 0 && (
                 <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   {expenses.map((ex: any) => (
@@ -1144,7 +1153,7 @@ export function DashboardPageClient() {
               <p style={{ margin: 0 }}><span style={{ color: MUTED }}>Name:</span> {profile.full_name || '—'}</p>
               <p style={{ margin: '8px 0 0' }}><span style={{ color: MUTED }}>Role:</span> {profile.role}</p>
               <a href="/profile" style={{ display: 'inline-block', marginTop: '0.75rem', color: ORANGE, fontSize: '0.875rem' }}>Edit Profile →</a>
-              {profile.role === 'escort' ? <a href="/my-documents" style={{ display: 'inline-block', marginTop: '0.75rem', marginLeft: '1.25rem', color: ORANGE, fontSize: '0.875rem' }}>My documents →</a> : null}
+              {profile.role === 'escort' ? <a href="/my-documents" style={{ marginTop: '0.75rem', marginLeft: 0, display: 'block', color: ORANGE, fontSize: '0.875rem' }}>My documents →</a> : null}
             </div>
           </section>
 
@@ -1152,7 +1161,9 @@ export function DashboardPageClient() {
           <section>
             <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#fff', marginBottom: '1rem' }}>Subscription</h2>
             <div style={{ background: SURFACE, borderRadius: 8, padding: '1rem', border: '1px solid rgba(255,255,255,.12)', textAlign: 'center', marginTop: 8 }}>
-              {(profile.stripe_customer_id || isPro) ? (
+              {FREE_LAUNCH && !profile.stripe_customer_id ? (
+                <p style={{ margin: 0, color: MUTED, fontSize: 14 }}>Everything is free while we launch. There is nothing to manage yet.</p>
+              ) : (profile.stripe_customer_id || isPro) ? (
                 <button onClick={handleStripePortal} style={{ background: ORANGE, color: '#000', border: 'none', borderRadius: 6, padding: '10px 24px', fontWeight: 700, cursor: 'pointer' }}>
                   Manage Subscription
                 </button>

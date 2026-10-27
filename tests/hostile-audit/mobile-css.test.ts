@@ -37,3 +37,20 @@ test('the Deadhead Minimizer tool opens its dashboard tab and never links to a p
   expect(page).not.toContain('href: "/deadhead"')
   expect(fs.existsSync('app/deadhead')).toBe(false)
 })
+
+test('signed-in people can always sign out and reach account deletion from the shared header', () => {
+  const h = fs.readFileSync('components/SiteHeader.tsx', 'utf8')
+  expect(h).toContain('supabase.auth.signOut()')
+  expect((h.match(/>Sign out</g) || []).length).toBeGreaterThanOrEqual(2)
+  expect(h).toContain('href="/delete-account"')
+})
+
+test('the dashboard gives feedback instead of silently failing (subscription, expenses) and the footer has no link without a destination', () => {
+  const d = fs.readFileSync('app/dashboard/_client.tsx', 'utf8')
+  expect(d).toContain('There is no paid subscription to manage on this account.')
+  expect(d).toContain('Everything is free while we launch. There is nothing to manage yet.')
+  expect(d).toContain("setExpMsg('Enter an amount first.')")
+  const page = fs.readFileSync('app/page.tsx', 'utf8')
+  expect(page).toContain('<a href="/signin?mode=signup">Create Account</a>')
+  expect(page).not.toContain('["dashboard-c", "Carrier Dashboard"]')
+})
