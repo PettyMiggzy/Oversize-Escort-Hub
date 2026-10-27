@@ -19,7 +19,8 @@ test('on phones the top bar hides the crowded items and keeps the menu button on
 
 test('the phone apps leave room for the status bar', () => {
   const css = fs.readFileSync('app/globals.css', 'utf8')
-  expect(css).toMatch(/html\.native-app body\{padding-top:env\(safe-area-inset-top/)
+  expect(css).toMatch(/html\.native-app body::before\{content:'';display:block;height:env\(safe-area-inset-top/)
+  expect(css).toMatch(/html\.native-app::after\{content:'';position:fixed/)
   expect(fs.readFileSync('app/layout.tsx', 'utf8')).toContain("viewportFit: 'cover'")
   expect(fs.readFileSync('app/layout.tsx', 'utf8')).toContain('<NativeFlag />')
   expect(fs.readFileSync('components/SiteHeader.tsx', 'utf8')).toContain('var(--safe-top, 0px)')
@@ -27,7 +28,7 @@ test('the phone apps leave room for the status bar', () => {
 
 test('the menu (hamburger) button really shows on phones: the later default rule must not hide it', () => {
   const page = fs.readFileSync('app/page.tsx', 'utf8')
-  expect(page).toMatch(/\.ham-btn\{display:flex!important;/)
+  expect(page).toMatch(/\.ham-btn\{display:flex!important;flex-direction:column;/)
 })
 
 test('the Deadhead Minimizer tool opens its dashboard tab and never links to a page that does not exist', () => {

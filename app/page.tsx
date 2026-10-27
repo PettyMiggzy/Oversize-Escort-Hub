@@ -339,7 +339,7 @@ footer{background:rgba(8,9,12,.72);border-top:1px solid var(--l1);padding:40px 2
   .footer-grid{grid-template-columns:1fr 1fr}
   .dash-grid{flex-direction:column}
   .dash-nav{display:flex}
-  .ham-btn{display:flex!important;align-items:center;justify-content:center}
+  .ham-btn{display:flex!important;flex-direction:column;align-items:center;justify-content:center}
   .nav-links{display:none!important}
   .nav{padding:0 14px;gap:10px;overflow:hidden}
   .nav-name{font-size:16px;white-space:nowrap}

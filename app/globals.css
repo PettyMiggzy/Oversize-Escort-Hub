@@ -377,5 +377,5 @@ html, body {
 :root{--safe-top:0px}
 body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
 html.native-app{--safe-top:env(safe-area-inset-top,0px)}
-html.native-app body{padding-top:env(safe-area-inset-top,0px)}
-html.native-app body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top,0px);background:#050608;z-index:9999;pointer-events:none}
+html.native-app body::before{content:'';display:block;height:env(safe-area-inset-top,0px);background:#050608}
+html.native-app::after{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top,0px);background:#050608;z-index:9999;pointer-events:none}
