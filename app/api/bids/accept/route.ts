@@ -38,8 +38,11 @@ export async function POST(req: NextRequest) {
     if (!bid || bid.status !== 'pending') return NextResponse.json({ error: 'Bid not available' }, { status: 409 })
     const escort_id = bid.escort_id as string
 
+    // The database does not let a carrier write who a load is matched to, so these writes use the service key,
+    // after the checks above (this is the load's carrier, and the bid is on this load).
+    const svc = createServiceClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
     // Take the load first: only one accept can win it
-    const { data: taken, error: takeErr } = await supabase
+    const { data: taken, error: takeErr } = await svc
       .from('loads')
       .update({
         status: 'filled',
@@ -55,8 +58,7 @@ export async function POST(req: NextRequest) {
     if (!taken?.length) return NextResponse.json({ error: 'Load not available' }, { status: 409 })
 
     // Accept this bid, reject the rest. Bids belong to the escort, so the database gives a carrier no update right on them:
-    // the writes use the service key, after the checks above (this is the load's carrier, and the bid is on this load).
-    const svc = createServiceClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+    // the writes use the service key, after the checks above.
     const { data: accepted, error: acceptErr } = await svc
       .from('bids')
       .update({ status: 'accepted' })
@@ -66,7 +68,7 @@ export async function POST(req: NextRequest) {
       .select('id')
     if (acceptErr || !accepted?.length) {
       // the bid was withdrawn or rejected in the meantime: put the load back so the carrier can choose again
-      await supabase.from('loads').update({ status: 'open', matched_escort_id: null, match_requested_at: null }).eq('id', load_id).eq('status', 'filled').eq('matched_escort_id', escort_id)
+      await svc.from('loads').update({ status: 'open', matched_escort_id: null, match_requested_at: null }).eq('id', load_id).eq('status', 'filled').eq('matched_escort_id', escort_id)
       if (acceptErr) return NextResponse.json({ error: 'Could not accept the bid' }, { status: 500 })
       return NextResponse.json({ error: 'Bid not available' }, { status: 409 })
     }
