@@ -257,6 +257,8 @@ html, body {
 .hl-quick{display:block;text-align:center;margin-top:16px;color:#c9d0db;font-size:14.5px;text-decoration:none}
 .hl-quick strong{color:#ff9a5c;font-weight:700}
 .hl-quick:hover strong{color:#fff}
+.hl-badge{display:flex;justify-content:center;margin-top:4px}
+.hl-badge img{height:56px;width:auto;display:block}
 .hl-sec{max-width:1180px;margin:0 auto;padding:64px 24px 34px}
 .hl-t{margin-bottom:28px}.hl-t h2{font-family:'Plus Jakarta Sans','Inter',sans-serif;text-transform:none;font-size:38px;letter-spacing:-.025em;word-spacing:.06em;margin:0;font-weight:800;color:#fff}.hl-t p{color:#9aa3b2;margin:8px 0 0;font-size:16px}
 .hl-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}

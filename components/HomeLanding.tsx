@@ -86,6 +86,10 @@ export default function HomeLanding({ onCarrier, onEscort, onBroker, onFleet, on
               </button>
             </div>
             <a href="/quick-post" className="hl-quick">Carrier or broker in a hurry? <strong>Post a load without an account</strong> &rarr;</a>
+            <HideInApp><a className="hl-badge" href="https://play.google.com/store/apps/details?id=pevo.oversizeescorthub.app" target="_blank" rel="noopener noreferrer" aria-label="Get it on Google Play">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/badges/google-play-badge.png" alt="Get it on Google Play" width={646} height={250} />
+            </a></HideInApp>
           </div>
         </div>
       </div>

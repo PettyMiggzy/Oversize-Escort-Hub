@@ -111,8 +111,10 @@ test('the Google Play link is in both footers, hidden inside the app, and the fo
   const footer = fs.readFileSync('components/SiteFooter.tsx', 'utf8')
   expect(footer).toContain(play)
   expect(footer).toMatch(/<HideInApp><a[^>]*play\.google\.com/)
+  expect(footer).toContain('/badges/google-play-badge.png')
   const home = fs.readFileSync('app/page.tsx', 'utf8')
   expect(home).toMatch(/<HideInApp><a href="https:\/\/play\.google\.com/)
+  expect(home).toContain('/badges/google-play-badge.png')
   expect(home).not.toContain('NO JOB FEES · EVER')
 })
 

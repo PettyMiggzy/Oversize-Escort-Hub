@@ -519,7 +519,7 @@ function Footer({ setPage, signedIn = false }: { setPage: (p: Page) => void; sig
           <p style={{ fontSize: 12, color: "var(--t2)", lineHeight: 1.75, maxWidth: 230 }}>
             Marketplace for oversize carriers and P/EVO escorts. Free while we launch. No commissions or job fees on loads today.
           </p>
-          <HideInApp><a href="https://play.google.com/store/apps/details?id=pevo.oversizeescorthub.app" target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", marginTop: 10, fontSize: 12, color: "var(--or)" }}>Get it on Google Play →</a></HideInApp>
+          <HideInApp><a href="https://play.google.com/store/apps/details?id=pevo.oversizeescorthub.app" target="_blank" rel="noopener noreferrer" aria-label="Get it on Google Play" style={{ display: "inline-block", marginTop: 6 }}>{/* eslint-disable-next-line @next/next/no-img-element */}<img src="/badges/google-play-badge.png" alt="Get it on Google Play" width={646} height={250} style={{ height: 52, width: "auto", display: "block", marginLeft: -6 }} /></a></HideInApp>
         </div>
         <div className="footer-col">
           <h4>Platform</h4>

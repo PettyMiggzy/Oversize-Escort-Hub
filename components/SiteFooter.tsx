@@ -64,7 +64,7 @@ export default function SiteFooter() {
           <Link className="hover:text-white" href="/privacy">Privacy</Link>
           <Link className="hover:text-white" href="/conduct">Code of Conduct</Link>
           <Link className="hover:text-white" href="/delete-account">Delete account</Link>
-          <HideInApp><a className="hover:text-white" href="https://play.google.com/store/apps/details?id=pevo.oversizeescorthub.app" target="_blank" rel="noopener noreferrer">Get it on Google Play</a></HideInApp>
+          <HideInApp><a href="https://play.google.com/store/apps/details?id=pevo.oversizeescorthub.app" target="_blank" rel="noopener noreferrer" aria-label="Get it on Google Play">{/* eslint-disable-next-line @next/next/no-img-element */}<img src="/badges/google-play-badge.png" alt="Get it on Google Play" width={646} height={250} style={{ height: 44, width: "auto", display: "block", margin: "-8px 0" }} /></a></HideInApp>
         </div>
       </div>
     </footer>
