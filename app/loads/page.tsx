@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import SiteHeader from '@/components/SiteHeader'
 
 const supabase = createClient();
 
@@ -18,7 +19,7 @@ interface Load {
   miles?: number;
 }
 
-export default function OpenLoadsPage() {
+function OpenLoadsPageInner() {
   const [loads, setLoads] = useState<Load[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -115,4 +116,13 @@ export default function OpenLoadsPage() {
       )}
     </div>
   );
+}
+
+export default function OpenLoadsPage() {
+  return (
+    <>
+      <SiteHeader />
+      <OpenLoadsPageInner />
+    </>
+  )
 }

@@ -4,7 +4,7 @@ import { VERIFICATION_LIVE } from '@/lib/verification'
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
-import { withFreeLaunch } from "@/lib/free-launch";
+import { withFreeLaunch, FREE_LAUNCH } from "@/lib/free-launch";
 import HomeLanding from "@/components/HomeLanding";
 import HideInApp from "@/components/HideInApp";
 
@@ -427,7 +427,7 @@ function Nav({ page, setPage, user, profile, onSignOut, unreadCount = 0, setSign
           <span className="nav-user"><button onClick={()=>setPage(profile?.role==='escort'?'dashboard-e':'dashboard-c')} style={{position:'relative',background:'none',border:'none',cursor:'pointer',padding:'4px',color:'var(--t1)',fontSize:20}} title="Notifications">{String.fromCodePoint(128276)}{unreadCount>0&&<span style={{position:'absolute',top:0,right:0,background:'#ff6600',color:'#fff',borderRadius:'50%',fontSize:9,width:16,height:16,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700}}>{unreadCount>9?'9+':unreadCount}</span>}</button>
             <span style={{ display:"inline-flex",alignItems:"center",justifyContent:"center",width:26,height:26,borderRadius:"50%",background:profile.avatar_url?"transparent":"#ff6600",color:"#fff",fontSize:10,fontWeight:700,marginRight:6,flexShrink:0,overflow:"hidden" }}>{profile.avatar_url ? <img src={profile.avatar_url} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}} /> : (profile.full_name||"?").split(" ").filter(Boolean).map(function(w){return w[0]}).join("").toUpperCase().slice(0,2)||"?"}</span>
             <span className="nav-user-name">{profile.full_name || "there"}{" · "}
-            <span style={{ color: "var(--or)", fontSize: 8 }}>{profile.tier?.toUpperCase()}</span>{" "}</span>
+            <span style={{ color: "var(--or)", fontSize: 8 }}>{profile.tier?.replace(/_/g, " ").toUpperCase()}</span>{" "}</span>
             {profile?.role === "fleet_manager" && <button className="nav-signout" style={{ color:'#ff6600', borderColor:'#ff6600' }} onClick={() => { window.location.href = '/fleet-dashboard'; }}>FLEET DASHBOARD</button>}
             {profile?.role === "fleet_manager" && <button className="nav-signout" style={{ color:'#ff6600', borderColor:'#ff6600' }} onClick={() => { window.location.href = '/fleet-dashboard'; }}>FLEET DASHBOARD</button>} {profile?.role === 'admin' && (
             <select
@@ -476,7 +476,7 @@ function Nav({ page, setPage, user, profile, onSignOut, unreadCount = 0, setSign
               {user && profile ? (
                 <>
                   <div className="mo" style={{ fontSize: 9, color: "var(--t2)", marginBottom: 4 }}>Signed in as <strong style={{ color: "var(--t1)" }}>{profile.full_name}</strong></div>
-                  <div className="mo" style={{ fontSize: 8, color: "var(--or)", marginBottom: 10 }}>{profile.tier?.toUpperCase()} · {profile.role?.toUpperCase()}</div>
+                  <div className="mo" style={{ fontSize: 8, color: "var(--or)", marginBottom: 10 }}>{profile.tier?.replace(/_/g, " ").toUpperCase()} · {profile.role?.replace(/_/g, " ").toUpperCase()}</div>
                   <button className="drawer-link" onClick={() => { profile?.role === "fleet_manager" ? (window["location"]["href"] = "/fleet-dashboard") : setPage(profile.role === "carrier" ? "dashboard-c" : "dashboard-e"); closeDrawer(); }}>→ Dashboard</button>
                   {profile?.role === 'admin' && (
                     <button className="drawer-link" onClick={() => { setPage('admin'); closeDrawer(); }}>Admin</button>
@@ -495,7 +495,7 @@ function Nav({ page, setPage, user, profile, onSignOut, unreadCount = 0, setSign
   );
 }
 
-function Footer({ setPage }: { setPage: (p: Page) => void }) {
+function Footer({ setPage, signedIn = false }: { setPage: (p: Page) => void; signedIn?: boolean }) {
   return (
     <footer>
       <div className="footer-grid">
@@ -514,8 +514,8 @@ function Footer({ setPage }: { setPage: (p: Page) => void }) {
         </div>
         <div className="footer-col">
           <h4>Membership</h4>
-          <a href="/signin?mode=signup">Create Account</a>
-          <a href="/dashboard">My Dashboard</a>
+          {!signedIn && <a href="/signin?mode=signup">Create Account</a>}
+          <a href={signedIn ? "/dashboard" : "/signin"}>{signedIn ? "My Dashboard" : "Sign in"}</a>
         </div>
         <div className="footer-col">
           <h4>Company</h4>
@@ -547,6 +547,8 @@ function PayScore({ score }: { score: number }) {
 }
 
 function LockBar({ setPage }: { setPage: (p: Page) => void }) {
+  // everything is free while we launch: no "member access required" or price on the sample load
+  if (FREE_LAUNCH) return null;
   return (
     <div className="lock-bar">
       <div>
@@ -1017,7 +1019,7 @@ function EscortDashPage({ setPage, profile, showToast }: { setPage: (p: Page) =>
         ))}
         <div style={{ padding: "20px 20px 0", marginTop: 20, borderTop: "1px solid var(--l1)" }}>
           <div className={`chip ${profile?.tier === "pro" ? "ch-am" : profile?.tier === "member" ? "ch-bl" : "ch-dim"}`} style={{ fontSize: 8, marginBottom: 8 }}>
-            {(profile?.tier || "free").toUpperCase()}
+            {(profile?.tier || "free").replace(/_/g, " ").toUpperCase()}
           </div>
           <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 2 }}>{profile?.full_name || "Your Name"}</div>
           <div className="mo" style={{ fontSize: 9, color: "var(--t2)" }}>{profile?.company_name || "No company set"}</div>
@@ -1350,7 +1352,7 @@ function CarrierDashPage({ setPage, user, profile, showToast }: { setPage: (p: P
         </div>
         <div style={{ marginTop: 20, padding: '0 20px' }}>
           <div className={`chip ${profile?.tier === 'carrier_member' ? 'ch-or' : 'ch-dim'}`} style={{ fontSize: 8, marginBottom: 8 }}>
-            {(profile?.tier || 'free').toUpperCase()}
+            {(profile?.tier || 'free').replace(/_/g, ' ').toUpperCase()}
           </div>
           <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 2 }}>{profile?.company_name || profile?.full_name || 'Your Company'}</div>
           <div className="mo" style={{ fontSize: 9, color: 'var(--t2)' }}>Carrier Account</div>
@@ -2378,7 +2380,7 @@ export default function OEHPlatform() {
         {page === "dashboard-e" && <EscortDashPage setPage={setPage} profile={activeProfile} showToast={showToast} />}
         {page === "admin" && <AdminPage setPage={setPage} user={user} profile={activeProfile} />}
               {page === "available" && <AvailabilityBoard setPage={setPage} profile={activeProfile} />}
-      <Footer setPage={setPage} />
+      <Footer setPage={setPage} signedIn={!!user} />
       {reviewPrompt && (<div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}><div className="card" style={{ maxWidth:440, width:'100%', padding:28 }}><div style={{ fontSize:18, fontWeight:700, marginBottom:8 }}>⭐ How was your experience?</div><div style={{ fontSize:13, color:'var(--t2)', marginBottom:16 }}>Leave a review for {reviewPrompt.targetName}</div><div style={{ display:'flex', gap:8, marginBottom:16 }}>{[1,2,3,4,5].map(n => (<button key={n} onClick={() => setReviewRating(n)} style={{ fontSize:24, background:'none', border:'none', cursor:'pointer', opacity: n <= reviewRating ? 1 : 0.3 }}>⭐</button>))}</div><textarea value={reviewText} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setReviewText(e.target.value)} placeholder="Optional written review (500 chars max)" maxLength={500} style={{ width:'100%', minHeight:80, padding:10, borderRadius:6, border:'1px solid var(--l2)', background:'var(--bg)', color:'var(--t1)', fontSize:13, resize:'vertical', marginBottom:16 }} /><div style={{ display:'flex', gap:10 }}><button className="btn btn-or" disabled={reviewSubmitting} onClick={async () => { setReviewSubmitting(true); const __revRes = await fetch('/api/reviews', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ loadId: reviewPrompt.loadId, targetUserId: reviewPrompt.targetId, rating: reviewRating, comment: reviewText }) }); setReviewSubmitting(false); if (!__revRes.ok) { const __d = await __revRes.json().catch(() => ({})); showToast(__d.error || 'Could not submit review', 'rd'); return; } setReviewPrompt(null); setReviewRating(5); setReviewText(''); showToast('Thanks for your review!', 'gr') }}>{reviewSubmitting ? 'Submitting…' : 'Submit Review'}</button><button className="btn" onClick={() => setReviewPrompt(null)}>Skip</button></div></div></div>)}
       {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
     </>

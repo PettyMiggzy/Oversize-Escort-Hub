@@ -1,4 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
+
+/* Tailwind utilities only (no preflight reset, so existing pages are unchanged). Several pages (invoices, loads, job log, weather, FMCSA, reviews...) use Tailwind class names. */
+@tailwind utilities;
+.border,.border-2,.border-t,.border-b,.border-l,.border-r{border-style:solid}
 /* ================================
    OVERSIZE ESCORT HUB
    Premium Ops / High-Tech Theme

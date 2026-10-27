@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import SiteHeader from '@/components/SiteHeader'
 
 type JobLog = {
   id: string;
@@ -10,7 +11,7 @@ type JobLog = {
   load_id: string | null;
 };
 
-export default function JobsPage() {
+function JobsPageInner() {
   const [jobs, setJobs] = useState<JobLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -221,4 +222,13 @@ export default function JobsPage() {
       </div>
     </div>
   );
+}
+
+export default function JobsPage() {
+  return (
+    <>
+      <SiteHeader />
+      <JobsPageInner />
+    </>
+  )
 }

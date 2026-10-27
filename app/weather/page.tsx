@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import SiteHeader from '@/components/SiteHeader'
 
 interface WeatherAlert {
   event?: string;
@@ -19,7 +20,7 @@ interface WeatherResponse {
   alerts?: WeatherAlert[];
 }
 
-export default function WeatherPage() {
+function WeatherPageInner() {
   const [coords, setCoords] = useState({ lat: "", lng: "" });
   const [weather, setWeather] = useState<WeatherResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -111,4 +112,13 @@ export default function WeatherPage() {
       </div>
     </div>
   );
+}
+
+export default function WeatherPage() {
+  return (
+    <>
+      <SiteHeader />
+      <WeatherPageInner />
+    </>
+  )
 }

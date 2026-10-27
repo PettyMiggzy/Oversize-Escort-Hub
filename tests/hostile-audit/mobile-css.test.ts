@@ -54,3 +54,27 @@ test('the dashboard gives feedback instead of silently failing (subscription, ex
   expect(page).toContain('<a href="/signin?mode=signup">Create Account</a>')
   expect(page).not.toContain('["dashboard-c", "Carrier Dashboard"]')
 })
+
+test('Tailwind utilities are switched on (several pages use its class names) without the page-wide reset', () => {
+  const css = fs.readFileSync('app/globals.css', 'utf8')
+  expect(css).toContain('@tailwind utilities;')
+  expect(css).not.toContain('@tailwind base')
+})
+
+test('pages that used to be bare (no header) now carry the site header, and Conduct is a real page', () => {
+  for (const f of ['weather', 'fmcsa', 'invoices', 'loads', 'job-log']) {
+    expect(fs.readFileSync(`app/${f}/page.tsx`, 'utf8'), f).toContain('<SiteHeader />')
+  }
+  const c = fs.readFileSync('app/conduct/page.tsx', 'utf8')
+  expect(c).not.toContain('Paste Conduct here')
+  expect(c).toContain('We do not check anyone')
+  expect(c).toContain('Reporting a problem')
+})
+
+test('no paid-plan price or "member access required" text on the home screen while everything is free; no raw enum labels; footer fits signed-in people', () => {
+  const page = fs.readFileSync('app/page.tsx', 'utf8')
+  expect(page).toMatch(/function LockBar[^]*?if \(FREE_LAUNCH\) return null;/)
+  expect(page).toContain('signedIn={!!user}')
+  expect(page).toContain('{!signedIn && <a href="/signin?mode=signup">Create Account</a>}')
+  expect(page).not.toMatch(/profile\??\.tier\??\.toUpperCase\(\)/)
+})

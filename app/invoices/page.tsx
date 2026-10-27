@@ -1,9 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
+import SiteHeader from '@/components/SiteHeader'
 
 interface Invoice { id: string; amount: number; status: string; created_at: string; load_id: string; }
 
-export default function InvoicesPage() {
+function InvoicesPageInner() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -70,4 +71,13 @@ export default function InvoicesPage() {
       </div>
     </div>
   );
+}
+
+export default function InvoicesPage() {
+  return (
+    <>
+      <SiteHeader />
+      <InvoicesPageInner />
+    </>
+  )
 }

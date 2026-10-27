@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import SiteHeader from '@/components/SiteHeader'
 
 interface FMCSAData {
   verified?: boolean;
@@ -11,7 +12,7 @@ interface FMCSAData {
   outOfService?: string | null;
 }
 
-export default function FMCSAPage() {
+function FMCSAPageInner() {
   const [dotNumber, setDotNumber] = useState("");
   const [data, setData] = useState<FMCSAData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -92,4 +93,13 @@ export default function FMCSAPage() {
       </div>
     </div>
   );
+}
+
+export default function FMCSAPage() {
+  return (
+    <>
+      <SiteHeader />
+      <FMCSAPageInner />
+    </>
+  )
 }
