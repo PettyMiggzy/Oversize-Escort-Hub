@@ -101,8 +101,8 @@ table{width:100%;border-collapse:collapse}
 @keyframes scrolltick{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
 
 .ticker{color:#ffffff;height:28px;background:#030507;border-bottom:1px solid var(--l1);overflow:hidden;display:flex;align-items:center}
-.ticker-track{display:flex;animation:scrolltick 45s linear infinite;white-space:nowrap;will-change:transform;backface-visibility:hidden;transform:translate3d(0,0,0)}
-.tick-item{display:inline-flex;align-items:center;gap:10px;padding:0 36px;border-right:1px solid var(--l1);height:28px;font-family:'Inter',system-ui,sans-serif;font-weight:500;font-size:13px;color:#ffffff;letter-spacing:.02em;word-spacing:.12em;text-rendering:geometricPrecision;-webkit-font-smoothing:antialiased}
+.ticker-track{display:flex;width:max-content;animation:scrolltick 50s linear infinite;white-space:nowrap;will-change:transform;backface-visibility:hidden;transform:translate3d(0,0,0)}
+.tick-item{display:inline-flex;flex-shrink:0;align-items:center;gap:10px;padding:0 36px;border-right:1px solid var(--l1);height:28px;font-family:'Inter',system-ui,sans-serif;font-weight:500;font-size:13px;color:#ffffff;letter-spacing:.02em;word-spacing:.12em;text-rendering:geometricPrecision;-webkit-font-smoothing:antialiased}
 .tick-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
 .dot-gr{background:var(--gr);box-shadow:0 0 5px var(--gr)}
 .dot-am{background:var(--am);box-shadow:0 0 5px var(--am)}
