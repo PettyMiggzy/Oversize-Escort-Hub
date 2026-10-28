@@ -131,7 +131,9 @@ test('desktop top bars carry an Android app link that is hidden on phones and in
 test('the top ticker moves at a readable speed with clear spacing and no invented rates', () => {
   const src = fs.readFileSync('app/page.tsx', 'utf8')
   expect(src).toMatch(/\.ticker-track\{[^}]*width:max-content[^}]*scrolltick 50s linear infinite/)
-  expect(src).toMatch(/\.tick-item\{[^}]*flex-shrink:0/)
+  expect(src).toMatch(/\.tick-item\{[^}]*flex-shrink:0[^}]*max-width:none/)
+  // the phone rule `* { max-width: 100% }` in globals.css would otherwise squeeze the ticker to the screen width
+  expect(src).toMatch(/\.ticker-track\{[^}]*max-width:none/)
   expect(src).toMatch(/\.tick-item\{[^}]*font-size:13px[^}]*letter-spacing:\.02em/)
   expect(src).not.toContain('Standard rates: $2.00/mi')
   expect(src).not.toContain('Everyone sees new loads the moment they post')
