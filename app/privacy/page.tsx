@@ -206,7 +206,11 @@ export default function PrivacyPolicy() {
           </div>
 
           <div style={{ ...s.section }}>
-          <h2 style={{ ...s.h2 }}>32. Contact Us</h2>
+            <h2 style={{ ...s.h2 }}>32. Wraith voice assistant</h2>
+            <p style={{ ...s.p }}>If you use Wraith, the question you speak or type is sent to our servers and, to write the answer, to an outside AI service. To answer, Wraith looks up information in your own OEH account (open loads, your bids, your posted loads and your document dates). Contact details of other people are never given to it. If you use your browser's microphone, your browser or device maker turns your speech into text under its own privacy policy before it reaches us; we receive the text, not a recording. We keep a short log of your questions (up to 300 characters each) to apply daily limits and to find abuse. Wraith Pro payments are handled by Stripe, and we keep only a record that your subscription is active, with its Stripe customer and subscription numbers and its renewal date. We do not store your card number. Do not say or type anything sensitive, such as a Social Security number or a card number.</p>
+          </div>
+          <div style={{ ...s.section }}>
+          <h2 style={{ ...s.h2 }}>33. Contact Us</h2>
           <p style={{ ...s.p }}>If you have any questions, concerns, or requests regarding this Privacy Policy or how we handle your personal information, please contact us:</p>
           <div style={{ background: "#111", border: "1px solid #1a1a1a", borderRadius: 6, padding: 20, marginTop: 12 }}>
             <p style={{ color: "#fff", marginBottom: 4, fontWeight: 600 }}>Oversize Escort Hub</p>

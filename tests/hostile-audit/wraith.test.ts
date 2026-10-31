@@ -138,6 +138,7 @@ test('an unknown tool name does nothing', async () => {
 })
 
 test('per-person limits stop it before the model is called', async () => {
+  getDb().tables.wraith_access = [{ user_id: ME, status: 'active', current_period_end: null }] // a subscriber: the free-taste limit does not apply, the hourly cap still does
   getDb().tables.helper_usage = Array.from({ length: WRAITH_LIMITS.perKeyHour }, (_, i) => ({ id: 'u' + i, key: 'u:' + ME, kind: 'wraith', created_at: new Date().toISOString() }))
   const r = await (await ask()).json()
   expect(r.limited).toBe(true)

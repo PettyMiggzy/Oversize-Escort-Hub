@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 import { STRIPE_PRICE_IDS } from '@/lib/stripe-utils'
+import { endWraithAccess, setWraithAccess, wraithPriceId } from '@/lib/wraith-access'
 
 export const dynamic = 'force-dynamic'
 
@@ -122,6 +123,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ received: true })
     }
 
+    // Wraith Pro subscription (a separate add-on: never touches the plan tier)
+    if (wraithPriceId() && priceId === wraithPriceId()) {
+      const err = await setWraithAccess(supabase, userId, {
+        status: 'active',
+        stripe_customer_id: (session.customer as string) ?? null,
+        stripe_subscription_id: (session.subscription as string) ?? null,
+      })
+      if (err) return writeFailed('wraith access update', { message: err })
+      return NextResponse.json({ received: true })
+    }
+
     // BGC one-time purchase
     if (priceId === BGC_PRICE) {
       const { error } = await supabase.from('profiles').update({ bgc_paid: true }).eq('id', userId)
@@ -180,6 +192,8 @@ export async function POST(req: NextRequest) {
     const sub = event.data.object as Stripe.Subscription
     const failed = await endSubscription(sub.id)
     if (failed) return failed
+    const wfail = await endWraithAccess(supabase, sub.id)
+    if (wfail) return writeFailed('wraith access end', { message: wfail })
     return NextResponse.json({ received: true })
   }
 
@@ -190,6 +204,33 @@ export async function POST(req: NextRequest) {
   if (event.type === 'customer.subscription.created' || event.type === 'customer.subscription.updated') {
     const sub = event.data.object as Stripe.Subscription
     const priceId = sub.items?.data?.[0]?.price?.id
+
+    // Wraith Pro renewals, payment problems and cancellations keep the access row in step
+    if (priceId && wraithPriceId() && priceId === wraithPriceId()) {
+      if (sub.status === 'canceled' || sub.status === 'unpaid' || sub.status === 'incomplete_expired') {
+        const wfail = await endWraithAccess(supabase, sub.id, sub.status === 'canceled' ? 'canceled' : sub.status)
+        if (wfail) return writeFailed('wraith access end', { message: wfail })
+        return NextResponse.json({ received: true })
+      }
+      if (sub.status !== 'active' && sub.status !== 'trialing' && sub.status !== 'past_due') return NextResponse.json({ received: true })
+      let wUser = (sub.metadata?.userId as string | undefined) ?? null
+      if (!wUser) {
+        const { data } = await supabase.from('wraith_access').select('user_id').eq('stripe_subscription_id', sub.id).maybeSingle()
+        if (data?.user_id) wUser = data.user_id as string
+      }
+      if (!wUser) { console.error('[stripe webhook] wraith sub event could not resolve userId', { subId: sub.id }); return NextResponse.json({ received: true }) }
+      const item = sub.items.data[0] as unknown as { current_period_end?: number }
+      const periodEnd = item?.current_period_end ?? (sub as unknown as { current_period_end?: number }).current_period_end
+      const werr = await setWraithAccess(supabase, wUser, {
+        status: sub.status,
+        stripe_customer_id: sub.customer as string,
+        stripe_subscription_id: sub.id,
+        current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
+      })
+      if (werr) return writeFailed('wraith access sync', { message: werr })
+      return NextResponse.json({ received: true })
+    }
+
     if (!priceId || !PRICE_TO_TIER[priceId]) return NextResponse.json({ received: true })
 
     // Only a live subscription grants a plan. An ended one is treated as a cancellation; a payment that is late or

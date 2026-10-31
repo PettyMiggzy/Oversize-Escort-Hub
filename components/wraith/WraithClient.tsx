@@ -1,6 +1,7 @@
 'use client'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createOrb, type Orb, type OrbState } from '@/components/wraith/orb'
+import { isNativeApp } from '@/lib/native'
 import './wraith.css'
 
 type Turn = { role: 'user' | 'assistant'; content: string }
@@ -15,7 +16,7 @@ const LABEL: Record<OrbState, [string, string]> = {
   speaking: ['Speaking', 'Voice response'],
 }
 
-export default function WraithClient() {
+export default function WraithClient({ paid: paidProp, freeLeft: freeProp, priceText, canSubscribe, justSubscribed }: { paid: boolean; freeLeft: number | null; priceText: string | null; canSubscribe: boolean; justSubscribed: boolean }) {
   const stageRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const orbRef = useRef<Orb | null>(null)
@@ -34,6 +35,10 @@ export default function WraithClient() {
   const [note, setNote] = useState('')
   const [showTyped, setShowTyped] = useState(false)
   const [text, setText] = useState('')
+  const [paid, setPaid] = useState(paidProp)
+  const [freeLeft, setFreeLeft] = useState<number | null>(freeProp)
+  const [inApp, setInApp] = useState(false)
+  const [planBusy, setPlanBusy] = useState(false)
 
   const setState = useCallback((s: OrbState) => { stateRef.current = s; setStateRaw(s); orbRef.current?.setState(s) }, [])
 
@@ -44,6 +49,7 @@ export default function WraithClient() {
     window.addEventListener('resize', onResize)
     const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(onResize) : null
     ro?.observe(stageRef.current!)
+    setInApp(isNativeApp())
     const w = window as any
     if (!(w.SpeechRecognition || w.webkitSpeechRecognition)) { setShowTyped(true); setNote('Voice listening is not available here. Type instead.') }
     return () => {
@@ -105,6 +111,8 @@ export default function WraithClient() {
       const res = await fetch('/api/wraith', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages }) })
       if (res.status === 401) { window.location.href = '/signin?redirect=/wraith'; return }
       const d = await res.json().catch(() => ({}))
+      if (typeof d.paid === 'boolean') setPaid(d.paid)
+      if ('freeLeft' in d) setFreeLeft(typeof d.freeLeft === 'number' ? d.freeLeft : null)
       if (res.status === 404) reply = 'Wraith is not switched on yet.'
       else if (typeof d.reply === 'string' && d.reply) { reply = d.reply; got = Array.isArray(d.links) ? d.links.filter((l: Link) => typeof l?.href === 'string' && l.href.startsWith('/')) : [] }
       else if (typeof d.error === 'string') reply = d.error
@@ -141,6 +149,31 @@ export default function WraithClient() {
     setState('listening'); setLine('Listening...'); armSilence()
     try { recRef.current.start() } catch { /* already running */ }
   }, [armSilence, ask, setState, stopSession])
+
+  useEffect(() => {
+    if (!justSubscribed || paidProp) return
+    let tries = 0
+    const t = setInterval(async () => {
+      tries++
+      try {
+        const d = await fetch('/api/wraith').then((r) => r.json())
+        if (d.paid) { setPaid(true); setFreeLeft(null); setLine('Wraith Pro is on. Ask me anything.'); clearInterval(t) }
+      } catch { /* try again */ }
+      if (tries >= 10) clearInterval(t)
+    }, 3000)
+    return () => clearInterval(t)
+  }, [justSubscribed, paidProp])
+
+  async function planAction(kind: 'checkout' | 'portal') {
+    setPlanBusy(true)
+    try {
+      const res = await fetch(`/api/wraith/${kind}`, { method: 'POST' })
+      const d = await res.json().catch(() => ({}))
+      if (res.ok && typeof d.url === 'string') { window.location.href = d.url; return }
+      setNote(typeof d.error === 'string' ? d.error : 'Something went wrong. Try again.')
+    } catch { setNote('Something went wrong. Try again.') }
+    setPlanBusy(false)
+  }
 
   const sendTyped = () => { const v = text.trim(); if (!v) return; setText(''); ask(v) }
 
@@ -185,7 +218,20 @@ export default function WraithClient() {
           </button>
           {!showTyped && <button type="button" className="wr-alt" onClick={() => setShowTyped(true)}>Type</button>}
         </div>
-        <div className="wr-foot"><i /><span>{note || 'Tap talk, then speak'}</span><i /></div>
+        <div className="wr-plan">
+          {paid ? (
+            <>
+              <span>Wraith Pro</span>
+              {!inApp && <button type="button" className="wr-plan-btn" disabled={planBusy} onClick={() => planAction('portal')}>Manage</button>}
+            </>
+          ) : (
+            <>
+              <span>{freeLeft === null ? 'Free taste' : freeLeft > 0 ? `${freeLeft} free question${freeLeft === 1 ? '' : 's'} left today` : 'No free questions left today'}</span>
+              {!inApp && canSubscribe && <button type="button" className="wr-plan-btn go" disabled={planBusy} onClick={() => planAction('checkout')}>{priceText ? `Get Wraith Pro, ${priceText}` : 'Get Wraith Pro'}</button>}
+            </>
+          )}
+        </div>
+        <div className="wr-foot"><i /><span>{note || (justSubscribed && !paid ? 'Payment received. Switching Wraith Pro on...' : 'Tap talk, then speak')}</span><i /></div>
       </section>
     </div>
   )

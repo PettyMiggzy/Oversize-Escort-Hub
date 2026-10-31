@@ -64,6 +64,17 @@ vi.mock('stripe', async () => {
       list: async () => ({ data: [] }),
       create: async () => ({ id: 'cus_new' }),
     }
+    checkout = {
+      sessions: {
+        create: async (params: unknown) => { getDb().stripeCalls.push({ op: 'checkout', params }); return { id: 'cs_test', url: 'https://checkout.test/session' } },
+      },
+    }
+    billingPortal = {
+      sessions: {
+        create: async (params: unknown) => { getDb().stripeCalls.push({ op: 'portal', params }); return { url: 'https://portal.test/session' } },
+      },
+    }
+    prices = { retrieve: async () => ({ unit_amount: 999, recurring: { interval: 'month' } }) }
   }
   return { default: Stripe }
 })

@@ -179,7 +179,11 @@ export default function TermsOfService() {
           <p>Escorts may upload a certificate, proof of insurance or other papers and choose to show them on their public profile. The escort alone is responsible for what is uploaded and for keeping it current. Oversize Escort Hub does not check, verify, endorse or guarantee these documents, and showing one is not a statement that it is genuine, valid or enough for any job. Anyone who relies on a document must confirm it with the issuer or insurer first. We may remove any document or profile at any time.</p>
         </section>
         <section style={{ marginBottom: 32 }}>
-          <h2 style={{ color: "#fff", fontSize: 18, marginBottom: 12 }}>38. Contact</h2>
+          <h2 style={{ color: "#fff", fontSize: 18, marginBottom: 12 }}>38. Wraith voice assistant</h2>
+          <p style={{ color: "#ccc" }}>Wraith is an optional voice and chat assistant that looks things up in your own OEH account (open loads, your bids, your posted loads and your document dates). Everyone gets a few free questions a day. Wraith Pro is a paid monthly subscription, sold on our website only and never inside the mobile apps, that removes the daily limit; its price is shown before you pay. It renews each month until you cancel from the Manage button on the Wraith page, and you keep it to the end of the period you paid for. Because it is a digital service that starts at once, payments are not refunded for a month already started, except where the law says otherwise or we cancel it for you. Wraith only reads information: it does not bid, post, accept or change anything for you. Its answers come from an automated assistant and may be wrong or out of date, so check the load page before you act. It does not check or verify any person, company or document, it does not know where any truck or person is, and it does not give legal, permit or insurance advice. We may change or stop Wraith, and we may limit use that looks like abuse.</p>
+        </section>
+        <section style={{ marginBottom: 32 }}>
+          <h2 style={{ color: "#fff", fontSize: 18, marginBottom: 12 }}>39. Contact</h2>
           <p>Oversize Escort Hub is operated by Precision Pilot Services, LLC, doing business as Oversize Escort Hub.</p>
           <p>Questions? <a href="mailto:support@oversize-escort-hub.com" style={{ color: "#f90" }}>support@oversize-escort-hub.com</a></p>
         </section>

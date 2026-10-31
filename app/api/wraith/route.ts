@@ -3,6 +3,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
 import { serviceClient } from '@/lib/service-client'
 import { helperModels, validateTurns } from '@/lib/helper'
+import { hasWraithAccess, WRAITH_FREE_DAILY, wraithFreeLeft } from '@/lib/wraith-access'
 import { WRAITH_LIMITS, WRAITH_SYSTEM, WRAITH_TOOLS, runWraithTool, speakable, wraithLive, type WraithLink } from '@/lib/wraith'
 
 export const dynamic = 'force-dynamic'
@@ -17,6 +18,16 @@ async function countSince(table: string, since: string, key?: string, kind?: str
   if (kind) q = q.eq('kind', kind)
   const { data, count } = await q
   return count ?? (Array.isArray(data) ? data.length : 0)
+}
+
+// Who am I and how many free questions are left (the page uses it to show the plan and to wait for a payment to land).
+export async function GET() {
+  if (!wraithLive()) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  const { data: { user } } = await (await createClient()).auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Sign in first.' }, { status: 401 })
+  const svc = serviceClient()
+  const paid = await hasWraithAccess(svc, user.id, user.email)
+  return NextResponse.json({ paid, freeLeft: paid ? null : await wraithFreeLeft(svc, user.id) })
 }
 
 // The voice assistant. Signed-in people only. Read-only tools scoped to the caller. Off unless WRAITH_LIVE=on.
@@ -42,9 +53,14 @@ export async function POST(req: NextRequest) {
     countSince('helper_usage', dayAgo, key, 'wraith'),
     countSince('helper_usage', dayAgo, undefined, 'wraith'),
   ])
+  const svc = serviceClient()
+  const paid = await hasWraithAccess(svc, user.id, user.email)
+  // Free taste: a few questions a day. Then it asks for the subscription (made on the website).
+  if (!paid && day >= WRAITH_FREE_DAILY) {
+    return NextResponse.json({ reply: `That was your ${WRAITH_FREE_DAILY} free questions for today. Wraith Pro has no daily taste limit.`, upgrade: true, paid: false, freeLeft: 0 })
+  }
   if (hour >= WRAITH_LIMITS.perKeyHour || day >= WRAITH_LIMITS.perKeyDay) return NextResponse.json({ reply: BUSY, limited: true })
   if (all >= WRAITH_LIMITS.globalDay) return NextResponse.json({ reply: 'I am resting for today. Try again tomorrow.', limited: true })
-  const svc = serviceClient()
   await svc.from('helper_usage').insert({ key, kind: 'wraith', question: turns[turns.length - 1].content.slice(0, 300) })
 
   const workspace = /^wrkspc_[A-Za-z0-9]+$/.test(process.env.ANTHROPIC_WORKSPACE_ID || '') ? process.env.ANTHROPIC_WORKSPACE_ID : ''
@@ -93,6 +109,6 @@ export async function POST(req: NextRequest) {
   if (!res) return NextResponse.json({ reply: FAIL, error: true })
   if (res.stop_reason === 'refusal') return NextResponse.json({ reply: "I can't help with that one here." })
   const text = speakable(res.content.filter((b): b is Anthropic.TextBlock => b.type === 'text').map((b) => b.text).join(' '))
-  return NextResponse.json({ reply: text || "I'm not sure about that one.", links })
+  return NextResponse.json({ reply: text || "I'm not sure about that one.", links, paid, freeLeft: paid ? null : Math.max(0, WRAITH_FREE_DAILY - day - 1) })
 }
 

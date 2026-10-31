@@ -49,6 +49,10 @@
 .wr-query::placeholder{color:#69727c}
 .wr-send{height:42px;padding:0 15px;border:1px solid rgba(var(--rgb),.38);border-radius:10px;color:var(--hi);background:rgba(var(--rgb),.11);cursor:pointer;font:inherit;font-size:10px;letter-spacing:.12em;text-transform:uppercase}
 .wr-send:hover{background:rgba(var(--rgb),.2)}
+.wr-plan{display:flex;align-items:center;justify-content:center;gap:10px;color:#9aa3ad;font-size:10px;letter-spacing:.12em;text-transform:uppercase;flex-wrap:wrap}
+.wr-plan-btn{font:inherit;font-size:10px;letter-spacing:.1em;text-transform:uppercase;height:30px;padding:0 13px;border-radius:99px;border:1px solid rgba(var(--rgb),.4);background:rgba(var(--rgb),.1);color:var(--hi);cursor:pointer}
+.wr-plan-btn.go{background:var(--accent);border-color:var(--accent);color:#100b06;font-weight:700}
+.wr-plan-btn:disabled{opacity:.6;cursor:default}
 .wr-foot{display:flex;align-items:center;justify-content:center;gap:7px;color:rgba(139,148,157,.54);font-size:8px;letter-spacing:.16em;text-transform:uppercase}
 .wr-foot i{width:3px;height:3px;border-radius:50%;background:var(--accent);opacity:.6}
 .wr-stage button:focus-visible,.wr-stage a:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
