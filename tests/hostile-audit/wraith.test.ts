@@ -163,7 +163,8 @@ test('the Wraith page is hidden: 404 when off, signed-in only, noindex, and not 
   expect(page).toMatch(/if \(!wraithLive\(\)\) notFound\(\)/)
   expect(page).toContain("redirect('/signin?redirect=/wraith')")
   expect(page).toMatch(/robots: \{ index: false, follow: false \}/)
-  expect(fs.readFileSync('app/sitemap.ts', 'utf8')).not.toMatch(/wraith/i)
+  // the console itself is never listed; only the public updates page (owner, 2026-10-31) is
+  expect(fs.readFileSync('app/sitemap.ts', 'utf8').replace('/wraith/updates', '')).not.toMatch(/wraith/i)
 })
 
 test('the voice page never lets text from the assistant become a link to another site', () => {

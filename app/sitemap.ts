@@ -75,6 +75,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
+      url: "https://www.oversize-escort-hub.com/wraith/updates",
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.5,
+    },
+    {
       url: "https://www.oversize-escort-hub.com/coming-later",
       lastModified: new Date(),
       changeFrequency: "monthly",

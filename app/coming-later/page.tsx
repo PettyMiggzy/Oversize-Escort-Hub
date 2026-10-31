@@ -10,6 +10,7 @@ const ITEMS: [string, string][] = [
   ['Vehicle and insurance checks', 'Checking a vehicle or an insurance policy. Not live and not planned.'],
   ['Carrier checks', 'A "verified carrier" tick from FMCSA records. Not live.'],
   ['Text-message alerts', 'Load alerts by text. Waiting on carrier approval.'],
+  ['Wraith in the phone apps', 'Talking to Wraith inside the iPhone and Android apps. Not live: today Wraith works on the website. More on the Wraith updates page.'],
   ['Mini-sites for escorts and companies', 'A page of your own with a few templates. An idea.'],
 ]
 

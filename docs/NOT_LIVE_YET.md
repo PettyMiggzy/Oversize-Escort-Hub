@@ -25,3 +25,8 @@ Built: /my-documents (upload certificate, insurance, vehicle; choose what shows)
 - Text-message alerts (waiting on Twilio; SMS_ENABLED is false).
 - Rental car and roadside/towing perks for drivers (needs real numbers before asking anyone).
 - Per-state rule pages beyond the beginner's guide (only with sources checked line by line).
+
+## Wraith: what is live and what is not (2026-10-31)
+Public page: /wraith/updates (live list, "coming next" list, dated update log). Keep it in step with the real features, and add a dated line to its log (`LOG` in `app/wraith/updates/page.tsx`) with every Wraith change.
+- Live on the website: lookups (new loads, open loads, my bids, my loads, document dates, fleet), bid by voice with a confirm button, Wraith Pro.
+- NOT live: talking to Wraith inside the phone apps (needs an app update and review), a studio-quality voice (browser voice today), posting a load by voice, live fleet location (needs GPS), the in-vehicle box (research only).
