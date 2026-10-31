@@ -6,6 +6,9 @@ export async function requireAuth() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { user: null, supabase: null, error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) }
+  // a suspended account is locked out of every signed-in API, not just hidden from lists
+  const { data: sp } = await supabase.from('profiles').select('suspended').eq('id', user.id).maybeSingle()
+  if (sp?.suspended === true) return { user: null, supabase: null, error: NextResponse.json({ error: 'This account is suspended.' }, { status: 403 }) }
   return { user, supabase, error: null as NextResponse | null }
 }
 

@@ -1,0 +1,38 @@
+import fs from 'node:fs'
+import path from 'node:path'
+import { beforeEach, expect, test } from 'vitest'
+import { NextRequest } from 'next/server'
+import { getDb, resetHostile } from './mock-client'
+import { requireAuth } from '@/lib/api-auth'
+import { POST as setUser } from '@/app/api/admin/set-user/route'
+
+const read = (rel: string) => fs.readFileSync(path.resolve(__dirname, '../..', rel), 'utf8')
+
+beforeEach(() => resetHostile())
+
+test('the browser never writes fmcsa_verified on the profile', () => {
+  const src = read('app/dashboard/_client.tsx')
+  const fn = src.slice(src.indexOf('const handleMarkFmcsaVerified'), src.indexOf('const handleMarkFmcsaVerified') + 900)
+  expect(fn).not.toMatch(/fmcsa_verified\s*:\s*true/)
+})
+
+test('a suspended account is refused by requireAuth', async () => {
+  const db = getDb()
+  db.sessionUser = { id: 'u1', email: 'u1@example.com' }
+  db.tables.profiles = [{ id: 'u1', role: 'escort', suspended: true }]
+  const r = await requireAuth()
+  expect(r.error?.status).toBe(403)
+  db.tables.profiles = [{ id: 'u1', role: 'escort', suspended: false }]
+  expect((await requireAuth()).error).toBeNull()
+})
+
+test('suspending a user also bans their sign-in, lifting it unbans', async () => {
+  const db = getDb()
+  db.sessionUser = { id: 'adm', email: (process.env.ADMIN_EMAILS || 'admin@example.com').split(',')[0].trim() }
+  db.tables.profiles = [{ id: 'adm', role: 'admin' }, { id: 'u1', role: 'escort', suspended: false }]
+  const mk = (suspended: boolean) => new NextRequest('http://x/api/admin/set-user', { method: 'POST', body: JSON.stringify({ userId: 'u1', suspended }), headers: { 'content-type': 'application/json' } })
+  expect((await setUser(mk(true))).status).toBe(200)
+  expect(db.authOps.some((o) => o.op === 'updateUserById' && (o.attrs as { ban_duration?: string }).ban_duration !== 'none')).toBe(true)
+  expect((await setUser(mk(false))).status).toBe(200)
+  expect(db.authOps.some((o) => o.op === 'updateUserById' && (o.attrs as { ban_duration?: string }).ban_duration === 'none')).toBe(true)
+})

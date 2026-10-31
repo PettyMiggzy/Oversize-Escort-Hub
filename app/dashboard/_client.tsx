@@ -679,15 +679,14 @@ export function DashboardPageClient() {
       const { error } = await supabase
         .from('profiles')
         .update({
-          fmcsa_verified: true,
           dot_number: dotResult?.dotNumber ?? null,
           mc_number: dotResult?.mcNumber ?? null,
           company_name: profile.company_name || dotResult?.legalName || null,
         })
         .eq('id', profile.id)
       if (error) { setDotErr(error.message); return }
-      setProfile({ ...profile, company_name: profile.company_name || dotResult?.legalName || null, fmcsa_verified: true })
-      setActionMsg('FMCSA verified — profile updated.')
+      setProfile({ ...profile, company_name: profile.company_name || dotResult?.legalName || null })
+      setActionMsg('Profile updated with your DOT and MC numbers (not checked by us).')
     } finally {
       setFmcsaVerifying(false)
     }

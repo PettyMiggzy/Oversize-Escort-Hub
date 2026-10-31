@@ -54,5 +54,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Could not update the user' }, { status: 500 })
   }
   if (!data?.length) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+  // a suspension also stops new sign-ins and refreshes (lifting it puts them back)
+  if (typeof body.suspended === 'boolean') {
+    const { error: banErr } = await svc.auth.admin.updateUserById(userId, { ban_duration: body.suspended ? '876000h' : 'none' })
+    if (banErr) console.error('[admin set-user] ban', banErr.message)
+  }
   return NextResponse.json({ ok: true, user: data[0] })
 }
