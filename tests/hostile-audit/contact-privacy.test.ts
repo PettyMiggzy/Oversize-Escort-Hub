@@ -70,8 +70,8 @@ test('contact route allows the matched escort and the load carrier', async () =>
   })
 
   const pending = await party(partyReq('carrier', 'load-pending'))
-  expect(pending.status).toBe(200)
-  expect(await pending.json()).toMatchObject({ phone: '8085550101', email: 'carrier@example.com' })
+  // audit: a request still waiting for the carrier's approval does not release anyone's phone or email
+  expect(pending.status).toBe(403)
 
   getDb().sessionUser = { id: 'carrier', email: 'carrier@example.com' }
   const asCarrier = await party(partyReq('escort', 'load-filled'))
@@ -79,8 +79,7 @@ test('contact route allows the matched escort and the load carrier', async () =>
   expect(await asCarrier.json()).toMatchObject({ phone: '8085550102', email: 'escort@example.com' })
 
   const asCarrierPending = await party(partyReq('escort', 'load-pending'))
-  expect(asCarrierPending.status).toBe(200)
-  expect(await asCarrierPending.json()).toMatchObject({ phone: '8085550102' })
+  expect(asCarrierPending.status).toBe(403)
 })
 
 test('a party cannot read someone who is not the other party, or a closed load', async () => {

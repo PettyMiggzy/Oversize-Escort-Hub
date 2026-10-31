@@ -66,7 +66,7 @@ export default function LoadDetailPage() {
         setEscort(e)
       }
 
-      const share = loadData && (loadData.status === 'filled' || loadData.status === 'pending_match')
+      const share = loadData && loadData.status === 'filled'
       const viewer = user?.id
       const party = viewer && (viewer === loadData?.carrier_id || viewer === loadData?.matched_escort_id)
       const admin = isAdminEmail(user?.email) || profile?.role === 'admin'
@@ -149,7 +149,7 @@ export default function LoadDetailPage() {
   const isAdmin = isAdminEmail(currentUser?.email) || userProfile?.role === 'admin'
   const isMatchedEscort = currentUser && load.matched_escort_id === currentUser.id
   const isOwnerCarrier = currentUser && load.carrier_id === currentUser.id
-  const contactOpen = load.status === 'filled' || load.status === 'pending_match'
+  const contactOpen = load.status === 'filled'
   const canSeeFull = contactOpen && (isMatchedEscort || isOwnerCarrier || isAdmin)
   const isBidType = load.board_type === 'bid' || load.board_type === 'open-bid'
   const isFlatClaimable = !isBidType && load.status === 'open' && isEscort

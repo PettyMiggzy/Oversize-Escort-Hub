@@ -5,10 +5,10 @@ import { serviceClient } from '@/lib/service-client'
 
 export const dynamic = 'force-dynamic'
 
-const OPEN = new Set(['filled', 'pending_match'])
+const OPEN = new Set(['filled'])
 
 // Phone and email of the other party on a load. Allowed only when the caller is the
-// carrier or the matched escort and the load is filled or pending_match, or the caller is an admin.
+// carrier or the matched escort and the load is filled (the carrier approved the match), or the caller is an admin.
 export async function GET(req: NextRequest) {
   const { user, error } = await requireAuth()
   if (error) return error

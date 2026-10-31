@@ -36,3 +36,19 @@ test('suspending a user also bans their sign-in, lifting it unbans', async () =>
   expect((await setUser(mk(false))).status).toBe(200)
   expect(db.authOps.some((o) => o.op === 'updateUserById' && (o.attrs as { ban_duration?: string }).ban_duration === 'none')).toBe(true)
 })
+
+import { POST as invoicePdf } from '@/app/api/invoices/generate/route'
+
+test('the invoice PDF is refused until the match is confirmed (filled)', async () => {
+  const db = getDb()
+  db.sessionUser = { id: 'carrier', email: 'c@example.com' }
+  db.tables.profiles = [{ id: 'carrier', role: 'carrier' }]
+  db.tables.loads = [
+    { id: 'l-pending', status: 'pending_match', carrier_id: 'carrier', matched_escort_id: 'escort' },
+    { id: 'l-open', status: 'open', carrier_id: 'carrier', matched_escort_id: null },
+  ]
+  for (const id of ['l-pending', 'l-open']) {
+    const res = await invoicePdf(new NextRequest('http://x/api/invoices/generate', { method: 'POST', body: JSON.stringify({ load_id: id }), headers: { 'content-type': 'application/json' } }))
+    expect(res.status).toBe(409)
+  }
+})

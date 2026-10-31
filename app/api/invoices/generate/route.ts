@@ -25,6 +25,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
+    // an invoice only exists once the carrier approved the match
+    if (load.status !== 'filled') return NextResponse.json({ error: 'The match must be confirmed first.' }, { status: 409 })
+
     const doc = new jsPDF()
 
     // Header
