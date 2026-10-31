@@ -68,3 +68,54 @@ test('wraith checks the usage insert so its limits cannot silently stop counting
   const src = read('app/api/wraith/route.ts')
   expect(src).toMatch(/const \{ error: usageErr \} = await svc\.from\('helper_usage'\)\.insert/)
 })
+
+import { POST as contactPost } from '@/app/api/contact/route'
+import { POST as waitlistPost } from '@/app/api/notify-launch/route'
+import { requireCron } from '@/lib/api-auth'
+
+const ipReq = (url: string, body: unknown, ip = '9.9.9.9') =>
+  new NextRequest(url, { method: 'POST', body: JSON.stringify(body), headers: { 'content-type': 'application/json', 'x-forwarded-for': ip } })
+
+test('the contact form is limited per caller address', async () => {
+  const body = { name: 'A', email: 'a@example.com', message: 'hello' }
+  const codes: number[] = []
+  for (let i = 0; i < 7; i++) codes.push((await contactPost(ipReq('http://x/api/contact', body))).status)
+  expect(codes.slice(0, 5).every((c) => c !== 429)).toBe(true)
+  expect(codes[6]).toBe(429)
+  // another address is not affected
+  expect((await contactPost(ipReq('http://x/api/contact', body, '8.8.8.8'))).status).not.toBe(429)
+})
+
+test('the waitlist is limited per caller address and takes no anon-key fallback', async () => {
+  expect(read('app/api/notify-launch/route.ts')).not.toMatch(/NEXT_PUBLIC_SUPABASE_ANON_KEY/)
+  const codes: number[] = []
+  for (let i = 0; i < 12; i++) codes.push((await waitlistPost(ipReq('http://x/api/notify-launch', { email: `w${i}@example.com` }))).status)
+  expect(codes[11]).toBe(429)
+})
+
+test('the open proxy routes are rate limited and NWS follow-up URLs are pinned to api.weather.gov', () => {
+  for (const f of ['weather', 'nws', 'fmcsa', 'check-trial']) expect(read(`app/api/${f}/route.ts`)).toMatch(/ipLimited\(/)
+  expect(read('app/api/weather/route.ts')).toMatch(/startsWith\("https:\/\/api\.weather\.gov\/"\)/)
+  expect(read('app/api/nws/route.ts')).toMatch(/startsWith\('https:\/\/api\.weather\.gov\/'\)/)
+})
+
+test('the deadhead email escapes the load text', () => {
+  const src = read('lib/deadhead.ts')
+  const html = src.slice(src.indexOf('html: `'), src.indexOf('html: `') + 700)
+  expect(html).not.toMatch(/\$\{load\.(escort_type|pu_city|pu_state|dl_city|dl_state)\}/)
+  expect(html).toMatch(/escapeHtml\(load\.escort_type\)/)
+})
+
+test('requireCron compares in constant time and still refuses a wrong or missing secret', () => {
+  process.env.CRON_SECRET = 'right-secret'
+  const mk = (h: Record<string, string>) => new Request('http://x/cron', { headers: h })
+  expect(requireCron(mk({ authorization: 'Bearer right-secret' }))).toBeNull()
+  expect(requireCron(mk({ 'x-cron-secret': 'right-secret' }))).toBeNull()
+  expect(requireCron(mk({ authorization: 'Bearer wrong' }))?.status).toBe(401)
+  expect(requireCron(mk({}))?.status).toBe(401)
+  expect(read('lib/api-auth.ts')).toMatch(/safeEqual\(/)
+})
+
+test('the expire-loads cron answers 500 when a step failed', () => {
+  expect(read('app/api/cron/expire-loads/route.ts')).toMatch(/status: ok \? 200 : 500/)
+})

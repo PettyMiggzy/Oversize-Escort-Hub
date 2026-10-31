@@ -82,5 +82,7 @@ export async function GET(req: Request) {
     }
   }
 
-  return NextResponse.json({ ok: !expErr && !heldErr && !oldErr && !ageErr, expired_at: now, released, checkins })
+  const ok = !expErr && !heldErr && !oldErr && !ageErr
+  // a failing job must look failing to the scheduler, not like a healthy 200
+  return NextResponse.json({ ok, expired_at: now, released, checkins }, { status: ok ? 200 : 500 })
 }

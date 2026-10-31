@@ -1,3 +1,4 @@
+import { ipLimited } from '@/lib/rate-limit'
 import { NextRequest, NextResponse } from "next/server"
 
 // NWS Weather API — no key required
@@ -6,6 +7,8 @@ import { NextRequest, NextResponse } from "next/server"
 
 export const dynamic = 'force-dynamic'
 export async function GET(req: NextRequest) {
+  const __limited = await ipLimited(req, 'weather', 60)
+  if (__limited) return __limited
   const lat = req.nextUrl.searchParams.get("lat")
   // the weather page sends "lng"; other callers send "lon"
   const lon = req.nextUrl.searchParams.get("lon") ?? req.nextUrl.searchParams.get("lng")
@@ -33,7 +36,7 @@ export async function GET(req: NextRequest) {
     const forecastUrl = pointData?.properties?.forecast
     const forecastHourlyUrl = pointData?.properties?.forecastHourly
     const alertsZone = pointData?.properties?.county
-    if (!forecastUrl) return NextResponse.json({ error: "No forecast for this location", lat, lon }, { status: 200 })
+    if (typeof forecastUrl !== "string" || !forecastUrl.startsWith("https://api.weather.gov/")) return NextResponse.json({ error: "No forecast for this location", lat, lon }, { status: 200 })
 
     // Step 2: Get forecast
     const [forecastRes, alertsRes] = await Promise.all([

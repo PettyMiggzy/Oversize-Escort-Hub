@@ -1,3 +1,4 @@
+import { escapeHtml } from '@/lib/security'
 import { createClient } from '@supabase/supabase-js'
 import { FREE_LAUNCH } from '@/lib/free-launch'
 import { sendSms } from '@/lib/twilio'
@@ -98,7 +99,7 @@ export async function notifyDeadhead(load_id: string) {
         await sendEmail({
           to: profile.email,
           subject: `Deadhead opportunity near your drop: ${load.pu_city}, ${load.pu_state}`,
-          html: `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;color:#111"><h2 style="margin:0 0 12px">Deadhead opportunity near your drop</h2><p style="font-size:15px;line-height:1.5">${load.escort_type} needed: ${load.pu_city}, ${load.pu_state} to ${load.dl_city}, ${load.dl_state}. Rate: ${rate}. You get a short head start before it opens to everyone.</p><p><a href="${link}" style="background:#ff6a13;color:#000;padding:12px 20px;border-radius:6px;text-decoration:none;font-weight:bold">Open the load</a></p></div>`,
+          html: `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;color:#111"><h2 style="margin:0 0 12px">Deadhead opportunity near your drop</h2><p style="font-size:15px;line-height:1.5">${escapeHtml(load.escort_type)} needed: ${escapeHtml(load.pu_city)}, ${escapeHtml(load.pu_state)} to ${escapeHtml(load.dl_city)}, ${escapeHtml(load.dl_state)}. Rate: ${escapeHtml(rate)}. You get a short head start before it opens to everyone.</p><p><a href="${link}" style="background:#ff6a13;color:#000;padding:12px 20px;border-radius:6px;text-decoration:none;font-weight:bold">Open the load</a></p></div>`,
         })
       }
 

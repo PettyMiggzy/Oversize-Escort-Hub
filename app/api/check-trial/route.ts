@@ -1,3 +1,4 @@
+import { ipLimited } from '@/lib/rate-limit'
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createClient as createSessionClient } from '@/lib/supabase/server';
@@ -32,6 +33,8 @@ export async function GET(req: NextRequest) {
 
 // POST: record fingerprint after successful free trial signup
 export async function POST(req: NextRequest) {
+  const __limited = await ipLimited(req, 'trial', 20)
+  if (__limited) return __limited
   const body = await req.json().catch(() => ({}));
   const { fp } = body;
   if (!fp || typeof fp !== 'string') return NextResponse.json({ ok: false }, { status: 400 });

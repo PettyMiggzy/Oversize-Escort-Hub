@@ -1,16 +1,18 @@
+import { ipLimited } from '@/lib/rate-limit'
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-// Prefer service role for writes; fall back to anon so local/dev still works
-const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const key = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(req: Request) {
+  const __limited = await ipLimited(req, 'waitlist', 10)
+  if (__limited) return __limited
   try {
     const body = await req.json().catch(() => ({}));
-    const email = String(body?.email || '').trim().toLowerCase();
+    const email = String(body?.email || '').trim().toLowerCase().slice(0, 200);
     const source = String(body?.source || 'coming-soon').slice(0, 64);
     if (!email || !EMAIL_RE.test(email) || email.length > 320) {
       return NextResponse.json({ ok: false, error: 'invalid_email' }, { status: 400 });

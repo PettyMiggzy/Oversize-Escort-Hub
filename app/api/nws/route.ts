@@ -1,9 +1,12 @@
+import { ipLimited } from '@/lib/rate-limit'
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 
 // NWS Weather API — completely free, no API key needed
 // Uses Nominatim (OpenStreetMap) for geocoding — free, no key needed
 export async function GET(req: NextRequest) {
+  const __limited = await ipLimited(req, 'nws', 30)
+  if (__limited) return __limited
   const city = req.nextUrl.searchParams.get('city')
   const state = req.nextUrl.searchParams.get('state')
   if (!city || !state) {
@@ -30,6 +33,8 @@ export async function GET(req: NextRequest) {
     const pointData = await pointRes.json()
     const forecastUrl = pointData.properties?.forecast
     const hourlyUrl = pointData.properties?.forecastHourly
+    const okUrl = (u: unknown) => typeof u === 'string' && u.startsWith('https://api.weather.gov/')
+    if (!okUrl(forecastUrl) || !okUrl(hourlyUrl)) return NextResponse.json({ error: 'No forecast for this location' }, { status: 200 })
     const alertsZone = pointData.properties?.county
 
     // Step 3: Get current conditions from hourly forecast

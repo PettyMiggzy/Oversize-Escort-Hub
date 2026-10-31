@@ -1,3 +1,4 @@
+import { ipLimited } from '@/lib/rate-limit'
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { escapeHtml } from '@/lib/security'
@@ -8,6 +9,8 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 const text = (v: unknown, max: number) => (typeof v === 'string' ? v.trim().slice(0, max) : '')
 
 export async function POST(req: NextRequest) {
+  const __limited = await ipLimited(req, 'contact', 5)
+  if (__limited) return __limited
   try {
     const body = await req.json().catch(() => ({}))
     const name = text(body.name, 120)

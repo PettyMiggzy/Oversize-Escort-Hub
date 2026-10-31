@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { isAdminEmail } from '@/lib/supabase'
+import { safeEqual } from '@/lib/security-server'
 
 export async function requireAuth() {
   const supabase = await createClient()
@@ -26,7 +27,7 @@ export function requireCron(req: Request) {
   const auth = req.headers.get('authorization')
   // an unset CRON_SECRET must never make "Bearer undefined" a valid login
   const secret = process.env.CRON_SECRET
-  if (!secret || (auth !== `Bearer ${secret}` && req.headers.get('x-cron-secret') !== secret)) {
+  if (!secret || (!safeEqual(auth ?? '', `Bearer ${secret}`) && !safeEqual(req.headers.get('x-cron-secret') ?? '', secret))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   return null
