@@ -9,6 +9,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-03
 
 // Tables holding only this user's own working data: removed outright.
 const OWN_DATA: Array<[table: string, column: string]> = [
+  ['wraith_access', 'user_id'],
   ['push_subscriptions', 'user_id'],
   ['notifications', 'user_id'],
   ['escort_availability', 'escort_id'],
@@ -59,6 +60,22 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Could not cancel your subscription. Nothing was deleted: try again or email support.' }, { status: 502 })
       }
     }
+  }
+
+  // Wraith Pro is a separate subscription: stop it too, or the card keeps being charged for a deleted account
+  const { data: wraith } = await svc.from('wraith_access').select('stripe_subscription_id, stripe_customer_id').eq('user_id', userId).maybeSingle()
+  if (wraith?.stripe_subscription_id) {
+    try {
+      await stripe.subscriptions.cancel(wraith.stripe_subscription_id)
+    } catch (e: any) {
+      if (e?.code !== 'resource_missing') {
+        console.error('[account delete] wraith cancel failed:', e)
+        return NextResponse.json({ error: 'Could not cancel your Wraith Pro subscription. Nothing was deleted: try again or email support.' }, { status: 502 })
+      }
+    }
+  }
+  if (wraith?.stripe_customer_id && wraith.stripe_customer_id !== profile?.stripe_customer_id) {
+    try { await stripe.customers.del(wraith.stripe_customer_id) } catch (e: any) { if (e?.code !== 'resource_missing') console.error('[account delete] wraith customer delete failed:', e) }
   }
 
   if (profile?.stripe_customer_id) {

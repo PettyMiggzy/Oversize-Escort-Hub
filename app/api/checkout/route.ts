@@ -78,7 +78,8 @@ export async function POST(req: NextRequest) {
       STRIPE_PRICE_IDS.PEVO_MEMBER_REVIEW,
       STRIPE_PRICE_IDS.PEVO_PRO_REVIEW,
     ].includes(priceId)
-    if (!oneTime) {
+    // the veteran discount stays off until that flow is live (nothing is sold at a discount today)
+    if (!oneTime && VERIFICATION_LIVE) {
       const svc = createServiceClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -94,9 +95,10 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const origin = req.headers.get('origin') || 'https://oversize-escort-hub.com';
-    const successUrl = `${process.env.NEXT_PUBLIC_APP_URL || origin}/dashboard?upgraded=true`;
-    const cancelUrl = `${process.env.NEXT_PUBLIC_APP_URL || origin}/pricing`;
+    // return addresses come from our own setting, never from a request header
+    const origin = process.env.NEXT_PUBLIC_APP_URL || 'https://www.oversize-escort-hub.com';
+    const successUrl = `${origin}/dashboard?upgraded=true`;
+    const cancelUrl = `${origin}/pricing`;
 
     const session = await createCheckoutSession(
       userId,

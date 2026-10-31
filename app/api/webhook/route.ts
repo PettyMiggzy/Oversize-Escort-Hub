@@ -145,6 +145,15 @@ export async function POST(req: NextRequest) {
     if (priceId === SPONSORED_PRICE) {
       const zone = (session.metadata?.zone as string | undefined) ?? null
       if (zone) {
+        // a second buyer who paid while the first sponsorship was still running gets no second sponsor: logged for a refund
+        const z = zone.trim().toUpperCase()
+        const { data: held } = await supabase.from('sponsored_zones').select('id, user_id')
+          .eq('zone', z).eq('active', true).neq('user_id', userId)
+          .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`).limit(1)
+        if (held && held.length > 0) {
+          console.error('[stripe webhook] sponsored zone already held, NOT granted, refund needed', { sessionId: session.id, zone: z, userId })
+          return NextResponse.json({ received: true })
+        }
         const { error } = await supabase.from('sponsored_zones').insert({
           user_id: userId,
           zone: zone.trim().toUpperCase(),

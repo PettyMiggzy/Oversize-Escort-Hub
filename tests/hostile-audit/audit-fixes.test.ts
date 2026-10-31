@@ -133,3 +133,24 @@ test('native/web switches fail closed: assumed phone app until the browser prove
 test('sign-in honors next as well as redirect', () => {
   expect(read('app/signin/page.tsx')).toMatch(/searchParams\.get\('redirect'\) \?\? searchParams\.get\('next'\)/)
 })
+
+import { POST as deleteAccount } from '@/app/api/account/delete/route'
+
+test('account delete also cancels a Wraith Pro subscription and removes its row', async () => {
+  const db = getDb()
+  db.sessionUser = { id: 'user-1', email: 'user@example.com' }
+  db.tables.profiles = [{ id: 'user-1', role: 'escort', tier: 'free', email: 'user@example.com' }]
+  db.tables.wraith_access = [{ user_id: 'user-1', status: 'active', stripe_subscription_id: 'sub_wraith', stripe_customer_id: 'cus_wraith' }]
+  const res = await deleteAccount(new NextRequest('http://x/api/account/delete', { method: 'POST', body: JSON.stringify({ confirm: 'DELETE' }), headers: { 'content-type': 'application/json' } }))
+  expect(res.status).toBe(200)
+  expect(db.stripeCalls).toEqual(expect.arrayContaining([expect.objectContaining({ op: 'cancel', id: 'sub_wraith' })]))
+  expect(db.tables.wraith_access).toHaveLength(0)
+})
+
+test('Stripe return addresses never come from the Origin header; veteran coupon stays behind the switch; a held zone is not granted twice', () => {
+  for (const f of ['app/api/checkout/route.ts', 'app/api/wraith/checkout/route.ts', 'app/api/wraith/portal/route.ts']) {
+    expect(read(f), f).not.toMatch(/headers\.get\(['"]origin['"]\)/i)
+  }
+  expect(read('app/api/checkout/route.ts')).toMatch(/!oneTime && VERIFICATION_LIVE/)
+  expect(read('app/api/webhook/route.ts')).toMatch(/already held, NOT granted/)
+})

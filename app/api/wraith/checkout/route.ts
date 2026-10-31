@@ -16,7 +16,7 @@ export async function POST(req: Request) {
   if (!priceId) return NextResponse.json({ error: 'Wraith Pro is not on sale yet.' }, { status: 503 })
   if (await hasWraithAccess(serviceClient(), user.id, user.email)) return NextResponse.json({ error: 'You already have Wraith Pro.' }, { status: 409 })
   try {
-    const origin = process.env.NEXT_PUBLIC_APP_URL || req.headers.get('origin') || 'https://www.oversize-escort-hub.com'
+    const origin = process.env.NEXT_PUBLIC_APP_URL || 'https://www.oversize-escort-hub.com'
     const session = await createCheckoutSession(user.id, priceId, `${origin}/wraith?subscribed=1`, `${origin}/wraith`, user.email ?? undefined)
     return NextResponse.json({ url: session.url })
   } catch (e) {
