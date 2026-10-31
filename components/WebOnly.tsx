@@ -5,8 +5,9 @@ import { isNativeApp } from '@/lib/native'
 // Wraps a page that sells something. Inside the phone app it shows a plain note instead:
 // no prices, no pay buttons. On the website it renders the page as usual.
 export default function WebOnly({ children }: { children: ReactNode }) {
-  const [native, setNative] = useState(false)
+  const [native, setNative] = useState<boolean | null>(null) // null = not known yet: render nothing, so no price is in the first HTML
   useEffect(() => { setNative(isNativeApp()) }, [])
+  if (native === null) return null
   if (!native) return <>{children}</>
   return (
     <div className="ui-page">

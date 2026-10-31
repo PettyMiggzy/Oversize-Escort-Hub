@@ -12,7 +12,7 @@ import { createPortal } from "react-dom";
 
 // True only inside the phone apps (false on the server and on first paint, so the page hydrates cleanly).
 function useInApp() {
-  const [inApp, setInApp] = useState(false);
+  const [inApp, setInApp] = useState(true) // fail closed: treated as the phone app until the browser proves it is the website;
   useEffect(() => { setInApp(isNativeApp()); }, []);
   return inApp;
 }

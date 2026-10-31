@@ -16,7 +16,7 @@ const features = [
   { id: 6, name: 'Availability Zones', who: 'P/EVO', tier: 'Free', desc: 'Set the states and regions you cover. Used for auto-matching and helps carriers find local escorts faster.', access: 'Available to Member and Pro tiers. Set in Profile > Availability Zones.' },
   { id: 7, name: 'Escort Profiles', who: 'All', tier: 'Free', desc: 'View escort ratings, the states they cover, and any documents they chose to show (we do not check them). Carriers decide who to hire.', access: 'Visible to all logged-in users. Update your own profile from the Profile tab in your dashboard.' },
   { id: 8, name: 'Carrier Hub', who: 'Carrier', tier: 'Free', desc: 'Manage active loads, view match history, track escort assignments, and post new loads from one central dashboard.', access: 'Sign in as Carrier/Operator. The Carrier Hub is your default dashboard view.' },
-  { id: 9, name: 'Fleet Dashboard', who: 'Fleet', tier: 'Free', desc: 'Manage multiple escort operators under one Fleet Manager account. Assign jobs, monitor zones, and view performance.', access: 'Requires Fleet Manager subscription ($99.99/mo). Access from your Fleet Dashboard after subscribing.' },
+  { id: 9, name: 'Fleet Dashboard', who: 'Fleet', tier: 'Free', desc: 'Manage multiple escort operators under one Fleet Manager account. Assign jobs, monitor zones, and view performance.', access: 'Requires a Fleet Manager plan. Access from your Fleet Dashboard after subscribing.' },
   { id: 10, name: 'Sponsored Zone', who: 'P/EVO', tier: '$29.99/30 days', desc: 'Featured placement on the Find Escorts page for your coverage area. Carriers searching your zone see you first.', access: 'One-time 30-day purchase ($29.99). Activate from Pricing → Sponsored Zone.' },
   { id: 11, name: 'Veteran Discount', who: 'P/EVO', tier: 'Coming Soon', desc: 'A discount for veterans in the escort industry. Parked for later.', access: 'Not available. We are not offering it at this time.' },
   { id: 12, name: 'Deadhead Minimizer', who: 'P/EVO', tier: 'Free', desc: 'AI-powered tool to find loads near your return route, reducing empty miles and maximizing earnings.', access: 'Coming soon for Pro members. Will integrate with your availability zones and load history.' },
@@ -31,7 +31,7 @@ export default function Features() {
   const [search, setSearch] = useState('');
   const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
 
-  const [inApp, setInApp] = useState(false);
+  const [inApp, setInApp] = useState(true) // fail closed: treated as the phone app until the browser proves it is the website;
   useEffect(() => { setInApp(isNativeApp()); }, []);
   // Inside the phone apps: no prices and nothing marked coming soon.
   const shown = inApp ? features.filter(f => !/coming soon|\$/i.test(f.tier + ' ' + f.desc.slice(0, 14))) : features;

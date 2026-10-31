@@ -37,7 +37,7 @@ export default function WraithClient({ paid: paidProp, freeLeft: freeProp, price
   const [text, setText] = useState('')
   const [paid, setPaid] = useState(paidProp)
   const [freeLeft, setFreeLeft] = useState<number | null>(freeProp)
-  const [inApp, setInApp] = useState(false)
+  const [inApp, setInApp] = useState(true) // fail closed: treated as the phone app until the browser proves it is the website
   const [planBusy, setPlanBusy] = useState(false)
 
   const setState = useCallback((s: OrbState) => { stateRef.current = s; setStateRaw(s); orbRef.current?.setState(s) }, [])

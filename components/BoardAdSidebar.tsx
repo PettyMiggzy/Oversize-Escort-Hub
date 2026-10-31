@@ -5,7 +5,7 @@ import { isNativeApp } from '@/lib/native'
 // Side column on the boards: a paid placement and a fuel offer. Hidden inside the phone app,
 // where nothing is sold and no outside offers are shown.
 export function BoardAdSidebar() {
-  const [native, setNative] = useState(false)
+  const [native, setNative] = useState(true) // fail closed: hidden until the browser proves it is the website
   useEffect(() => { setNative(isNativeApp()) }, [])
   if (native) return null
   return (

@@ -22,7 +22,7 @@ export default function FindEscortsPage() {
   const [loading, setLoading] = useState(true)
   const [stateFilter, setStateFilter] = useState("")
   const [memberFilter, setMemberFilter] = useState("all")
-  const [inApp, setInApp] = useState(false)
+  const [inApp, setInApp] = useState(true) // fail closed: treated as the phone app until the browser proves it is the website
   useEffect(() => { setInApp(isNativeApp()) }, [])
 
   useEffect(() => {

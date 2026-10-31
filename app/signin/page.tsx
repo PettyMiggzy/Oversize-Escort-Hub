@@ -78,7 +78,7 @@ function SignInInner() {
   }, []);
 
   const searchParams = useSearchParams();
-  const redirectParam = searchParams.get('redirect');
+  const redirectParam = searchParams.get('redirect') ?? searchParams.get('next');
   const redirectPath = safeRedirectPath(redirectParam);
   const roleParamRaw = searchParams.get('role');
   const allowedRoles = ['escort', 'carrier', 'broker', 'fleet_manager'] as const;

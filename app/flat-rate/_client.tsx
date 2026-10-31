@@ -70,7 +70,7 @@ export function FlatRateBoardClient() {
   const [claimedLoads, setClaimedLoads] = useState<Set<string>>(new Set());
   const [claimError, setClaimError] = useState<Record<string, string>>({});
 
-  const [inApp, setInApp] = useState(false);
+  const [inApp, setInApp] = useState(true) // fail closed: treated as the phone app until the browser proves it is the website;
   useEffect(() => { setInApp(isNativeApp()); }, []);
   const [windowWidth, setWindowWidth] = useState(1200);
   // Tick every second so per-load Member countdowns re-render in real time.

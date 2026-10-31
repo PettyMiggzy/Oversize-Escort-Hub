@@ -119,3 +119,17 @@ test('requireCron compares in constant time and still refuses a wrong or missing
 test('the expire-loads cron answers 500 when a step failed', () => {
   expect(read('app/api/cron/expire-loads/route.ts')).toMatch(/status: ok \? 200 : 500/)
 })
+
+test('native/web switches fail closed: assumed phone app until the browser proves otherwise', () => {
+  for (const f of ['components/HideInApp.tsx', 'components/BoardAdSidebar.tsx']) expect(read(f), f).toMatch(/useState\(true\)/)
+  expect(read('components/WebOnly.tsx')).toMatch(/useState<boolean \| null>\(null\)/)
+  expect(read('components/WebOnly.tsx')).toMatch(/native === null\) return null/)
+  for (const f of ['app/pricing/page.tsx', 'app/features/page.tsx', 'app/find-escorts/page.tsx', 'app/page.tsx', 'app/flat-rate/_client.tsx', 'app/dashboard/_client.tsx']) {
+    expect(read(f), f).toMatch(/const \[inApp, setInApp\] = useState\(true\)/)
+  }
+  expect(read('app/features/page.tsx')).not.toMatch(/\$99\.99/)
+})
+
+test('sign-in honors next as well as redirect', () => {
+  expect(read('app/signin/page.tsx')).toMatch(/searchParams\.get\('redirect'\) \?\? searchParams\.get\('next'\)/)
+})

@@ -438,7 +438,7 @@ function MyJobsSection() {
 }
 
 export function DashboardPageClient() {
-  const [inApp, setInApp] = useState(false)
+  const [inApp, setInApp] = useState(true) // fail closed: treated as the phone app until the browser proves it is the website
   useEffect(() => { setInApp(isNativeApp()) }, [])
   const supabase = createClient()
   const router = useRouter()

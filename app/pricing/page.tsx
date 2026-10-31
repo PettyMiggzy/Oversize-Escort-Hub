@@ -143,8 +143,8 @@ export default function PricingPage() {
   const [zoneLoading, setZoneLoading] = useState(false);
   const [takenZones, setTakenZones] = useState<string[]>([]);
   // Inside the phone apps there is nothing to buy: go back to the dashboard.
-  const [inApp, setInApp] = useState(false);
-  useEffect(() => { if (isNativeApp()) { setInApp(true); window.location.replace('/dashboard'); } }, []);
+  const [inApp, setInApp] = useState(true); // fail closed: no price in the first HTML
+  useEffect(() => { const n = isNativeApp(); setInApp(n); if (n) window.location.replace('/dashboard'); }, []);
 
   const handleSponsoredClick = async () => {
     const supabase = createClient();
