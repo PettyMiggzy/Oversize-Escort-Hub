@@ -1,0 +1,22 @@
+.wr-stage{position:relative;height:100dvh;width:100%;overflow:hidden;background:#000;--c1:#ff6a13;--c2:#ffb067;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#f4ede6;touch-action:none;-webkit-tap-highlight-color:transparent}
+.wr-stage.ice{--c1:#28c8ff;--c2:#aaebff;color:#e9f7ff}
+.wr-stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.wr-scrim{position:absolute;left:0;right:0;bottom:0;height:50%;background:linear-gradient(to top,rgba(0,0,0,.94),rgba(0,0,0,.55) 42%,transparent);pointer-events:none}
+.wr-hud{position:absolute;left:0;right:0;bottom:0;z-index:3;padding:0 20px calc(20px + env(safe-area-inset-bottom));text-align:center}
+.wr-wake{font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--c2);opacity:.62;margin-bottom:6px}
+.wr-status{font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--c1);margin-bottom:6px}
+.wr-line{font-size:14px;line-height:1.45;color:#e6dcd2;max-width:440px;margin:0 auto 12px;min-height:40px}
+.wr-links{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:10px}
+.wr-link{font-size:12.5px;color:#100b06;background:var(--c1);text-decoration:none;padding:8px 14px;border-radius:999px;font-weight:600}
+.wr-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:8px}
+.wr-pill{font:inherit;font-size:12px;letter-spacing:.06em;background:rgba(255,255,255,.05);color:#cfc4ba;border:1px solid rgba(255,255,255,.16);padding:9px 16px;border-radius:999px;cursor:pointer;transition:.18s}
+.wr-pill:hover{border-color:var(--c1);color:#fff;background:rgba(255,255,255,.1)}
+.wr-pill.on{border-color:var(--c1);color:var(--c2);box-shadow:0 0 0 1px var(--c1) inset,0 0 16px -4px var(--c1)}
+.wr-typed{display:flex;gap:8px;max-width:400px;margin:4px auto 0}
+.wr-typed input{flex:1;font:inherit;font-size:16px;padding:10px 14px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);color:#fff;outline:none}
+.wr-typed input:focus{border-color:var(--c1)}
+.wr-typed button{font:inherit;font-size:13px;padding:10px 16px;border-radius:999px;background:var(--c1);border:0;color:#100b06;font-weight:600;cursor:pointer}
+.wr-note{font-size:11px;color:#8e837a;margin-top:8px;min-height:14px}
+.wr-top{position:absolute;top:calc(12px + env(safe-area-inset-top));left:16px;z-index:3}
+.wr-top a{color:#8e837a;font-size:12px;text-decoration:none;letter-spacing:.1em}
+@media (max-width:560px){.wr-line{font-size:13px;max-width:320px}}
