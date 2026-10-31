@@ -10,8 +10,13 @@ export const wraithPriceId = () => process.env.STRIPE_WRAITH_PRICE_ID || ''
 type Row = { status?: string; current_period_end?: string | null; stripe_customer_id?: string | null }
 
 /** True for a live subscription (or the owner's own admin account, for testing). */
+// People on a paid plan get Wraith with it (owner, 2026-10-31); free and trial accounts get the daily taste and can add Wraith Pro.
+export const PLAN_TIERS_WITH_WRAITH = new Set(['member', 'pro', 'carrier_member', 'fleet_starter', 'fleet_plus', 'fleet_pro'])
+
 export async function hasWraithAccess(svc: SupabaseClient, userId: string, email?: string | null): Promise<boolean> {
   if (isAdminEmail(email)) return true
+  const { data: prof } = await svc.from('profiles').select('tier').eq('id', userId).maybeSingle()
+  if (PLAN_TIERS_WITH_WRAITH.has(String((prof as { tier?: string } | null)?.tier ?? ''))) return true
   const { data } = await svc.from('wraith_access').select('status, current_period_end').eq('user_id', userId).maybeSingle()
   const r = data as Row | null
   if (!r || (r.status !== 'active' && r.status !== 'trialing')) return false

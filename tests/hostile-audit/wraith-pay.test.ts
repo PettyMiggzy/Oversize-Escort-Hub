@@ -146,3 +146,12 @@ test('the price shown comes from Stripe; the table is service-only; the page has
   expect(fs.readFileSync('app/terms/page.tsx', 'utf8')).toMatch(/37\. Wraith voice assistant/)
   expect(fs.readFileSync('app/privacy/page.tsx', 'utf8')).toMatch(/31\. Wraith voice assistant/)
 })
+
+test('a paid plan includes Wraith; free and trial accounts do not', async () => {
+  const { getDb } = await import('./mock-client')
+  const db = getDb()
+  for (const [tier, want] of [['pro', true], ['member', true], ['carrier_member', true], ['fleet_plus', true], ['free', false], ['trial', false]] as const) {
+    db.tables.profiles = [{ id: 'plan-user', tier }]
+    expect(await hasWraithAccess(serviceClient(), 'plan-user', 'p@x.example'), tier).toBe(want)
+  }
+})
