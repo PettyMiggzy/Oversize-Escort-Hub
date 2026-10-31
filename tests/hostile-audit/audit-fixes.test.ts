@@ -164,3 +164,20 @@ test('public escort pages and the finder hide suspended and non-escort accounts,
   expect(finder).toMatch(/Certs \(listed by the escort, not checked by us\)/)
   expect(read('app/terms/page.tsx')).not.toMatch(/allows licensed P\/EVO/)
 })
+
+test('a pull-request workflow runs the type check and the hostile suite, and keystores stay ignored', () => {
+  const wf = read('.github/workflows/checks.yml')
+  expect(wf).toMatch(/pull_request:\s*\n\s*branches: \[main\]/)
+  expect(wf).toMatch(/npx tsc --noEmit/)
+  expect(wf).toMatch(/npm run test:hostile/)
+  expect(read('.gitignore')).toMatch(/^\*\.keystore$/m)
+  expect(read('android/.gitignore')).toMatch(/^\*\.keystore$/m)
+})
+
+test('a Content-Security-Policy ships in report-only mode and allows Supabase and Stripe', () => {
+  const cfg = read('next.config.ts')
+  expect(cfg).toMatch(/Content-Security-Policy-Report-Only/)
+  expect(cfg).toMatch(/\*\.supabase\.co/)
+  expect(cfg).toMatch(/js\.stripe\.com/)
+  expect(cfg).toMatch(/object-src 'none'/)
+})
