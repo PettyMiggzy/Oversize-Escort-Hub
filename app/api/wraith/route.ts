@@ -100,7 +100,9 @@ export async function POST(req: NextRequest) {
     for (const c of calls) {
       let out
       try { out = await runWraithTool(c.name, c.input, user.id, svc) } catch { out = { json: JSON.stringify({ error: 'lookup failed' }), links: [] as WraithLink[] } }
-      for (const l of out.links) if (links.length < 3 && !links.some((x) => x.href === l.href)) links.push(l)
+      // a button the person must confirm goes first; plain load links fill the rest (at most four on screen)
+      for (const l of out.links) if (!links.some((x) => x.href === l.href)) { if (c.name.startsWith('prepare_')) links.unshift(l); else links.push(l) }
+      links.length = Math.min(links.length, 4)
       results.push({ type: 'tool_result', tool_use_id: c.id, content: out.json })
     }
     messages.push({ role: 'user', content: results })

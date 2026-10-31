@@ -40,6 +40,9 @@ export default function LoadDetailPage() {
     const init = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       setCurrentUser(user)
+      // Wraith can open this page with a bid filled in. It only fills the box: the person still has to press Place Bid.
+      const preBid = new URLSearchParams(window.location.search).get('bid')
+      if (preBid && /^\d{1,6}(\.\d{1,2})?$/.test(preBid)) setBidRate(preBid)
       let profile: any = null
       if (user) {
         const { data: p } = await supabase.from('profiles').select('id, role, tier').eq('id', user.id).single()

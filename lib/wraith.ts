@@ -13,7 +13,9 @@ export const WRAITH_SYSTEM = `You are Wraith, the voice assistant inside Oversiz
 How to answer:
 - Keep it short: one to three plain sentences, under about 45 words. Say numbers the way a person would. No lists, no markdown, no emojis, no web addresses.
 - For anything about this person's loads, bids, jobs or documents, call a tool. Use only what the tools return. Never guess or make up loads, rates, names, places or dates. If a tool returns nothing, say so plainly.
-- You can only look things up. You cannot bid, claim, post, accept or change anything. When the person wants to act, say you have put the link on screen and they can tap it. A link appears on screen automatically when you found loads.
+- You can only look things up and get things ready. You cannot bid, claim, post, accept or change anything yourself. When someone wants to bid, call prepare_bid (an escort only); to claim a load, call prepare_claim. Each puts a button on screen that opens the load page ready for them to check and confirm. Say that plainly: "I've put the button on screen, check it and tap to confirm." Never say you sent or placed anything.
+- "What's new for me?" or "anything new?": call whats_new. For a fleet manager asking about their escorts, call my_fleet.
+- The load id in a tool result is for prepare_bid and prepare_claim only. Never say it aloud.
 - You cannot see where any truck or person is. Do not pretend to track anyone.
 - Never say a person, company, document or load is verified, vetted, checked or approved: OEH does not check anyone.
 - No legal, permit or insurance advice, and never say what a particular state requires. Say that state's permit office knows.
@@ -43,6 +45,26 @@ export const WRAITH_TOOLS = [
     input_schema: { type: 'object' as const, properties: {}, additionalProperties: false },
   },
   {
+    name: 'whats_new',
+    description: "What is new for the signed-in person in the last 24 hours: for an escort, new open loads in the states they cover; for a carrier or broker, new bids on their own loads.",
+    input_schema: { type: 'object' as const, properties: {}, additionalProperties: false },
+  },
+  {
+    name: 'my_fleet',
+    description: "For a signed-in fleet manager: which of their own escorts are free and which are on a job.",
+    input_schema: { type: 'object' as const, properties: {}, additionalProperties: false },
+  },
+  {
+    name: 'prepare_bid',
+    description: 'Get a bid ready for an escort to review and confirm. Puts a button on screen that opens the load with the amount filled in. It does not place the bid. Use a load id from search_open_loads.',
+    input_schema: { type: 'object' as const, properties: { load_id: { type: 'string', description: 'The load id from search_open_loads.' }, amount: { type: 'number', description: 'The bid in whole or decimal dollars.' } }, required: ['load_id', 'amount'], additionalProperties: false },
+  },
+  {
+    name: 'prepare_claim',
+    description: 'Get a claim ready for an escort to review and confirm. Puts a button on screen that opens the load. It does not claim anything. Use a load id from search_open_loads.',
+    input_schema: { type: 'object' as const, properties: { load_id: { type: 'string', description: 'The load id from search_open_loads.' } }, required: ['load_id'], additionalProperties: false },
+  },
+  {
     name: 'my_expiring_documents',
     description: "The signed-in person's own uploaded documents that expire within 45 days or already expired.",
     input_schema: { type: 'object' as const, properties: {}, additionalProperties: false },
@@ -65,7 +87,7 @@ const rateText = (r: Row) => {
 /** Runs one tool for this person only. Everything is scoped to userId; no contact details are ever returned. */
 export async function runWraithTool(name: string, input: unknown, userId: string, svc: SupabaseClient): Promise<ToolResult> {
   const links: WraithLink[] = []
-  const done = (payload: unknown): ToolResult => ({ json: JSON.stringify(payload).slice(0, 4000), links: links.slice(0, 3) })
+  const done = (payload: unknown): ToolResult => ({ json: JSON.stringify(payload).slice(0, 4000), links: links.slice(0, 4) })
 
   if (name === 'search_open_loads') {
     const st = typeof (input as Row | null)?.state === 'string' ? String((input as Row).state).trim().toUpperCase() : ''
@@ -77,7 +99,7 @@ export async function runWraithTool(name: string, input: unknown, userId: string
     if (/^[A-Z]{2}$/.test(st)) rows = rows.filter((r) => r.pu_state === st || r.dl_state === st)
     rows = rows.slice(0, 6)
     for (const r of rows) { const l = loadLink(r.id, r); if (l) links.push(l) }
-    return done({ count: rows.length, loads: rows.map((r) => ({ from: place(r.pu_city, r.pu_state), to: place(r.dl_city, r.dl_state), escort: s(r.escort_type), rate: rateText(r), starts: s(r.start_date) })) })
+    return done({ count: rows.length, loads: rows.map((r) => ({ id: String(r.id), from: place(r.pu_city, r.pu_state), to: place(r.dl_city, r.dl_state), escort: s(r.escort_type), rate: rateText(r), starts: s(r.start_date) })) })
   }
 
   if (name === 'my_bids') {
@@ -103,6 +125,72 @@ export async function runWraithTool(name: string, input: unknown, userId: string
     }
     for (const l of loads) { const k = loadLink(l.id, l); if (k) links.push(k) }
     return done({ count: loads.length, loads: loads.map((l) => ({ route: `${place(l.pu_city, l.pu_state)} to ${place(l.dl_city, l.dl_state)}`, status: s(l.status), bids: counts[String(l.id)] || 0 })) })
+  }
+
+  if (name === 'whats_new') {
+    const since = new Date(Date.now() - 86400000).toISOString()
+    const { data: me } = await svc.from('profiles').select('role, availability_states').eq('id', userId).maybeSingle()
+    const role = s((me as Row | null)?.role)
+    if (role === 'carrier' || role === 'broker') {
+      const { data: mine } = await svc.from('loads').select('id, pu_city, pu_state, dl_city, dl_state').eq('carrier_id', userId).in('status', ['open', 'pending_match']).limit(20)
+      const loads = (mine || []) as Row[]
+      const { data: bs } = loads.length ? await svc.from('bids').select('load_id, rate').in('load_id', loads.map((l) => String(l.id))).gt('created_at', since) : { data: [] }
+      const bids = (bs || []) as Row[]
+      const per: Record<string, { n: number; best: number }> = {}
+      for (const b of bids) { const k = String(b.load_id); const e = per[k] || { n: 0, best: Infinity }; e.n++; e.best = Math.min(e.best, Number(b.rate) || Infinity); per[k] = e }
+      const hit = loads.filter((l) => per[String(l.id)])
+      for (const l of hit.slice(0, 3)) { const k = loadLink(l.id, l); if (k) links.push(k) }
+      return done({ kind: 'new_bids', newBidsToday: bids.length, loads: hit.slice(0, 5).map((l) => ({ route: `${place(l.pu_city, l.pu_state)} to ${place(l.dl_city, l.dl_state)}`, newBids: per[String(l.id)].n, lowest: `${per[String(l.id)].best} dollars` })) })
+    }
+    const states = new Set<string>(((me as Row | null)?.availability_states as string[] | null) || [])
+    const { data: av } = await svc.from('escort_availability').select('location_state').eq('escort_id', userId).limit(20)
+    for (const a of (av || []) as Row[]) if (typeof a.location_state === 'string') states.add(a.location_state.toUpperCase())
+    const { iBlocked, blockedMe } = await blockedIds(svc, userId)
+    const hidden = new Set([...iBlocked, ...blockedMe, userId])
+    const { data } = await svc.from('loads').select('id, carrier_id, pu_city, pu_state, dl_city, dl_state, per_mile_rate, day_rate, escort_type, expires_at').eq('status', 'open').gt('expires_at', new Date().toISOString()).gt('created_at', since).limit(60)
+    let rows = ((data || []) as Row[]).filter((r) => !hidden.has(String(r.carrier_id)))
+    if (states.size) rows = rows.filter((r) => states.has(String(r.pu_state)) || states.has(String(r.dl_state)))
+    const total = rows.length
+    rows = rows.slice(0, 5)
+    for (const r of rows.slice(0, 3)) { const l = loadLink(r.id, r); if (l) links.push(l) }
+    return done({ kind: 'new_loads', yourStates: states.size ? [...states].slice(0, 8) : 'none set, so all states', newOpenLoads: total, loads: rows.map((r) => ({ id: String(r.id), from: place(r.pu_city, r.pu_state), to: place(r.dl_city, r.dl_state), escort: s(r.escort_type), rate: rateText(r) })) })
+  }
+
+  if (name === 'my_fleet') {
+    const { data: fe } = await svc.from('fleet_escorts').select('escort_id').eq('fleet_manager_id', userId).limit(100)
+    const ids = ((fe || []) as Row[]).map((r) => String(r.escort_id)).filter(Boolean)
+    if (!ids.length) return done({ escorts: 0, note: 'No escorts are on this fleet yet.' })
+    const { data: ps } = await svc.from('profiles').select('id, full_name').in('id', ids)
+    const names = new Map(((ps || []) as Row[]).map((p) => [String(p.id), s(p.full_name) || 'Unnamed escort']))
+    const { data: ls } = await svc.from('loads').select('matched_escort_id, pu_city, pu_state, dl_city, dl_state, status').in('matched_escort_id', ids).in('status', ['filled', 'pending_match']).limit(100)
+    const busy = new Map<string, Row>()
+    for (const l of (ls || []) as Row[]) busy.set(String(l.matched_escort_id), l)
+    return done({
+      escorts: ids.length, onAJob: busy.size, free: ids.length - busy.size,
+      onJobs: [...busy.entries()].slice(0, 8).map(([id, l]) => ({ name: names.get(id) || 'Unnamed escort', route: `${place(l.pu_city, l.pu_state)} to ${place(l.dl_city, l.dl_state)}`, status: s(l.status) })),
+      freeEscorts: ids.filter((id) => !busy.has(id)).slice(0, 8).map((id) => names.get(id) || 'Unnamed escort'),
+    })
+  }
+
+  if (name === 'prepare_bid' || name === 'prepare_claim') {
+    const inp = (input || {}) as Row
+    const id = typeof inp.load_id === 'string' ? inp.load_id.trim() : ''
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) return done({ ok: false, reason: 'That load could not be found.' })
+    const amount = name === 'prepare_bid' ? Number(inp.amount) : 0
+    if (name === 'prepare_bid' && !(amount >= 1 && amount <= 100000)) return done({ ok: false, reason: 'The bid amount is not valid.' })
+    const { data: me } = await svc.from('profiles').select('role').eq('id', userId).maybeSingle()
+    if (s((me as Row | null)?.role) !== 'escort') return done({ ok: false, reason: 'Only escort accounts can bid on or claim loads.' })
+    const { data: ld } = await svc.from('loads').select('id, carrier_id, status, expires_at, pu_city, pu_state, dl_city, dl_state').eq('id', id).maybeSingle()
+    const l = ld as Row | null
+    const gone = !l || l.status !== 'open' || (l.expires_at && Date.parse(String(l.expires_at)) <= Date.now()) || l.carrier_id === userId
+    const { iBlocked, blockedMe } = await blockedIds(svc, userId)
+    if (gone || !l || iBlocked.includes(String(l.carrier_id)) || blockedMe.includes(String(l.carrier_id))) return done({ ok: false, reason: 'That load is not available to you.' })
+    const route = `${place(l.pu_city, l.pu_state)} to ${place(l.dl_city, l.dl_state)}`
+    const amt = Number.isInteger(amount) ? String(amount) : amount.toFixed(2)
+    links.push(name === 'prepare_bid'
+      ? { label: `Review $${amt} bid: ${route}`.slice(0, 70), href: `/loads/${id}?bid=${amt}` }
+      : { label: `Review and claim: ${route}`.slice(0, 70), href: `/loads/${id}` })
+    return done({ ok: true, ready: name === 'prepare_bid' ? `bid of ${amt} dollars` : 'claim', route, note: 'A button is on screen. Nothing has been placed; the person must open it and confirm.' })
   }
 
   if (name === 'my_expiring_documents') {
