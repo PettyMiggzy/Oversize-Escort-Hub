@@ -3,176 +3,175 @@ import * as THREE from 'three'
 export type OrbState = 'idle' | 'listening' | 'thinking' | 'speaking'
 export type OrbTheme = 'orange' | 'ice'
 
-const PAL = { orange: { a: 0xff6a13, b: 0xffb067 }, ice: { a: 0x28c8ff, b: 0xaaebff } }
-const PRESETS: Record<OrbState, { spin: number; pulse: number; core: number; scan: number; bar: number; ripple: number; glow: number }> = {
-  idle: { spin: 1.0, pulse: 0.1, core: 1.0, scan: 0, bar: 0, ripple: 0, glow: 1.0 },
-  listening: { spin: 1.9, pulse: 1.0, core: 1.45, scan: 0, bar: 0, ripple: 0, glow: 1.35 },
-  thinking: { spin: 4.6, pulse: 0.45, core: 1.2, scan: 1, bar: 0, ripple: 0, glow: 1.15 },
-  speaking: { spin: 1.3, pulse: 0.6, core: 1.15, scan: 0, bar: 1, ripple: 1, glow: 1.25 },
+const COLORS: Record<OrbTheme, string> = { orange: '#ff6a13', ice: '#28c8ff' }
+const PARAMS: Record<OrbState, { spin: number; pulse: number; core: number; scan: number; voice: number; speak: number }> = {
+  idle: { spin: 0.28, pulse: 0.012, core: 0.68, scan: 0, voice: 0, speak: 0.18 },
+  listening: { spin: 0.82, pulse: 0.042, core: 1.08, scan: 0, voice: 0, speak: 0.34 },
+  thinking: { spin: 2.35, pulse: 0.02, core: 1.2, scan: 1, voice: 0, speak: 0.3 },
+  speaking: { spin: 0.72, pulse: 0.05, core: 1.02, scan: 0, voice: 1, speak: 0.92 },
 }
 
-export type Orb = { setState(s: OrbState): void; setTheme(t: OrbTheme): void; resize(): void; dispose(): void }
+export type Orb = {
+  setState(s: OrbState): void
+  setTheme(t: OrbTheme): void
+  /** A short burst of activity (0 to 1) from the microphone or the spoken reply; it fades after holdSeconds. */
+  setActivity(level: number, holdSeconds: number): void
+  resize(): void
+  dispose(): void
+}
 
-/** The Wraith orb: ten tilted, counter-rotating rings, a core, voice bars and a scanner. Draws into `canvas`, sized to `stage`. */
+type Colored = { color: THREE.Color }
+
+/** The Wraith orb: ten tilted rings of broken arcs turning against each other, a scanner, a ring of voice bars and a glowing core. */
 export function createOrb(canvas: HTMLCanvasElement, stage: HTMLElement): Orb {
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false })
-  renderer.setClearColor(0x000000, 1)
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'high-performance' })
+  renderer.setClearColor(0x000000, 0)
   const scene = new THREE.Scene()
-  const camera = new THREE.PerspectiveCamera(46, 1, 0.1, 220)
-  const MAXR = 9.15
-  function resize() {
-    const w = stage.clientWidth || 1, h = stage.clientHeight || 1
-    renderer.setSize(w, h, false)
-    camera.aspect = w / h
-    const vFov = (camera.fov * Math.PI) / 180
-    const dv = (MAXR * 1.1) / Math.tan(vFov / 2)
-    const hFov = 2 * Math.atan(Math.tan(vFov / 2) * camera.aspect)
-    const dh = (MAXR * 1.1) / Math.tan(hFov / 2)
-    camera.position.set(0, -1.5, Math.max(dv, dh))
-    camera.lookAt(0, 0, 0)
-    camera.updateProjectionMatrix()
-  }
+  const camera = new THREE.OrthographicCamera(-4, 4, 4, -4, 0.1, 80)
+  camera.position.z = 20; camera.lookAt(0, 0, 0)
+  const root = new THREE.Group(); scene.add(root)
 
-  const colA = new THREE.Color(PAL.orange.a), colB = new THREE.Color(PAL.orange.b)
-  const tgtA = new THREE.Color(PAL.orange.a), tgtB = new THREE.Color(PAL.orange.b)
-  const orb = new THREE.Group()
-  scene.add(orb)
+  const activeColor = new THREE.Color(COLORS.orange), targetColor = activeColor.clone()
+  const accent: Colored[] = []
   const disposables: { dispose(): void }[] = []
-  const mats: { mat: THREE.Material & { color: THREE.Color; opacity: number }; baseOp: number; slot: number }[] = []
-  function mkMat(slot: number, op: number) {
-    const m = new THREE.MeshBasicMaterial({ color: (slot ? colB : colA).clone(), transparent: true, opacity: op, blending: THREE.AdditiveBlending, depthWrite: false })
-    mats.push({ mat: m, baseOp: op, slot }); disposables.push(m)
-    return m
-  }
-  const geo = <G extends THREE.BufferGeometry>(g: G) => { disposables.push(g); return g }
+  const track = <T extends { dispose(): void }>(d: T) => { disposables.push(d); return d }
 
-  const RINGS: { spin: THREE.Group; dir: number; speed: number; phase: number; node: THREE.Group }[] = []
-  const MINR = 2.35, GAPR = (MAXR - MINR) / 9
+  function resize() {
+    const w = Math.max(1, stage.clientWidth), h = Math.max(1, stage.clientHeight)
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
+    renderer.setSize(w, h, false)
+    const vh = (8.05 * h) / Math.min(w, h)
+    camera.top = vh / 2; camera.bottom = -vh / 2; camera.left = (-vh * w) / h / 2; camera.right = (vh * w) / h / 2
+    camera.updateProjectionMatrix()
+    root.position.y = vh * 0.07
+  }
+
+  const gc = document.createElement('canvas'); gc.width = gc.height = 128
+  const gx = gc.getContext('2d')!
+  const gg = gx.createRadialGradient(64, 64, 0, 64, 64, 64)
+  gg.addColorStop(0, 'rgba(255,255,255,.88)'); gg.addColorStop(0.11, 'rgba(255,255,255,.48)'); gg.addColorStop(0.42, 'rgba(255,255,255,.12)'); gg.addColorStop(1, 'rgba(255,255,255,0)')
+  gx.fillStyle = gg; gx.fillRect(0, 0, 128, 128)
+  const tex = track(new THREE.CanvasTexture(gc)); tex.minFilter = THREE.LinearFilter
+
+  const addSprite = (opacity: number, size: number, z: number) => {
+    const m = track(new THREE.SpriteMaterial({ map: tex, color: activeColor.clone(), transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false }))
+    const sp = new THREE.Sprite(m); sp.position.z = z; sp.scale.set(size, size, 1); root.add(sp); accent.push(m); return sp
+  }
+  const halo = addSprite(0.5, 6.3, -0.62)
+  addSprite(0.65, 2.25, 0.18)
+
+  const pos: number[] = []
+  for (let i = 0; i < 190; i++) {
+    const u = Math.random() * 2 - 1, a = Math.random() * Math.PI * 2, r = 3.75 + Math.random() * 2.65, q = Math.sqrt(1 - u * u)
+    pos.push(r * q * Math.cos(a), r * q * Math.sin(a), r * u)
+  }
+  const dg = track(new THREE.BufferGeometry()); dg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3))
+  const dust = new THREE.Points(dg, track(new THREE.PointsMaterial({ color: 0xaab3bd, size: 0.033, transparent: true, opacity: 0.38, depthWrite: false, sizeAttenuation: true, map: tex, blending: THREE.AdditiveBlending })))
+  root.add(dust)
+
+  const arc = (radius: number, start: number, length: number, steps: number) => {
+    const p: THREE.Vector3[] = []
+    for (let i = 0; i <= steps; i++) { const a = start + (length * i) / steps; p.push(new THREE.Vector3(Math.cos(a) * radius, Math.sin(a) * radius, 0)) }
+    return track(new THREE.BufferGeometry().setFromPoints(p))
+  }
+  const accentMat = <M extends THREE.Material & Colored>(m: M) => { track(m); accent.push(m); return m }
+
+  const rings: { tilt: THREE.Group; spin: THREE.Group; dir: number; speed: number; phase: number }[] = []
+  const alphas = [0.53, 0.37, 0.46, 0.3, 0.43]
   for (let i = 0; i < 10; i++) {
-    const rad = MINR + GAPR * i
-    const g = new THREE.Group()
-    g.rotation.x = THREE.MathUtils.degToRad(((i * 37) % 66) - 33)
-    g.rotation.y = THREE.MathUtils.degToRad(((i * 53) % 74) - 37)
-    const spin = new THREE.Group(); g.add(spin)
-    const segs = 4 + ((i * 3) % 5)
-    for (let s = 0; s < segs; s++) {
-      const arc = 0.2 + Math.random() * 0.62
-      const m = new THREE.Mesh(geo(new THREE.TorusGeometry(rad, 0.0125 + Math.random() * 0.007, 6, Math.max(8, Math.round(arc * 54)), arc)), mkMat((s + i) % 2, 0.24 + Math.random() * 0.46))
-      m.rotation.z = (s / segs) * Math.PI * 2 + Math.random() * 0.45
-      spin.add(m)
+    const tilt = new THREE.Group(); tilt.rotation.set((Math.random() - 0.5) * 0.78, (Math.random() - 0.5) * 0.82, (Math.random() - 0.5) * 0.22)
+    const spin = new THREE.Group(); tilt.add(spin); root.add(tilt)
+    const radius = 1.03 + i * 0.252, count = 3 + (i % 3), offset = Math.random() * Math.PI * 2
+    for (let j = 0; j < count; j++) {
+      const start = offset + (j * Math.PI * 2) / count + (Math.random() - 0.5) * 0.42
+      const len = ((Math.PI * 2) / count) * (0.38 + Math.random() * 0.48)
+      spin.add(new THREE.Line(arc(radius, start, len, 26), accentMat(new THREE.LineBasicMaterial({ color: activeColor.clone(), transparent: true, opacity: alphas[(i + j) % 5], blending: THREE.AdditiveBlending, depthWrite: false }))))
+      if ((i + j) % 3 === 0) {
+        const node = new THREE.Mesh(track(new THREE.SphereGeometry(0.02, 8, 6)), accentMat(new THREE.MeshBasicMaterial({ color: activeColor.clone(), transparent: true, opacity: 0.72, blending: THREE.AdditiveBlending, depthWrite: false })))
+        node.position.set(Math.cos(start + len) * radius, Math.sin(start + len) * radius, 0.012); spin.add(node)
+      }
     }
-    orb.add(g)
-    RINGS.push({ spin, dir: i % 2 ? 1 : -1, speed: 0.1 + Math.random() * 0.36, phase: Math.random() * 6.283, node: g })
+    rings.push({ tilt, spin, dir: i % 2 ? -1 : 1, speed: 0.38 + i * 0.05, phase: i * 0.52 })
   }
 
-  const hc = document.createElement('canvas'); hc.width = hc.height = 256
-  const hx = hc.getContext('2d')!
-  const grd = hx.createRadialGradient(128, 128, 0, 128, 128, 128)
-  grd.addColorStop(0, 'rgba(255,255,255,1)'); grd.addColorStop(0.22, 'rgba(255,255,255,.55)'); grd.addColorStop(0.55, 'rgba(255,255,255,.14)'); grd.addColorStop(1, 'rgba(255,255,255,0)')
-  hx.fillStyle = grd; hx.fillRect(0, 0, 256, 256)
-  const haloTex = new THREE.CanvasTexture(hc); disposables.push(haloTex)
-  const sprite = (op: number, size: number) => {
-    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: haloTex, transparent: true, opacity: op, blending: THREE.AdditiveBlending, depthWrite: false }))
-    disposables.push(sp.material); sp.scale.setScalar(size); orb.add(sp); return sp
-  }
-  const halo = sprite(0.9, 9)
-  const coreMat = new THREE.MeshBasicMaterial({ color: colB.clone(), transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false })
-  disposables.push(coreMat); mats.push({ mat: coreMat, baseOp: 0.95, slot: 1 })
-  const core = new THREE.Mesh(geo(new THREE.SphereGeometry(0.42, 28, 28)), coreMat); orb.add(core)
-  const coreGlow = sprite(0.85, 3.4)
+  const scanG = arc(1.02, -0.64, 1.27, 52), sa = scanG.attributes.position.array, spts: THREE.Vector3[] = []
+  for (let i = 0; i < scanG.attributes.position.count; i++) spts.push(new THREE.Vector3(sa[i * 3], sa[i * 3 + 1], 0.06))
+  const scanMat = accentMat(new THREE.MeshBasicMaterial({ color: activeColor.clone(), transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }))
+  const scanner = new THREE.Group()
+  scanner.add(new THREE.Mesh(track(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(spts), 52, 0.014, 5, false)), scanMat)); root.add(scanner)
 
-  const scanner = new THREE.Mesh(geo(new THREE.TorusGeometry(1.55, 0.022, 6, 64, 1.15)), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }))
-  disposables.push(scanner.material as THREE.Material); orb.add(scanner)
-
-  const BARS = 48, barGroup = new THREE.Group(), bars: THREE.Mesh[] = []
-  const barGeo = geo(new THREE.PlaneGeometry(0.055, 1))
-  for (let b = 0; b < BARS; b++) {
-    const bm = new THREE.Mesh(barGeo, mkMat(b % 2, 0.85))
-    const a = (b / BARS) * Math.PI * 2
-    bm.position.set(Math.cos(a) * 2.15, Math.sin(a) * 2.15, 0); bm.rotation.z = a + Math.PI / 2; bm.userData.amp = 0.3
-    barGroup.add(bm); bars.push(bm)
-  }
-  orb.add(barGroup)
-
-  const RIPPLES: { m: THREE.Mesh; life: number }[] = []
-  const ripGeo = geo(new THREE.TorusGeometry(1.3, 0.02, 6, 72, Math.PI * 1.7))
-  for (let r = 0; r < 8; r++) {
-    const rm = new THREE.Mesh(ripGeo, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }))
-    disposables.push(rm.material as THREE.Material); rm.rotation.z = Math.random() * 6.28; orb.add(rm); RIPPLES.push({ m: rm, life: 0 })
+  const barGeo = track(new THREE.BoxGeometry(0.031, 1, 0.025))
+  const bars: { mesh: THREE.Mesh; mat: THREE.MeshBasicMaterial; a: number; seed: number }[] = []
+  for (let i = 0; i < 64; i++) {
+    const mat = accentMat(new THREE.MeshBasicMaterial({ color: activeColor.clone(), transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }))
+    const mesh = new THREE.Mesh(barGeo, mat), a = (i / 64) * Math.PI * 2
+    mesh.rotation.z = a - Math.PI / 2; mesh.position.set(Math.cos(a) * 1.04, Math.sin(a) * 1.04, 0.16); mesh.scale.y = 0.04
+    root.add(mesh); bars.push({ mesh, mat, a, seed: Math.random() * 6.28 })
   }
 
-  const COUNT = window.innerWidth < 560 ? 170 : 320
-  const pos = new Float32Array(COUNT * 3)
-  for (let p = 0; p < COUNT; p++) {
-    const th = Math.random() * Math.PI * 2, ph = Math.acos(2 * Math.random() - 1), rr = 7 + Math.random() * 10
-    pos[p * 3] = rr * Math.sin(ph) * Math.cos(th); pos[p * 3 + 1] = rr * Math.cos(ph) * 0.6; pos[p * 3 + 2] = rr * Math.sin(ph) * Math.sin(th)
-  }
-  const pGeo = geo(new THREE.BufferGeometry()); pGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3))
-  const pMat = new THREE.PointsMaterial({ size: 0.055, transparent: true, opacity: 0.5, color: colA.clone(), blending: THREE.AdditiveBlending, depthWrite: false })
-  disposables.push(pMat); mats.push({ mat: pMat as unknown as (typeof mats)[number]['mat'], baseOp: 0.5, slot: 0 })
-  const dust = new THREE.Points(pGeo, pMat); scene.add(dust)
+  const shell = new THREE.Mesh(track(new THREE.IcosahedronGeometry(0.5, 2)), accentMat(new THREE.MeshBasicMaterial({ color: activeColor.clone(), wireframe: true, transparent: true, opacity: 0.22, blending: THREE.AdditiveBlending, depthWrite: false })))
+  shell.position.z = 0.28; root.add(shell)
+  const core = new THREE.Mesh(track(new THREE.SphereGeometry(0.335, 32, 24)), track(new THREE.MeshBasicMaterial({ color: 0xffe8d1, transparent: true, opacity: 0.96 })))
+  core.position.z = 0.37; root.add(core)
+  const point = new THREE.Mesh(track(new THREE.SphereGeometry(0.13, 20, 16)), track(new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.86 })))
+  point.position.set(-0.07, 0.075, 0.65); root.add(point)
 
-  let tiltX = 0, tiltY = 0, tTiltX = 0, tTiltY = 0
-  const onMove = (e: PointerEvent) => {
-    const r = stage.getBoundingClientRect()
-    tTiltY = (((e.clientX - r.left) / r.width) * 2 - 1) * 0.26
-    tTiltX = (((e.clientY - r.top) / r.height) * 2 - 1) * -0.18
-  }
-  const onLeave = () => { tTiltX = 0; tTiltY = 0 }
-  stage.addEventListener('pointermove', onMove); stage.addEventListener('pointerleave', onLeave)
+  let px = 0, py = 0
+  const onMove = (e: PointerEvent) => { px = (e.clientX / window.innerWidth - 0.5) * 2; py = (e.clientY / window.innerHeight - 0.5) * 2 }
+  const onLeave = () => { px = 0; py = 0 }
+  window.addEventListener('pointermove', onMove, { passive: true }); window.addEventListener('pointerleave', onLeave)
 
-  let state: OrbState = 'idle', want = PRESETS.idle, voice = 0, rippleTimer = 0, raf = 0, last = performance.now(), t = 0, dead = false
-  const cur = { ...PRESETS.idle }
+  const lerp = THREE.MathUtils.lerp
+  const smooth = (a: number, b: number, k: number, dt: number) => lerp(a, b, 1 - Math.exp(-k * dt))
+  let state: OrbState = 'idle', clock = 0, last = 0, raf = 0, dead = false
+  let spinNow = 0.25, pulseNow = 0.012, coreNow = 0.7, scanNow = 0, voiceNow = 0, speakNow = 0.2, activityNow = 0
+  let activity = 0, activityUntil = 0
 
-  function frame(now: number) {
+  function frame(ts: number) {
     if (dead) return
-    const dt = Math.min((now - last) / 1000, 0.05); last = now; t += dt
-    const k = Math.min(1, dt * 4.2)
-    for (const key of Object.keys(cur) as (keyof typeof cur)[]) cur[key] += (want[key] - cur[key]) * k
-    tiltX += (tTiltX - tiltX) * Math.min(1, dt * 3.5); tiltY += (tTiltY - tiltY) * Math.min(1, dt * 3.5)
-    orb.rotation.x = tiltX; orb.rotation.y = tiltY
-    colA.lerp(tgtA, Math.min(1, dt * 3)); colB.lerp(tgtB, Math.min(1, dt * 3))
-    for (const rec of mats) { rec.mat.color.copy(rec.slot ? colB : colA); rec.mat.opacity = rec.baseOp }
-    for (const R of RINGS) {
-      R.spin.rotation.z += dt * R.speed * cur.spin * R.dir
-      R.node.scale.setScalar(1 + Math.sin(t * 1.7 + R.phase) * cur.pulse * 0.028)
-    }
-    core.scale.setScalar(cur.core * (1 + Math.sin(t * 1.25) * 0.05) * (1 + voice * 0.22))
-    coreGlow.scale.setScalar(3.4 * cur.core * (0.9 + Math.sin(t * 2.1) * 0.06) * (1 + voice * 0.3))
-    coreGlow.material.opacity = 0.55 * cur.glow
-    halo.scale.setScalar(9 * cur.glow * (1 + Math.sin(t * 0.9) * 0.04)); halo.material.opacity = 0.22 * cur.glow
-    const sm = scanner.material as THREE.MeshBasicMaterial
-    sm.opacity = cur.scan * 0.9; sm.color.copy(colB); scanner.rotation.z += dt * 7; scanner.scale.setScalar(1 + cur.scan * 0.12)
-    const target = state === 'speaking' ? 0.35 + Math.random() * 0.9 : 0
-    voice += (target - voice) * Math.min(1, dt * 9)
-    if (state === 'speaking' && Math.random() < 0.06) voice = 1.25
-    bars.forEach((bar, i) => {
-      const a = 0.22 + Math.abs(Math.sin(t * 7.3 + i * 0.55)) * 1.5
-      bar.userData.amp += (a - bar.userData.amp) * Math.min(1, dt * 12)
-      bar.scale.y = Math.max(0.06, bar.userData.amp * cur.bar * (0.4 + voice))
-    })
-    barGroup.rotation.z -= dt * 0.25
-    rippleTimer -= dt
-    if (cur.ripple > 0.5 && rippleTimer <= 0) { rippleTimer = 0.42; const r = RIPPLES.find((x) => x.life <= 0); if (r) { r.life = 1; r.m.scale.setScalar(1) } }
-    for (const rp of RIPPLES) {
-      const rm = rp.m.material as THREE.MeshBasicMaterial
-      if (rp.life > 0) { rp.life -= dt * 0.9; rp.m.scale.setScalar(1 + (1 - rp.life) * 2.6); rm.opacity = Math.max(0, rp.life * 0.5); rm.color.copy(colB) } else rm.opacity = 0
-    }
-    dust.rotation.y += dt * 0.035; dust.rotation.x = Math.sin(t * 0.1) * 0.06
-    renderer.render(scene, camera)
     raf = requestAnimationFrame(frame)
+    const dt = Math.min(0.05, (ts - last) / 1000 || 0.016); last = ts; clock += dt
+    const p = PARAMS[state]
+    spinNow = smooth(spinNow, p.spin, 2.4, dt); pulseNow = smooth(pulseNow, p.pulse, 2.7, dt); coreNow = smooth(coreNow, p.core, 2.6, dt)
+    scanNow = smooth(scanNow, p.scan, 3.2, dt); voiceNow = smooth(voiceNow, p.voice, 3.2, dt); speakNow = smooth(speakNow, p.speak, 2.8, dt)
+    const baseline = state === 'speaking' ? 0.24 + 0.48 * Math.abs(Math.sin(clock * 3.8)) : 0
+    const target = state === 'listening' || state === 'speaking' ? (clock < activityUntil ? activity : baseline) : 0
+    activityNow = smooth(activityNow, target, 8, dt)
+    activeColor.lerp(targetColor, 1 - Math.exp(-2.6 * dt)); accent.forEach((m) => m.color.copy(activeColor))
+    root.rotation.x = smooth(root.rotation.x, py * 0.105, 2.2, dt); root.rotation.y = smooth(root.rotation.y, px * 0.12, 2.2, dt); root.rotation.z = Math.sin(clock * 0.11) * 0.018
+    dust.rotation.y += dt * 0.012; dust.rotation.x += dt * 0.006
+    halo.material.opacity = 0.31 + coreNow * 0.12 + activityNow * 0.1 + Math.sin(clock * 1.2) * 0.025
+    halo.scale.setScalar(6.25 + coreNow * 0.14 + Math.sin(clock * 1.05) * 0.08)
+    shell.rotation.x += dt * 0.12; shell.rotation.y -= dt * 0.18
+    shell.scale.setScalar(1 + Math.sin(clock * 2.3) * (0.025 + pulseNow * 0.24 + activityNow * 0.1))
+    core.scale.setScalar(1 + Math.sin(clock * (state === 'speaking' ? 8 : 2.1)) * (0.018 + pulseNow * 0.4) + (state === 'speaking' ? 0.025 * Math.sin(clock * 11.7) : 0) + activityNow * 0.055)
+    rings.forEach((r) => {
+      r.spin.rotation.z += dt * r.speed * spinNow * r.dir
+      const wave = state === 'speaking' ? Math.max(0, Math.sin(clock * 3.6 - r.phase)) * (0.012 + activityNow * 0.04) : 0
+      const listenWave = state === 'listening' ? Math.max(0, Math.sin(clock * 4 - r.phase)) * 0.018 * activityNow : 0
+      r.spin.scale.setScalar(1 + Math.sin(clock * 2.1 - r.phase) * pulseNow + wave + listenWave)
+      r.tilt.rotation.x += dt * Math.sin(clock * 0.22 + r.phase) * 0.0008; r.tilt.rotation.y += dt * Math.cos(clock * 0.19 + r.phase) * 0.0008
+    })
+    scanner.rotation.z += dt * (1.2 + spinNow * 1.45); scanMat.opacity = scanNow * 0.94
+    bars.forEach((b, i) => {
+      const wave = 0.5 + 0.5 * Math.sin(clock * (3.2 + speakNow * 2.8) + b.seed + Math.sin(clock * 1.4 + i * 0.13) * 0.8)
+      const beat = 0.5 + 0.5 * Math.sin(clock * (3.2 + speakNow * 2.8) * 0.42 + i * 0.16)
+      const h = 0.08 + wave * (0.07 + speakNow * 0.27) + beat * speakNow * 0.05 + activityNow * (0.06 + wave * 0.16)
+      const visible = Math.max(voiceNow, state === 'listening' ? activityNow * 0.8 : 0)
+      b.mesh.scale.y = h; b.mesh.position.set(Math.cos(b.a) * (1.04 + h * 0.48), Math.sin(b.a) * (1.04 + h * 0.48), 0.16); b.mat.opacity = visible * (0.2 + wave * 0.8)
+    })
+    renderer.render(scene, camera)
   }
-  resize()
-  raf = requestAnimationFrame(frame)
+  resize(); raf = requestAnimationFrame(frame)
 
   return {
-    setState(s) { state = s; want = PRESETS[s] },
-    setTheme(th) { tgtA.setHex(PAL[th].a); tgtB.setHex(PAL[th].b) },
+    setState(s) { state = s },
+    setTheme(t) { targetColor.set(COLORS[t]) },
+    setActivity(level, holdSeconds) { activity = Math.max(0, Math.min(1, level)); activityUntil = clock + holdSeconds },
     resize,
     dispose() {
       dead = true; cancelAnimationFrame(raf)
-      stage.removeEventListener('pointermove', onMove); stage.removeEventListener('pointerleave', onLeave)
+      window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerleave', onLeave)
       disposables.forEach((d) => d.dispose()); renderer.dispose()
     },
   }

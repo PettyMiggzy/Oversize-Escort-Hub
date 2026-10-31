@@ -8,7 +8,12 @@ type Link = { label: string; href: string }
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type SR = any
 
-const LABEL: Record<OrbState, string> = { idle: 'ready', listening: 'listening', thinking: 'thinking', speaking: 'speaking' }
+const LABEL: Record<OrbState, [string, string]> = {
+  idle: ['Ready', 'System standing by'],
+  listening: ['Listening', 'Microphone open'],
+  thinking: ['Thinking', 'Checking your OEH data'],
+  speaking: ['Speaking', 'Voice response'],
+}
 
 export default function WraithClient() {
   const stageRef = useRef<HTMLDivElement>(null)
@@ -22,7 +27,7 @@ export default function WraithClient() {
   const askingRef = useRef(false)
 
   const [state, setStateRaw] = useState<OrbState>('idle')
-  const [line, setLine] = useState('Tap talk and ask.')
+  const [line, setLine] = useState('Standing by. Tap talk and ask about loads, bids or documents.')
   const [links, setLinks] = useState<Link[]>([])
   const [ice, setIce] = useState(false)
   const [talking, setTalking] = useState(false)
@@ -74,10 +79,17 @@ export default function WraithClient() {
     if (!synth) { askingRef.current = false; listenAgain(); return }
     try {
       const u = new SpeechSynthesisUtterance(reply)
-      u.rate = 1.02; u.pitch = 0.98
-      const v = synth.getVoices().find((x) => /^en[-_]/i.test(x.lang))
-      if (v) u.voice = v
+      u.rate = 0.96; u.pitch = 0.95
+      const english = synth.getVoices().filter((x) => /^en[-_]/i.test(x.lang))
+      const score = (x: SpeechSynthesisVoice) => (/^en[-_]gb/i.test(x.lang) ? 5 : 0) + (/natural|neural|premium|enhanced|online/i.test(x.name) ? 6 : 0) + (x.default ? 1 : 0)
+      const v = english.sort((a, b) => score(b) - score(a))[0]
+      if (v) { u.voice = v; u.lang = v.lang }
       const end = () => { askingRef.current = false; listenAgain() }
+      u.onboundary = (e: SpeechSynthesisEvent) => {
+        const word = (reply.slice(e.charIndex || 0).match(/^[^\s,.;!?]+/) || [''])[0]
+        const syl = Math.max(1, (word.toLowerCase().match(/[aeiouy]+/g) || []).length)
+        orbRef.current?.setActivity(Math.min(0.98, 0.28 + syl * 0.17), 0.26)
+      }
       u.onend = end; u.onerror = end
       synth.speak(u)
     } catch { askingRef.current = false; listenAgain() }
@@ -114,6 +126,7 @@ export default function WraithClient() {
         for (let i = ev.resultIndex; i < ev.results.length; i++) t += ev.results[i][0].transcript
         const at = t.toLowerCase().indexOf('hey wraith')
         if (at !== -1) t = t.slice(at + 10)
+        orbRef.current?.setActivity(Math.min(0.95, 0.2 + t.trim().length * 0.045), 0.3)
         const last = ev.results[ev.results.length - 1]
         if (last.isFinal && t.trim()) { try { rec.stop() } catch { /* ok */ } ask(t.trim()) }
         else if (!askingRef.current) setLine(t.trim() || 'Listening...')
@@ -133,27 +146,47 @@ export default function WraithClient() {
 
   return (
     <div ref={stageRef} className={`wr-stage${ice ? ' ice' : ''}`}>
-      <canvas ref={canvasRef} />
-      <div className="wr-scrim" />
-      <div className="wr-top"><a href="/dashboard">&larr; OEH</a></div>
-      <div className="wr-hud">
-        <div className="wr-wake">wraith</div>
-        <div className="wr-status">{LABEL[state]}</div>
-        <div className="wr-line" aria-live="polite">{line}</div>
-        {links.length > 0 && <div className="wr-links">{links.map((l) => <a key={l.href} className="wr-link" href={l.href}>{l.label}</a>)}</div>}
-        <div className="wr-row">
-          <button type="button" className={`wr-pill${talking ? ' on' : ''}`} onClick={() => (talking ? stopSession() : startSession())}>{talking ? 'stop' : 'talk'}</button>
-          <button type="button" className="wr-pill" onClick={() => { const n = !ice; setIce(n); orbRef.current?.setTheme(n ? 'ice' : 'orange') }}>{ice ? 'orange' : 'ice'}</button>
-          {!showTyped && <button type="button" className="wr-pill" onClick={() => setShowTyped(true)}>type</button>}
+      <canvas ref={canvasRef} className="wr-orb" aria-label="Animated Wraith voice assistant orb" />
+      <div className="wr-vignette" aria-hidden="true" />
+      <header className="wr-top">
+        <a href="/dashboard" className="wr-brand" aria-label="Back to OEH">
+          <div className="wr-mark" aria-hidden="true" />
+          <div><div className="wr-brandname">WRAITH</div><div className="wr-sub">Voice console</div></div>
+        </a>
+        <div className="wr-actions">
+          <div className="wr-tag"><span className="wr-dot" /><span>Read only</span></div>
+          <button type="button" className="wr-theme" aria-label={ice ? 'Switch to ember orange theme' : 'Switch to ice blue theme'} onClick={() => { const n = !ice; setIce(n); orbRef.current?.setTheme(n ? 'ice' : 'orange') }}>
+            <span className="wr-symbol">&#9672;</span><span>{ice ? 'Ember' : 'Ice blue'}</span>
+          </button>
+        </div>
+      </header>
+      <div className="wr-micro">Your own OEH data only</div>
+      <section className="wr-dock" aria-label="Wraith assistant controls">
+        <div className={`wr-card${state !== 'idle' ? ' active' : ''}`}>
+          <div className="wr-statusrow">
+            <div className="wr-cluster">
+              <span className={`wr-light${state === 'listening' ? ' pulse' : ''}`} />
+              <span className="wr-word">{LABEL[state][0]}</span>
+              <span className="wr-note">{LABEL[state][1]}</span>
+            </div>
+          </div>
+          <div className="wr-reply" aria-live="polite">{line}</div>
+          {links.length > 0 && <div className="wr-links">{links.map((l) => <a key={l.href} className="wr-link" href={l.href}>{l.label}</a>)}</div>}
         </div>
         {showTyped && (
-          <div className="wr-typed">
-            <input value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') sendTyped() }} placeholder="ask Wraith" autoComplete="off" enterKeyHint="send" />
-            <button type="button" onClick={sendTyped}>send</button>
-          </div>
+          <form className="wr-input" onSubmit={(e) => { e.preventDefault(); sendTyped() }} autoComplete="off">
+            <input className="wr-query" value={text} onChange={(e) => setText(e.target.value)} maxLength={500} placeholder="Ask about loads, bids or documents" aria-label="Type a message for Wraith" enterKeyHint="send" />
+            <button type="submit" className="wr-send">Send</button>
+          </form>
         )}
-        <div className="wr-note">{note}</div>
-      </div>
+        <div className="wr-controls">
+          <button type="button" className="wr-voice" aria-pressed={talking} onClick={() => (talking ? stopSession() : startSession())}>
+            <span className="wr-mic" aria-hidden="true" /><span>{talking ? 'Stop' : 'Talk to Wraith'}</span>
+          </button>
+          {!showTyped && <button type="button" className="wr-alt" onClick={() => setShowTyped(true)}>Type</button>}
+        </div>
+        <div className="wr-foot"><i /><span>{note || 'Tap talk, then speak'}</span><i /></div>
+      </section>
     </div>
   )
 }
