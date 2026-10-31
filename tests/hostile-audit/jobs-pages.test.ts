@@ -32,14 +32,10 @@ test('new jobs pages do not select email or phone', () => {
   expect(read('app/jobs/page.tsx')).toContain('Escort and pilot car jobs | Oversize Escort Hub')
 })
 
-test('the job page carries JobPosting JSON-LD', () => {
+test('the job page does not publish search-engine job listings for unchecked posts', () => {
   const src = read('app/jobs/[id]/page.tsx')
-  expect(src).toContain('application/ld+json')
-  expect(src).toContain('JobPosting')
-  expect(src).toContain('validThrough')
-  expect(src).toContain("return 'CONTRACTOR'")
-  expect(src).toContain("job.pay_model !== 'negotiable' && job.pay_model !== 'percent'")
-  expect(src).toContain('baseSalary')
+  expect(src).not.toContain('application/ld+json')
+  expect(src).not.toContain('JobPosting')
 })
 
 test('the terms include a plain jobs board section', () => {

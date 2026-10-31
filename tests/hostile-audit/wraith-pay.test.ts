@@ -143,6 +143,6 @@ test('the price shown comes from Stripe; the table is service-only; the page has
   const client = fs.readFileSync('components/wraith/WraithClient.tsx', 'utf8')
   expect(client).toContain('!inApp && canSubscribe')
   expect(client).toContain("isNativeApp()")
-  expect(fs.readFileSync('app/terms/page.tsx', 'utf8')).toMatch(/38\. Wraith voice assistant/)
-  expect(fs.readFileSync('app/privacy/page.tsx', 'utf8')).toMatch(/32\. Wraith voice assistant/)
+  expect(fs.readFileSync('app/terms/page.tsx', 'utf8')).toMatch(/37\. Wraith voice assistant/)
+  expect(fs.readFileSync('app/privacy/page.tsx', 'utf8')).toMatch(/31\. Wraith voice assistant/)
 })

@@ -152,65 +152,65 @@ export default function PrivacyPolicy() {
         </div>
 
                 <div style={{ ...s.section }}>
-          <h2 style={{ ...s.h2 }}>15. Matching Engine &amp; Load Request Data</h2>
+          <h2 style={{ ...s.h2 }}>14. Matching Engine &amp; Load Request Data</h2>
           <p style={{ ...s.p }}>When you use the load request / matching feature, OEH records your request, match status, acceptance or decline decisions, and timestamp. This data is used to operate the matching system, enforce the 1-hour hold, and send relevant notifications. Match history may be retained for dispute resolution and platform analytics.</p>
         </div>
         <div style={{ ...s.section }}>
-          <h2 style={{ ...s.h2 }}>16. Reviews &amp; Ratings Data</h2>
+          <h2 style={{ ...s.h2 }}>15. Reviews &amp; Ratings Data</h2>
           <p style={{ ...s.p }}>Reviews and star ratings you submit are associated with your account and are visible to other Platform users. We store review text, rating scores, and the date of submission. You may not submit reviews anonymously. OEH may use aggregated rating data for search ranking and analytics.</p>
         </div>
         <div style={{ ...s.section }}>
-          <h2 style={{ ...s.h2 }}>17. Referral Program Data</h2>
+          <h2 style={{ ...s.h2 }}>16. Referral Program Data</h2>
           <p style={{ ...s.p }}>If you participate in our referral program, we collect and store your referral code, the identity of users referred by you, and the status of referral rewards. We use this data solely to administer the referral program. Referral data is not shared with third parties except as required to fulfill rewards.</p>
         </div>
         <div style={{ ...s.section }}>
-          <h2 style={{ ...s.h2 }}>18. Fleet Manager Data</h2>
+          <h2 style={{ ...s.h2 }}>17. Fleet Manager Data</h2>
           <p style={{ ...s.p }}>Fleet Manager Tools allow Pro subscribers to enter information about third-party escorts (name, phone number, city, state, and availability) into the Platform. By entering this data, you represent that you have obtained appropriate consent from each escort to process their information. OEH stores fleet search data and logs to enforce rate limits and flag anomalous activity. Fleet escort data entered by a fleet manager is not used for any purpose beyond facilitating the fleet search and is not shared or sold.</p>
         </div>
         <div style={{ ...s.section }}>
-          <h2 style={{ ...s.h2 }}>19. Multi-Board Load Posting Data</h2>
+          <h2 style={{ ...s.h2 }}>18. Multi-Board Load Posting Data</h2>
           <p style={{ ...s.p }}>When you post a load to multiple boards, OEH stores a single load record with a boards field indicating which boards the load appears on. Status changes (pending, filled, open) are applied atomically to the single record and reflected across all boards simultaneously. Load records, status history, and board selections are stored for operational, audit, and dispute resolution purposes.</p>
         </div>
         <div style={{ ...s.section }}>
-          <h2 style={{ ...s.h2 }}>20. FMCSA DOT Number &amp; Verification Data</h2>
+          <h2 style={{ ...s.h2 }}>19. FMCSA DOT Number &amp; Verification Data</h2>
           <p style={{ ...s.p }}>When you provide a USDOT number, OEH queries the FMCSA QCMobile public API using that number. The API response, including carrier legal name and operating status, is stored alongside your load record. We do not sell this data. We do not verify DOT numbers and show no verified badge.</p>
         </div>
         <div style={{ ...s.section }}>
-          <h2 style={{ ...s.h2 }}>21. Weather Data</h2>
+          <h2 style={{ ...s.h2 }}>20. Weather Data</h2>
           <p style={{ ...s.p }}>OEH displays weather information from the National Weather Service (NWS) API and uses the Nominatim geocoding service (OpenStreetMap) to convert city/state inputs to geographic coordinates. We do not store weather data permanently; it is fetched in real time or cached briefly for performance. We do not share location inputs used for weather lookups with third parties beyond the NWS and Nominatim services.</p>
         </div>
         <div style={{ ...s.section }}>
-          <h2 style={{ ...s.h2 }}>22. Profile Pictures</h2>
+          <h2 style={{ ...s.h2 }}>21. Profile Pictures</h2>
           <p style={{ ...s.p }}>Profile pictures you upload are stored securely in our cloud storage (Supabase Storage). Your profile picture is visible to other authenticated Platform users. You may update or remove your profile picture at any time from your account settings. We do not use profile pictures for facial recognition or share them with third parties.</p>
         </div>
         <div style={{ ...s.section }}>
-          <h2 style={{ ...s.h2 }}>23. Upside Affiliate Partnership</h2>
+          <h2 style={{ ...s.h2 }}>22. Upside Affiliate Partnership</h2>
           <p style={{ ...s.p }}>OEH participates in the Upside affiliate program. If you click an Upside referral link and sign up or make a purchase, Upside may share limited transaction data with OEH for affiliate commission purposes. We do not receive or store your Upside account credentials or payment information. Your use of Upside is governed by Upside&apos;s own privacy policy.</p>
         </div>
         <div style={{ ...s.section }}>
-          <h2 style={{ ...s.h2 }}>24. MC/DOT Numbers for Fraud Prevention</h2>
+          <h2 style={{ ...s.h2 }}>23. MC/DOT Numbers for Fraud Prevention</h2>
           <p style={{ ...s.p }}>MC (Motor Carrier) and DOT numbers collected from carrier accounts are used for account records and fraud prevention. We do not verify them. MC/DOT data is stored securely, is not sold, and is only shared with law enforcement or regulatory authorities when required by law or to investigate fraud on the Platform.</p>
-        </div> <div style={{...s.section}}><h2 style={{...s.h2}}>25. Escort Availability Board</h2><p style={{...s.p}}>When escorts post on the Availability Board, their stated location, certifications, and availability window are stored and displayed to carriers. This information is public within the platform.</p></div><div style={{...s.section}}><h2 style={{...s.h2}}>26. SMS Load Posting</h2><p style={{...s.p}}>When you use SMS load posting, your phone number and message content are processed to create load listings. Message logs are retained for moderation purposes. You must have opted in to SMS services.</p></div><div style={{...s.section}}><h2 style={{...s.h2}}>27. No Background Checks</h2><p style={{...s.p}}>OEH does not run background checks or verify identity or documents, and does not collect background check results. Documents an escort chooses to upload are stored privately and shown only if the escort chooses to show them on their profile.</p></div><div style={{...s.section}}><h2 style={{...s.h2}}>28. Canadian Operations</h2><p style={{...s.p}}>Users in Canadian provinces are subject to applicable Canadian privacy laws including PIPEDA. Location and load data involving Canadian addresses is processed on the same infrastructure as US data.</p></div>
+        </div> <div style={{...s.section}}><h2 style={{...s.h2}}>24. Escort Availability Board</h2><p style={{...s.p}}>When escorts post on the Availability Board, their stated location, certifications, and availability window are stored and displayed to carriers. This information is public within the platform.</p></div><div style={{...s.section}}><h2 style={{...s.h2}}>25. SMS Load Posting</h2><p style={{...s.p}}>When you use SMS load posting, your phone number and message content are processed to create load listings. Message logs are retained for moderation purposes. You must have opted in to SMS services.</p></div><div style={{...s.section}}><h2 style={{...s.h2}}>26. No Background Checks</h2><p style={{...s.p}}>OEH does not run background checks or verify identity or documents, and does not collect background check results. Documents an escort chooses to upload are stored privately and shown only if the escort chooses to show them on their profile.</p></div><div style={{...s.section}}><h2 style={{...s.h2}}>27. Canadian Operations</h2><p style={{...s.p}}>Users in Canadian provinces are subject to applicable Canadian privacy laws including PIPEDA. Location and load data involving Canadian addresses is processed on the same infrastructure as US data.</p></div>
         
           <div style={{ ...s.section }}>
-            <h2 style={{ ...s.h2 }}>29. Evergreen Safety Council Membership Data</h2>
+            <h2 style={{ ...s.h2 }}>28. Evergreen Safety Council Membership Data</h2>
             <p style={{ ...s.p }}>Oversize Escort Hub is a member of the Evergreen Safety Council (INV14545). When you redeem the OSEH2026 promo code on the Evergreen Safety Council platform, OEH does not receive your course enrollment, payment, or grade data. Evergreen Safety Council may confirm back to OEH only whether a promo redemption occurred so we can track subscriber benefit usage. Your interactions with Evergreen Safety Council are governed by their own privacy policy.</p>
           </div>
           <div style={{ ...s.section }}>
-            <h2 style={{ ...s.h2 }}>30. Fleet Manager Multi-Escort Data</h2>
+            <h2 style={{ ...s.h2 }}>29. Fleet Manager Multi-Escort Data</h2>
             <p style={{ ...s.p }}>Fleet Manager tools allow a Pro or Fleet subscriber to enter information about escorts they coordinate (name, phone, city, state, availability). By entering this data, the Fleet Manager represents they have each escort’s consent. OEH stores this information solely to facilitate the coordination features, rate-limits fleet searches for abuse prevention, logs access for security auditing, and does not use or sell fleet-escort data for advertising or third-party marketing. Escorts may request removal of their information at any time by emailing support@oversize-escort-hub.com.</p>
           </div>
           <div style={{ ...s.section }}>
-            <h2 style={{ ...s.h2 }}>31. In-App Purchase & Subscription Data</h2>
+            <h2 style={{ ...s.h2 }}>30. In-App Purchase & Subscription Data</h2>
             <p style={{ ...s.p }}>Subscriptions are sold exclusively through oversize-escort-hub.com via Stripe. OEH does not receive, collect, or process subscription purchases through Apple App Store or Google Play in-app purchase systems. The OEH mobile apps access your subscription status through the same Stripe-backed account you created on the web. Billing information, payment methods, and subscription status are managed at oversize-escort-hub.com; see our Terms of Service, Section 34 (In-App Purchase & Subscription Management Policy) for details.</p>
           </div>
 
           <div style={{ ...s.section }}>
-            <h2 style={{ ...s.h2 }}>32. Wraith voice assistant</h2>
+            <h2 style={{ ...s.h2 }}>31. Wraith voice assistant</h2>
             <p style={{ ...s.p }}>If you use Wraith, the question you speak or type is sent to our servers and, to write the answer, to an outside AI service. To answer, Wraith looks up information in your own OEH account (open loads, your bids, your posted loads and your document dates). Contact details of other people are never given to it. If you use your browser's microphone, your browser or device maker turns your speech into text under its own privacy policy before it reaches us; we receive the text, not a recording. We keep a short log of your questions (up to 300 characters each) to apply daily limits and to find abuse. Wraith Pro payments are handled by Stripe, and we keep only a record that your subscription is active, with its Stripe customer and subscription numbers and its renewal date. We do not store your card number. Do not say or type anything sensitive, such as a Social Security number or a card number.</p>
           </div>
           <div style={{ ...s.section }}>
-          <h2 style={{ ...s.h2 }}>33. Contact Us</h2>
+          <h2 style={{ ...s.h2 }}>32. Contact Us</h2>
           <p style={{ ...s.p }}>If you have any questions, concerns, or requests regarding this Privacy Policy or how we handle your personal information, please contact us:</p>
           <div style={{ background: "#111", border: "1px solid #1a1a1a", borderRadius: 6, padding: 20, marginTop: 12 }}>
             <p style={{ color: "#fff", marginBottom: 4, fontWeight: 600 }}>Oversize Escort Hub</p>
