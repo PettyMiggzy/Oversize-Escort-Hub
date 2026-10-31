@@ -16,15 +16,16 @@ const svc = createClient(
 
 export default async function EscortProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const { data: profile } = await svc.from('profiles').select('id, full_name, role, tier, bio, bgc_verified, rating, review_count, avatar_url, pevo_verified, state, vehicle, states_licensed, availability_states, is_available, created_at').eq('id', id).single()
-  if (!profile) notFound()
+  const { data: profile } = await svc.from('profiles').select('id, full_name, role, tier, bio, bgc_verified, rating, review_count, avatar_url, pevo_verified, state, vehicle, states_licensed, availability_states, is_available, created_at, suspended').eq('id', id).single()
+  // only live escort accounts have a public page (not a suspended or a carrier/broker profile)
+  if (!profile || profile.role !== 'escort' || profile.suspended === true) notFound()
   const { data: { user: viewer } } = await (await createServerClient()).auth.getUser()
   if (viewer && await isBlockedEitherWay(svc, viewer.id, id)) notFound()
 
   // only the columns shown here: never the stored file address
   const { data: certRows } = await svc.from('certifications').select('id, user_id, type, status, expiry_date, show_on_profile').eq('user_id', id)
   const certs = ((certRows ?? []) as DocRow[]).filter((c) => isPublic(c) && canUseDocs(profile.tier, profile.role))
-  const { data: zones } = await svc.from('escort_availability').select('*').eq('escort_id', id)
+  const { data: zones } = await svc.from('escort_availability').select('id, location_state, location_city, available_until').eq('escort_id', id)
   const { data: reviews } = await svc
     .from('reviews')
     .select('*')

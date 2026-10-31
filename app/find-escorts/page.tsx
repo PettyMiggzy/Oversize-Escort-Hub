@@ -36,6 +36,7 @@ export default function FindEscortsPage() {
       .from("profiles")
       .select("id, full_name, tier, bgc_verified")
       .eq("role", "escort")
+      .or("suspended.is.null,suspended.eq.false")
     if (memberFilter === "pro") q = q.eq("tier", "pro")
     if (VERIFICATION_LIVE && memberFilter === "bgc") q = q.eq("bgc_verified", true)
     const { data: profileData } = await q
@@ -166,7 +167,7 @@ export default function FindEscortsPage() {
                       <div className="ui-meta" style={{ marginTop: 10 }}>Zones: {e.zones.slice(0,5).map((z: any) => z.location_state).join(", ")}{e.zones.length > 5 ? ` +${e.zones.length-5}` : ""}</div>
                     )}
                     {e.cert_types.length > 0 && (
-                      <div className="ui-meta" style={{ marginTop: 6 }}>Certs: {e.cert_types.join(", ")}</div>
+                      <div className="ui-meta" style={{ marginTop: 6 }}>Certs (listed by the escort, not checked by us): {e.cert_types.join(", ")}</div>
                     )}
                     {e.avgRating && (
                       <div className="ui-meta" style={{ marginTop: 6, color: '#ffc46b', fontWeight: 600 }}>&#9733; {e.avgRating} ({e.reviewCount})</div>

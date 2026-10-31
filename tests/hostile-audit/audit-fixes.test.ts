@@ -154,3 +154,13 @@ test('Stripe return addresses never come from the Origin header; veteran coupon 
   expect(read('app/api/checkout/route.ts')).toMatch(/!oneTime && VERIFICATION_LIVE/)
   expect(read('app/api/webhook/route.ts')).toMatch(/already held, NOT granted/)
 })
+
+test('public escort pages and the finder hide suspended and non-escort accounts, and name nothing as checked', () => {
+  const page = read('app/escorts/[id]/page.tsx')
+  expect(page).toMatch(/profile\.role !== 'escort' \|\| profile\.suspended === true/)
+  expect(page).not.toMatch(/escort_availability'\)\.select\('\*'\)/)
+  const finder = read('app/find-escorts/page.tsx')
+  expect(finder).toMatch(/suspended\.is\.null,suspended\.eq\.false/)
+  expect(finder).toMatch(/Certs \(listed by the escort, not checked by us\)/)
+  expect(read('app/terms/page.tsx')).not.toMatch(/allows licensed P\/EVO/)
+})
