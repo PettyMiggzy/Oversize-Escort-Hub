@@ -61,7 +61,12 @@ export async function POST(req: NextRequest) {
   }
   if (hour >= WRAITH_LIMITS.perKeyHour || day >= WRAITH_LIMITS.perKeyDay) return NextResponse.json({ reply: BUSY, limited: true })
   if (all >= WRAITH_LIMITS.globalDay) return NextResponse.json({ reply: 'I am resting for today. Try again tomorrow.', limited: true })
-  await svc.from('helper_usage').insert({ key, kind: 'wraith', question: turns[turns.length - 1].content.slice(0, 300) })
+  // if the usage row cannot be written the limits would never count: refuse instead of answering for free
+  const { error: usageErr } = await svc.from('helper_usage').insert({ key, kind: 'wraith', question: turns[turns.length - 1].content.slice(0, 300) })
+  if (usageErr) {
+    console.error('[wraith] usage insert failed:', usageErr.message)
+    return NextResponse.json({ reply: FAIL, error: true })
+  }
 
   const workspace = /^wrkspc_[A-Za-z0-9]+$/.test(process.env.ANTHROPIC_WORKSPACE_ID || '') ? process.env.ANTHROPIC_WORKSPACE_ID : ''
   const client = new Anthropic({ maxRetries: 1, timeout: 20000, ...(workspace ? { defaultHeaders: { 'anthropic-workspace-id': workspace } } : {}) })

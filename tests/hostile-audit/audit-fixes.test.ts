@@ -52,3 +52,19 @@ test('the invoice PDF is refused until the match is confirmed (filled)', async (
     expect(res.status).toBe(409)
   }
 })
+
+test('invoice create writes only columns the invoices table has', () => {
+  const src = read('app/api/invoices/create/route.ts')
+  const ins = src.slice(src.indexOf('.insert({'), src.indexOf('.select("id")'))
+  expect(ins).not.toMatch(/description|due_date|items/)
+})
+
+test('account delete identity update does not name a column the profiles table lacks', () => {
+  const src = read('app/api/account/delete/route.ts')
+  expect(src).not.toMatch(/push_token/)
+})
+
+test('wraith checks the usage insert so its limits cannot silently stop counting', () => {
+  const src = read('app/api/wraith/route.ts')
+  expect(src).toMatch(/const \{ error: usageErr \} = await svc\.from\('helper_usage'\)\.insert/)
+})

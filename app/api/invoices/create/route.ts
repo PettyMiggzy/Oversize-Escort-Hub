@@ -19,9 +19,6 @@ export async function POST(req: NextRequest) {
     const body = await req.json().catch(() => ({}));
     const load_id = typeof body.load_id === "string" ? body.load_id : "";
     const amount = Number(body.amount);
-    const description = typeof body.description === "string" ? body.description.slice(0, 500) : null;
-    const dueDate = typeof body.dueDate === "string" ? body.dueDate : null;
-    const items = Array.isArray(body.items) ? body.items.slice(0, 50) : [];
 
     if (!load_id) return NextResponse.json({ error: "Load ID required" }, { status: 400 });
     if (!Number.isFinite(amount) || amount <= 0 || amount > 1_000_000) {
@@ -43,9 +40,6 @@ export async function POST(req: NextRequest) {
       carrier_id: load.carrier_id,
       load_id,
       amount,
-      description,
-      due_date: dueDate,
-      items,
       status: "draft",
       created_at: new Date().toISOString(),
     }).select("id").single();

@@ -107,7 +107,6 @@ export async function POST(req: NextRequest) {
     company_name: null,
     email: null,
     phone: null,
-    push_token: null,
     avatar_url: null,
   }).eq('id', userId))
   await step('profile details', () => svc.from('profiles').update({
