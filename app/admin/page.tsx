@@ -230,6 +230,7 @@ export default function AdminPage() {
       <main style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 24px' }}>
         <div className="ui-card" style={{ marginBottom: 24 }}>
           <h2>Funnel</h2>
+          <p style={{ margin: '0 0 10px' }}><a href="/admin/signups" style={{ color: '#ffb067' }}>Daily sign-ups chart (desktop)</a></p>
           {funnel ? (
             <div className="ui-fit">
               {FUNNEL_FIELDS.map((row) => (
