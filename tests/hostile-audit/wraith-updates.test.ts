@@ -18,7 +18,13 @@ test('the Wraith updates page is public, honest and keeps prices out of the phon
   expect(src.slice(0, src.indexOf('<HideInApp>'))).not.toMatch(/\$\d/)
   // the open button only shows while Wraith is switched on, and there is no sign-in gate on the page itself
   expect(src).toMatch(/wraithLive\(\)/)
+  expect(src).toMatch(/<WraithCta live=\{live\} \/>/)
   expect(src).not.toMatch(/redirect\(|notFound\(/)
+  // signed-out visitors are offered a free account, signed-in people the way into Wraith
+  const cta = read('components/WraithCta.tsx')
+  expect(cta).toContain('Create a free account')
+  expect(cta).toContain('href="/signin?mode=signup"')
+  expect(cta).toMatch(/signedIn[\s\S]*Open Wraith/)
   // says what is live, what is next, and has a dated log
   expect(src).toMatch(/Live now/)
   expect(src).toMatch(/Coming next/)

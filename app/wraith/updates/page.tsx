@@ -4,6 +4,7 @@ import Link from 'next/link'
 import SiteHeader from '@/components/SiteHeader'
 import PageTitle from '@/components/PageTitle'
 import HideInApp from '@/components/HideInApp'
+import WraithCta from '@/components/WraithCta'
 import { wraithLive } from '@/lib/wraith'
 
 export const metadata: Metadata = {
@@ -67,12 +68,8 @@ export default function WraithUpdates() {
                 </p>
                 <p className="ui-note" style={{ margin: '10px 0 0' }}>The screen shown is a sample account, not a real person.</p>
                 <div style={{ marginTop: 16, display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-                  {live ? (
-                    <Link href="/wraith" className="ui-btn">Open Wraith</Link>
-                  ) : (
-                    <span className="ui-note">Wraith is switched off right now.</span>
-                  )}
-                  <span className="ui-note">Sign in required. Free to try.</span>
+                  <WraithCta live={live} />
+                  <span className="ui-note">Free to join. Five free Wraith questions a day.</span>
                 </div>
               </div>
             </div>
