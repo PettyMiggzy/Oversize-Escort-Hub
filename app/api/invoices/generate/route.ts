@@ -28,15 +28,20 @@ export async function POST(req: NextRequest) {
     // an invoice only exists once the carrier approved the match
     if (load.status !== 'filled') return NextResponse.json({ error: 'The match must be confirmed first.' }, { status: 409 })
 
+    // the invoice is from the pilot car to the carrier: it carries the pilot car's own details, never ours
+    const { data: me } = await serviceClient().from('profiles').select('full_name, company_name, phone, email').eq('id', load.matched_escort_id).maybeSingle()
+    const fromName = (me as any)?.company_name || (me as any)?.full_name || ''
+    const fromLines = [fromName, (me as any)?.email || '', (me as any)?.phone || ''].filter(Boolean)
+
     const doc = new jsPDF()
 
     // Header
     doc.setFontSize(20)
-    doc.setTextColor(240, 165, 0)
-    doc.text('OVERSIZE ESCORT HUB', 20, 20)
+    doc.setTextColor(30)
+    doc.text(fromLines[0] || 'INVOICE', 20, 20)
     doc.setFontSize(10)
-    doc.setTextColor(150)
-    doc.text('Precision Pilot Services | brian@precisionpilotservices.com', 20, 27)
+    doc.setTextColor(120)
+    fromLines.slice(1).forEach((l: string, i: number) => doc.text(l, 20, 27 + i * 5))
 
     // Invoice details
     doc.setTextColor(0)
@@ -96,9 +101,8 @@ export async function POST(req: NextRequest) {
     // Payment terms
     const finalY = (doc as any).lastAutoTable.finalY + 10
     doc.setFontSize(10)
-    doc.text('Payment Terms: Net 15 days from job completion', 20, finalY)
-    doc.text('Payment Methods: Check, ACH, Zelle', 20, finalY + 6)
-    doc.text('Questions: brian@precisionpilotservices.com', 20, finalY + 12)
+    doc.text('Payment terms: as agreed between the carrier and the pilot car.', 20, finalY)
+    doc.text('Made with Oversize Escort Hub. Amounts are not checked by Oversize Escort Hub.', 20, finalY + 6)
 
     const pdfBase64 = doc.output('datauristring')
     return NextResponse.json({ pdf: pdfBase64 })
