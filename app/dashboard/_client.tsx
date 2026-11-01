@@ -826,6 +826,17 @@ export function DashboardPageClient() {
         )}
       </div>
 
+      <div className="ui-card" style={{ display: 'flex', gap: 14, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
+        <div style={{ flex: '1 1 260px', minWidth: 0 }}>
+          <h2 style={{ margin: '0 0 4px', fontSize: 18, color: '#fff' }}>Free tools for your business</h2>
+          <p className="ui-note" style={{ margin: 0 }}>Make invoices with your own logo and keep track of your expenses.</p>
+        </div>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <a href="/tools/invoice" className="ui-btn">Invoice maker</a>
+          <a href="/tools/expenses" className="ui-btn ghost">Expenses</a>
+        </div>
+      </div>
+
       {wraithOn && !inApp && (
         <div className="ui-card" style={{ display: 'flex', gap: 14, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
           <div style={{ flex: '1 1 260px', minWidth: 0 }}>

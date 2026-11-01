@@ -160,7 +160,10 @@ test('public escort pages and the finder hide suspended and non-escort accounts,
   expect(page).toMatch(/profile\.role !== 'escort' \|\| profile\.suspended === true/)
   expect(page).not.toMatch(/escort_availability'\)\.select\('\*'\)/)
   const finder = read('app/find-escorts/page.tsx')
-  expect(finder).toMatch(/suspended\.is\.null,suspended\.eq\.false/)
+  // the browser cannot read the suspended column (column grants), so the finder takes its list from a server route that filters it
+  expect(finder).not.toMatch(/suspended/)
+  expect(finder).toMatch(/\/api\/escorts\/list/)
+  expect(read('app/api/escorts/list/route.ts')).toMatch(/suspended\.is\.null,suspended\.eq\.false/)
   expect(finder).toMatch(/Certs \(listed by the escort, not checked by us\)/)
   expect(read('app/terms/page.tsx')).not.toMatch(/allows licensed P\/EVO/)
 })

@@ -54,7 +54,7 @@ export default function ExpensesTool() {
 
   async function del(id: string) {
     const res = await fetch('/api/expenses?id=' + encodeURIComponent(id), { method: 'DELETE' })
-    if (res.ok) setRows((p) => p.filter((r) => r.id !== id))
+    if (res.ok) { setRows((p) => p.filter((r) => r.id !== id)); setMsg('') }
   }
 
   function csv() {

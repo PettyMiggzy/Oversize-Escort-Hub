@@ -102,8 +102,8 @@ export default function InvoiceTool() {
   const subtotal = useMemo(() => f.items.reduce((a, i) => a + num(i.qty) * num(i.price), 0), [f.items])
   const taxAmt = subtotal * (num(f.tax) / 100)
   const total = subtotal + taxAmt
-  const set = (k: keyof Form, v: string) => setF((c) => ({ ...c, [k]: v }))
-  const setItem = (i: number, k: keyof Item, v: string) => setF((c) => ({ ...c, items: c.items.map((it, x) => (x === i ? { ...it, [k]: v } : it)) }))
+  const set = (k: keyof Form, v: string) => { setF((c) => ({ ...c, [k]: v })); setMsg('') }
+  const setItem = (i: number, k: keyof Item, v: string) => { setMsg(''); setF((c) => ({ ...c, items: c.items.map((it, x) => (x === i ? { ...it, [k]: v } : it)) })) }
   const addItem = (desc = '') => setF((c) => ({ ...c, items: [...c.items, { desc, qty: '1', price: '' }] }))
   const removeItem = (i: number) => setF((c) => ({ ...c, items: c.items.length > 1 ? c.items.filter((_, x) => x !== i) : c.items }))
 
@@ -309,12 +309,12 @@ export default function InvoiceTool() {
               </label>
             </div>
 
+            {msg && <div role="status" style={{ padding: '12px 16px', borderRadius: 12, border: `1px solid ${/^Downloaded|added|saved/i.test(msg) ? 'rgba(53,212,137,.45)' : 'rgba(255,140,60,.6)'}`, background: /^Downloaded|added|saved/i.test(msg) ? 'rgba(53,212,137,.12)' : 'rgba(255,106,19,.12)', color: '#fff', fontSize: 14 }}>{msg}</div>}
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
               <button type="button" className="ui-btn" onClick={download}>Download PDF</button>
               <button type="button" className="ui-btn ghost" onClick={() => { setF({ ...BLANK, date: today(), number: f.number, accent: f.accent, fromName: f.fromName, fromEmail: f.fromEmail, fromPhone: f.fromPhone, fromAddress: f.fromAddress }); setMsg('') }}>New invoice</button>
               <Link href="/tools/expenses" className="ui-note" style={{ color: 'var(--ui-or)' }}>Expense tracker →</Link>
             </div>
-            {msg && <p className="ui-note" role="status" style={{ margin: 0 }}>{msg}</p>}
             <p className="ui-note">This tool only makes a document. Oversize Escort Hub does not send it, collect payment, or check the amounts, and it is not tax advice. Your draft, logo and saved clients are kept in this browser only. The invoice carries a small &ldquo;Made free with Oversize Escort Hub&rdquo; line at the bottom.</p>
           </div>
         </div>

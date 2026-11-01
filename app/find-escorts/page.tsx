@@ -62,14 +62,12 @@ export default function FindEscortsPage() {
   async function fetchEscorts() {
     setLoading(true)
     // Base query: profiles where role=escort
-    let q = supabase
-      .from("profiles")
-      .select("id, full_name, tier, bgc_verified, equipment, total_jobs")
-      .eq("role", "escort")
-      .or("suspended.is.null,suspended.eq.false")
-    if (memberFilter === "pro") q = q.eq("tier", "pro")
-    if (VERIFICATION_LIVE && memberFilter === "bgc") q = q.eq("bgc_verified", true)
-    const { data: profileData } = await q
+    let profileData: any[] | null = null
+    try {
+      const r = await fetch("/api/escorts/list" + (memberFilter === "pro" ? "?member=pro" : ""))
+      if (r.ok) profileData = (await r.json()).escorts ?? []
+    } catch { /* shown as empty below */ }
+    if (VERIFICATION_LIVE && memberFilter === "bgc" && profileData) profileData = profileData.filter((p: any) => p.bgc_verified === true)
 
     if (!profileData) { setLoading(false); return }
 

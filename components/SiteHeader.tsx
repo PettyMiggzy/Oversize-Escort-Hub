@@ -22,6 +22,7 @@ export default function SiteHeader() {
   const [userProfile, setUserProfile] = useState<{ name?: string; avatar?: string | null } | null>(null);
   const [windowWidth, setWindowWidth] = useState(1200);
   const [wraithOn, setWraithOn] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -34,6 +35,7 @@ export default function SiteHeader() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       if (!data.session) return;
+      setSignedIn(true);
       // Wraith link: only for signed-in people, only while it is switched on, and not inside the phone apps (voice is not there yet)
       setWraithOn(document.body.dataset.wraith === 'on' && !isNativeApp());
       const u = data.session.user;
@@ -184,6 +186,9 @@ export default function SiteHeader() {
                 <Link href={JOBS.href} style={isActive(JOBS) ? { ...navLinkStyle, color: "#fff", borderBottom: "2px solid #ff6a13" } : navLinkStyle}>
                   {JOBS.label}
                 </Link>
+                {signedIn && (
+                  <Link href="/tools" style={isActive({ href: "/tools" } as any) ? { ...navLinkStyle, color: "#fff", borderBottom: "2px solid #ff6a13" } : navLinkStyle}>Tools</Link>
+                )}
                 {wraithOn && (
                   <Link href="/wraith" style={navLinkStyle}>Wraith</Link>
                 )}
@@ -225,6 +230,9 @@ export default function SiteHeader() {
           <Link href={JOBS.href} style={mobileLinkStyle} onClick={() => setOpen(false)}>
             {JOBS.label}
           </Link>
+          {signedIn && (
+            <Link href="/tools" style={mobileLinkStyle} onClick={() => setOpen(false)}>Tools</Link>
+          )}
           {wraithOn && (
             <Link href="/wraith" style={mobileLinkStyle} onClick={() => setOpen(false)}>Wraith</Link>
           )}
