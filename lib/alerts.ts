@@ -5,11 +5,13 @@ import { after } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createHmac, timingSafeEqual } from 'crypto'
 import { sendEmail } from '@/lib/email'
+import { sendWebPushToUser } from '@/lib/push'
 
 const SITE = 'https://www.oversize-escort-hub.com'
 // Resend allows about two sends a second; the cap keeps one new load inside a serverless function's time limit
 const MAX_LOAD_RECIPIENTS = 80
 const SEND_GAP_MS = 550
+const URGENT_MAX_RECIPIENTS = 40
 
 function svc() {
   return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
@@ -64,7 +66,7 @@ async function alertUser(userId: string, a: Alert) {
 const line = (l: any) => `${l?.pu_city || '?'}, ${l?.pu_state || '?'} to ${l?.dl_city || '?'}, ${l?.dl_state || '?'}`
 
 async function getLoad(loadId: string) {
-  const { data } = await svc().from('loads').select('id, carrier_id, matched_escort_id, pu_city, pu_state, dl_city, dl_state, per_mile_rate, start_date').eq('id', loadId).maybeSingle()
+  const { data } = await svc().from('loads').select('id, carrier_id, matched_escort_id, pu_city, pu_state, dl_city, dl_state, per_mile_rate, start_date, urgent, regulars_until, status, expires_at').eq('id', loadId).maybeSingle()
   return data as any
 }
 
@@ -95,6 +97,76 @@ export async function alertEscortsNewLoad(loadId: string) {
     await sleep(SEND_GAP_MS)
   }
   return { sent, considered: who.length }
+}
+
+/** The carrier's regulars hear about a load first. Their window may still be running, which is the point. */
+export async function alertRegularsNewLoad(loadId: string) {
+  const load = await getLoad(loadId)
+  if (!load?.carrier_id) return { sent: 0 }
+  const client = svc()
+  const { data: favs } = await client.from('favorite_escorts').select('escort_id').eq('carrier_id', load.carrier_id)
+  const ids = (favs || []).map((f: any) => f.escort_id as string)
+  if (!ids.length) return { sent: 0 }
+  const { data: people } = await client.from('profiles').select(PERSON_COLS).in('id', ids)
+  const mins = load.regulars_until ? Math.max(1, Math.ceil((Date.parse(load.regulars_until) - Date.now()) / 60000)) : 0
+  const a: Alert = {
+    subject: `${load.urgent ? 'URGENT, ' : ''}first look: ${line(load)}`,
+    headline: load.urgent ? 'Urgent load, you get first look' : 'You get first look at a load',
+    body: `${line(load)}.${mins ? ` A carrier you work with gave you about ${mins} minutes before it opens to everyone.` : ''} Be first to claim it.`,
+    path: `/loads/${loadId}`,
+  }
+  let sent = 0
+  for (const p of (people || []) as Person[]) {
+    if (await deliver(client, p, a)) sent++
+    try { await sendWebPushToUser(p.id, { title: a.headline, body: line(load), url: a.path }) } catch {}
+    await sleep(SEND_GAP_MS)
+  }
+  return { sent, considered: ids.length }
+}
+
+/** An urgent load goes straight to escorts who said they are available in the pickup state (and to escorts who cover it). */
+export async function alertUrgentLoad(loadId: string) {
+  const load = await getLoad(loadId)
+  if (!load || !load.urgent || load.status !== 'open') return { sent: 0 }
+  const client = svc()
+  const state = String(load.pu_state || '').toUpperCase()
+  const { data: avail } = await client.from('escort_availability').select('escort_id, expires_at').eq('location_state', state)
+  const nowIso = new Date().toISOString()
+  const onToday = new Set((avail || []).filter((x: any) => !x.expires_at || x.expires_at > nowIso).map((x: any) => x.escort_id as string))
+  const { data: escorts } = await client.from('profiles').select(`${PERSON_COLS}, availability_states`).eq('role', 'escort').neq('id', load.carrier_id)
+  const who = (escorts || []).filter((e: any) => onToday.has(e.id) || (e.availability_states || []).map((s: string) => String(s).toUpperCase()).includes(state)).slice(0, URGENT_MAX_RECIPIENTS)
+  const a: Alert = {
+    subject: `URGENT: escort needed now: ${line(load)}`,
+    headline: 'Urgent: a carrier needs an escort now',
+    body: `${line(load)}.${load.per_mile_rate != null ? ` Pays $${load.per_mile_rate}/mile.` : ''} Claim it before someone else does.`,
+    path: `/loads/${loadId}`,
+  }
+  let sent = 0
+  for (const e of who as any[]) {
+    if (await deliver(client, e as Person, a)) sent++
+    try { await sendWebPushToUser(e.id, { title: a.headline, body: line(load), url: a.path }) } catch {}
+    await sleep(SEND_GAP_MS)
+  }
+  return { sent, considered: who.length }
+}
+
+/** Alerts that waited for a regulars-first window to end: the cron calls this every few minutes. */
+export async function sendDeferredLoadAlerts(limit = 5) {
+  const client = svc()
+  const nowIso = new Date().toISOString()
+  const { data: due } = await client.from('loads').select('id, status, urgent, expires_at')
+    .eq('alerts_pending', true).or(`regulars_until.is.null,regulars_until.lt.${nowIso}`).limit(limit)
+  let handled = 0
+  for (const l of (due || []) as any[]) {
+    // take it first so two runs never send twice
+    const { data: taken } = await client.from('loads').update({ alerts_pending: false }).eq('id', l.id).eq('alerts_pending', true).select('id')
+    if (!taken?.length) continue
+    handled++
+    if (l.status !== 'open' || (l.expires_at && Date.parse(l.expires_at) <= Date.now())) continue
+    await alertEscortsNewLoad(l.id)
+    if (l.urgent) await alertUrgentLoad(l.id)
+  }
+  return { handled }
 }
 
 export async function alertCarrierNewBid(loadId: string, rate: number | string) {

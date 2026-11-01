@@ -18,6 +18,8 @@ const LIVE: [string, string][] = [
   ['Find loads', 'Search the open loads on the boards. Wraith leaves out loads from people you blocked and your own loads.'],
   ['Your bids and your loads', 'Where your bids stand and what you have posted.'],
   ['Paperwork dates', 'Which documents you uploaded are close to expiring. We do not check your documents; this only reads the dates you entered.'],
+  ['Find a pilot car (carriers and brokers)', 'Ask for a pilot car by state, stars or equipment. Best reviewed first, your regulars on top. You get a profile button, never a phone number.'],
+  ['What loads pay', 'Ask what open loads pay per mile right now, in your state or everywhere. It is a guide, not advice.'],
   ['Fleet managers', 'Which of your own escorts are free right now, and which are on a job. Names only.'],
   ['Bid by voice, you confirm', 'Say the amount. Wraith puts a button on screen, the bid box on the load page is filled in, and you press the final button. Wraith never bids, claims or posts for you.'],
   ['Type instead', 'Voice listening depends on your browser, so there is always a box to type in.'],
@@ -32,6 +34,14 @@ const NEXT: [string, string][] = [
 ]
 
 const LOG: { date: string; title: string; items: string[] }[] = [
+  {
+    date: 'November 1, 2026',
+    title: 'Wraith can find pilot cars and tell you what loads pay',
+    items: [
+      'Carriers, brokers and fleet managers can ask for a pilot car by state, stars or equipment.',
+      'Anyone can ask what open loads pay per mile right now.',
+    ],
+  },
   {
     date: 'October 31, 2026',
     title: 'Wraith is live on the website',

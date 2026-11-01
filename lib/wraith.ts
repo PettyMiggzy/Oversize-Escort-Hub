@@ -1,6 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { blockedIds } from '@/lib/blocks'
 import { docLabel } from '@/lib/profile-docs'
+import { EQUIPMENT_KEYS, cleanEquipment, equipmentLabel } from '@/lib/quality'
+import { typicalRates } from '@/lib/rates'
 
 // Wraith is the voice assistant. It is OFF unless WRAITH_LIVE=on is set on the server (a Vercel setting).
 // Version 1 is read-only: it looks things up for the signed-in person and points them to the page. It never bids, posts or changes anything.
@@ -14,6 +16,8 @@ How to answer:
 - Keep it short: one to three plain sentences, under about 45 words. Say numbers the way a person would. No lists, no markdown, no emojis, no web addresses.
 - For anything about this person's loads, bids, jobs or documents, call a tool. Use only what the tools return. Never guess or make up loads, rates, names, places or dates. If a tool returns nothing, say so plainly.
 - You can only look things up and get things ready. You cannot bid, claim, post, accept or change anything yourself. When someone wants to bid, call prepare_bid (an escort only); to claim a load, call prepare_claim. Each puts a button on screen that opens the load page ready for them to check and confirm. Say that plainly: "I've put the button on screen, check it and tap to confirm." Never say you sent or placed anything.
+- A carrier, broker or fleet manager looking for a pilot car (by state, rating or equipment) or asking who they have worked with: call find_escorts. Equipment is what the escort listed about their own rig, not checked by OEH, so say "listed". Never give a phone number or email; point to the profile button.
+- "What do loads pay?" or "what is a fair rate?": call typical_rates and say it is only what open loads pay right now, not advice.
 - "What's new for me?" or "anything new?": call whats_new. For a fleet manager asking about their escorts, call my_fleet.
 - The load id in a tool result is for prepare_bid and prepare_claim only. Never say it aloud.
 - You cannot see where any truck or person is. Do not pretend to track anyone.
@@ -63,6 +67,16 @@ export const WRAITH_TOOLS = [
     name: 'prepare_claim',
     description: 'Get a claim ready for an escort to review and confirm. Puts a button on screen that opens the load. It does not claim anything. Use a load id from search_open_loads.',
     input_schema: { type: 'object' as const, properties: { load_id: { type: 'string', description: 'The load id from search_open_loads.' } }, required: ['load_id'], additionalProperties: false },
+  },
+  {
+    name: 'find_escorts',
+    description: `For a signed-in carrier, broker or fleet manager: find pilot cars, best reviewed first, with the carrier's own regulars listed first. Optionally limit to pilot cars available in one state, with a minimum star rating, with equipment (keys: ${EQUIPMENT_KEYS.join(', ')}), or only the carrier's regulars. Returns up to five with a profile button. No contact details.`,
+    input_schema: { type: 'object' as const, properties: { state: { type: 'string', description: 'Two-letter state or province code, or an empty string for any.' }, min_rating: { type: 'number', description: 'Minimum average stars from 1 to 5, or 0 for any.' }, equipment: { type: 'array', items: { type: 'string' }, description: 'Equipment keys the pilot car must have listed, or an empty list.' }, regulars_only: { type: 'boolean', description: 'True to list only this carrier\'s regulars.' } }, required: ['state', 'min_rating', 'equipment', 'regulars_only'], additionalProperties: false },
+  },
+  {
+    name: 'typical_rates',
+    description: 'What open loads pay per mile right now: the middle value and the range, for one pickup state or for all. Needs at least three open loads.',
+    input_schema: { type: 'object' as const, properties: { state: { type: 'string', description: 'Two-letter state or province code, or an empty string for all.' } }, required: ['state'], additionalProperties: false },
   },
   {
     name: 'my_expiring_documents',
@@ -191,6 +205,46 @@ export async function runWraithTool(name: string, input: unknown, userId: string
       ? { label: `Review $${amt} bid: ${route}`.slice(0, 70), href: `/loads/${id}?bid=${amt}` }
       : { label: `Review and claim: ${route}`.slice(0, 70), href: `/loads/${id}` })
     return done({ ok: true, ready: name === 'prepare_bid' ? `bid of ${amt} dollars` : 'claim', route, note: 'A button is on screen. Nothing has been placed; the person must open it and confirm.' })
+  }
+
+  if (name === 'typical_rates') {
+    const st = typeof (input as Row | null)?.state === 'string' ? String((input as Row).state).trim().toUpperCase() : ''
+    const r = await typicalRates(svc, st || null)
+    if (!r) return done({ note: 'Not enough open loads right now to say what they pay.' })
+    return done({ state: r.state || 'all states', openLoads: r.count, middle: `${r.median.toFixed(2)} dollars a mile`, low: `${r.low.toFixed(2)} dollars a mile`, high: `${r.high.toFixed(2)} dollars a mile` })
+  }
+
+  if (name === 'find_escorts') {
+    const { data: me } = await svc.from('profiles').select('role').eq('id', userId).maybeSingle()
+    const role = s((me as Row | null)?.role)
+    if (!['carrier', 'broker', 'fleet_manager', 'admin'].includes(role)) return done({ error: 'Only carriers, brokers and fleet managers can search pilot cars.' })
+    const inp = (input || {}) as Row
+    const st = typeof inp.state === 'string' ? inp.state.trim().toUpperCase() : ''
+    const minRating = Math.min(5, Math.max(0, Number(inp.min_rating) || 0))
+    const need = cleanEquipment(inp.equipment)
+    const regularsOnly = inp.regulars_only === true
+    const { iBlocked, blockedMe } = await blockedIds(svc, userId)
+    const hidden = new Set([...iBlocked, ...blockedMe, userId])
+    const { data } = await svc.from('profiles').select('id, full_name, avg_rating, review_count, total_jobs, equipment, availability_states, suspended').eq('role', 'escort').limit(300)
+    let rows = ((data || []) as Row[]).filter((r) => !r.suspended && !hidden.has(String(r.id)))
+    if (/^[A-Z]{2}$/.test(st)) {
+      const { data: av } = await svc.from('escort_availability').select('escort_id, expires_at').eq('location_state', st)
+      const now = new Date().toISOString()
+      const onNow = new Set(((av || []) as Row[]).filter((a) => !a.expires_at || String(a.expires_at) > now).map((a) => String(a.escort_id)))
+      rows = rows.filter((r) => onNow.has(String(r.id)) || ((r.availability_states as string[] | null) || []).map((x) => String(x).toUpperCase()).includes(st))
+    }
+    if (need.length) rows = rows.filter((r) => { const have = cleanEquipment(r.equipment); return need.every((k) => have.includes(k)) })
+    if (minRating > 0) rows = rows.filter((r) => Number(r.avg_rating) >= minRating)
+    const { data: favs } = await svc.from('favorite_escorts').select('escort_id').eq('carrier_id', userId)
+    const regulars = new Set(((favs || []) as Row[]).map((f) => String(f.escort_id)))
+    if (regularsOnly) rows = rows.filter((r) => regulars.has(String(r.id)))
+    const { data: past } = await svc.from('loads').select('matched_escort_id').eq('carrier_id', userId).eq('status', 'filled').not('matched_escort_id', 'is', null)
+    const worked: Record<string, number> = {}
+    for (const l of (past || []) as Row[]) worked[String(l.matched_escort_id)] = (worked[String(l.matched_escort_id)] || 0) + 1
+    rows.sort((a, b) => Number(regulars.has(String(b.id))) - Number(regulars.has(String(a.id))) || Number(b.avg_rating || 0) - Number(a.avg_rating || 0) || Number(b.review_count || 0) - Number(a.review_count || 0) || Number(b.total_jobs || 0) - Number(a.total_jobs || 0))
+    rows = rows.slice(0, 5)
+    for (const r of rows) links.push({ label: `${s(r.full_name) || 'Pilot car'}: profile`.slice(0, 60), href: `/escorts/${String(r.id)}` })
+    return done({ count: rows.length, escorts: rows.map((r) => ({ name: s(r.full_name) || 'Pilot car', stars: Number(r.avg_rating) > 0 ? Number(r.avg_rating).toFixed(1) : 'no reviews yet', reviews: Number(r.review_count) || 0, jobsOnOEH: Number(r.total_jobs) || 0, rigListedByEscort: cleanEquipment(r.equipment).slice(0, 6).map(equipmentLabel), yourRegular: regulars.has(String(r.id)), workedWithYou: worked[String(r.id)] || 0 })) })
   }
 
   if (name === 'my_expiring_documents') {

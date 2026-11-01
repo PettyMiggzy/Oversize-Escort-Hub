@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { isAdminEmail } from '@/lib/supabase'
 import PageTitle from '@/components/PageTitle'
 import EmptyState from '@/components/EmptyState'
+import { EQUIPMENT, REGULARS_MINUTES } from '@/lib/quality'
 
 const US_STATES = [
   'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA',
@@ -37,6 +38,11 @@ export function PostLoadPageClient() {
   const [boardType, setBoardType] = useState('flat-rate')
   const [notes, setNotes] = useState('')
   const [rate, setRate] = useState<number>(2.00)
+  const [urgent, setUrgent] = useState(false)
+  const [regMinutes, setRegMinutes] = useState(0)
+  const [requiredEquip, setRequiredEquip] = useState<string[]>([])
+  const [regularsCount, setRegularsCount] = useState(0)
+  const [typical, setTypical] = useState<{ median: number; low: number; high: number; count: number } | null>(null)
 
   // Auto-calculate rate based on a rough mileage estimate
   // Simple heuristic: same state ~150mi, different region ~400mi
@@ -56,6 +62,7 @@ export function PostLoadPageClient() {
       const { data: p } = await supabase.from('profiles').select('role').eq('id', user.id).single()
       if (p?.role === 'carrier' || p?.role === 'broker' || p?.role === 'admin' || isAdminEmail(user?.email)) {
         setAllowed(true)
+        fetch('/api/regulars').then(r => r.json()).then(d => setRegularsCount(Array.isArray(d?.regulars) ? d.regulars.length : 0)).catch(() => {})
       } else {
         setRoleMsg('Only carriers can post loads.')
       }
@@ -81,6 +88,15 @@ export function PostLoadPageClient() {
       }
     }
     fetchSponsored()
+  }, [pickupState])
+
+  // what open loads pay in the pickup state right now (needs at least 3 loads)
+  useEffect(() => {
+    setTypical(null)
+    if (!pickupState) return
+    let off = false
+    fetch(`/api/rates?state=${pickupState}`).then(r => r.json()).then(d => { if (!off && d?.rate) setTypical(d.rate) }).catch(() => {})
+    return () => { off = true }
   }, [pickupState])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -124,6 +140,9 @@ export function PostLoadPageClient() {
           notes,
           expiresAt,
           permitUrl,
+          urgent,
+          required_equipment: requiredEquip,
+          regulars_minutes: boardType === 'bid' ? 0 : regMinutes,
         }),
       })
       const data = await res.json()
@@ -220,6 +239,36 @@ export function PostLoadPageClient() {
                     ))}
                   </div>
                 </div>
+                <div style={{ marginBottom: 16 }}>
+                  <label className="ui-label">Equipment required (optional)</label>
+                  <div className="ui-chips">
+                    {EQUIPMENT.map(opt => (
+                      <label key={opt.key} className={requiredEquip.includes(opt.key) ? 'ui-chip on' : 'ui-chip'}>
+                        <input type="checkbox" checked={requiredEquip.includes(opt.key)} onChange={() => setRequiredEquip(prev => toggle(prev, opt.key))} style={{ accentColor: 'var(--ui-or)' }} />
+                        {opt.short}
+                      </label>
+                    ))}
+                  </div>
+                  <div className="ui-meta" style={{ marginTop: 6 }}>Pilot cars list their own equipment and confirm it when they claim. We do not check it.</div>
+                </div>
+                <div style={{ marginBottom: 16 }}>
+                  <label className="ui-label">Speed</label>
+                  <label className={urgent ? 'ui-chip on' : 'ui-chip'} style={{ display: 'inline-flex' }}>
+                    <input type="checkbox" checked={urgent} onChange={() => setUrgent(v => !v)} style={{ accentColor: 'var(--ui-or)' }} />
+                    Urgent: I need an escort now
+                  </label>
+                  <div className="ui-meta" style={{ marginTop: 6 }}>Pilot cars who said they are available in your pickup state are alerted right away.</div>
+                </div>
+                {boardType !== 'bid' && (
+                  <div style={{ marginBottom: 16 }}>
+                    <label className="ui-label" htmlFor="regulars-first">Regulars first</label>
+                    <select id="regulars-first" className="ui-select" value={regMinutes} disabled={regularsCount === 0} onChange={e => setRegMinutes(Number(e.target.value))}>
+                      <option value={0}>No, open to everyone now</option>
+                      {REGULARS_MINUTES.map(m => <option key={m} value={m}>{m} minutes for my regulars</option>)}
+                    </select>
+                    <div className="ui-meta" style={{ marginTop: 6 }}>{regularsCount === 0 ? 'Star pilot cars on Find Escorts to make a regulars list.' : `You have ${regularsCount} regular${regularsCount === 1 ? '' : 's'}. They get the first look, then everyone else.`}</div>
+                  </div>
+                )}
                 <div>
                   <label className="ui-label">Required Certifications</label>
                   <div className="ui-chips">
@@ -269,6 +318,11 @@ export function PostLoadPageClient() {
           <div className="ui-meta" style={{ marginTop: 6 }}>
             Standard: $2.00/mi · No-go: $250 · Overnight: $100
           </div>
+          {typical && (
+            <div className="ui-meta" style={{ marginTop: 6, color: '#ffc46b' }}>
+              Open loads picking up in {pickupState} pay about ${typical.median.toFixed(2)}/mi right now (${typical.low.toFixed(2)} to ${typical.high.toFixed(2)}, {typical.count} loads). Just a guide, not advice.
+            </div>
+          )}
         </div>
               </div>
               <div style={{ marginTop: 16 }}>

@@ -43,6 +43,7 @@ create policy "Pro users see all open loads" on public.loads
 -- STEP 2: hide the sensitive columns.
 revoke select on table public.profiles from authenticated;
 
+-- equipment was added to this list on 2026-11-01 (see docs/sql-quality-tools.sql)
 grant select (
   id,
   created_at,
@@ -75,7 +76,8 @@ grant select (
   ctts_ab,
   oapc,
   sask_pilot,
-  lineman_cert
+  lineman_cert,
+  equipment
 ) on public.profiles to authenticated;
 
 -- check: sensitive columns false, a public column true

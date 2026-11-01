@@ -35,6 +35,7 @@ export const PUBLIC_PROFILE_COLUMNS = [
   'oapc',
   'sask_pilot',
   'lineman_cert',
+  'equipment',
 ] as const
 
 export const PUBLIC_PROFILE_SELECT = PUBLIC_PROFILE_COLUMNS.join(', ')

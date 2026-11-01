@@ -13,6 +13,8 @@ import SiteHeader from '@/components/SiteHeader'
 import PageTitle from '@/components/PageTitle'
 import EmptyState from '@/components/EmptyState'
 import { VERIFICATION_LIVE } from '@/lib/verification'
+import MyRegulars from '@/components/MyRegulars'
+import LoadBadges from '@/components/LoadBadges'
 const BG = 'transparent'
 const SURFACE = 'transparent'
 const ORANGE = 'var(--ui-or)'
@@ -885,6 +887,7 @@ export function DashboardPageClient() {
               </div>
             )}
           </section>}
+          <MyRegulars />
           {/* Active Loads */}
           <section>
             <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#fff', marginBottom: '1rem' }}>
@@ -896,6 +899,7 @@ export function DashboardPageClient() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {loads.map(load => (
                   <div key={load.id} className="ui-load">
+                    <LoadBadges load={load as any} />
                     <p style={{ margin: 0, fontWeight: 600 }}>{loadLabel(load)}</p>
                     <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>
                       {load.pu_city}, {load.pu_state} → {load.dl_city}, {load.dl_state}
@@ -905,6 +909,10 @@ export function DashboardPageClient() {
                       <button onClick={() => handleDownloadInvoice(load.id)} style={{ fontSize: 11, color: 'var(--ui-or)', background: 'none', border: '1px solid var(--ui-or)', borderRadius: 4, padding: '3px 10px', cursor: 'pointer' }}>
                         📄 Invoice
                       </button>
+                      <a href={`/loads/${load.id}`} style={{ fontSize: 11, color: 'var(--ui-muted)', marginLeft: 10 }}>Open</a>
+                      {(load as any).status === 'filled' && (load as any).matched_escort_id && (
+                        <a href={`/review/${load.id}`} style={{ fontSize: 11, color: 'var(--ui-or)', marginLeft: 10 }}>Rate the pilot car</a>
+                      )}
                     </div>
                   </div>
                 ))}

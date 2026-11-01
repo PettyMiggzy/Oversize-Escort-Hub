@@ -5,10 +5,12 @@ import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import SiteHeader from '@/components/SiteHeader'
 import PageTitle from '@/components/PageTitle'
+import { REVIEW_TAGS } from '@/lib/quality'
 
 type Load = {
   id: string
   carrier_id: string
+  matched_escort_id?: string | null
   pu_city?: string | null
   pu_state?: string | null
   dl_city?: string | null
@@ -29,6 +31,9 @@ export default function ReviewPage() {
   const [submitting, setSubmitting] = useState(false)
   const [err, setErr] = useState<string | null>(null)
   const [done, setDone] = useState(false)
+  const [targetId, setTargetId] = useState<string | null>(null)
+  const [revieweeRole, setRevieweeRole] = useState<'escort' | 'carrier'>('carrier')
+  const [tags, setTags] = useState<string[]>([])
 
   useEffect(() => {
     let cancelled = false
@@ -38,29 +43,27 @@ export default function ReviewPage() {
         router.replace(`/signin?redirect=/review/${loadId}`)
         return
       }
-      // Must be an escort
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single()
-      if (profile?.role !== 'escort' && profile?.role !== 'fleet_manager') {
-        if (!cancelled) {
-          setErr('Only escorts can leave a review for a carrier.')
-          setLoading(false)
-        }
-        return
-      }
       const { data: ld, error: le } = await supabase
         .from('loads')
-        .select('id, carrier_id, pu_city, pu_state, dl_city, dl_state, status')
+        .select('id, carrier_id, matched_escort_id, pu_city, pu_state, dl_city, dl_state, status')
         .eq('id', loadId)
         .single()
       if (le || !ld) {
         if (!cancelled) { setErr('Load not found.'); setLoading(false) }
         return
       }
-      if (!cancelled) { setLoad(ld as Load); setLoading(false) }
+      // only the two people on the load can review it: the carrier reviews the pilot car, the pilot car reviews the carrier
+      const l = ld as Load
+      const mine = l.carrier_id === user.id ? 'carrier' : l.matched_escort_id === user.id ? 'escort' : null
+      if (!mine || !l.carrier_id || !l.matched_escort_id) {
+        if (!cancelled) { setErr('Only the carrier and the pilot car on a matched load can review it.'); setLoading(false) }
+        return
+      }
+      if (!cancelled) {
+        setTargetId(mine === 'carrier' ? l.matched_escort_id! : l.carrier_id)
+        setRevieweeRole(mine === 'carrier' ? 'escort' : 'carrier')
+        setLoad(l); setLoading(false)
+      }
     }
     init()
     return () => { cancelled = true }
@@ -74,7 +77,7 @@ export default function ReviewPage() {
       const res = await fetch('/api/reviews', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ loadId, targetUserId: load.carrier_id, rating, comment }),
+        body: JSON.stringify({ loadId, targetUserId: targetId, rating, comment, tags }),
       })
       const j = await res.json()
       if (!res.ok) throw new Error(j?.error || 'Failed to submit review')
@@ -93,7 +96,7 @@ export default function ReviewPage() {
       <SiteHeader />
       <div className="ui-page">
         <div className="ui-wrap" style={{ maxWidth: 680 }}>
-          <PageTitle eyebrow="Reviews" title="Leave a review" lead="Rate the carrier on this load." />
+          <PageTitle eyebrow="Reviews" title="Leave a review" lead={revieweeRole === 'escort' ? 'Rate the pilot car on this load.' : 'Rate the carrier on this load.'} />
           <div className="ui-stack">
         {load && (
           <div className="ui-card">
@@ -140,6 +143,18 @@ export default function ReviewPage() {
             </div>
 
             <div style={{ marginBottom: 14 }}>
+              <div className="ui-label">What stood out (optional)</div>
+              <div className="ui-chips">
+                {REVIEW_TAGS[revieweeRole].map((t) => (
+                  <label key={t.key} className={tags.includes(t.key) ? 'ui-chip on' : 'ui-chip'}>
+                    <input type="checkbox" checked={tags.includes(t.key)} onChange={() => setTags((p) => (p.includes(t.key) ? p.filter((x) => x !== t.key) : [...p, t.key]))} style={{ accentColor: 'var(--ui-or)' }} />
+                    {t.label}
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 14 }}>
               <label className="ui-label" htmlFor="review-comment">Comment</label>
               <textarea
                 id="review-comment"
@@ -147,7 +162,7 @@ export default function ReviewPage() {
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 rows={5}
-                placeholder="How was your experience with this carrier?"
+                placeholder={revieweeRole === 'escort' ? 'How was your experience with this pilot car?' : 'How was your experience with this carrier?'}
                 style={{ resize: 'vertical' }}
               />
             </div>

@@ -13,6 +13,8 @@ import PageTitle from '@/components/PageTitle'
 import BoardTabs from '@/components/BoardTabs'
 import EmptyState from '@/components/EmptyState'
 import { VERIFICATION_LIVE } from '@/lib/verification'
+import LoadBadges, { confirmEquipment, heldForRegulars, useRegularOf } from '@/components/LoadBadges'
+import { regularsLeftMinutes } from '@/lib/quality'
 
 function TimeRemaining({ expiresAt }: { expiresAt: string }) {
   const [remaining, setRemaining] = useState('')
@@ -32,6 +34,7 @@ function TimeRemaining({ expiresAt }: { expiresAt: string }) {
 }
 
 export function OpenLoadsBoardClient() {
+  const regularOf = useRegularOf()
   const [allLoads, setLoads] = useState<any[]>([])
   const hiddenUsers = useHiddenUsers()
   const loads = allLoads.filter((l: any) => !hiddenUsers.has(l.carrier_id))
@@ -127,6 +130,8 @@ export function OpenLoadsBoardClient() {
 
   const submitBid = async () => {
     if (!bidModal || !userId || !bidRate) return
+    const asked = allLoads.find((l: any) => l.id === bidModal.loadId)
+    if (asked && !confirmEquipment(asked)) return
     setBidStatus('Submitting...')
     const res = await fetch('/api/bids', {
       method: 'POST',
@@ -149,7 +154,9 @@ export function OpenLoadsBoardClient() {
     );
   }
 
-  const bidBtn = (load: any) => (
+  const bidBtn = (load: any) => heldForRegulars(load, regularOf) ? (
+    <div className="ui-meta" style={{ textAlign: 'center' }}>Regulars first: opens to everyone in about {regularsLeftMinutes(load.regulars_until)} min</div>
+  ) : (
     <button className="ui-btn block" onClick={() => { setBidModal({ loadId: load.id, loadRate: load.per_mile_rate }); setBidRate('') }}>Place bid</button>
   )
 
@@ -170,13 +177,14 @@ export function OpenLoadsBoardClient() {
                 />
               ) : (
                 <div className="ui-grid" style={isMobile ? { gridTemplateColumns: '1fr' } : undefined}>
-                  {loads.map((load: any) => {
+                  {[...loads].sort((a: any, b: any) => Number(!!b.urgent) - Number(!!a.urgent)).map((load: any) => {
                     const loadBids = bids[load.id] || []
                     const highestBid = loadBids[0]?.rate
                     return (
                       <div key={load.id} className="ui-load">
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
                           <div style={{ flex: 1, minWidth: 0 }}>
+                            <LoadBadges load={load} regularOf={regularOf} />
                             <div className="ui-route">{load.pu_city}, {load.pu_state} &rarr; {load.dl_city}, {load.dl_state}</div>
                             <div className="ui-meta" style={{ marginTop: 6 }}>
                               <span style={{ color: '#ffc46b', fontWeight: 600 }}>{load.escort_type || 'Position TBD'}</span>

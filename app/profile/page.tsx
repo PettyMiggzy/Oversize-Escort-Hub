@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import SiteHeader from '@/components/SiteHeader'
+import EquipmentEditor from '@/components/EquipmentEditor'
 import PageTitle from '@/components/PageTitle'
 
 export default function ProfilePage() {
@@ -98,6 +99,7 @@ export default function ProfilePage() {
               <a href="/dashboard" className="ui-back">← Back to dashboard</a>
             </form>
           )}
+          {!loading && <EquipmentEditor />}
         </div>
       </div>
     </>

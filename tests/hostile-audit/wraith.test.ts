@@ -146,7 +146,7 @@ test('per-person limits stop it before the model is called', async () => {
 })
 
 test('only the cheap Haiku models, no tools that write, and the prompt keeps the OEH rules', () => {
-  expect(WRAITH_TOOLS.map((t) => t.name).sort()).toEqual(['my_bids', 'my_expiring_documents', 'my_fleet', 'my_posted_loads', 'prepare_bid', 'prepare_claim', 'search_open_loads', 'whats_new'])
+  expect(WRAITH_TOOLS.map((t) => t.name).sort()).toEqual(['find_escorts', 'my_bids', 'my_expiring_documents', 'my_fleet', 'my_posted_loads', 'prepare_bid', 'prepare_claim', 'search_open_loads', 'typical_rates', 'whats_new'])
   expect(WRAITH_SYSTEM).toMatch(/cannot bid, claim, post, accept or change anything yourself/)
   expect(WRAITH_SYSTEM).toMatch(/OEH does not check anyone/)
   expect(WRAITH_SYSTEM).toMatch(/I'm Wraith, OEH's automated assistant/)

@@ -3,6 +3,7 @@ import { isBlockedEitherWay } from '@/lib/blocks'
 import { createClient as createServerSupabase } from '@/lib/supabase/server';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { checkTierAccess } from '@/lib/tier-access';
+import { cleanTags } from '@/lib/quality';
 
 export const dynamic = 'force-dynamic';
 
@@ -65,6 +66,8 @@ export async function POST(req: NextRequest) {
         rating,
         comment: typeof comment === 'string' ? comment.slice(0, 2000) : null,
         reviewer_role: role === 'escort' ? 'escort' : 'carrier',
+        // one-tap tags, from the list for the person being reviewed (an escort reviews a carrier, anyone else reviews an escort)
+        tags: cleanTags(body.tags, role === 'escort' ? 'carrier' : 'escort'),
       });
 
     // one review per person per load

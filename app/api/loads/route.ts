@@ -3,7 +3,9 @@ import { createClient } from '@/lib/supabase/server'
 import { serviceClient } from '@/lib/service-client'
 import { notifyProEscorts } from '@/lib/notify-pro'
 import { notifyDeadhead } from '@/lib/deadhead'
-import { alertEscortsNewLoad } from '@/lib/alerts'
+import { alertEscortsNewLoad, alertRegularsNewLoad, alertUrgentLoad } from '@/lib/alerts'
+import { cleanEquipment, regularsMinutes } from '@/lib/quality'
+import { countRegulars } from '@/lib/quality-server'
 import { isAdminEmail } from '@/lib/supabase'
 
 export const maxDuration = 60
@@ -29,6 +31,11 @@ export async function POST(request: NextRequest) {
     const { pickupCity, pickupState, destinationCity, destinationState,
             escortType, escort_count, boardType, loadType, rate, notes,
             dateNeeded, expiresAt, cert_types, pay_term, permitUrl } = body
+    const urgent = body.urgent === true
+    const requiredEquipment = cleanEquipment(body.required_equipment)
+    // regulars first only means something when the carrier has regulars, and not on the 5-minute board
+    let regMinutes = boardType === 'bid' ? 0 : regularsMinutes(body.regulars_minutes)
+    if (regMinutes && (await countRegulars(serviceClient(), user.id)) === 0) regMinutes = 0
 
     if (!pickupCity || !pickupState || !destinationCity || !destinationState || !escortType || !boardType) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -78,6 +85,11 @@ export async function POST(request: NextRequest) {
         cert_types: cert_types || [],
         pay_term: pay_term || 'on_completion',
         permit_url,
+        urgent,
+        urgent_at: urgent ? new Date().toISOString() : null,
+        required_equipment: requiredEquipment,
+        regulars_until: regMinutes ? new Date(Date.now() + regMinutes * 60000).toISOString() : null,
+        alerts_pending: regMinutes > 0,
         status: 'open',
       }])
       .select()
@@ -93,10 +105,12 @@ export async function POST(request: NextRequest) {
     if (data?.id) {
       const loadId = data.id as string
       after(async () => {
+        // with a regulars-first window the regulars hear now and everyone else when the window ends (the cron sends those)
         await Promise.allSettled([
           notifyDeadhead(loadId),
           notifyProEscorts({ load_id: loadId, pu_state: pickupState, dl_state: destinationState }),
-          alertEscortsNewLoad(loadId),
+          regMinutes ? alertRegularsNewLoad(loadId) : alertEscortsNewLoad(loadId),
+          !regMinutes && urgent ? alertUrgentLoad(loadId) : Promise.resolve(),
         ])
       })
     }

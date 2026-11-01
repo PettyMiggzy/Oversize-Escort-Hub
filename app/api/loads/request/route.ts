@@ -5,6 +5,7 @@ import { createClient as createServerSupabase } from "@/lib/supabase/server";
 import { escortClaimant, claimRefusal } from "@/lib/access-server";
 import { sendWebPushToUser } from "@/lib/push";
 import { alertCarrierClaimRequest, runAfter } from "@/lib/alerts";
+import { qualityRefusal } from '@/lib/quality-server'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,7 +30,7 @@ export async function POST(req: NextRequest) {
   // Check load is open
   const { data: load, error: le } = await supabase
     .from("loads")
-    .select("id, status, carrier_id, created_at, deadhead_notified_at, board_type, expires_at")
+    .select("id, status, carrier_id, created_at, deadhead_notified_at, board_type, expires_at, regulars_until, required_equipment")
     .eq("id", load_id)
     .single();
   if (le || !load) return NextResponse.json({ error: "Load not found" }, { status: 404 });
@@ -54,6 +55,10 @@ export async function POST(req: NextRequest) {
   // plan rules + deadhead exclusive window enforced here, not only in the browser
   const refusal = claimRefusal(claimant.level, load.created_at, load.deadhead_notified_at);
   if (refusal) return NextResponse.json({ error: refusal }, { status: 403 });
+
+  // the carrier's regulars have first look, and a load can need equipment the escort lists
+  const quality = await qualityRefusal(supabase, load, escort_id);
+  if (quality) return NextResponse.json({ error: quality }, { status: 403 });
 
   // Mark pending_match with 1-hour expiry handled by cron
   const { data: claimed, error: ue } = await supabase

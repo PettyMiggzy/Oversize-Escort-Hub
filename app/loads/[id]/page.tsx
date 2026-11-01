@@ -11,10 +11,14 @@ import BlockUser from '@/components/BlockUser'
 import { isAdminEmail } from '@/lib/supabase'
 import { getAccessLevel, secondsUntilClaimable } from '@/lib/board-access'
 import { withFreeLaunch } from '@/lib/free-launch'
+import LoadBadges, { confirmEquipment, heldForRegulars, useRegularOf } from '@/components/LoadBadges'
+import { regularsLeftMinutes } from '@/lib/quality'
 
 export default function LoadDetailPage() {
   const params = useParams()
   const id = params?.id as string
+  const regularOf = useRegularOf()
+  const [urgentStatus, setUrgentStatus] = useState('')
   const [load, setLoad] = useState<any>(null)
   const [carrier, setCarrier] = useState<any>(null)
   const [escort, setEscort] = useState<any>(null)
@@ -99,6 +103,7 @@ export default function LoadDetailPage() {
 
   const submitBid = async () => {
     if (!currentUser || !bidRate) return
+    if (!confirmEquipment(load)) return
     setBidStatus('Submitting...')
     const res = await fetch('/api/bids', {
       method: 'POST',
@@ -114,6 +119,7 @@ export default function LoadDetailPage() {
 
   const submitClaim = async () => {
     if (!currentUser || claiming) return
+    if (!confirmEquipment(load)) return
     setClaiming(true)
     setClaimStatus('')
     const res = await fetch('/api/loads/request', {
@@ -128,6 +134,16 @@ export default function LoadDetailPage() {
       return
     }
     setClaimStatus('Claim sent — awaiting carrier approval.')
+    const { data: loadData } = await supabase.from('loads').select('*').eq('id', id).single()
+    setLoad(loadData)
+  }
+
+  const submitUrgent = async () => {
+    setUrgentStatus('Working...')
+    const res = await fetch('/api/loads/urgent', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ load_id: id }) })
+    const result = await res.json().catch(() => ({} as any))
+    if (!res.ok) { setUrgentStatus('Error: ' + (result.error || 'Could not do that')); return }
+    setUrgentStatus(result.regulars_minutes ? `Done. Your regulars get first look for ${result.regulars_minutes} minutes, then everyone available is alerted.` : 'Done. Pilot cars available in your pickup state are being alerted now.')
     const { data: loadData } = await supabase.from('loads').select('*').eq('id', id).single()
     setLoad(loadData)
   }
@@ -171,6 +187,7 @@ export default function LoadDetailPage() {
 
           <div className="ui-stack">
         <div className="ui-card">
+          <LoadBadges load={load} regularOf={regularOf} />
           {[
             ['Route', `${load.pu_city}, ${load.pu_state} → ${load.dl_city}, ${load.dl_state}`],
             ['Escort Type', load.escort_type],
@@ -241,6 +258,12 @@ export default function LoadDetailPage() {
             ? Math.max(0, Math.ceil((dhUntil - now) / 1000))
             : level === 'delayed' ? secondsUntilClaimable(load.created_at, now) : 0
           const locked = secondsLeft > 0
+          if (heldForRegulars(load, regularOf)) return (
+            <div className="ui-card">
+              <h2>Regulars first</h2>
+              <p className="ui-note">This carrier gave their regulars first look. It opens to everyone in about {regularsLeftMinutes(load.regulars_until)} minutes.</p>
+            </div>
+          )
           return (
             <div className="ui-card">
               <h2>Claim this Load</h2>
@@ -258,6 +281,12 @@ export default function LoadDetailPage() {
 
         {isBidType && isEscort && load.status === 'open' && (() => {
           const level = getAccessLevel(userProfile?.tier, isAdmin)
+          if (heldForRegulars(load, regularOf)) return (
+            <div className="ui-card">
+              <h2>Regulars first</h2>
+              <p className="ui-note">This carrier gave their regulars first look. Bidding opens to everyone in about {regularsLeftMinutes(load.regulars_until)} minutes.</p>
+            </div>
+          )
           if (level === 'none') {
             return (
               <div className="ui-card">
@@ -287,6 +316,19 @@ export default function LoadDetailPage() {
             </div>
           )
         })()}
+
+        {isOwnerCarrier && ['open', 'pending_match', 'filled'].includes(load.status) && !(load.status === 'open' && load.urgent) && (
+          <div className="ui-card">
+            <h2>{load.status === 'open' ? 'Need an escort now?' : 'Escort cancelled?'}</h2>
+            <p className="ui-note" style={{ marginBottom: 12 }}>
+              {load.status === 'open'
+                ? 'Mark this load urgent. Pilot cars who said they are available in your pickup state are alerted right away.'
+                : 'Reopen this load as urgent and find a replacement now. Your regulars get a short first look, then pilot cars available in your pickup state are alerted.'}
+            </p>
+            <button onClick={submitUrgent} className="ui-btn">{load.status === 'open' ? 'Mark urgent' : 'Find a replacement now'}</button>
+            {urgentStatus && <p className={urgentStatus.startsWith('Error') ? 'ui-err' : 'ui-ok'}>{urgentStatus}</p>}
+          </div>
+        )}
 
         {isBidType && (isOwnerCarrier || isMatchedEscort) && (
           <div className="ui-card">

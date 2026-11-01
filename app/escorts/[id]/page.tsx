@@ -9,6 +9,8 @@ import { VERIFICATION_LIVE } from '@/lib/verification'
 import BlockUser from '@/components/BlockUser'
 import { isBlockedEitherWay } from '@/lib/blocks'
 import { createClient as createServerClient } from '@/lib/supabase/server'
+import RegularButton from '@/components/RegularButton'
+import { cleanEquipment, equipmentLabel, reviewTagLabel } from '@/lib/quality'
 const svc = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -16,7 +18,7 @@ const svc = createClient(
 
 export default async function EscortProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const { data: profile } = await svc.from('profiles').select('id, full_name, role, tier, bio, bgc_verified, rating, review_count, avatar_url, pevo_verified, state, vehicle, states_licensed, availability_states, is_available, created_at, suspended').eq('id', id).single()
+  const { data: profile } = await svc.from('profiles').select('id, full_name, role, tier, bio, bgc_verified, rating, review_count, avatar_url, pevo_verified, state, vehicle, states_licensed, availability_states, is_available, created_at, suspended, equipment, total_jobs').eq('id', id).single()
   // only live escort accounts have a public page (not a suspended or a carrier/broker profile)
   if (!profile || profile.role !== 'escort' || profile.suspended === true) notFound()
   const { data: { user: viewer } } = await (await createServerClient()).auth.getUser()
@@ -31,6 +33,23 @@ export default async function EscortProfilePage({ params }: { params: Promise<{ 
     .select('*')
     .eq('reviewee_id', id)
     .order('created_at', { ascending: false })
+
+  // the carrier looking at this page can keep this pilot car as a regular, and sees how often they have worked together
+  let canStar = false, isRegular = false, workedTogether = 0
+  if (viewer && viewer.id !== id) {
+    const { data: me } = await svc.from('profiles').select('role').eq('id', viewer.id).maybeSingle()
+    canStar = !!me && ['carrier', 'broker', 'fleet_manager', 'admin'].includes(String(me.role))
+    if (canStar) {
+      const { data: fav } = await svc.from('favorite_escorts').select('escort_id').eq('carrier_id', viewer.id).eq('escort_id', id).maybeSingle()
+      isRegular = !!fav
+      const { data: past } = await svc.from('loads').select('id').eq('carrier_id', viewer.id).eq('matched_escort_id', id).eq('status', 'filled')
+      workedTogether = past?.length ?? 0
+    }
+  }
+  const rig = cleanEquipment((profile as { equipment?: unknown }).equipment)
+  const tagCounts: Record<string, number> = {}
+  for (const r of (reviews ?? []) as { tags?: string[] | null }[]) for (const t of r.tags ?? []) tagCounts[t] = (tagCounts[t] || 0) + 1
+  const topTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]).slice(0, 6)
 
   const avgRating = reviews && reviews.length > 0
     ? (reviews.reduce((s, r) => s + (r.rating || 0), 0) / reviews.length).toFixed(1)
@@ -65,7 +84,32 @@ export default async function EscortProfilePage({ params }: { params: Promise<{ 
               <span className="ui-meta">({reviews?.length} review{reviews?.length !== 1 ? 's' : ''})</span>
             </div>
           )}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
+            {Number((profile as { total_jobs?: number | null }).total_jobs) > 0 && <span className="ui-badge dim">{(profile as { total_jobs?: number }).total_jobs} jobs on OEH</span>}
+            {workedTogether > 0 && <span className="ui-badge green">Worked with you {workedTogether}x</span>}
+          </div>
+          {canStar && <div style={{ marginTop: 14 }}><RegularButton escortId={id} on={isRegular} /></div>}
         </div>
+
+        {rig.length > 0 && (
+          <div className="ui-card">
+            <h2>Rig</h2>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {rig.map((k) => <span key={k} className="ui-badge dim">{equipmentLabel(k)}</span>)}
+            </div>
+            <p className="ui-note" style={{ marginTop: 10 }}>Listed by the escort, not checked by us. Ask to see it before you hire.</p>
+          </div>
+        )}
+
+        {topTags.length > 0 && (
+          <div className="ui-card">
+            <h2>What people say</h2>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {topTags.map(([k, n]) => <span key={k} className="ui-badge green">{reviewTagLabel(k)} &times;{n}</span>)}
+            </div>
+            <p className="ui-note" style={{ marginTop: 10 }}>Tags come from reviews by people who worked a load with this escort.</p>
+          </div>
+        )}
 
         {zones && zones.length > 0 && (
           <div className="ui-card">

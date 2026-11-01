@@ -14,6 +14,8 @@ import PageTitle from '@/components/PageTitle';
 import BoardTabs from '@/components/BoardTabs';
 import EmptyState from '@/components/EmptyState';
 import { VERIFICATION_LIVE } from '@/lib/verification'
+import LoadBadges, { confirmEquipment, heldForRegulars, useRegularOf } from '@/components/LoadBadges'
+import { regularsLeftMinutes } from '@/lib/quality'
 
 const toTitleCase = (str?: string) =>
   str ? str.replace(/\w\S*/g, t => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()) : '';
@@ -45,6 +47,10 @@ interface Load {
   poster_rating?: number;
   poster_jobs?: number;
   load_type?: string | null;
+  carrier_id?: string | null;
+  urgent?: boolean | null;
+  regulars_until?: string | null;
+  required_equipment?: string[] | null;
 }
 
 interface SponsoredProfile {
@@ -57,6 +63,8 @@ interface SponsoredProfile {
 }
 
 export function FlatRateBoardClient() {
+  const regularOf = useRegularOf();
+  const [typical, setTypical] = useState<{ median: number; low: number; high: number; count: number } | null>(null);
   const [allLoads, setLoads] = useState<Load[]>([]);
   const hiddenUsers = useHiddenUsers();
   const loads = allLoads.filter((l: any) => !hiddenUsers.has(l.carrier_id));
@@ -181,9 +189,19 @@ export function FlatRateBoardClient() {
     fetchSponsored();
   }, [stateFilter]);
 
+  // what open loads pay in the chosen state right now (needs at least 3 loads)
+  useEffect(() => {
+    setTypical(null);
+    if (!stateFilter) return;
+    let off = false;
+    fetch(`/api/rates?state=${stateFilter}`).then(r => r.json()).then(d => { if (!off && d?.rate) setTypical(d.rate); }).catch(() => {});
+    return () => { off = true; };
+  }, [stateFilter]);
+
   const filteredLoads = useMemo(() => {
-    if (!stateFilter) return loads;
-    return loads.filter(l => l.pu_state === stateFilter || l.dl_state === stateFilter);
+    const list = !stateFilter ? loads : loads.filter(l => l.pu_state === stateFilter || l.dl_state === stateFilter);
+    // urgent loads first, newest first within each group
+    return [...list].sort((a, b) => Number(!!b.urgent) - Number(!!a.urgent) || Date.parse(b.created_at) - Date.parse(a.created_at));
   }, [loads, stateFilter]);
 
   const handleClaim = async (loadId: string) => {
@@ -192,6 +210,8 @@ export function FlatRateBoardClient() {
       setClaimError(prev => ({ ...prev, [loadId]: 'Only escorts can claim loads' }));
       return;
     }
+    const asked = loads.find(l => l.id === loadId);
+    if (asked && !confirmEquipment(asked)) return;
     const res = await fetch('/api/loads/request', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -222,6 +242,9 @@ export function FlatRateBoardClient() {
     if (!userId) return <Link href="/signin?redirect=/flat-rate" className="ui-btn block ghost">Sign in to claim</Link>;
     const access = getAccessLevel(userTier, isAdminEmail(userEmail));
     const claimed = claimedLoads.has(load.id);
+    if (heldForRegulars(load, regularOf)) {
+      return <div className="ui-meta" style={{ textAlign: 'center' }}>Regulars first: opens to everyone in about {regularsLeftMinutes(load.regulars_until)} min</div>;
+    }
     const remaining = access === 'delayed' ? secondsUntilClaimable(load.created_at, now) : 0;
     const locked = access === 'delayed' && remaining > 0;
     if (access === 'none') {
@@ -260,6 +283,11 @@ export function FlatRateBoardClient() {
             }
           />
           <BoardTabs active="flat" />
+          {typical && (
+            <div className="ui-meta" style={{ margin: '0 0 14px', color: '#ffc46b' }}>
+              Loads picking up in {stateFilter} pay about ${typical.median.toFixed(2)}/mi right now (${typical.low.toFixed(2)} to ${typical.high.toFixed(2)}, {typical.count} loads). Just a guide, not advice.
+            </div>
+          )}
           <div className={filteredLoads.length === 0 ? undefined : "ui-two"}>
             <div style={{ minWidth: 0 }}>
               {/* Sponsored strip: only when a state is selected and sponsored escorts exist. Not shown inside the phone app. */}
@@ -287,6 +315,7 @@ export function FlatRateBoardClient() {
                 {filteredLoads.map((load) => (
                   <div key={load.id} className="ui-load">
                     <div>
+                      <LoadBadges load={load} regularOf={regularOf} />
                       {load.load_type === 'breakdown' && (
                         <span className="ui-badge" style={{ background: 'rgba(255,90,90,.16)', color: '#ff8a8a', border: '1px solid rgba(255,90,90,.45)', marginBottom: 8 }}>&#128680; Breakdown assistance</span>
                       )}

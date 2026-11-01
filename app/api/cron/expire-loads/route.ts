@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 import { requireCron } from '@/lib/api-auth'
 import { sendWebPushToUser } from '@/lib/push'
 import { CHECKIN_AFTER_MS, NO_EXPIRY_MAX_AGE_MS, sendCheckinEmail } from '@/lib/load-lifecycle'
+import { sendDeferredLoadAlerts } from '@/lib/alerts'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
@@ -50,6 +51,10 @@ export async function GET(req: Request) {
     checkins += 1
   }
 
+  // loads that waited for a regulars-first window now go out to everyone else
+  let deferred = 0
+  try { deferred = (await sendDeferredLoadAlerts(3)).handled } catch (e) { console.error('[cron expire-loads] deferred alerts failed:', e) }
+
   const heldBefore = new Date(Date.now() - HOLD_MS).toISOString()
   const { data: held, error: heldErr } = await supabase
     .from('loads')
@@ -84,5 +89,5 @@ export async function GET(req: Request) {
 
   const ok = !expErr && !heldErr && !oldErr && !ageErr
   // a failing job must look failing to the scheduler, not like a healthy 200
-  return NextResponse.json({ ok, expired_at: now, released, checkins }, { status: ok ? 200 : 500 })
+  return NextResponse.json({ ok, expired_at: now, released, checkins, deferred }, { status: ok ? 200 : 500 })
 }

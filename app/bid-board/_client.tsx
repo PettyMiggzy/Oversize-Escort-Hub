@@ -8,6 +8,7 @@ import PageTitle from '@/components/PageTitle';
 import BoardTabs from '@/components/BoardTabs';
 import EmptyState from '@/components/EmptyState';
 import { VERIFICATION_LIVE } from '@/lib/verification'
+import LoadBadges, { useRegularOf } from '@/components/LoadBadges'
 
 interface Load {
   id: string;
@@ -24,10 +25,15 @@ interface Load {
   fmcsa_verified?: boolean;
   poster_rating?: number;
   poster_jobs?: number;
+  carrier_id?: string | null;
+  urgent?: boolean | null;
+  regulars_until?: string | null;
+  required_equipment?: string[] | null;
 }
 
 export function BidBoardClient() {
   const supabase = createClient();
+  const regularOf = useRegularOf();
   const [allLoads, setLoads] = useState<Load[]>([]);
   const hiddenUsers = useHiddenUsers();
   const loads = allLoads.filter((l: any) => !hiddenUsers.has(l.carrier_id));
@@ -102,12 +108,13 @@ export function BidBoardClient() {
                 />
               ) : (
                 <div className="ui-grid" style={isMobile ? { gridTemplateColumns: '1fr' } : undefined}>
-                  {loads.map((load) => {
+                  {[...loads].sort((a, b) => Number(!!b.urgent) - Number(!!a.urgent)).map((load) => {
                     const expired = timers[load.id] === 'EXPIRED';
                     return (
                       <div key={load.id} className="ui-load" style={expired ? { opacity: 0.5 } : undefined}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
                           <div style={{ flex: 1, minWidth: 0 }}>
+                            <LoadBadges load={load} regularOf={regularOf} />
                             <div className="ui-route">{load.pu_city}, {load.pu_state} &rarr; {load.dl_city}, {load.dl_state}</div>
                             <div className="ui-meta" style={{ marginTop: 6, color: '#ffc46b', fontWeight: 600 }}>{load.escort_type || 'Position TBD'}</div>
                             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginTop: 10 }}>

@@ -8,6 +8,8 @@ import SiteHeader from "@/components/SiteHeader"
 import PageTitle from "@/components/PageTitle"
 import EmptyState from "@/components/EmptyState"
 import { isNativeApp } from "@/lib/native"
+import RegularButton from "@/components/RegularButton"
+import { EQUIPMENT, cleanEquipment, equipmentShort } from "@/lib/quality"
 
 const supabase = createClient()
 
@@ -22,6 +24,10 @@ export default function FindEscortsPage() {
   const [loading, setLoading] = useState(true)
   const [stateFilter, setStateFilter] = useState("")
   const [memberFilter, setMemberFilter] = useState("all")
+  const [equipFilter, setEquipFilter] = useState("")
+  const [canStar, setCanStar] = useState(false)
+  const [regulars, setRegulars] = useState<Set<string>>(new Set())
+  const [worked, setWorked] = useState<Record<string, number>>({})
   const [inApp, setInApp] = useState(true) // fail closed: treated as the phone app until the browser proves it is the website
   useEffect(() => { setInApp(isNativeApp()) }, [])
 
@@ -29,12 +35,36 @@ export default function FindEscortsPage() {
     fetchEscorts()
   }, [stateFilter, memberFilter])
 
+  // carriers, brokers and fleet managers can keep regulars and see who they have worked with
+  useEffect(() => {
+    let off = false
+    ;(async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+        const { data: me } = await supabase.from("profiles").select("role").eq("id", user.id).single()
+        if (!me || !["carrier", "broker", "fleet_manager", "admin"].includes(String(me.role))) return
+        const [{ data: favs }, { data: past }] = await Promise.all([
+          supabase.from("favorite_escorts").select("escort_id").eq("carrier_id", user.id),
+          supabase.from("loads").select("matched_escort_id").eq("carrier_id", user.id).eq("status", "filled").not("matched_escort_id", "is", null),
+        ])
+        if (off) return
+        setCanStar(true)
+        setRegulars(new Set((favs || []).map((f: any) => f.escort_id)))
+        const counts: Record<string, number> = {}
+        for (const l of (past || []) as any[]) counts[l.matched_escort_id] = (counts[l.matched_escort_id] || 0) + 1
+        setWorked(counts)
+      } catch { /* the page works without it */ }
+    })()
+    return () => { off = true }
+  }, [])
+
   async function fetchEscorts() {
     setLoading(true)
     // Base query: profiles where role=escort
     let q = supabase
       .from("profiles")
-      .select("id, full_name, tier, bgc_verified")
+      .select("id, full_name, tier, bgc_verified, equipment, total_jobs")
       .eq("role", "escort")
       .or("suspended.is.null,suspended.eq.false")
     if (memberFilter === "pro") q = q.eq("tier", "pro")
@@ -114,6 +144,13 @@ export default function FindEscortsPage() {
                   </select>
                 </div>
                 <div style={{ minWidth: 150 }}>
+                  <label className="ui-label" htmlFor="fe-equip">Equipment</label>
+                  <select id="fe-equip" className="ui-select" value={equipFilter} onChange={e => setEquipFilter(e.target.value)}>
+                    <option value="">Any equipment</option>
+                    {EQUIPMENT.map(q => <option key={q.key} value={q.key}>Has {q.short.toLowerCase()}</option>)}
+                  </select>
+                </div>
+                <div style={{ minWidth: 150 }}>
                   <label className="ui-label" htmlFor="fe-member">Members</label>
                   <select id="fe-member" className="ui-select" value={memberFilter} onChange={e => setMemberFilter(e.target.value)}>
                     <option value="all">All members</option>
@@ -155,7 +192,7 @@ export default function FindEscortsPage() {
             />
           ) : (
             <div className="ui-grid">
-              {escorts.map((e: any) => (
+              {escorts.filter((e: any) => !equipFilter || cleanEquipment(e.equipment).includes(equipFilter)).sort((a: any, b: any) => Number(regulars.has(b.id)) - Number(regulars.has(a.id))).map((e: any) => (
                 <div key={e.id} className="ui-load" style={{ cursor: 'pointer' }} onClick={() => router.push(`/escorts/${e.id}`)}>
                   <div>
                     <div className="ui-route">{e.full_name || "Unnamed"}</div>
@@ -172,7 +209,16 @@ export default function FindEscortsPage() {
                     {e.avgRating && (
                       <div className="ui-meta" style={{ marginTop: 6, color: '#ffc46b', fontWeight: 600 }}>&#9733; {e.avgRating} ({e.reviewCount})</div>
                     )}
+                    {cleanEquipment(e.equipment).length > 0 && (
+                      <div className="ui-meta" style={{ marginTop: 6 }}>Rig (listed by the escort, not checked by us): {cleanEquipment(e.equipment).slice(0, 5).map(equipmentShort).join(", ")}{cleanEquipment(e.equipment).length > 5 ? ` +${cleanEquipment(e.equipment).length - 5}` : ""}</div>
+                    )}
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
+                      {Number(e.total_jobs) > 0 && <span className="ui-badge dim">{e.total_jobs} job{Number(e.total_jobs) === 1 ? '' : 's'} on OEH</span>}
+                      {worked[e.id] > 0 && <span className="ui-badge green">Worked with you {worked[e.id]}x</span>}
+                      {regulars.has(e.id) && <span className="ui-badge amber">&#9733; Your regular</span>}
+                    </div>
                   </div>
+                  {canStar && <RegularButton escortId={e.id} on={regulars.has(e.id)} compact onChange={(on) => setRegulars(prev => { const n = new Set(prev); if (on) n.add(e.id); else n.delete(e.id); return n })} />}
                   <button className="ui-btn block ghost">View profile</button>
                 </div>
               ))}

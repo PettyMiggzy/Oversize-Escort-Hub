@@ -4,6 +4,7 @@ import { serviceClient as blockSvc } from '@/lib/service-client'
 import { createClient } from '@/lib/supabase/server'
 import { escortClaimant, claimRefusal } from '@/lib/access-server'
 import { alertCarrierNewBid, runAfter } from '@/lib/alerts'
+import { qualityRefusal } from '@/lib/quality-server'
 
 export const dynamic = 'force-dynamic'
 
@@ -61,7 +62,7 @@ export async function POST(req: NextRequest) {
     // Verify load exists and is open + on the bid board
     const { data: load, error: loadErr } = await supabase
       .from('loads')
-      .select('id, status, board_type, carrier_id, created_at, expires_at, deadhead_notified_at')
+      .select('id, status, board_type, carrier_id, created_at, expires_at, deadhead_notified_at, regulars_until, required_equipment')
       .eq('id', load_id)
       .single()
     if (loadErr || !load) {
@@ -89,6 +90,10 @@ export async function POST(req: NextRequest) {
     if (!claimant.ok) return NextResponse.json({ error: claimant.error }, { status: 403 })
     const refusal = claimRefusal(claimant.level, load.created_at, load.deadhead_notified_at)
     if (refusal) return NextResponse.json({ error: refusal }, { status: 403 })
+
+    // the carrier's regulars have first look, and a load can need equipment the escort lists
+    const quality = await qualityRefusal(blockSvc(), load, user.id)
+    if (quality) return NextResponse.json({ error: quality }, { status: 403 })
 
     // One live bid per escort per load
     const { data: existing } = await supabase
