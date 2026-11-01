@@ -7,7 +7,7 @@ const read = (rel: string) => fs.readFileSync(path.join(root, rel), 'utf8')
 
 test('find-escorts reads escort_availability.location_state and filters sponsored_zones.zone', () => {
   const src = read('app/find-escorts/page.tsx')
-  expect(src).toMatch(/from\("escort_availability"\)[\s\S]{0,80}\.select\("location_state"\)/)
+  expect(src).toMatch(/from\("escort_availability"\)[\s\S]{0,80}\.select\("(escort_id, )?location_state"\)/)
   expect(src).not.toMatch(/from\("escort_availability"\)[\s\S]{0,80}\.select\("state"\)/)
   expect(src).toContain('.eq("zone", stateFilter)')
   expect(src).not.toContain('.eq("state", stateFilter)')
