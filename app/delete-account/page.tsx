@@ -88,6 +88,17 @@ export default function DeleteAccountPage() {
             {msg && <p style={{ color: '#ef4444', fontSize: 14, marginTop: 14 }}>{msg}</p>}
           </div>
         )}
+
+        <div style={{ ...card, marginTop: 24 }}>
+          <h2 style={{ fontSize: 18, color: '#fff', margin: '0 0 10px' }}>Delete only some of your data</h2>
+          <p style={{ fontSize: 14, marginBottom: 10 }}>You do not have to delete your whole account to remove some of your data.</p>
+          <ul style={{ fontSize: 14, lineHeight: 1.7, paddingLeft: 20, margin: '0 0 12px' }}>
+            <li>Expenses: delete any entry yourself on the <a href="/tools/expenses" style={{ color: '#f90' }}>expense tracker</a>.</li>
+            <li>Name, phone, company, equipment and states: change or clear them yourself on your <a href="/profile" style={{ color: '#f90' }}>profile</a>.</li>
+            <li>Anything else (for example an uploaded document or photo): email <a href="mailto:support@oversize-escort-hub.com" style={{ color: '#f90' }}>support@oversize-escort-hub.com</a> from the address on your account and tell us what to remove.</li>
+          </ul>
+          <p style={{ fontSize: 13, color: '#888', margin: 0 }}>Some records other people rely on, such as invoices and reviews on a shared job, are kept, shown as &quot;Deleted user&quot; if you delete the account.</p>
+        </div>
       </div>
     </div>
   )
