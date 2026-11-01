@@ -72,9 +72,10 @@ export default function InvoiceTool() {
     const doc = new jsPDF()
     doc.setFontSize(22); doc.setTextColor(30); doc.text('INVOICE', 20, 24)
     doc.setFontSize(10); doc.setTextColor(90)
-    doc.text(`Invoice #: ${f.number.trim() || '—'}`, 140, 18)
-    doc.text(`Date: ${f.date}`, 140, 24)
-    doc.text(`Terms: ${f.terms}`, 140, 30)
+    const hasNo = f.number.trim() !== ''
+    if (hasNo) doc.text(`Invoice #: ${f.number.trim()}`, 140, 18)
+    doc.text(`Date: ${f.date}`, 140, hasNo ? 24 : 18)
+    doc.text(`Terms: ${f.terms}`, 140, hasNo ? 30 : 24)
     let y = 42
     const block = (title: string, rows: string[], x: number) => {
       doc.setFontSize(9); doc.setTextColor(140); doc.text(title, x, y)
