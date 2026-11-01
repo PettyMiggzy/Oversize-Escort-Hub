@@ -1,7 +1,7 @@
 # Promo kit: get people to sign up (2026-11-01)
 
 Copy and paste. Nothing here has been posted. Posting, DMs and group posts need the owner's OK (`docs/outreach-drafts.md` rule).
-The posters, the 60-second ad and the 30-second cut are sent in chat (they are too big for the repo).
+The posters, the 59-second platform ad, the 60-second Wraith ad and the 30-second Wraith cut are sent in chat (they are too big for the repo).
 
 ## Links to use
 - Pilot car driver sign-up: https://www.oversize-escort-hub.com/signin?mode=signup&role=escort
@@ -10,6 +10,18 @@ The posters, the 60-second ad and the 30-second cut are sent in chat (they are t
 - Android app: https://play.google.com/store/apps/details?id=pevo.oversizeescorthub.app
 - iPhone: not yet (waiting on Apple's review). Say "iPhone coming soon" and send iPhone users to the website.
 - To see which post brings people in, add `&utm_source=facebook` (or tiktok, instagram, x) to a sign-up link.
+
+## Where to post (in this order)
+Lead with the whole platform (boards, post a load, find pilot cars, deadhead, fleets). Wraith is the "new" hook, not the whole story.
+1. **Facebook groups for pilot car drivers, oversize carriers and heavy haul.** This is where the industry already talks. Ask the admin first, follow the rules, one post per group, answer comments. Biggest payoff.
+2. **TikTok, Instagram Reels, YouTube Shorts, Facebook Reels.** Post the 59-second ad (or the 30-second cut). Same video, four places. Trucking is big on TikTok and Reels.
+3. **Facebook page and Instagram feed.** The feed posters (three screens, find loads, fleet) and the square poster. Stories: the story posters.
+4. **LinkedIn.** For carriers, brokers and fleet managers. Use the carrier and fleet copy, not the driver copy.
+5. **Google Business Profile posts** for Precision Pilot Services LLC. Say "pilot car", never "escort".
+6. **Truckers' forums and Reddit** only if the rules allow self-promotion. Otherwise answer questions there and mention the site when it fits.
+7. **Direct, with the owner's OK:** carriers, brokers and fleets you already know; pilot car training schools and associations (say "we are a member of the Evergreen Safety Council" only if true that day, never "partner").
+8. **Existing users:** an email about Wraith and the new features through Resend, only with the owner's OK.
+9. **Paper:** a flyer with a QR code to the sign-up link at truck stops and permit offices, where the owner may legally post.
 
 ## Say
 Free to join. No commissions on loads. Wraith, the voice assistant. Five free Wraith questions a day. Pilot car. Android app on Google Play.
@@ -25,28 +37,30 @@ Do not use the word "escort" in Google Ads or the Google Business Profile (say "
 - Anyone: "Your load board. Hands free."
 
 ## Posts (copy-ready)
-1. **Launch (60-second ad)**
-   Meet Wraith, the voice assistant inside Oversize Escort Hub. Ask what's new, check your bids, bid by voice (you press the final button). Free to join: https://www.oversize-escort-hub.com/wraith/updates
-   #PilotCar #OversizeLoad #Trucking #LoadBoard
-2. **Drivers (poster: feed, new loads)**
-   Pilot car drivers: new loads in your states, a free account, and a voice assistant that reads them to you. Join free: https://www.oversize-escort-hub.com/signin?mode=signup&role=escort
-3. **Carriers (poster: square)**
-   Carriers: post an oversize load in about 2 minutes. Everyone sees it right away and you pick who to accept. Free to join, no commissions on loads: https://www.oversize-escort-hub.com/signin?mode=signup&role=carrier
-4. **Fleets (poster: feed, who's free)**
-   Running a fleet? Ask "who's free right now?" and hear the answer. Join free: https://www.oversize-escort-hub.com/wraith/updates
-5. **Story (poster: story)**
-   Ask. Hear it. Tap to confirm. Wraith never bids for you; you press the final button.
-6. **30-second cut**
-   Ask Wraith about new loads and bid by voice. Free to try: oversize-escort-hub.com
-7. **Question (to get comments)**
+1. **Whole platform (59-second ad)**
+   One free place for oversize loads: flat-rate, open-bid and 5-minute boards, claim or bid, post a load in about 2 minutes (no account needed), find pilot cars by state, deadhead return loads, fleet tools, and Wraith, a voice assistant. Free to join, no commissions on loads: https://www.oversize-escort-hub.com/signin?mode=signup
+   #PilotCar #OversizeLoad #HeavyHaul #Trucking #LoadBoard
+2. **Three screens (poster: feed, three screens)**
+   Find loads. Post loads. Find pilot cars. Free to join, no commissions on loads. https://www.oversize-escort-hub.com/signin?mode=signup
+3. **Everything list (poster: story)**
+   Flat-rate, open-bid and 5-minute boards. Post a load in about 2 minutes. Pilot cars by state. Return loads near your drop-off. Fleet tools. A voice assistant. Free to join.
+4. **Drivers (poster: feed, new loads)**
+   Pilot car drivers: new loads in your states, a free account, and a voice assistant that reads them to you. https://www.oversize-escort-hub.com/signin?mode=signup&role=escort
+5. **Carriers (poster: square)**
+   Carriers: post an oversize load in about 2 minutes, with no account if you want. Everyone sees it right away and you pick who to accept. Free to join, no commissions on loads: https://www.oversize-escort-hub.com/signin?mode=signup&role=carrier
+6. **Fleets (poster: feed, who's free)**
+   Running a fleet? Manage your escorts and ask "who's free right now?" Join free: https://www.oversize-escort-hub.com/wraith/updates
+7. **Wraith only (the 60-second Wraith ad or the 30-second cut)**
+   Meet Wraith, the voice assistant inside Oversize Escort Hub. Ask what's new, check your bids, bid by voice (you press the final button). https://www.oversize-escort-hub.com/wraith/updates
+8. **Question (to get comments)**
    What's the longest you've ever driven home empty? Tell us below.
-8. **Update post (from the Wraith update log)**
+9. **Update post (from the Wraith update log)**
    Wraith update: [paste the newest line from the log at /wraith/updates]
-9. **Your story (fill in, in your own words)**
-   I built Oversize Escort Hub because [your reason]. It's free to join. [link]
+10. **Your story (fill in, in your own words)**
+   I built Oversize Escort Hub because [your reason]. It is free to join. [link]
 
 ## 14-day plan
-- Day 1: post 1 everywhere. Day 2: post 2. Day 3: post 3. Day 4: post 7. Day 5: post 6. Day 6: post 4. Day 7: ask for ideas and answer comments.
+- Day 1: post 1 everywhere. Day 2: post 2. Day 3: post 5 (carriers). Day 4: post 8. Day 5: the 30-second cut. Day 6: post 6 (fleets). Day 7: post 7 (Wraith) and ask for ideas.
 - Days 8 to 14: repeat with different hooks. Answer every comment within the hour.
 - Best times: early morning (5 to 7 am) and evening (6 to 9 pm) in your time zone.
 - One or two posts a day per platform at most.
