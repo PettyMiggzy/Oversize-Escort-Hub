@@ -82,5 +82,24 @@ Do not use the word "escort" in Google Ads or the Google Business Profile (say "
 - Group post: "Hi all, I run Oversize Escort Hub, a free load board for pilot car drivers and oversize carriers. We just added a voice assistant that reads you new loads. Admins: is it OK to share? Happy to answer questions."
 - DM to a carrier or fleet: "Hi [name], I run Oversize Escort Hub. It is free to post a load, and pilot cars see it right away. Want me to show you? [carrier sign-up link]"
 
+## Quality tools (added 2026-11-01): what to say, honestly
+Built after a Facebook group thread about weak pilot cars and rushed bookings. The site does NOT check anyone: say "listed by the pilot car", "from people who worked the load", never "verified" or "vetted".
+- Rig listed by the pilot car (light bar, CB, height pole...), job counts, "worked with you".
+- Real reviews from people on the same load, with tags (on time, clean rig, would hire again). Carriers can now review the pilot car too.
+- Regulars: a carrier stars pilot cars they trust and gives them first look (5 to 60 minutes) before everyone else.
+- Required equipment on a load; the pilot car confirms it when they claim.
+- Urgent loads and "Find a replacement now" when an escort cancels.
+- Typical rate per mile by state, from open loads (a guide, not advice).
+- Wraith: "find me a pilot car in Texas, four and a half stars or better" (carriers, brokers, fleet managers).
+
+### Draft: new post for an escort group (not sent, owner posts it)
+"Good thread. The two things that fix most of this are seeing what a pilot car actually runs and keeping the ones you trust. We built both into a free load board, Oversize Escort Hub: pilot cars list their rig (light bar, CB, height pole...), carriers can ask for specific equipment on a load, reviews come from people who worked the load together, and you can star your regulars so they see your loads first. It is free. We do not check anyone, so it still pays to confirm licenses and insurance, but at least the rig and the track record are in front of you before you book. oversize-escort-hub.com"
+
+### Draft comment replies (not sent)
+- To "quality is gone, anyone with a flag and a light bar": "That is the part we are trying to help with. Pilot cars list their rig, carriers can require equipment on the load, and reviews come only from people who worked it together. We do not check anyone, but the history is visible."
+- To "booking in a hurry": "There is an urgent option. If your escort cancels you can reopen the load and pilot cars who said they are available in your state get alerted, regulars first."
+- To "rates are too low / brokers": "Fair point. The site shows what open loads in a state are paying per mile right now, so you can see the going rate before you say yes. It is a guide, not advice. Free to join, no commission on loads."
+- To "how do I find good ones": "Star the ones you trust. They get first look at your loads before anyone else, for as long as you set."
+
 ## Count sign-ups (Supabase SQL editor)
 select date_trunc('day', created_at) as day, role, count(*) from public.profiles group by 1, 2 order by 1 desc limit 30;
