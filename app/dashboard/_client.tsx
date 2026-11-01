@@ -826,6 +826,7 @@ export function DashboardPageClient() {
         )}
       </div>
 
+      {!isCarrier && (
       <div className="ui-card" style={{ display: 'flex', gap: 14, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
         <div style={{ flex: '1 1 260px', minWidth: 0 }}>
           <h2 style={{ margin: '0 0 4px', fontSize: 18, color: '#fff' }}>Free tools for your business</h2>
@@ -836,6 +837,7 @@ export function DashboardPageClient() {
           <a href="/tools/expenses" className="ui-btn ghost">Expenses</a>
         </div>
       </div>
+      )}
 
       {wraithOn && !inApp && (
         <div className="ui-card" style={{ display: 'flex', gap: 14, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
@@ -912,9 +914,6 @@ export function DashboardPageClient() {
                   <div key={load.id} className="ui-load">
                     <LoadBadges load={load as any} />
                     <p style={{ margin: 0, fontWeight: 600 }}>{loadLabel(load)}</p>
-                    <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>
-                      {load.pu_city}, {load.pu_state} → {load.dl_city}, {load.dl_state}
-                    </p>
                     <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>Needed: {load.start_date || '—'}</p>
                     <div style={{ marginTop: 8 }}>
                       <button onClick={() => handleDownloadInvoice(load.id)} style={{ fontSize: 11, color: 'var(--ui-or)', background: 'none', border: '1px solid var(--ui-or)', borderRadius: 4, padding: '3px 10px', cursor: 'pointer' }}>
@@ -1035,9 +1034,6 @@ export function DashboardPageClient() {
                 {completedLoads.map(load => (
                   <div key={load.id} className="ui-load" style={{ opacity: 0.75 }}>
                     <p style={{ margin: 0, fontWeight: 600 }}>{loadLabel(load)}</p>
-                    <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>
-                      {load.pu_city}, {load.pu_state} → {load.dl_city}, {load.dl_state}
-                    </p>
                   </div>
                 ))}
               </div>

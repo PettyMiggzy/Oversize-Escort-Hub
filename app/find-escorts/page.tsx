@@ -72,27 +72,24 @@ export default function FindEscortsPage() {
     if (!profileData) { setLoading(false); return }
 
     // For each escort get zones and certs
-    const enriched = await Promise.all(
-      profileData.map(async (p: any) => {
-        const { data: zones } = await supabase
-          .from("escort_availability")
-          .select("location_state")
-          .eq("escort_id", p.id)
-        const { data: certs } = await supabase
-          .from("certifications")
-          .select("type")
-          .eq("user_id", p.id)
-          .eq("status", "approved")
-        const { data: reviews } = await supabase
-          .from("reviews")
-          .select("rating")
-          .eq("reviewee_id", p.id)
-        const avgRating = reviews && reviews.length > 0
-          ? (reviews.reduce((s: number, r: any) => s + (r.rating || 0), 0) / reviews.length).toFixed(1)
-          : null
-        return { ...p, zones: zones || [], cert_types: (certs || []).map((c: any) => c.type), avgRating, reviewCount: reviews?.length || 0 }
-      })
-    )
+    // three batched reads for every escort at once (one read per escort per table made the page take about 9 seconds)
+    const ids = profileData.map((p: any) => p.id)
+    const [zonesRes, certsRes, reviewsRes] = ids.length ? await Promise.all([
+      supabase.from("escort_availability").select("escort_id, location_state").in("escort_id", ids),
+      supabase.from("certifications").select("user_id, type").in("user_id", ids).eq("status", "approved"),
+      supabase.from("reviews").select("reviewee_id, rating").in("reviewee_id", ids),
+    ]) : [{ data: [] }, { data: [] }, { data: [] }]
+    const by = (rows: any[] | null | undefined, key: string) => {
+      const m = new Map<string, any[]>()
+      for (const r of rows ?? []) { const k = r[key]; if (!m.has(k)) m.set(k, []); m.get(k)!.push(r) }
+      return m
+    }
+    const zonesBy = by(zonesRes.data as any[], "escort_id"), certsBy = by(certsRes.data as any[], "user_id"), reviewsBy = by(reviewsRes.data as any[], "reviewee_id")
+    const enriched = profileData.map((p: any) => {
+      const reviews = reviewsBy.get(p.id) ?? []
+      const avgRating = reviews.length > 0 ? (reviews.reduce((s: number, r: any) => s + (r.rating || 0), 0) / reviews.length).toFixed(1) : null
+      return { ...p, zones: (zonesBy.get(p.id) ?? []).map((z: any) => ({ location_state: z.location_state })), cert_types: (certsBy.get(p.id) ?? []).map((c: any) => c.type), avgRating, reviewCount: reviews.length }
+    })
 
     // Filter by state if selected
     const filtered = stateFilter
