@@ -4,7 +4,7 @@ import { docLabel } from '@/lib/profile-docs'
 
 // Wraith is the voice assistant. It is OFF unless WRAITH_LIVE=on is set on the server (a Vercel setting).
 // Version 1 is read-only: it looks things up for the signed-in person and points them to the page. It never bids, posts or changes anything.
-export const wraithLive = () => process.env.WRAITH_LIVE === 'on'
+export { wraithLive } from '@/lib/wraith-flag'
 
 export const WRAITH_LIMITS = { perKeyHour: 20, perKeyDay: 80, globalDay: 1500, maxToolRounds: 3, maxOutputTokens: 300 }
 

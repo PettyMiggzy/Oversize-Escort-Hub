@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import PushInit from './components/PushInit'
 import HelperChat from '@/components/HelperChat'
 import NativeFlag from '@/components/NativeFlag'
+import { wraithLive } from '@/lib/wraith-flag'
 
 export const viewport = {
   width: 'device-width',
@@ -116,7 +117,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body style={{ margin: 0 }}><NativeFlag /><PushInit />{children}<HelperChat /><Analytics /></body>
+      <body style={{ margin: 0 }} data-wraith={wraithLive() ? 'on' : undefined}><NativeFlag /><PushInit />{children}<HelperChat /><Analytics /></body>
     </html>
   );
 }

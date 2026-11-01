@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import HideInApp from '@/components/HideInApp';
+import { isNativeApp } from '@/lib/native';
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -20,6 +21,7 @@ export default function SiteHeader() {
   const [open, setOpen] = useState(false);
   const [userProfile, setUserProfile] = useState<{ name?: string; avatar?: string | null } | null>(null);
   const [windowWidth, setWindowWidth] = useState(1200);
+  const [wraithOn, setWraithOn] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -32,6 +34,8 @@ export default function SiteHeader() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       if (!data.session) return;
+      // Wraith link: only for signed-in people, only while it is switched on, and not inside the phone apps (voice is not there yet)
+      setWraithOn(document.body.dataset.wraith === 'on' && !isNativeApp());
       const u = data.session.user;
       supabase.from("profiles").select("full_name, avatar_url").eq("id", u.id).single()
         .then(({ data: p }) => {
@@ -180,6 +184,9 @@ export default function SiteHeader() {
                 <Link href={JOBS.href} style={isActive(JOBS) ? { ...navLinkStyle, color: "#fff", borderBottom: "2px solid #ff6a13" } : navLinkStyle}>
                   {JOBS.label}
                 </Link>
+                {wraithOn && (
+                  <Link href="/wraith" style={navLinkStyle}>Wraith</Link>
+                )}
               </div>
             )}
 
@@ -218,6 +225,9 @@ export default function SiteHeader() {
           <Link href={JOBS.href} style={mobileLinkStyle} onClick={() => setOpen(false)}>
             {JOBS.label}
           </Link>
+          {wraithOn && (
+            <Link href="/wraith" style={mobileLinkStyle} onClick={() => setOpen(false)}>Wraith</Link>
+          )}
           <div style={mobileCtaStyle}>
           {userProfile ? (
             <><Link href="/dashboard" style={{ ...btnPrimeStyle, textAlign: "center", padding: "10px 0" }} onClick={() => setOpen(false)}>Dashboard</Link>

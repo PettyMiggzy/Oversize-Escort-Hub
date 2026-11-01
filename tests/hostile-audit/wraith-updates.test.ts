@@ -32,3 +32,18 @@ test('the page is in the sitemap and /coming-later lists Wraith in the apps', ()
   expect(read('app/sitemap.ts')).toContain('/wraith/updates')
   expect(read('app/coming-later/page.tsx')).toMatch(/Wraith in the phone apps/)
 })
+
+test('Wraith has a way in: the header menu and the dashboard show it only while it is on, never inside the phone apps', () => {
+  expect(read('lib/wraith-flag.ts')).toMatch(/WRAITH_LIVE === 'on'/)
+  expect(read('lib/wraith.ts')).toMatch(/export \{ wraithLive \} from '@\/lib\/wraith-flag'/)
+  expect(read('app/layout.tsx')).toMatch(/data-wraith=\{wraithLive\(\) \? 'on' : undefined\}/)
+  const header = read('components/SiteHeader.tsx')
+  expect(header).toMatch(/setWraithOn\(document\.body\.dataset\.wraith === 'on' && !isNativeApp\(\)\)/)
+  expect((header.match(/wraithOn && \(/g) || []).length).toBe(2)
+  const dash = read('app/dashboard/_client.tsx')
+  expect(dash).toMatch(/wraithOn && !inApp && \(/)
+  expect(dash).toContain('href="/wraith/updates"')
+  // the dashboard card carries no price
+  const card = dash.slice(dash.indexOf('Wraith, your voice assistant'), dash.indexOf('Wraith, your voice assistant') + 900)
+  expect(card).not.toMatch(/\$\d/)
+})

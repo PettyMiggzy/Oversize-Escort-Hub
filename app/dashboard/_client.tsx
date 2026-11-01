@@ -439,7 +439,8 @@ function MyJobsSection() {
 
 export function DashboardPageClient() {
   const [inApp, setInApp] = useState(true) // fail closed: treated as the phone app until the browser proves it is the website
-  useEffect(() => { setInApp(isNativeApp()) }, [])
+  const [wraithOn, setWraithOn] = useState(false)
+  useEffect(() => { setInApp(isNativeApp()); setWraithOn(document.body.dataset.wraith === 'on') }, [])
   const supabase = createClient()
   const router = useRouter()
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -822,6 +823,19 @@ export function DashboardPageClient() {
           </div>
         )}
       </div>
+
+      {wraithOn && !inApp && (
+        <div className="ui-card" style={{ display: 'flex', gap: 14, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
+          <div style={{ flex: '1 1 260px', minWidth: 0 }}>
+            <h2 style={{ margin: '0 0 4px', fontSize: 18, color: '#fff' }}>Wraith, your voice assistant</h2>
+            <p className="ui-note" style={{ margin: 0 }}>Ask about new loads, your bids and your paperwork. It reads your own account and never acts without your button press.</p>
+          </div>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <a href="/wraith" className="ui-btn">Open Wraith</a>
+            <a href="/wraith/updates" className="ui-btn ghost">What is new</a>
+          </div>
+        </div>
+      )}
 
       {actionMsg && (
         <div style={{ background: SURFACE, border: `1px solid ${ORANGE}`, borderRadius: 8, padding: '0.75rem 1rem', marginBottom: '1.5rem', color: ORANGE }}>
