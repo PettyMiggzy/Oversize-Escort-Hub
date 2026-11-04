@@ -14,3 +14,19 @@ Hey <name>, there is a free load board for escorts now: Oversize Escort Hub. Mak
 
 ## Short "why post here" (for a page later)
 Free to post. Loads reach escorts by email the minute they post. You choose who you hire. Contact details are shared only after you accept. Loads expire on their own, so nobody calls about a job that is already covered.
+
+## Draft (not sent): nudge to existing pilot cars to finish their profile
+Needs the owner's OK before anything is sent. Send only to accounts with role escort that have no states or equipment set.
+
+Subject: Carriers search by state and rig. Is yours listed?
+
+Hi [first name],
+
+Carriers on Oversize Escort Hub look for pilot cars by state and equipment. Your profile is missing a few details, so you may not show up in their search.
+
+It takes about two minutes: add the states you work in and what is on your vehicle (light bar, CB, height pole and so on). We do not check what you enter.
+
+Finish your profile: https://www.oversize-escort-hub.com/dashboard
+
+Oversize Escort Hub is free to use.
+Reply to this email if anything is unclear.

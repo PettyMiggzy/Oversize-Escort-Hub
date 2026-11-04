@@ -11,6 +11,7 @@ import { FREE_LAUNCH } from '@/lib/free-launch'
 import { withFreeLaunch, effectiveTier } from '@/lib/free-launch'
 import SiteHeader from '@/components/SiteHeader'
 import PageTitle from '@/components/PageTitle'
+import ProfileNudge from '@/components/ProfileNudge'
 import EmptyState from '@/components/EmptyState'
 import { VERIFICATION_LIVE } from '@/lib/verification'
 import MyRegulars from '@/components/MyRegulars'
@@ -825,6 +826,8 @@ export function DashboardPageClient() {
           </div>
         )}
       </div>
+
+      {isEscort && <ProfileNudge profile={profile as any} />}
 
       {!isCarrier && (
       <div className="ui-card" style={{ display: 'flex', gap: 14, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
