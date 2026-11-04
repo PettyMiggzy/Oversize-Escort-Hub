@@ -9,13 +9,40 @@ import { createClient } from "@/lib/supabase/client";
 const supabase = createClient();
 
 type NavItem = { label: string; href: string; also?: string[] }
-const NAV: NavItem[] = [
-  { label: "Find Loads",    href: "/flat-rate", also: ["/open-loads", "/bid-board"] },
-  { label: "Find Escorts",  href: "/find-escorts" },
-  { label: "Post a Load",   href: "/post-load", also: ["/quick-post"] },
-  { label: "How it works",  href: "/how-it-works" },
+type NavGroup = { label: string; items: NavItem[]; signedInOnly?: string[] }
+
+// Four things on the bar: two menus, Post a Load, Tools. Everything else lives inside them.
+const GROUPS: NavGroup[] = [
+  {
+    label: "Find Loads",
+    items: [
+      { label: "Flat rate board", href: "/flat-rate" },
+      { label: "Open bid board", href: "/open-loads" },
+      { label: "5-minute bid board", href: "/bid-board" },
+      { label: "Jobs", href: "/jobs" },
+    ],
+  },
+  {
+    label: "Pilot Cars",
+    items: [
+      { label: "Find pilot cars", href: "/find-escorts" },
+      { label: "I'm available", href: "/available" },
+    ],
+    signedInOnly: ["/available"],
+  },
+  {
+    label: "Tools",
+    items: [
+      { label: "Invoice maker", href: "/tools/invoice" },
+      { label: "Expense tracker", href: "/tools/expenses" },
+      { label: "Permit directory", href: "/tools/permits" },
+      { label: "Weather", href: "/weather" },
+      { label: "All tools", href: "/tools" },
+    ],
+  },
 ];
-const JOBS: NavItem = { label: "Jobs", href: "/jobs" }
+const POST: NavItem = { label: "Post a Load", href: "/post-load", also: ["/quick-post"] };
+const HOW: NavItem = { label: "How it works", href: "/how-it-works" };
 
 export default function SiteHeader() {
   const [open, setOpen] = useState(false);
@@ -50,6 +77,17 @@ export default function SiteHeader() {
   const isMobile = windowWidth < 900;
   const navHref = (n: NavItem) => (n.href === "/post-load" && !userProfile ? "/quick-post" : n.href);
   const isActive = (n: NavItem) => pathname === n.href || (n.also ?? []).includes(pathname) || (n.href === "/jobs" && pathname.startsWith("/jobs/"));
+  const visibleItems = (g: NavGroup) => g.items.filter((i) => !(g.signedInOnly ?? []).includes(i.href) || signedIn);
+  const groupActive = (g: NavGroup) => visibleItems(g).some((i) => i.href !== "/tools" ? (pathname === i.href || pathname.startsWith(i.href + "/")) : pathname === "/tools");
+  const [menu, setMenu] = useState<string | null>(null);
+  useEffect(() => { setMenu(null); setOpen(false); }, [pathname]);
+  useEffect(() => {
+    if (!menu) return;
+    const close = (e: MouseEvent) => { if (!(e.target as HTMLElement).closest?.("[data-navmenu]")) setMenu(null); };
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setMenu(null); };
+    document.addEventListener("mousedown", close); document.addEventListener("keydown", esc);
+    return () => { document.removeEventListener("mousedown", close); document.removeEventListener("keydown", esc); };
+  }, [menu]);
 
   const navContainerStyle: React.CSSProperties = {
     display: "flex",
@@ -178,19 +216,35 @@ export default function SiteHeader() {
           {/* Desktop nav links */}
             {!isMobile && (
               <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 24 }}>
-                {NAV.map((n) => (
-                  <Link key={n.label} href={navHref(n)} style={isActive(n) ? { ...navLinkStyle, color: "#fff", borderBottom: "2px solid #ff6a13" } : navLinkStyle}>
-                    {n.label}
-                  </Link>
+                {GROUPS.map((g) => (
+                  <div key={g.label} data-navmenu style={{ position: "relative", display: "flex", alignItems: "center", height: 64 }}>
+                    <button
+                      type="button"
+                      aria-haspopup="menu"
+                      aria-expanded={menu === g.label}
+                      onClick={() => setMenu(menu === g.label ? null : g.label)}
+                      style={groupActive(g) || menu === g.label ? { ...navLinkStyle, color: "#fff", borderBottom: "2px solid #ff6a13" } : navLinkStyle}
+                    >
+                      {g.label} <span aria-hidden style={{ fontSize: 10, marginLeft: 6, opacity: 0.7 }}>▾</span>
+                    </button>
+                    {menu === g.label && (
+                      <div role="menu" style={{ position: "absolute", top: 60, left: 0, minWidth: 220, background: "rgba(10,12,16,0.98)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 14, padding: 6, boxShadow: "0 18px 50px rgba(0,0,0,0.5)", display: "flex", flexDirection: "column" }}>
+                        {visibleItems(g).map((i) => (
+                          <Link key={i.href} role="menuitem" href={i.href} onClick={() => setMenu(null)}
+                            style={{ fontFamily: "Inter, system-ui, sans-serif", fontSize: 14, color: pathname === i.href ? "#fff" : "#c9d0da", textDecoration: "none", padding: "10px 12px", borderRadius: 10, background: pathname === i.href ? "rgba(255,106,19,0.14)" : "none" }}>
+                            {i.label}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 ))}
-                <Link href={JOBS.href} style={isActive(JOBS) ? { ...navLinkStyle, color: "#fff", borderBottom: "2px solid #ff6a13" } : navLinkStyle}>
-                  {JOBS.label}
-                </Link>
-                {signedIn && (
-                  <Link href="/tools" style={isActive({ href: "/tools" } as any) ? { ...navLinkStyle, color: "#fff", borderBottom: "2px solid #ff6a13" } : navLinkStyle}>Tools</Link>
-                )}
+                <Link href={navHref(POST)} style={isActive(POST) ? { ...navLinkStyle, color: "#fff", borderBottom: "2px solid #ff6a13" } : navLinkStyle}>{POST.label}</Link>
                 {wraithOn && (
                   <Link href="/wraith" style={navLinkStyle}>Wraith</Link>
+                )}
+                {!signedIn && (
+                  <Link href={HOW.href} style={isActive(HOW) ? { ...navLinkStyle, color: "#fff", borderBottom: "2px solid #ff6a13" } : navLinkStyle}>{HOW.label}</Link>
                 )}
               </div>
             )}
@@ -217,24 +271,20 @@ export default function SiteHeader() {
 
         {/* Mobile dropdown */}
         <div style={mobileDropdownStyle}>
-          {NAV.map((n) => (
-            <Link
-              key={n.label}
-              href={navHref(n)}
-              style={mobileLinkStyle}
-              onClick={() => setOpen(false)}
-            >
-              {n.label}
-            </Link>
+          {GROUPS.map((g) => (
+            <div key={g.label} style={{ display: "flex", flexDirection: "column" }}>
+              <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: "#7d8696", padding: "14px 24px 4px" }}>{g.label}</div>
+              {visibleItems(g).map((i) => (
+                <Link key={i.href} href={i.href} style={{ ...mobileLinkStyle, padding: "9px 24px" }} onClick={() => setOpen(false)}>{i.label}</Link>
+              ))}
+            </div>
           ))}
-          <Link href={JOBS.href} style={mobileLinkStyle} onClick={() => setOpen(false)}>
-            {JOBS.label}
-          </Link>
-          {signedIn && (
-            <Link href="/tools" style={mobileLinkStyle} onClick={() => setOpen(false)}>Tools</Link>
-          )}
+          <Link href={navHref(POST)} style={{ ...mobileLinkStyle, marginTop: 8, fontWeight: 700 }} onClick={() => setOpen(false)}>{POST.label}</Link>
           {wraithOn && (
             <Link href="/wraith" style={mobileLinkStyle} onClick={() => setOpen(false)}>Wraith</Link>
+          )}
+          {!signedIn && (
+            <Link href={HOW.href} style={mobileLinkStyle} onClick={() => setOpen(false)}>{HOW.label}</Link>
           )}
           <div style={mobileCtaStyle}>
           {userProfile ? (

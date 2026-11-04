@@ -5,11 +5,13 @@ import { expect, test } from 'vitest'
 const root = path.resolve(__dirname, '../..')
 const read = (f: string) => fs.readFileSync(path.join(root, f), 'utf8')
 
-test('the top menu is four items and visitors who are not signed in post through the no-account form', () => {
+test('the top bar is three menus plus Post a Load and visitors who are not signed in post through the no-account form', () => {
   const header = read('components/SiteHeader.tsx')
-  const nav = header.slice(header.indexOf('const NAV'), header.indexOf('];', header.indexOf('const NAV')))
-  expect((nav.match(/label:/g) ?? []).length).toBe(4)
-  for (const label of ['Find Loads', 'Find Escorts', 'Post a Load', 'How it works']) expect(nav).toContain(label)
+  const groups = header.slice(header.indexOf('const GROUPS'), header.indexOf('const POST'))
+  for (const label of ['Find Loads', 'Pilot Cars', 'Tools', 'Flat rate board', 'Open bid board', '5-minute bid board', 'Find pilot cars', 'Invoice maker', 'Expense tracker', 'Permit directory']) expect(groups).toContain(label)
+  expect((groups.match(/^  \{\n    label:/gm) ?? []).length).toBe(3)
+  expect(header).toContain('label: "Post a Load"')
+  expect(header).toContain('label: "How it works"')
   expect(header).toMatch(/!userProfile \? "\/quick-post"/)
   expect(read('components/HomeLanding.tsx')).toContain('href="/quick-post"')
 })

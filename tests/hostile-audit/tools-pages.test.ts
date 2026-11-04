@@ -25,6 +25,6 @@ test('expense CSV neutralises spreadsheet formulas and the tools say they are no
 
 test('the tools hub exists and the signed-in menu and dashboard link to the tools', () => {
   expect(read('app/tools/page.tsx')).toContain('/tools/invoice')
-  expect(read('components/SiteHeader.tsx')).toContain('href="/tools"')
+  expect(read('components/SiteHeader.tsx')).toContain('href: "/tools"')
   expect(read('app/dashboard/_client.tsx')).toContain('/tools/invoice')
 })
