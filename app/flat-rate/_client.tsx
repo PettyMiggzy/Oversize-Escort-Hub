@@ -1,5 +1,6 @@
 "use client";
 import SiteHeader from '@/components/SiteHeader';
+import { estimatedTotal } from '@/lib/miles'
 import { useHiddenUsers } from '@/lib/use-hidden-users'
 
 import { useEffect, useMemo, useState } from "react";
@@ -36,6 +37,8 @@ interface Load {
   cert_types?: string[] | null;
   rate?: number | null;
   per_mile_rate?: number | null;
+  miles?: number | null;
+  estimated_miles?: number | null;
   status: string;
   pu_city?: string;
   pu_state?: string;
@@ -338,6 +341,7 @@ export function FlatRateBoardClient() {
                     </div>
                     <div>
                       <div className="ui-v or" style={{ fontSize: 26 }}>{load.per_mile_rate != null ? `$${load.per_mile_rate}/mi` : 'Negotiable'}</div>
+                      {(() => { const m = load.miles ?? load.estimated_miles; const t = estimatedTotal(load.per_mile_rate, m); return t ? <div className="ui-meta" style={{ margin: '2px 0 0', color: '#cfd6e0' }}>About {Number(m).toLocaleString()} mi &middot; about ${t.toLocaleString()} total <span style={{ color: '#6b7686' }}>(estimate)</span></div> : null })()}
                       <div className="ui-meta" style={{ margin: '2px 0 14px', color: '#6b7686' }}>$250 no-go &middot; $100 overnight</div>
                       {claimError[load.id] && <div className="ui-meta" style={{ color: '#ff8a8a', marginBottom: 8 }}>{claimError[load.id]}</div>}
                       {claimBtn(load)}

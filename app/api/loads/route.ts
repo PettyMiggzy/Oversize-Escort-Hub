@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse, after } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { serviceClient } from '@/lib/service-client'
+import { estimateLoadMiles } from '@/lib/miles'
 import { notifyProEscorts } from '@/lib/notify-pro'
 import { notifyDeadhead } from '@/lib/deadhead'
 import { alertEscortsNewLoad, alertRegularsNewLoad, alertUrgentLoad } from '@/lib/alerts'
@@ -111,6 +112,11 @@ export async function POST(request: NextRequest) {
           notifyProEscorts({ load_id: loadId, pu_state: pickupState, dl_state: destinationState }),
           regMinutes ? alertRegularsNewLoad(loadId) : alertEscortsNewLoad(loadId),
           !regMinutes && urgent ? alertUrgentLoad(loadId) : Promise.resolve(),
+          // a rough mileage so the board can show about what the load pays in total (kept apart from the poster's own miles)
+          (async () => {
+            const est = await estimateLoadMiles(String(pickupCity), String(pickupState), String(destinationCity), String(destinationState))
+            if (est) await serviceClient().from('loads').update({ estimated_miles: est }).eq('id', loadId)
+          })(),
         ])
       })
     }
