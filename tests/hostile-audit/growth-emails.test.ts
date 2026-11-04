@@ -70,3 +70,34 @@ test('the digest cron refuses callers without the cron secret', async () => {
   const ok = await run(digestCron(new NextRequest('http://localhost/api/cron/weekly-digest', { headers: { authorization: 'Bearer cron-secret' } })))
   expect(ok.status).toBe(200)
 })
+
+test('ZZTEST demo loads are never announced: not in the weekly email, not in new-load alerts', async () => {
+  const now = new Date().toISOString()
+  getDb().tables.loads = [
+    { id: 'demo1', status: 'open', pu_city: 'Dallas', pu_state: 'TX', dl_city: 'Tulsa', dl_state: 'OK', per_mile_rate: 2, created_at: now, notes: 'ZZTEST DEMO LOAD for app review. Not a real job.', carrier_id: 'c1' },
+    { id: 'demo2', status: 'open', pu_city: 'Houston', pu_state: 'TX', dl_city: 'Tulsa', dl_state: 'OK', per_mile_rate: 2, created_at: now, notes: '  zztest second demo', carrier_id: 'c1' },
+  ]
+  getDb().tables.profiles = [
+    { id: 'tx', role: 'escort', email: 'tx@example.com', availability_states: ['TX'], email_alerts: true },
+    { id: 'c1', role: 'carrier', email: 'c1@example.com' },
+  ]
+  const r = await run(alertWeeklyDigest())
+  expect(r.sent).toBe(0)
+  const { alertEscortsNewLoad, alertUrgentLoad, alertRegularsNewLoad } = await import('@/lib/alerts')
+  expect(await run(alertEscortsNewLoad('demo1'))).toEqual({ sent: 0 })
+  expect(await run(alertUrgentLoad('demo1'))).toEqual({ sent: 0 })
+  expect(await run(alertRegularsNewLoad('demo1'))).toEqual({ sent: 0 })
+  expect(sent).toHaveLength(0)
+})
+
+test('a real load still goes out next to a demo load', async () => {
+  const now = new Date().toISOString()
+  getDb().tables.loads = [
+    { id: 'demo1', status: 'open', pu_city: 'Dallas', pu_state: 'TX', dl_city: 'Tulsa', dl_state: 'OK', created_at: now, notes: 'ZZTEST DEMO LOAD' },
+    { id: 'real1', status: 'open', pu_city: 'Austin', pu_state: 'TX', dl_city: 'Waco', dl_state: 'TX', created_at: now, notes: 'Wide load' },
+  ]
+  getDb().tables.profiles = [{ id: 'tx', role: 'escort', email: 'tx@example.com', availability_states: ['TX'], email_alerts: true }]
+  await run(alertWeeklyDigest())
+  expect(sent).toHaveLength(1)
+  expect(sent[0].subject).toMatch(/^1 open load/)
+})

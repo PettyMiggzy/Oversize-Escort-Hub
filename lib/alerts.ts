@@ -6,6 +6,7 @@ import { createClient } from '@supabase/supabase-js'
 import { createHmac, timingSafeEqual } from 'crypto'
 import { sendEmail } from '@/lib/email'
 import { sendWebPushToUser } from '@/lib/push'
+import { isDemoLoad } from '@/lib/demo-loads'
 
 const SITE = 'https://www.oversize-escort-hub.com'
 // Resend allows about two sends a second; the cap keeps one new load inside a serverless function's time limit
@@ -66,7 +67,7 @@ async function alertUser(userId: string, a: Alert) {
 const line = (l: any) => `${l?.pu_city || '?'}, ${l?.pu_state || '?'} to ${l?.dl_city || '?'}, ${l?.dl_state || '?'}`
 
 async function getLoad(loadId: string) {
-  const { data } = await svc().from('loads').select('id, carrier_id, matched_escort_id, pu_city, pu_state, dl_city, dl_state, per_mile_rate, start_date, urgent, regulars_until, status, expires_at').eq('id', loadId).maybeSingle()
+  const { data } = await svc().from('loads').select('id, carrier_id, matched_escort_id, pu_city, pu_state, dl_city, dl_state, per_mile_rate, start_date, urgent, regulars_until, status, expires_at, notes').eq('id', loadId).maybeSingle()
   return data as any
 }
 
@@ -74,6 +75,7 @@ async function getLoad(loadId: string) {
 export async function alertEscortsNewLoad(loadId: string) {
   const load = await getLoad(loadId)
   if (!load) return { sent: 0 }
+  if (isDemoLoad(load.notes)) return { sent: 0 }
   const client = svc()
   const { data: escorts } = await client.from('profiles')
     .select(`${PERSON_COLS}, availability_states`)
@@ -102,7 +104,7 @@ export async function alertEscortsNewLoad(loadId: string) {
 /** The carrier's regulars hear about a load first. Their window may still be running, which is the point. */
 export async function alertRegularsNewLoad(loadId: string) {
   const load = await getLoad(loadId)
-  if (!load?.carrier_id) return { sent: 0 }
+  if (!load?.carrier_id || isDemoLoad(load.notes)) return { sent: 0 }
   const client = svc()
   const { data: favs } = await client.from('favorite_escorts').select('escort_id').eq('carrier_id', load.carrier_id)
   const ids = (favs || []).map((f: any) => f.escort_id as string)
@@ -127,7 +129,7 @@ export async function alertRegularsNewLoad(loadId: string) {
 /** An urgent load goes straight to escorts who said they are available in the pickup state (and to escorts who cover it). */
 export async function alertUrgentLoad(loadId: string) {
   const load = await getLoad(loadId)
-  if (!load || !load.urgent || load.status !== 'open') return { sent: 0 }
+  if (!load || !load.urgent || load.status !== 'open' || isDemoLoad(load.notes)) return { sent: 0 }
   const client = svc()
   const state = String(load.pu_state || '').toUpperCase()
   const { data: avail } = await client.from('escort_availability').select('escort_id, expires_at').eq('location_state', state)
@@ -222,10 +224,11 @@ export async function alertWelcome(userId: string) {
 export async function alertWeeklyDigest() {
   const client = svc()
   const since = new Date(Date.now() - 7 * 86400000).toISOString()
-  const { data: loads } = await client.from('loads')
-    .select('id, pu_city, pu_state, dl_city, dl_state, per_mile_rate, created_at')
+  const { data: allOpen } = await client.from('loads')
+    .select('id, pu_city, pu_state, dl_city, dl_state, per_mile_rate, created_at, notes')
     .eq('status', 'open').gte('created_at', since).order('created_at', { ascending: false }).limit(200)
-  if (!loads || loads.length === 0) return { sent: 0, considered: 0, loads: 0 }
+  const loads = (allOpen || []).filter((l: any) => !isDemoLoad(l.notes))
+  if (loads.length === 0) return { sent: 0, considered: 0, loads: 0 }
   const { data: escorts } = await client.from('profiles')
     .select(`${PERSON_COLS}, availability_states`).eq('role', 'escort').limit(2000)
   let sent = 0, considered = 0

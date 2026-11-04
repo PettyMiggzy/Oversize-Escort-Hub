@@ -30,3 +30,17 @@ Finish your profile: https://www.oversize-escort-hub.com/dashboard
 
 Oversize Escort Hub is free to use.
 Reply to this email if anything is unclear.
+
+## Draft (not sent): correction to the people who got the Nov 2 weekly email
+Needs the owner's OK. The email "2 open loads on the board this week" described two demo loads made for the app-store reviewers. They were not real jobs.
+
+Subject: Correction: the two loads in Monday's email were test loads
+
+Hi [first name],
+
+On Monday we emailed you that two loads were open on the board. Those were test loads we had set up for app-store reviewers, not real jobs. Sorry about that, and thanks for your patience.
+
+We fixed it so test loads are never emailed to anyone. Real loads will still be emailed when they match your states.
+
+Oversize Escort Hub
+Reply to this email if you have any questions.
