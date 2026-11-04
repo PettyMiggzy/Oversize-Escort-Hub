@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { escortClaimant, claimRefusal } from '@/lib/access-server'
 import { alertCarrierNewBid, runAfter } from '@/lib/alerts'
 import { qualityRefusal } from '@/lib/quality-server'
+import { isDemoLoad, canSeeDemoLoads } from '@/lib/demo-loads'
 
 export const dynamic = 'force-dynamic'
 
@@ -62,10 +63,14 @@ export async function POST(req: NextRequest) {
     // Verify load exists and is open + on the bid board
     const { data: load, error: loadErr } = await supabase
       .from('loads')
-      .select('id, status, board_type, carrier_id, created_at, expires_at, deadhead_notified_at, regulars_until, required_equipment')
+      .select('id, status, board_type, carrier_id, created_at, expires_at, deadhead_notified_at, regulars_until, required_equipment, notes')
       .eq('id', load_id)
       .single()
     if (loadErr || !load) {
+      return NextResponse.json({ error: 'Load not found' }, { status: 404 })
+    }
+    // test loads made for the app-store reviewers are not real jobs: nobody else can bid on them
+    if (isDemoLoad((load as any).notes) && !canSeeDemoLoads(user.email)) {
       return NextResponse.json({ error: 'Load not found' }, { status: 404 })
     }
     if (load.status !== 'open') {

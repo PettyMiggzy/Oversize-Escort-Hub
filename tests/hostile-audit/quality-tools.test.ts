@@ -287,3 +287,40 @@ test('the new database pieces are in the SQL file and nothing else is touched', 
   for (const needle of ['urgent boolean', 'required_equipment text[]', 'regulars_until timestamptz', 'alerts_pending boolean', 'equipment text[]', 'tags text[]', 'create table if not exists public.favorite_escorts', 'enable row level security']) expect(sql, needle).toContain(needle)
   expect(sql).not.toMatch(/drop table|delete from|truncate/i)
 })
+
+// ---------- demo loads ----------
+test('ZZTEST demo loads cannot be claimed or bid on by real people, and the reviewer accounts still can', async () => {
+  const { canSeeDemoLoads, isDemoLoad } = await import('@/lib/demo-loads')
+  expect(isDemoLoad('ZZTEST DEMO LOAD for app review')).toBe(true)
+  expect(isDemoLoad('  zztest')).toBe(true)
+  expect(isDemoLoad('Wide load, ZZTEST later')).toBe(false)
+  expect(isDemoLoad(null)).toBe(false)
+  expect(canSeeDemoLoads('bahmed3170+oehreview-escort@gmail.com')).toBe(true)
+  expect(canSeeDemoLoads('bahmed3170+demodriver@gmail.com')).toBe(true)
+  expect(canSeeDemoLoads('bahmed3170@gmail.com')).toBe(true)
+  expect(canSeeDemoLoads('jared@icloud.com')).toBe(false)
+  expect(canSeeDemoLoads(undefined)).toBe(false)
+
+  const db = seed()
+  db.tables.loads = [loadRow({ notes: 'ZZTEST DEMO LOAD for app review. Not a real job.' })]
+  db.sessionUser = { id: OTHER, email: 'jared@icloud.com' }
+  const refused = await claim(jreq('http://x/api/loads/request', { load_id: 'load-1' }))
+  expect(refused.status).toBe(404)
+  expect((db.tables.loads[0] as any).status).toBe('open')
+  expect((db.tables.loads[0] as any).matched_escort_id ?? null).toBeNull()
+
+  const bidRefused = await placeBid(jreq('http://x/api/bids', { load_id: 'load-1', rate: 2 }))
+  expect(bidRefused.status).toBe(404)
+
+  db.sessionUser = { id: OTHER, email: 'bahmed3170+oehreview-escort@gmail.com' }
+  expect((await claim(jreq('http://x/api/loads/request', { load_id: 'load-1' }))).status).toBe(200)
+})
+
+test('typical rates ignore demo loads', async () => {
+  const db = seed()
+  const mk = (id: string, rate: number, notes: string | null) => loadRow({ id, per_mile_rate: rate, pu_state: 'TX', notes })
+  db.tables.loads = [mk('a', 2.0, null), mk('b', 2.2, null), mk('c', 2.4, null), mk('d', 9.0, 'ZZTEST DEMO LOAD')]
+  const r = await typicalRates(serviceClient() as any, 'TX')
+  expect(r?.count).toBe(3)
+  expect(r?.high).toBeLessThan(3)
+})

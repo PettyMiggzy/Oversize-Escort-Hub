@@ -104,8 +104,11 @@ async function loads(args: Json): Promise<ToolResult> {
     .select('id, board_type, pu_city, pu_state, dl_city, dl_state, escort_type, position, per_mile_rate, rate, pay_type, start_date, created_at, expires_at, deadhead_notified_at, source, reviewed_at, cert_types')
     .eq('status', 'open').order('created_at', { ascending: false }).limit(100)
   if (error) return bad('Loads could not be loaded right now. Try again later.')
+  // test loads made for the app-store reviewers are never listed (only their ids are read here, never the notes)
+  const { data: demo } = await serviceClient().from('loads').select('id').ilike('notes', 'ZZTEST%')
+  const demoIds = new Set(((demo ?? []) as { id: string }[]).map((d) => String(d.id)))
   const now = Date.now()
-  const rows = ((data ?? []) as unknown as LoadRow[]).filter((l) =>
+  const rows = ((data ?? []) as unknown as LoadRow[]).filter((l) => !demoIds.has(String((l as any).id))).filter((l) =>
     // the same rules the public boards follow: a minute's head start for members, a 5-minute hold after a deadhead heads-up,
     // nothing expired, and account-free posts only after an admin has looked
     (!l.created_at || Date.parse(l.created_at) < now - 60000) &&

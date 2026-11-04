@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { isDemoLoad } from '@/lib/demo-loads'
 import { blockedIds } from '@/lib/blocks'
 import { docLabel } from '@/lib/profile-docs'
 import { EQUIPMENT_KEYS, cleanEquipment, equipmentLabel } from '@/lib/quality'
@@ -107,9 +108,9 @@ export async function runWraithTool(name: string, input: unknown, userId: string
     const st = typeof (input as Row | null)?.state === 'string' ? String((input as Row).state).trim().toUpperCase() : ''
     const { iBlocked, blockedMe } = await blockedIds(svc, userId)
     const hidden = new Set([...iBlocked, ...blockedMe, userId])
-    const { data } = await svc.from('loads').select('id, carrier_id, pu_city, pu_state, dl_city, dl_state, per_mile_rate, day_rate, escort_type, board_type, start_date, expires_at')
+    const { data } = await svc.from('loads').select('id, carrier_id, pu_city, pu_state, dl_city, dl_state, per_mile_rate, day_rate, escort_type, board_type, start_date, expires_at, notes')
       .eq('status', 'open').gt('expires_at', new Date().toISOString()).limit(60)
-    let rows = ((data || []) as Row[]).filter((r) => !hidden.has(String(r.carrier_id)))
+    let rows = ((data || []) as Row[]).filter((r) => !hidden.has(String(r.carrier_id)) && !isDemoLoad((r as any).notes))
     if (/^[A-Z]{2}$/.test(st)) rows = rows.filter((r) => r.pu_state === st || r.dl_state === st)
     rows = rows.slice(0, 6)
     for (const r of rows) { const l = loadLink(r.id, r); if (l) links.push(l) }
@@ -161,8 +162,8 @@ export async function runWraithTool(name: string, input: unknown, userId: string
     for (const a of (av || []) as Row[]) if (typeof a.location_state === 'string') states.add(a.location_state.toUpperCase())
     const { iBlocked, blockedMe } = await blockedIds(svc, userId)
     const hidden = new Set([...iBlocked, ...blockedMe, userId])
-    const { data } = await svc.from('loads').select('id, carrier_id, pu_city, pu_state, dl_city, dl_state, per_mile_rate, day_rate, escort_type, expires_at').eq('status', 'open').gt('expires_at', new Date().toISOString()).gt('created_at', since).limit(60)
-    let rows = ((data || []) as Row[]).filter((r) => !hidden.has(String(r.carrier_id)))
+    const { data } = await svc.from('loads').select('id, carrier_id, pu_city, pu_state, dl_city, dl_state, per_mile_rate, day_rate, escort_type, expires_at, notes').eq('status', 'open').gt('expires_at', new Date().toISOString()).gt('created_at', since).limit(60)
+    let rows = ((data || []) as Row[]).filter((r) => !hidden.has(String(r.carrier_id)) && !isDemoLoad((r as any).notes))
     if (states.size) rows = rows.filter((r) => states.has(String(r.pu_state)) || states.has(String(r.dl_state)))
     const total = rows.length
     rows = rows.slice(0, 5)

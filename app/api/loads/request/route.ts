@@ -6,6 +6,7 @@ import { escortClaimant, claimRefusal } from "@/lib/access-server";
 import { sendWebPushToUser } from "@/lib/push";
 import { alertCarrierClaimRequest, runAfter } from "@/lib/alerts";
 import { qualityRefusal } from '@/lib/quality-server'
+import { isDemoLoad, canSeeDemoLoads } from '@/lib/demo-loads'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,10 +31,12 @@ export async function POST(req: NextRequest) {
   // Check load is open
   const { data: load, error: le } = await supabase
     .from("loads")
-    .select("id, status, carrier_id, created_at, deadhead_notified_at, board_type, expires_at, regulars_until, required_equipment")
+    .select("id, status, carrier_id, created_at, deadhead_notified_at, board_type, expires_at, regulars_until, required_equipment, notes")
     .eq("id", load_id)
     .single();
   if (le || !load) return NextResponse.json({ error: "Load not found" }, { status: 404 });
+  // test loads made for the app-store reviewers are not real jobs: nobody else can claim them
+  if (isDemoLoad((load as any).notes) && !canSeeDemoLoads(user.email)) return NextResponse.json({ error: "Load not found" }, { status: 404 });
   if (load.status !== "open") {
     return NextResponse.json({ error: "Load is not available" }, { status: 409 });
   }
