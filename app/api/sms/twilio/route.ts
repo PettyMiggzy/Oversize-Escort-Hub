@@ -5,7 +5,7 @@ import { sendEmail } from '@/lib/email'
 import { LIMITS, SITE, hashIp, isDisposableEmail, newToken } from '@/lib/quick-post'
 import { createClient } from '@supabase/supabase-js'
 import { escapeHtml } from '@/lib/security'
-import { parseSms, phoneCandidates } from '@/lib/sms-parse'
+import { parseSms, phoneCandidates, smsFormatHelp } from '@/lib/sms-parse'
 import { twilioCandidateUrls, twilioSignatureValid } from '@/lib/twilio-signature'
 
 export const dynamic = 'force-dynamic'
@@ -17,7 +17,7 @@ const svc = createClient(
 
 const STOP_WORDS = new Set(['STOP', 'STOPALL', 'UNSUBSCRIBE', 'CANCEL', 'END', 'QUIT'])
 const START_WORDS = new Set(['START', 'YES', 'UNSTOP'])
-const HELP_TEXT = 'Oversize Escort Hub: Need help? Visit oversize-escort-hub.com/contact. Msg frequency varies. Msg & data rates may apply. Reply STOP to unsubscribe.'
+const HELP_TEXT = 'Oversize Escort Hub: To post a load, text it like this: Dallas TX to Oklahoma City OK 11/10 lead 2.25. Need help? Visit oversize-escort-hub.com/contact. Msg frequency varies. Msg & data rates may apply. Reply STOP to unsubscribe.'
 
 function smsEnabled(): boolean {
   return process.env.SMS_ENABLED === 'true'
@@ -177,7 +177,7 @@ async function postLoad(phone: string, messageText: string): Promise<NextRespons
   const result = parseSms(messageText)
   if (!result.ok) {
     console.error('SMS parse failed', result.error)
-    return twiml(`OEH: Could not parse load (${result.error}). Example: OEH Dallas TX Oklahoma City OK 11/10 lead 2.00`)
+    return twiml(smsFormatHelp(result.error))
   }
 
   const carrier = await lookupCarrier(phone)

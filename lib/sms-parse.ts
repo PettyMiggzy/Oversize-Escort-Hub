@@ -155,3 +155,22 @@ export function phoneCandidates(raw: string): string[] {
   add(`${ten.slice(0, 3)}.${ten.slice(3, 6)}.${ten.slice(6)}`)
   return list
 }
+
+export const SMS_FORMAT = 'Text it like this: Dallas TX to Oklahoma City OK 11/10 lead 2.25'
+
+const HINTS: Record<string, string> = {
+  too_few_tokens: 'Your text is missing some details.',
+  missing_pu_state: 'I could not find the pickup state (2 letters, like TX).',
+  missing_dl_state: 'I could not find the drop-off state (2 letters, like OK).',
+  missing_date_pos_rate: 'I need the date, the position and the rate.',
+  bad_date: 'I could not read the date. Use 11/10 or Nov 10.',
+  missing_position: 'Which position do you need? lead, chase, high pole or rear.',
+  bad_position: 'Which position do you need? lead, chase, high pole or rear.',
+  too_many_positions: 'That is too many positions in one text (6 max).',
+  bad_rate: 'I could not read the rate. Put the per-mile rate last, like 2.25.',
+}
+
+/** The text we send back when a load text cannot be read: what is wrong in plain words, plus how to write it. */
+export function smsFormatHelp(error: string): string {
+  return `OEH: ${HINTS[error] || 'I could not read that.'} ${SMS_FORMAT}. Add 3d at the end to keep it up 3 days. Reply HELP for help.`
+}

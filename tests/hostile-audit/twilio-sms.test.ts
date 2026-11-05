@@ -372,3 +372,14 @@ itNew('hold days are capped at 7 and default to 1', () => {
   expectNew(a.ok && a.data.holdDays).toBe(7)
   expectNew(b.ok && b.data.holdDays).toBe(1)
 })
+
+test('a badly formatted text gets plain help with the right format', async () => {
+  carrier(true)
+  for (const [body, hint] of [['hello', 'missing some details'], ['Dallas TX to Tulsa OK lead 2.5 x', 'date'], ['Dallas TX to Tulsa OK 12/31/2026 lead', 'rate']] as const) {
+    const xml = await (await postTwilio({ Body: body })).text()
+    expect(xml).toContain('Dallas TX to Oklahoma City OK 11/10 lead 2.25')
+    expect(xml.toLowerCase()).toContain(hint)
+  }
+  expect(getDb().tables.loads ?? []).toHaveLength(0)
+  expect(await (await postTwilio({ Body: 'HELP' })).text()).toContain('lead 2.25')
+})
