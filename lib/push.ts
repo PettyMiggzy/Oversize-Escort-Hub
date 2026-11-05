@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import webpush from 'web-push'
+import { sendNativePushToUsers } from '@/lib/native-push'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -25,8 +26,18 @@ export type PushPayload = {
   data?: Record<string, unknown>
 }
 
-/** Send a web-push to every push_subscriptions row for the given user ids. */
+/** Send a notification to the given people: browsers (web push) and the phone apps (when their keys are set). */
 export async function sendWebPushToUsers(
+  userIds: string[],
+  payload: PushPayload
+): Promise<number> {
+  const native = sendNativePushToUsers(userIds, { title: payload.title, body: payload.body, url: payload.url }).catch(() => 0)
+  const web = await sendBrowserPushToUsers(userIds, payload)
+  return web + (await native)
+}
+
+/** Send a web-push to every push_subscriptions row for the given user ids. */
+async function sendBrowserPushToUsers(
   userIds: string[],
   payload: PushPayload
 ): Promise<number> {

@@ -90,6 +90,7 @@ export default function HomeLanding({ onCarrier, onEscort, onBroker, onFleet, on
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/badges/google-play-badge.png" alt="Get it on Google Play" width={646} height={250} />
             </a></HideInApp>
+            <HideInApp><a className="hl-ios" href="https://apps.apple.com/us/app/oversize-escort-hub/id6827319128" target="_blank" rel="noopener noreferrer">iPhone app on the App Store</a></HideInApp>
           </div>
         </div>
       </div>

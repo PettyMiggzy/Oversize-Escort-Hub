@@ -8,7 +8,7 @@ The posters, the 59-second platform ad, the 60-second Wraith ad and the 30-secon
 - Carrier sign-up: https://www.oversize-escort-hub.com/signin?mode=signup&role=carrier
 - Wraith page (shows what it does, has a free sign-up button): https://www.oversize-escort-hub.com/wraith/updates
 - Android app: https://play.google.com/store/apps/details?id=pevo.oversizeescorthub.app
-- iPhone: not yet (waiting on Apple's review). Say "iPhone coming soon" and send iPhone users to the website.
+- iPhone: live on the App Store (approved 2026-11-05, US and Canada): https://apps.apple.com/us/app/oversize-escort-hub/id6827319128
 - To see which post brings people in, add `&utm_source=facebook` (or tiktok, instagram, x) to a sign-up link.
 
 ## Where to post (in this order)
@@ -69,7 +69,7 @@ Do not use the word "escort" in Google Ads or the Google Business Profile (say "
 ## Replies
 - "Is it free?" Yes. Free to join while we launch, no commissions on loads. Wraith gives everyone 5 free questions a day. Wraith Pro is $9.99 a month if you want more.
 - "Do you check people?" No. We do not check or verify anyone. Check licenses, insurance and permits yourself. It is a place to find each other.
-- "Is there an iPhone app?" It is waiting on Apple's review. Use oversize-escort-hub.com in your phone browser for now. The Android app is on Google Play.
+- "Is there an iPhone app?" Yes, it is on the App Store in the US and Canada: https://apps.apple.com/us/app/oversize-escort-hub/id6827319128 . The Android app is on Google Play.
 - "Does Wraith bid for me?" No. It fills in the bid and you press the final button.
 - "Does it work in my truck?" Voice works best in Chrome and on Android. On an iPhone you may need to type.
 - "How do you make money?" It is free for now. Extras like Wraith Pro and sponsored zones are paid.
