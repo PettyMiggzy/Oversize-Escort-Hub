@@ -37,6 +37,8 @@ function normalizeBoard(raw: string): string | null {
   return null
 }
 
+const MONTHS: Record<string, number> = { jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, sept: 9, oct: 10, nov: 11, dec: 12 }
+
 // Parse M/D or M/D/YY or M/D/YYYY. A date with no year that is already past rolls to next year.
 function parseDate(raw: string): string | null {
   const m = raw.match(/^(\d{1,2})[\/-](\d{1,2})(?:[\/-](\d{2}|\d{4}))?$/)
@@ -69,16 +71,29 @@ export type ParsedSmsLoad = {
   startDate: string
   positions: string[]
   perMileRate: number
+  holdDays: number
 }
 
 export function parseSms(text: string): { ok: true; data: ParsedSmsLoad } | { ok: false; error: string } {
   const rawTokens = text.replace(/,/g, ' ').replace(/\.(?!\d)/g, ' ').replace(/\s+/g, ' ').trim().split(' ')
-  const tokens = rawTokens[0]?.toUpperCase() === 'OEH' ? rawTokens.slice(1) : rawTokens
-  // Minimum: board, puCity, puState, dlCity, dlState, M/D, position, rate.
+  let tokens = rawTokens[0]?.toUpperCase() === 'OEH' ? rawTokens.slice(1) : rawTokens
+  // "Nov 10" becomes "11/10" so people can write the date the way they talk
+  for (let i = 0; i < tokens.length - 1; i++) {
+    const mo = MONTHS[tokens[i].toLowerCase().replace(/[^a-z]/g, '')]
+    if (mo && /^\d{1,2}(st|nd|rd|th)?$/i.test(tokens[i + 1])) { tokens = [...tokens.slice(0, i), `${mo}/${parseInt(tokens[i + 1], 10)}`, ...tokens.slice(i + 2)]; break }
+  }
+  // "3d" at the end: keep the load posted that many days (1 to 7)
+  let holdDays = 1
+  const last = tokens[tokens.length - 1]
+  const hd = last && last.match(/^(\d)d$/i)
+  if (hd) { holdDays = Math.min(7, Math.max(1, parseInt(hd[1], 10))); tokens = tokens.slice(0, -1) }
+  // The board word is optional: with none, it is a flat-rate load
+  const first = normalizeBoard(tokens[0] || '')
+  const board = first || 'flat-rate'
+  if (first) tokens = tokens.slice(1)
+  tokens = ['x', ...tokens]
+  // Minimum: city, state, city, state, M/D, position, rate.
   if (tokens.length < 8) return { ok: false, error: 'too_few_tokens' }
-
-  const board = normalizeBoard(tokens[0])
-  if (!board) return { ok: false, error: 'bad_board' }
 
   let puStateIdx = -1
   for (let i = 1; i < tokens.length; i++) {
@@ -105,7 +120,7 @@ export function parseSms(text: string): { ok: true; data: ParsedSmsLoad } | { ok
   const startDate = parseDate(rest[0])
   if (!startDate) return { ok: false, error: 'bad_date' }
 
-  const posTokens = rest.slice(1, rest.length - 1)
+  const posTokens = rest.slice(1, rest.length - 1).flatMap((t) => t.split(/[\/+&]/)).filter(Boolean)
   if (posTokens.length === 0) return { ok: false, error: 'missing_position' }
   const positions: string[] = Array.from(new Set(posTokens.map(normalizePosition).filter((x) => x.length > 0)))
   if (positions.length === 0) return { ok: false, error: 'bad_position' }
@@ -117,7 +132,7 @@ export function parseSms(text: string): { ok: true; data: ParsedSmsLoad } | { ok
 
   return {
     ok: true,
-    data: { boardType: board, puCity, puState, dlCity, dlState, startDate, positions, perMileRate },
+    data: { boardType: board, puCity, puState, dlCity, dlState, startDate, positions, perMileRate, holdDays },
   }
 }
 

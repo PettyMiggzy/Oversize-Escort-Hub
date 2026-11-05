@@ -1,4 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse, after } from 'next/server'
+import { alertEscortsNewLoad } from '@/lib/alerts'
+import { estimateLoadMiles } from '@/lib/miles'
 import { createClient } from '@supabase/supabase-js'
 import { escapeHtml } from '@/lib/security'
 import { parseSms, phoneCandidates } from '@/lib/sms-parse'
@@ -72,6 +74,7 @@ async function optIn(phone: string) {
 }
 
 const MAX_LOADS_PER_DAY = 30
+const POSTER_ROLES = ['carrier', 'broker', 'escort', 'fleet_manager', 'admin']
 
 type SmsSender = { id: string; sms_opt_in: boolean; role: string | null; suspended: boolean }
 
@@ -83,7 +86,7 @@ async function lookupCarrier(phoneRaw: string): Promise<SmsSender | null> {
   if (error || !data?.length) return null
   const rows = data as { id: string; sms_opt_in?: boolean; role?: string | null; suspended?: boolean | null }[]
   // Two profiles can share a number. Prefer one that opted in and is allowed to post.
-  const eligible = rows.find((r) => r.sms_opt_in === true && !r.suspended && ['carrier', 'broker', 'admin'].includes(r.role ?? ''))
+  const eligible = rows.find((r) => r.sms_opt_in === true && !r.suspended && POSTER_ROLES.includes(r.role ?? ''))
   const row = eligible ?? rows[0]
   return { id: row.id, sms_opt_in: row.sms_opt_in === true, role: row.role ?? null, suspended: row.suspended === true }
 }
@@ -133,7 +136,7 @@ async function postLoad(phone: string, messageText: string): Promise<NextRespons
   const result = parseSms(messageText)
   if (!result.ok) {
     console.error('SMS parse failed', result.error)
-    return twiml(`OEH: Could not parse load (${result.error}). Format: OEH [flat|bid|open] [city] [ST] [city] [ST] [M/D] [position] [rate]`)
+    return twiml(`OEH: Could not parse load (${result.error}). Example: OEH Dallas TX Oklahoma City OK 11/10 lead 2.00`)
   }
 
   const carrier = await lookupCarrier(phone)
@@ -147,7 +150,7 @@ async function postLoad(phone: string, messageText: string): Promise<NextRespons
   if (optOuts && optOuts.length > 0) {
     return twiml('OEH: This number is unsubscribed. Reply START to opt in.')
   }
-  if (carrier.suspended || !['carrier', 'broker', 'admin'].includes(carrier.role ?? '')) {
+  if (carrier.suspended || !POSTER_ROLES.includes(carrier.role ?? '')) {
     return twiml('OEH: This account cannot post loads by text. Sign in at oversize-escort-hub.com.')
   }
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
@@ -157,7 +160,7 @@ async function postLoad(phone: string, messageText: string): Promise<NextRespons
   }
 
   const d = result.data
-  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+  const expiresAt = new Date(Date.now() + d.holdDays * 24 * 60 * 60 * 1000).toISOString()
   const insertedIds: string[] = []
   for (const pos of d.positions) {
     const insertRow = {
@@ -168,6 +171,7 @@ async function postLoad(phone: string, messageText: string): Promise<NextRespons
       dl_city: d.dlCity,
       dl_state: d.dlState,
       position: pos,
+      escort_type: pos,
       status: 'open',
       per_mile_rate: d.perMileRate,
       day_rate: 500,
@@ -189,6 +193,15 @@ async function postLoad(phone: string, messageText: string): Promise<NextRespons
   if (insertedIds.length === 0) {
     return twiml('OEH: Load parsed but failed to post. Please try again or contact support.')
   }
+
+  // same follow-up as a load posted on the site: alert pilot cars, add the mileage estimate
+  after(async () => {
+    await Promise.allSettled(insertedIds.map(async (id) => {
+      await alertEscortsNewLoad(id)
+      const est = await estimateLoadMiles(d.puCity, d.puState, d.dlCity, d.dlState)
+      if (est) await svc.from('loads').update({ estimated_miles: est }).eq('id', id)
+    }))
+  })
 
   const positionsLabel = d.positions.join('+')
   const countLabel = insertedIds.length > 1 ? ` (${insertedIds.length} loads)` : ''

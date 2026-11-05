@@ -289,15 +289,18 @@ test('a number saved in another format still honors STOP and opt-in', async () =
   expect(await sendSms(PHONE, 'hi')).toBe(false)
 })
 
-test('only carriers, brokers and admins in good standing can post by text', async () => {
+test('only accounts in good standing can post by text (pilot cars included, suspended and unknown roles not)', async () => {
   const text = 'flat Dallas TX Tulsa OK 12/31/2026 Lead 2.5'
-  for (const [role, suspended] of [['escort', false], ['carrier', true]] as const) {
+  for (const [role, suspended] of [['escort', true], ['carrier', true], ['driver', false]] as const) {
     resetHostile()
     getDb().tables.profiles = [{ id: 'c1', role, phone: PHONE, sms_opt_in: true, suspended }]
     const res = await postTwilio({ Body: text })
     expect(await res.text()).not.toContain('Load posted')
     expect(getDb().tables.loads ?? []).toHaveLength(0)
   }
+  resetHostile()
+  getDb().tables.profiles = [{ id: 'e1', role: 'escort', phone: PHONE, sms_opt_in: true, suspended: false }]
+  expect(await (await postTwilio({ Body: text })).text()).toContain('Load posted')
   resetHostile()
   getDb().tables.profiles = [{ id: 'b1', role: 'broker', phone: PHONE, sms_opt_in: true, suspended: false }]
   expect(await (await postTwilio({ Body: text })).text()).toContain('Load posted')
@@ -322,4 +325,24 @@ test('the parser refuses absurd rates and too many positions', async () => {
   expect(parseSms('flat Dallas TX Tulsa OK 12/31/2026 a b c d e f g 2.5').ok).toBe(false)
   const dup = parseSms('flat Dallas TX Tulsa OK 12/31/2026 Lead Lead Lead 2.5')
   expect(dup.ok && dup.data.positions).toEqual(['Lead'])
+})
+
+import { parseSms as parseSmsNew } from '@/lib/sms-parse'
+import { it as itNew, expect as expectNew } from 'vitest'
+itNew('texts are forgiving: no board word, month names, lead/chase, hold days', () => {
+  const r = parseSmsNew('Dallas TX to Oklahoma City OK Nov 10 lead/chase $2.25/mi 3d')
+  expectNew(r.ok).toBe(true)
+  if (r.ok) {
+    expectNew(r.data.boardType).toBe('flat-rate')
+    expectNew(r.data.positions).toEqual(['Lead', 'Chase'])
+    expectNew(r.data.holdDays).toBe(3)
+    expectNew(r.data.perMileRate).toBe(2.25)
+    expectNew(r.data.startDate.endsWith('-11-10')).toBe(true)
+  }
+})
+itNew('hold days are capped at 7 and default to 1', () => {
+  const a = parseSmsNew('OEH flat Dallas TX Tulsa OK 11/10 lead 2 9d')
+  const b = parseSmsNew('OEH flat Dallas TX Tulsa OK 11/10 lead 2')
+  expectNew(a.ok && a.data.holdDays).toBe(7)
+  expectNew(b.ok && b.data.holdDays).toBe(1)
 })
