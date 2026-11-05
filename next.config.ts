@@ -40,6 +40,10 @@ const nextConfig = {
         destination: '/bid-board',
         permanent: true, // 308
       },
+      { source: '/privacy-policy', destination: '/privacy', permanent: true },
+      { source: '/privacypolicy', destination: '/privacy', permanent: true },
+      { source: '/terms-of-service', destination: '/terms', permanent: true },
+      { source: '/terms-and-conditions', destination: '/terms', permanent: true },
     ]
   },
 }
