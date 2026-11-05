@@ -45,7 +45,7 @@ export default function HomeLanding({ onCarrier, onEscort, onBroker, onFleet, on
           <a href="/find-escorts">Find escorts</a>
           <a href="/how-it-works">How it works</a>
           <a href="/pricing">Pricing</a>
-          <HideInApp><a className="hl-play" href="https://play.google.com/store/apps/details?id=pevo.oversizeescorthub.app" target="_blank" rel="noopener noreferrer" aria-label="Get it on Google Play">{/* eslint-disable-next-line @next/next/no-img-element */}<img src="/badges/google-play-badge.png" alt="Get it on Google Play" width={646} height={250} style={{ height: 46, width: "auto", display: "block", margin: "-6px -4px" }} /></a></HideInApp>
+          <HideInApp><a className="hl-play" href="https://play.google.com/store/apps/details?id=pevo.oversizeescorthub.app" target="_blank" rel="noopener noreferrer" aria-label="Get it on Google Play">{/* eslint-disable-next-line @next/next/no-img-element */}<img src="/badges/google-play-badge.png" alt="Get it on Google Play" width={646} height={250} style={{ height: 46, width: "auto", display: "block", margin: "-6px -4px" }} /></a></HideInApp><HideInApp><a className="hl-play" href="https://apps.apple.com/us/app/oversize-escort-hub/id6827319128" target="_blank" rel="noopener noreferrer" aria-label="Download on the App Store" style={{ display: "inline-flex", alignItems: "center", marginLeft: 8 }}>{/* eslint-disable-next-line @next/next/no-img-element */}<img src="/badges/app-store-badge.svg" alt="Download on the App Store" width={120} height={40} style={{ height: 40, width: "auto", display: "block" }} /></a></HideInApp>
           <button className="hl-si" onClick={onSignIn}>Sign in</button>
           <button className="hl-gs" onClick={onCarrier}>Get started</button>
         </div>
@@ -90,7 +90,7 @@ export default function HomeLanding({ onCarrier, onEscort, onBroker, onFleet, on
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/badges/google-play-badge.png" alt="Get it on Google Play" width={646} height={250} />
             </a></HideInApp>
-            <HideInApp><a className="hl-ios" href="https://apps.apple.com/us/app/oversize-escort-hub/id6827319128" target="_blank" rel="noopener noreferrer">iPhone app on the App Store</a></HideInApp>
+            <HideInApp><a className="hl-ios-badge" href="https://apps.apple.com/us/app/oversize-escort-hub/id6827319128" target="_blank" rel="noopener noreferrer" aria-label="Download on the App Store">{/* eslint-disable-next-line @next/next/no-img-element */}<img src="/badges/app-store-badge.svg" alt="Download on the App Store" width={120} height={40} /></a></HideInApp>
           </div>
         </div>
       </div>

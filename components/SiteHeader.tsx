@@ -251,7 +251,7 @@ export default function SiteHeader() {
 
           {/* Desktop CTA */}
           <div style={ctaAreaStyle}>
-            <HideInApp><a href="https://play.google.com/store/apps/details?id=pevo.oversizeescorthub.app" target="_blank" rel="noopener noreferrer" aria-label="Get it on Google Play" style={{ display: "inline-flex", alignItems: "center" }}>{/* eslint-disable-next-line @next/next/no-img-element */}<img src="/badges/google-play-badge.png" alt="Get it on Google Play" width={646} height={250} style={{ height: 46, width: "auto", display: "block", margin: "-6px -4px" }} /></a></HideInApp>
+            <HideInApp><a href="https://play.google.com/store/apps/details?id=pevo.oversizeescorthub.app" target="_blank" rel="noopener noreferrer" aria-label="Get it on Google Play" style={{ display: "inline-flex", alignItems: "center" }}>{/* eslint-disable-next-line @next/next/no-img-element */}<img src="/badges/google-play-badge.png" alt="Get it on Google Play" width={646} height={250} style={{ height: 46, width: "auto", display: "block", margin: "-6px -4px" }} /></a></HideInApp><HideInApp><a href="https://apps.apple.com/us/app/oversize-escort-hub/id6827319128" target="_blank" rel="noopener noreferrer" aria-label="Download on the App Store" style={{ display: "inline-flex", alignItems: "center", marginLeft: 8 }}>{/* eslint-disable-next-line @next/next/no-img-element */}<img src="/badges/app-store-badge.svg" alt="Download on the App Store" width={120} height={40} style={{ height: 40, width: "auto", display: "block" }} /></a></HideInApp>
         {userProfile ? (
           <><Link href="/dashboard" style={btnPrimeStyle}>Dashboard</Link><button type="button" onClick={signOut} style={btnGhostStyle}>Sign out</button></>
         ) : (
