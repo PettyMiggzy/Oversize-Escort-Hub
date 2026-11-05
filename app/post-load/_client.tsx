@@ -40,6 +40,7 @@ export function PostLoadPageClient() {
   const [notes, setNotes] = useState('')
   const [rate, setRate] = useState<number>(2.00)
   const [urgent, setUrgent] = useState(false)
+  const [holdHours, setHoldHours] = useState(24)
   const [regMinutes, setRegMinutes] = useState(0)
   const [requiredEquip, setRequiredEquip] = useState<string[]>([])
   const [regularsCount, setRegularsCount] = useState(0)
@@ -125,7 +126,7 @@ export function PostLoadPageClient() {
       }
       const expiresAt = boardType === 'bid'
       ? new Date(Date.now() + 5 * 60 * 1000).toISOString()
-      : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+      : new Date(Date.now() + holdHours * 60 * 60 * 1000).toISOString()
       const res = await fetch('/api/loads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -173,7 +174,7 @@ export function PostLoadPageClient() {
       <SiteHeader />
     <div className="ui-page">
       <div className="ui-wrap" style={{ maxWidth: 720 }}>
-        <PageTitle eyebrow="Loads" title="Post a load" lead="Complete in under 2 minutes. Expires in 24 hours." />
+        <PageTitle eyebrow="Loads" title="Post a load" lead="Complete in under 2 minutes. You choose how long it stays posted." />
 
         {!allowed ? (
           <EmptyState title="Posting is closed" text={roleMsg || 'Please sign in to post a load.'} />
@@ -259,6 +260,19 @@ export function PostLoadPageClient() {
                   </div>
                   <div className="ui-meta" style={{ marginTop: 6 }}>Pilot cars list their own equipment and confirm it when they claim. We do not check it.</div>
                 </div>
+                {boardType !== 'bid' && (
+                  <div style={{ marginBottom: 16 }}>
+                    <label className="ui-label" htmlFor="hold-hours">Keep it posted for</label>
+                    <select id="hold-hours" className="ui-select" value={holdHours} onChange={e => setHoldHours(Number(e.target.value))}>
+                      <option value={24}>24 hours</option>
+                      <option value={48}>2 days</option>
+                      <option value={72}>3 days</option>
+                      <option value={120}>5 days</option>
+                      <option value={168}>7 days (a week)</option>
+                    </select>
+                    <div className="ui-meta" style={{ marginTop: 6 }}>Posting for a job next week? Pick the days you need. You can close it any time.</div>
+                  </div>
+                )}
                 <div style={{ marginBottom: 16 }}>
                   <label className="ui-label">Speed</label>
                   <label className={urgent ? 'ui-chip on' : 'ui-chip'} style={{ display: 'inline-flex' }}>

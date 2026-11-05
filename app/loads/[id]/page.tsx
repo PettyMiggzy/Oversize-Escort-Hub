@@ -7,6 +7,7 @@ import SiteHeader from '@/components/SiteHeader'
 import PageTitle from '@/components/PageTitle'
 import EmptyState from '@/components/EmptyState'
 import ReportLoad from '@/components/ReportLoad'
+import ShareLoad from '@/components/ShareLoad'
 import BlockUser from '@/components/BlockUser'
 import { isAdminEmail } from '@/lib/supabase'
 import { getAccessLevel, secondsUntilClaimable } from '@/lib/board-access'
@@ -344,6 +345,7 @@ export default function LoadDetailPage() {
           </div>
         )}
 
+        {load.status === 'open' && <ShareLoad load={load} />}
         {currentUser && load.carrier_id !== currentUser.id && <ReportLoad loadId={load.id} />}
         {currentUser && load.carrier_id && load.carrier_id !== currentUser.id && <BlockUser userId={load.carrier_id} label="the poster" />}
           </div>

@@ -12,7 +12,7 @@ import { isAdminEmail } from '@/lib/supabase'
 export const maxDuration = 60
 
 const BOARD_TYPES = ['flat-rate', 'bid', 'open-bid']
-const MAX_HOLD_MS = 48 * 60 * 60 * 1000 // a load may ask to stay up two days at most; posters are checked in on after 12 hours
+const MAX_HOLD_MS = 7 * 24 * 60 * 60 * 1000 // a load may ask to stay up a week at most; posters are checked in on after 12 hours
 
 export async function POST(request: NextRequest) {
   try {
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       permit_url = permitUrl.slice(0, 1000)
     }
 
-    // A requested expiry must be in the future and no more than two days out; otherwise the usual 24 hours
+    // A requested expiry must be in the future and no more than a week out; otherwise the usual 24 hours
     const asked = typeof expiresAt === 'string' ? Date.parse(expiresAt) : NaN
     const expires = boardType === 'bid'
       ? new Date(Date.now() + 5 * 60 * 1000).toISOString()

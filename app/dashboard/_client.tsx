@@ -12,6 +12,7 @@ import { withFreeLaunch, effectiveTier } from '@/lib/free-launch'
 import SiteHeader from '@/components/SiteHeader'
 import PageTitle from '@/components/PageTitle'
 import ProfileNudge from '@/components/ProfileNudge'
+import ShareLoad from '@/components/ShareLoad'
 import EmptyState from '@/components/EmptyState'
 import { VERIFICATION_LIVE } from '@/lib/verification'
 import MyRegulars from '@/components/MyRegulars'
@@ -923,6 +924,7 @@ export function DashboardPageClient() {
                         📄 Invoice
                       </button>
                       <a href={`/loads/${load.id}`} style={{ fontSize: 11, color: 'var(--ui-muted)', marginLeft: 10 }}>Open</a>
+                      {(load as any).status === 'open' && <ShareLoad load={load} />}
                       {(load as any).status === 'filled' && (load as any).matched_escort_id && (
                         <a href={`/review/${load.id}`} style={{ fontSize: 11, color: 'var(--ui-or)', marginLeft: 10 }}>Rate the pilot car</a>
                       )}

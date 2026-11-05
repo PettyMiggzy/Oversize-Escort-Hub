@@ -1,5 +1,6 @@
 'use client'
 import '@/app/globals.css'
+import ShareLoad from '@/components/ShareLoad'
 import { useHiddenUsers } from '@/lib/use-hidden-users'
 import SiteHeader from '@/components/SiteHeader';
 import { useState, useEffect, useCallback } from 'react'
@@ -224,6 +225,7 @@ export function OpenLoadsBoardClient() {
                           ) : (
                             <Link href="/pricing" className="ui-btn block ghost">Upgrade to Member &rarr;</Link>
                           )}
+                          <ShareLoad load={load} />
                         </div>
                       </div>
                     )

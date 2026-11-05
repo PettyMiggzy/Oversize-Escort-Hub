@@ -1,6 +1,7 @@
 "use client";
 import SiteHeader from '@/components/SiteHeader';
 import { estimatedTotal } from '@/lib/miles'
+import ShareLoad from '@/components/ShareLoad'
 import { useHiddenUsers } from '@/lib/use-hidden-users'
 
 import { useEffect, useMemo, useState } from "react";
@@ -345,6 +346,7 @@ export function FlatRateBoardClient() {
                       <div className="ui-meta" style={{ margin: '2px 0 14px', color: '#6b7686' }}>$250 no-go &middot; $100 overnight</div>
                       {claimError[load.id] && <div className="ui-meta" style={{ color: '#ff8a8a', marginBottom: 8 }}>{claimError[load.id]}</div>}
                       {claimBtn(load)}
+                      {load.status === 'open' && <ShareLoad load={load} />}
                       {userId && load.status === 'filled' && (
                         <a href={`/review/${load.id}`} className="ui-meta" style={{ display: 'block', textAlign: 'center', marginTop: 8 }}>Leave a review</a>
                       )}
