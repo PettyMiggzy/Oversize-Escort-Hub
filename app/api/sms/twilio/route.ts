@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse, after } from 'next/server'
 import { alertEscortsNewLoad } from '@/lib/alerts'
 import { estimateLoadMiles } from '@/lib/miles'
+import { sendEmail } from '@/lib/email'
+import { LIMITS, SITE, hashIp, isDisposableEmail, newToken } from '@/lib/quick-post'
 import { createClient } from '@supabase/supabase-js'
 import { escapeHtml } from '@/lib/security'
 import { parseSms, phoneCandidates } from '@/lib/sms-parse'
@@ -132,6 +134,45 @@ async function confirmByEmail(
   }
 }
 
+const EMAIL_RE = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i
+
+// Second step for a new number: they text their email, we send the confirm link, the load goes live when it is clicked.
+async function handleEmailReply(phone: string, email: string): Promise<NextResponse | null> {
+  const oldest = new Date(Date.now() - LIMITS.draftHours * 3600000).toISOString()
+  const { data: rows } = await svc.from('sms_pending').select('id, payload, created_at').eq('phone', phone).gte('created_at', oldest).limit(1)
+  const pending = (rows?.[0] ?? null) as { id: string; payload: any } | null
+  if (!pending) return null
+  const addr = email.toLowerCase()
+  if (isDisposableEmail(addr)) return twiml('OEH: That email cannot be used. Please reply with a regular email address.')
+  const ip = hashIp(phone)
+  const since = new Date(Date.now() - 3600000).toISOString()
+  const { data: recent } = await svc.from('quick_post_drafts').select('id').eq('email', addr).gte('created_at', since).limit(LIMITS.perEmailHour + 1)
+  const { data: recentPhone } = await svc.from('quick_post_drafts').select('id').eq('ip_hash', ip).gte('created_at', since).limit(LIMITS.perEmailHour + 1)
+  if ((recent?.length ?? 0) >= LIMITS.perEmailHour || (recentPhone?.length ?? 0) >= LIMITS.perEmailHour) {
+    return twiml('OEH: That is 3 posts this hour. Please wait a bit, or sign up free at oversize-escort-hub.com.')
+  }
+  const d = pending.payload
+  const boardType = d.boardType === 'flat-rate' ? 'flat-rate' : 'open-bid'
+  const payload = {
+    name: 'New carrier', company: '', phone,
+    pickupCity: d.puCity, pickupState: d.puState, destinationCity: d.dlCity, destinationState: d.dlState,
+    escortType: d.positions[0], escortCount: d.positions.length, positions: d.positions,
+    boardType, rate: d.perMileRate, dateNeeded: d.startDate, holdDays: d.holdDays ?? 1, notes: 'Posted by text', viaText: true,
+  }
+  const { token, hash } = newToken()
+  const { error } = await svc.from('quick_post_drafts').insert({ token_hash: hash, email: addr, payload, ip_hash: ip })
+  if (error) return twiml('OEH: Something went wrong. Please try again.')
+  await svc.from('sms_pending').delete().eq('id', pending.id)
+  const link = `${SITE}/quick-post/confirm?t=${token}`
+  const sent = await sendEmail({
+    to: addr,
+    subject: 'Confirm your load on Oversize Escort Hub',
+    html: `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;color:#111"><h2 style="margin:0 0 12px">One click to post your load</h2><p style="font-size:15px;line-height:1.5">${escapeHtml(String(d.puCity))}, ${escapeHtml(String(d.puState))} &rarr; ${escapeHtml(String(d.dlCity))}, ${escapeHtml(String(d.dlState))}<br>${escapeHtml(d.positions.join(' + '))} &middot; $${escapeHtml(String(d.perMileRate))}/mi</p><p style="margin:20px 0"><a href="${link}" style="background:#ff6a13;color:#160800;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:bold">Confirm and post my load</a></p><p style="font-size:13px;color:#555">This link works once and expires in ${LIMITS.draftHours} hours. After this, you can post by text with no steps. If you did not ask for this, ignore this email.</p></div>`,
+  })
+  if (!sent) return twiml('OEH: We could not send the email. Check the address and reply with it again.')
+  return twiml('OEH: Sent. Open the email and tap Confirm to post your load. After that you can just text loads to this number.')
+}
+
 async function postLoad(phone: string, messageText: string): Promise<NextResponse> {
   const result = parseSms(messageText)
   if (!result.ok) {
@@ -141,10 +182,14 @@ async function postLoad(phone: string, messageText: string): Promise<NextRespons
 
   const carrier = await lookupCarrier(phone)
   if (!carrier) {
-    return twiml('Phone not registered. Sign up free at oversize-escort-hub.com then text again.')
-  }
-  if (!carrier.sms_opt_in) {
-    return twiml('OEH: This number is not opted in. Reply YES to opt in, then text the load again.')
+    // A number we do not know: keep the load and ask for an email. The email link confirms it, so nobody can post in another person's name.
+    const { data: stopped } = await svc.from('sms_opt_outs').select('id').in('phone', phoneCandidates(phone)).limit(1)
+    if (stopped && stopped.length > 0) return twiml('OEH: This number is unsubscribed. Reply START to opt in.')
+    const { data: made } = await svc.from('quick_post_drafts').select('id').gte('created_at', new Date(Date.now() - 86400000).toISOString()).limit(LIMITS.perDayAll + 1)
+    if ((made?.length ?? 0) > LIMITS.perDayAll) return twiml('OEH: We are very busy right now. Please try again later or post at oversize-escort-hub.com.')
+    await svc.from('sms_pending').delete().eq('phone', phone)
+    await svc.from('sms_pending').insert({ phone, payload: result.data })
+    return twiml('OEH: Got your load. One quick step so nobody posts in your name: reply with your email address and we will send a link to confirm. You only do this once.')
   }
   const { data: optOuts } = await svc.from('sms_opt_outs').select('id').in('phone', phoneCandidates(phone)).limit(1)
   if (optOuts && optOuts.length > 0) {
@@ -243,6 +288,11 @@ export async function POST(req: NextRequest) {
     }
     if (upper === 'HELP') return twiml(HELP_TEXT)
 
+    const em = messageText.match(EMAIL_RE)
+    if (em && !parseSms(messageText).ok) {
+      const handled = await handleEmailReply(phone, em[0])
+      if (handled) return handled
+    }
     return await postLoad(phone, messageText)
   } catch {
     console.error('SMS webhook failed')

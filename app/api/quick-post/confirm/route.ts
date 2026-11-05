@@ -58,6 +58,8 @@ export async function POST(req: NextRequest) {
   // Contact details live on the account, never on the load
   const patch: Record<string, unknown> = {}
   if (p.phone) patch.phone = p.phone
+  // they texted us first, so this number may text loads in with no more steps
+  if (p.phone && (p as any).viaText) patch.sms_opt_in = true
   if (created) { patch.full_name = p.name; patch.company_name = p.company || null }
   if (Object.keys(patch).length) await svc.from('profiles').update(patch).eq('id', userId)
 
@@ -69,24 +71,32 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const { data: load, error } = await svc.from('loads').insert({
-    carrier_id: userId,
-    pu_city: p.pickupCity, pu_state: p.pickupState,
-    dl_city: p.destinationCity, dl_state: p.destinationState,
-    escort_type: p.escortType, position: p.escortType,
-    escort_count: p.escortCount,
-    board_type: p.boardType,
-    load_type: 'oversize',
-    per_mile_rate: p.rate,
-    notes: p.notes || '',
-    start_date: p.dateNeeded,
-    expires_at: new Date(Date.now() + 24 * 3600000).toISOString(),
-    poster_company: p.company || null,
-    pay_term: 'on_completion',
-    status: 'open',
-    source: 'quick_post',
-  }).select('id').single()
-  if (error || !load?.id) return NextResponse.json({ error: 'Could not post the load. Please try again.' }, { status: 500 })
+  // A text can name several positions: one load each. A form post is one load for the whole count.
+  const positions: string[] = Array.isArray((p as any).positions) && (p as any).positions.length ? (p as any).positions.slice(0, 6).map(String) : [p.escortType]
+  const days = Math.min(7, Math.max(1, Number((p as any).holdDays) || 1))
+  const ids: string[] = []
+  for (const pos of positions) {
+    const { data: row } = await svc.from('loads').insert({
+      carrier_id: userId,
+      pu_city: p.pickupCity, pu_state: p.pickupState,
+      dl_city: p.destinationCity, dl_state: p.destinationState,
+      escort_type: pos, position: pos,
+      escort_count: positions.length > 1 ? 1 : p.escortCount,
+      board_type: p.boardType,
+      load_type: 'oversize',
+      per_mile_rate: p.rate,
+      notes: p.notes || '',
+      start_date: p.dateNeeded,
+      expires_at: new Date(Date.now() + days * 24 * 3600000).toISOString(),
+      poster_company: p.company || null,
+      pay_term: 'on_completion',
+      status: 'open',
+      source: (p as any).viaText ? 'sms' : 'quick_post',
+    }).select('id').single()
+    if (row?.id) ids.push(row.id as string)
+  }
+  const load = ids.length ? { id: ids[0] } : null
+  if (!load?.id) return NextResponse.json({ error: 'Could not post the load. Please try again.' }, { status: 500 })
 
   const loadId = load.id as string
   runAfter(async () => {
@@ -103,9 +113,9 @@ export async function POST(req: NextRequest) {
       }
     } catch { /* best effort */ }
     await Promise.allSettled([
-      notifyDeadhead(loadId),
+      ...ids.map((i) => notifyDeadhead(i)),
       notifyProEscorts({ load_id: loadId, pu_state: p.pickupState, dl_state: p.destinationState }),
-      alertEscortsNewLoad(loadId),
+      ...ids.map((i) => alertEscortsNewLoad(i)),
     ])
   })
   return NextResponse.json({ ok: true, loadId, newAccount: created, email })

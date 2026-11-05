@@ -186,20 +186,46 @@ test('START, YES, and UNSTOP remove the opt-out', async () => {
   }
 })
 
-test('a sender not opted in cannot post a load', async () => {
+test('a registered sender who has not ticked the box can still post by text (they texted us first)', async () => {
   const text = 'flat Dallas TX Tulsa OK 12/31/2026 Lead 2.5'
   carrier(false)
-  expect(await sendSms(PHONE, 'hi')).toBe(false)
-  const refused = await postTwilio({ Body: text })
-  expect(refused.status).toBe(200)
-  expect(await refused.text()).not.toContain('Load posted')
-  expect(getDb().tables.loads ?? []).toHaveLength(0)
+  const ok = await postTwilio({ Body: text })
+  expect(await ok.text()).toContain('Load posted')
+  expect(getDb().tables.loads ?? []).toHaveLength(1)
+})
 
-  getDb().tables.profiles = []
-  const unknown = await postTwilio({ Body: text })
-  expect(await unknown.text()).not.toContain('Load posted')
+test('a stopped number cannot post, registered or not', async () => {
+  const text = 'flat Dallas TX Tulsa OK 12/31/2026 Lead 2.5'
+  carrier(true)
+  await postTwilio({ Body: 'STOP' })
+  const res = await postTwilio({ Body: text })
+  expect(await res.text()).not.toContain('Load posted')
   expect(getDb().tables.loads ?? []).toHaveLength(0)
-  expect(twilioCalls()).toHaveLength(0)
+})
+
+test('an unknown number: the load waits, an email reply sends a confirm link, nothing is posted yet', async () => {
+  const text = 'flat Dallas TX Tulsa OK 12/31/2026 Lead 2.5'
+  getDb().tables.profiles = []
+  const first = await (await postTwilio({ Body: text })).text()
+  expect(first).toContain('reply with your email')
+  expect(getDb().tables.loads ?? []).toHaveLength(0)
+  expect(getDb().tables.sms_pending).toHaveLength(1)
+  const second = await (await postTwilio({ Body: 'it is bob@truckingco.com' })).text()
+  expect(second).toContain('Sent')
+  expect(getDb().tables.loads ?? []).toHaveLength(0)
+  expect(getDb().tables.quick_post_drafts).toHaveLength(1)
+  expect(getDb().tables.quick_post_drafts[0].payload).toMatchObject({ viaText: true, positions: ['Lead'], pickupCity: 'Dallas' })
+})
+
+test('an email with no waiting load gets the normal parse error, and a disposable email is refused', async () => {
+  getDb().tables.profiles = []
+  const none = await (await postTwilio({ Body: 'bob@truckingco.com' })).text()
+  expect(none).not.toContain('Sent')
+  expect(getDb().tables.quick_post_drafts ?? []).toHaveLength(0)
+  await postTwilio({ Body: 'flat Dallas TX Tulsa OK 12/31/2026 Lead 2.5' })
+  const bad = await (await postTwilio({ Body: 'x@mailinator.com' })).text()
+  expect(bad).toContain('cannot be used')
+  expect(getDb().tables.quick_post_drafts ?? []).toHaveLength(0)
 })
 
 test('an opted-in registered sender can post a load', async () => {

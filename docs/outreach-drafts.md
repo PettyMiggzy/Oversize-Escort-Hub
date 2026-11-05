@@ -64,7 +64,7 @@ Reply if anything is unclear.
 
 ## Text a load in (drafted 2026-11-05, NOT SENT: needs the owner's OK; the owner will have the browser extension send it)
 
-Send only to people who signed up and have not asked us to stop. Send from support@ or the usual OEH address, one person at a time, no bulk blast tools. Texting must be switched on first (`SMS_ENABLED=true`, Twilio webhook set) and one test text must work from the owner's own phone.
+Send only to people who signed up and have not asked us to stop. Send from support@ or the usual OEH address, one person at a time, no bulk blast tools. Texting must be switched on first (`SMS_ENABLED=true`, Twilio webhook set) and one test text must work from the owner's own phone (try it from a number that is NOT on any account too: it should ask for an email).
 
 **Subject:** Post a load by text message
 
@@ -80,7 +80,7 @@ Dallas TX to Oklahoma City OK Nov 10 lead 2.25
 
 That posts a lead car at $2.25 a mile from Dallas to Oklahoma City on Nov 10. You can add more cars (lead/chase), or "3d" at the end to keep it posted three days. We text you back to confirm, and pilot cars in those states are alerted right away.
 
-To use it, your phone number needs to be on your profile and you need to say yes to texts (the box at sign-up, or reply YES to our text). Reply STOP any time and we stop. Message and data rates may apply.
+The first time, we text back and ask for your email so nobody can post in your name. Reply with it, tap the link we email you, and your load goes live. After that, every load is just a text, nothing else to do. Reply STOP any time and we stop. Message and data rates may apply.
 
 It is free. We do not check posts or the people on them, so confirm the details with the other side.
 
