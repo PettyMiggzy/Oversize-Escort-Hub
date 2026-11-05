@@ -20,12 +20,12 @@ export async function POST(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    // Only carriers, brokers and admins post loads, and a suspended account cannot post
+    // Carriers, brokers, pilot cars (passing on work they cannot cover) and fleet managers post loads; a suspended account cannot
     const { data: poster } = await serviceClient().from('profiles').select('role, suspended').eq('id', user.id).maybeSingle()
     const isAdmin = poster?.role === 'admin' || isAdminEmail(user.email ?? '')
     if (poster?.suspended && !isAdmin) return NextResponse.json({ error: 'This account is suspended' }, { status: 403 })
-    if (!isAdmin && poster?.role !== 'carrier' && poster?.role !== 'broker') {
-      return NextResponse.json({ error: 'Only carriers and freight brokers can post loads' }, { status: 403 })
+    if (!isAdmin && !['carrier', 'broker', 'escort', 'fleet_manager'].includes(String(poster?.role))) {
+      return NextResponse.json({ error: 'Sign in with a carrier, broker or pilot car account to post a load' }, { status: 403 })
     }
 
     const body = await request.json()

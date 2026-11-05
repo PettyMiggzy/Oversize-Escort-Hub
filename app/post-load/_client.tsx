@@ -22,6 +22,7 @@ export function PostLoadPageClient() {
   const [loading, setLoading] = useState(true)
   const [allowed, setAllowed] = useState(false)
   const [roleMsg, setRoleMsg] = useState('')
+  const [postingAsPilot, setPostingAsPilot] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [permitFile, setPermitFile] = useState<File | null>(null)
   const permitRef = useRef<HTMLInputElement>(null)
@@ -60,11 +61,12 @@ export function PostLoadPageClient() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { setRoleMsg('Please sign in to post a load.'); setLoading(false); return }
       const { data: p } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-      if (p?.role === 'carrier' || p?.role === 'broker' || p?.role === 'admin' || isAdminEmail(user?.email)) {
+      if (p?.role === 'carrier' || p?.role === 'broker' || p?.role === 'escort' || p?.role === 'fleet_manager' || p?.role === 'admin' || isAdminEmail(user?.email)) {
         setAllowed(true)
+        setPostingAsPilot(p?.role === 'escort' || p?.role === 'fleet_manager')
         fetch('/api/regulars').then(r => r.json()).then(d => setRegularsCount(Array.isArray(d?.regulars) ? d.regulars.length : 0)).catch(() => {})
       } else {
-        setRoleMsg('Only carriers can post loads.')
+        setRoleMsg('Sign in with a carrier, broker or pilot car account to post a load.')
       }
       setLoading(false)
     }
@@ -177,6 +179,12 @@ export function PostLoadPageClient() {
           <EmptyState title="Posting is closed" text={roleMsg || 'Please sign in to post a load.'} />
         ) : (
           <form onSubmit={handleSubmit} className="ui-stack">
+            {postingAsPilot && (
+              <div className="ui-card">
+                <h2 style={{ margin: '0 0 4px', fontSize: 18, color: '#fff' }}>Need cover for a job?</h2>
+                <p className="ui-note" style={{ margin: 0 }}>You are posting as a pilot car. Other pilot cars can claim it or bid, and you pick who gets it. You can&apos;t claim your own load.</p>
+              </div>
+            )}
             <div className="ui-card">
               <p className="ui-label">Pickup Location</p>
               <div className="ui-city">

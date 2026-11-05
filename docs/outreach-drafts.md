@@ -44,3 +44,20 @@ We fixed it so test loads are never emailed to anyone. Real loads will still be 
 
 Oversize Escort Hub
 Reply to this email if you have any questions.
+
+## Draft (not sent): update for existing pilot cars (replaces the earlier profile nudge if you prefer one email)
+Needs the owner's OK. Send only to accounts with role escort. Suggest sending to the 34 real pilot cars, not to demo or reviewer accounts.
+
+Subject: You can now post work you can't cover (and carriers can find you)
+
+Hi [first name],
+
+Two quick things on Oversize Escort Hub:
+
+1. You can now post a load yourself. Double-booked, or need a chase or a lead for a job? Post it free and other pilot cars can claim it or bid. https://www.oversize-escort-hub.com/post-load
+
+2. Carriers find pilot cars by state and equipment, and alerts go to pilot cars in the load's states. Add the states you work in and what is on your vehicle so you get alerts and show up in search (about two minutes): https://www.oversize-escort-hub.com/dashboard
+
+We do not check what anyone enters, so always confirm licenses, insurance and permits yourself. Oversize Escort Hub is free to use.
+
+Reply if anything is unclear.

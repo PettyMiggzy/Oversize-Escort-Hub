@@ -324,3 +324,21 @@ test('typical rates ignore demo loads', async () => {
   expect(r?.count).toBe(3)
   expect(r?.high).toBeLessThan(3)
 })
+
+// ---------- pilot cars can pass work on ----------
+test('a pilot car (and a fleet manager) can post a load, an account with no role cannot, and nobody can claim their own load', async () => {
+  const db = seed()
+  const body = { pickupCity: 'Dallas', pickupState: 'TX', destinationCity: 'Tulsa', destinationState: 'OK', escortType: 'Chase', boardType: 'flat-rate', rate: 2 }
+  db.sessionUser = { id: OTHER, email: 'o@example.com' } // an escort account
+  const res = await postLoad(jreq('http://x/api/loads', body))
+  expect(res.status).toBe(201)
+  const row = db.tables.loads[db.tables.loads.length - 1] as any
+  expect(row.carrier_id).toBe(OTHER)
+  // the poster cannot claim it
+  db.tables.loads = [{ ...row, id: 'mine', status: 'open', created_at: OLD, expires_at: ahead(600) }]
+  expect((await claim(jreq('http://x/api/loads/request', { load_id: 'mine' }))).status).toBe(403)
+
+  db.tables.profiles.push({ id: 'nobody', role: null, suspended: false, email: 'n@example.com' })
+  db.sessionUser = { id: 'nobody', email: 'n@example.com' }
+  expect((await postLoad(jreq('http://x/api/loads', body))).status).toBe(403)
+})
