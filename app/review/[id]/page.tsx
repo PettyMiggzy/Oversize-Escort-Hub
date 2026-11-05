@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import SiteHeader from '@/components/SiteHeader'
 import PageTitle from '@/components/PageTitle'
-import { REVIEW_TAGS } from '@/lib/quality'
+import { REVIEW_TAGS, PAY_TAGS } from '@/lib/quality'
 
 type Load = {
   id: string
@@ -145,7 +145,7 @@ export default function ReviewPage() {
             <div style={{ marginBottom: 14 }}>
               <div className="ui-label">What stood out (optional)</div>
               <div className="ui-chips">
-                {REVIEW_TAGS[revieweeRole].map((t) => (
+                {REVIEW_TAGS[revieweeRole].filter((t) => !PAY_TAGS.includes(t.key)).map((t) => (
                   <label key={t.key} className={tags.includes(t.key) ? 'ui-chip on' : 'ui-chip'}>
                     <input type="checkbox" checked={tags.includes(t.key)} onChange={() => setTags((p) => (p.includes(t.key) ? p.filter((x) => x !== t.key) : [...p, t.key]))} style={{ accentColor: 'var(--ui-or)' }} />
                     {t.label}
@@ -153,6 +153,20 @@ export default function ReviewPage() {
                 ))}
               </div>
             </div>
+
+            {revieweeRole === 'carrier' && (
+              <div style={{ marginBottom: 14 }}>
+                <div className="ui-label">Did they pay on time? (optional)</div>
+                <div className="ui-chips">
+                  {[{ k: 'paid_on_time', l: 'Yes' }, { k: 'paid_late', l: 'No, paid late' }].map((o) => (
+                    <label key={o.k} className={tags.includes(o.k) ? 'ui-chip on' : 'ui-chip'}>
+                      <input type="radio" name="pay" checked={tags.includes(o.k)} onChange={() => setTags((p) => [...p.filter((x) => !PAY_TAGS.includes(x)), o.k])} style={{ accentColor: 'var(--ui-or)' }} />
+                      {o.l}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div style={{ marginBottom: 14 }}>
               <label className="ui-label" htmlFor="review-comment">Comment</label>

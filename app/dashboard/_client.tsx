@@ -919,7 +919,11 @@ export function DashboardPageClient() {
                     <LoadBadges load={load as any} />
                     <p style={{ margin: 0, fontWeight: 600 }}>{loadLabel(load)}</p>
                     <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.875rem' }}>Needed: {load.start_date || '—'}</p>
+                    {Number((load as any).alerted_count) > 0 && (
+                      <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.8rem' }}>Pilot cars alerted: {(load as any).alerted_count}</p>
+                    )}
                     <div style={{ marginTop: 8 }}>
+                      <a href={`/post-load?from=${load.id}`} style={{ fontSize: 11, color: 'var(--ui-or)', marginRight: 10 }}>Post again</a>
                       <button onClick={() => handleDownloadInvoice(load.id)} style={{ fontSize: 11, color: 'var(--ui-or)', background: 'none', border: '1px solid var(--ui-or)', borderRadius: 4, padding: '3px 10px', cursor: 'pointer' }}>
                         📄 Invoice
                       </button>
@@ -1039,6 +1043,7 @@ export function DashboardPageClient() {
                 {completedLoads.map(load => (
                   <div key={load.id} className="ui-load" style={{ opacity: 0.75 }}>
                     <p style={{ margin: 0, fontWeight: 600 }}>{loadLabel(load)}</p>
+                    <a href={`/post-load?from=${load.id}`} style={{ fontSize: 11, color: 'var(--ui-or)' }}>Post again</a>
                   </div>
                 ))}
               </div>

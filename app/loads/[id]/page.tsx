@@ -13,7 +13,7 @@ import { isAdminEmail } from '@/lib/supabase'
 import { getAccessLevel, secondsUntilClaimable } from '@/lib/board-access'
 import { withFreeLaunch } from '@/lib/free-launch'
 import LoadBadges, { confirmEquipment, heldForRegulars, useRegularOf } from '@/components/LoadBadges'
-import { regularsLeftMinutes } from '@/lib/quality'
+import { regularsLeftMinutes, payLine, type PayRecord } from '@/lib/quality'
 
 export default function LoadDetailPage() {
   const params = useParams()
@@ -22,6 +22,7 @@ export default function LoadDetailPage() {
   const [urgentStatus, setUrgentStatus] = useState('')
   const [load, setLoad] = useState<any>(null)
   const [carrier, setCarrier] = useState<any>(null)
+  const [payRec, setPayRec] = useState<PayRecord | null>(null)
   const [escort, setEscort] = useState<any>(null)
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [userProfile, setUserProfile] = useState<any>(null)
@@ -65,6 +66,7 @@ export default function LoadDetailPage() {
       if (loadData?.carrier_id) {
         const { data: c } = await supabase.from('profiles').select('full_name').eq('id', loadData.carrier_id).single()
         setCarrier(c)
+        fetch(`/api/pay-record?ids=${loadData.carrier_id}`).then((r) => r.json()).then((d) => setPayRec(d?.records?.[loadData.carrier_id] ?? null)).catch(() => {})
       }
       if (loadData?.matched_escort_id) {
         const { data: e } = await supabase.from('profiles').select('full_name').eq('id', loadData.matched_escort_id).single()
@@ -215,6 +217,7 @@ export default function LoadDetailPage() {
         <div className="ui-card">
           <h2>Carrier Info</h2>
           <p className="ui-note" style={{ color: '#fff' }}>{carrier?.full_name ?? 'Anonymous Carrier'}</p>
+          {payLine(payRec) && <p className="ui-note" style={{ marginTop: 4 }}>{payLine(payRec)}</p>}
           {canSeeFull && (
             <>
               <p className="ui-note" style={{ marginTop: 4, color: '#fff' }}>📞 {carrier?.phone ?? '—'}</p>

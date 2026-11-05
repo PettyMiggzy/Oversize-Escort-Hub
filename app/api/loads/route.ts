@@ -4,7 +4,7 @@ import { serviceClient } from '@/lib/service-client'
 import { estimateLoadMiles } from '@/lib/miles'
 import { notifyProEscorts } from '@/lib/notify-pro'
 import { notifyDeadhead } from '@/lib/deadhead'
-import { alertEscortsNewLoad, alertRegularsNewLoad, alertUrgentLoad } from '@/lib/alerts'
+import { alertEscortsNewLoad, alertRegularsNewLoad, alertUrgentLoad, countLoadReach } from '@/lib/alerts'
 import { cleanEquipment, regularsMinutes } from '@/lib/quality'
 import { countRegulars } from '@/lib/quality-server'
 import { isAdminEmail } from '@/lib/supabase'
@@ -121,7 +121,10 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    return NextResponse.json(data, { status: 201 })
+    // the poster sees right away how many pilot cars this load reaches
+    let reach = { reach: 0, inYourStates: 0 }
+    try { reach = await countLoadReach({ pu_state: pickupState, dl_state: destinationState, carrier_id: user.id, notes: String(notes ?? '') }) } catch { /* the number is a nicety */ }
+    return NextResponse.json({ ...data, ...reach }, { status: 201 })
   } catch (err) {
     console.error('Error creating load:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

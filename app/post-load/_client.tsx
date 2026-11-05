@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { isAdminEmail } from '@/lib/supabase'
 import PageTitle from '@/components/PageTitle'
+import ShareLoad from '@/components/ShareLoad'
 import EmptyState from '@/components/EmptyState'
 import { EQUIPMENT, REGULARS_MINUTES } from '@/lib/quality'
 
@@ -23,6 +24,7 @@ export function PostLoadPageClient() {
   const [allowed, setAllowed] = useState(false)
   const [roleMsg, setRoleMsg] = useState('')
   const [postingAsPilot, setPostingAsPilot] = useState(false)
+  const [posted, setPosted] = useState<any>(null)
   const [submitting, setSubmitting] = useState(false)
   const [permitFile, setPermitFile] = useState<File | null>(null)
   const permitRef = useRef<HTMLInputElement>(null)
@@ -66,6 +68,22 @@ export function PostLoadPageClient() {
         setAllowed(true)
         setPostingAsPilot(p?.role === 'escort' || p?.role === 'fleet_manager')
         fetch('/api/regulars').then(r => r.json()).then(d => setRegularsCount(Array.isArray(d?.regulars) ? d.regulars.length : 0)).catch(() => {})
+        // "Post again": copy one of your own earlier loads (the date is left blank on purpose)
+        const from = new URLSearchParams(window.location.search).get('from')
+        if (from) {
+          const { data: old } = await supabase.from('loads').select('*').eq('id', from).eq('carrier_id', user.id).maybeSingle()
+          if (old) {
+            setPickupCity(old.pu_city || ''); setPickupState(old.pu_state || '')
+            setDestCity(old.dl_city || ''); setDestState(old.dl_state || '')
+            setPositions(String(old.escort_type || '').split(',').map((s: string) => s.trim()).filter(Boolean))
+            if (Array.isArray(old.cert_types)) setCertTypes(old.cert_types)
+            if (old.load_type) setLoadType(old.load_type)
+            if (old.board_type) setBoardType(old.board_type)
+            if (old.notes && !String(old.notes).startsWith('ZZTEST')) setNotes(old.notes)
+            if (Number(old.per_mile_rate) > 0) setRate(Number(old.per_mile_rate))
+            if (Array.isArray(old.required_equipment)) setRequiredEquip(old.required_equipment)
+          }
+        }
       } else {
         setRoleMsg('Sign in with a carrier, broker or pilot car account to post a load.')
       }
@@ -156,7 +174,8 @@ export function PostLoadPageClient() {
             fetch('/api/push/broadcast', { method: 'POST' }).catch(() => {})
           }, 5 * 60 * 1000)
         } catch {}
-        router.push('/dashboard')
+        setPosted(data)
+        window.scrollTo({ top: 0 })
       } else {
         alert(data.error || 'Failed to post load.')
       }
@@ -165,6 +184,35 @@ export function PostLoadPageClient() {
     } finally {
       setSubmitting(false)
     }
+  }
+
+  if (posted) {
+    const reach = Number(posted.reach ?? 0), near = Number(posted.inYourStates ?? 0)
+    return (
+      <>
+        <SiteHeader />
+        <div className="ui-page"><div className="ui-wrap" style={{ maxWidth: 640 }}>
+          <div className="ui-card">
+            <div className="ui-k">Posted</div>
+            <h1 style={{ margin: '6px 0 8px', fontSize: 26, color: '#fff' }}>Your load is up.</h1>
+            <p style={{ margin: '0 0 8px', color: '#fff', fontSize: 18 }}>
+              {reach > 0
+                ? <>About <strong>{reach}</strong> pilot car{reach === 1 ? '' : 's'} {reach === 1 ? 'is' : 'are'} being alerted{near > 0 ? <>, <strong>{near}</strong> of them in your states</> : ''}.</>
+                : <>No pilot cars match yet, so share it to bring some in.</>}
+            </p>
+            <p className="ui-note" style={{ margin: '0 0 14px' }}>
+              {posted.regulars_until ? 'Your regulars get first look. Everyone else is alerted when their window ends. ' : ''}
+              Alerts go out by email and in the app. A pilot car only gets an alert if they set their states or have not set any yet.
+            </p>
+            <ShareLoad load={posted} />
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 18 }}>
+              <a href="/dashboard" className="ui-btn">Go to my dashboard</a>
+              <a href={`/post-load?from=${posted.id}`} className="ui-btn ghost">Post another like this</a>
+            </div>
+          </div>
+        </div></div>
+      </>
+    )
   }
 
   if (loading) return (<><SiteHeader /><div className="ui-page"><div className="ui-wrap" style={{ textAlign: 'center' }}><p className="ui-meta">Loading...</p></div></div></>)

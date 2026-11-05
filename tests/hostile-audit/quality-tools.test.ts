@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { beforeEach, expect, test } from 'vitest'
+import { beforeEach, describe, expect, it, test } from 'vitest'
 import { NextRequest } from 'next/server'
 import { getDb, resetHostile } from './mock-client'
 import { serviceClient } from '@/lib/service-client'
@@ -341,4 +341,26 @@ test('a pilot car (and a fleet manager) can post a load, an account with no role
   db.tables.profiles.push({ id: 'nobody', role: null, suspended: false, email: 'n@example.com' })
   db.sessionUser = { id: 'nobody', email: 'n@example.com' }
   expect((await postLoad(jreq('http://x/api/loads', body))).status).toBe(403)
+})
+
+// ---- carrier benefits: pay record, post again, reach ----
+import { payLine } from '@/lib/quality'
+import { payRecords } from '@/lib/pay-record'
+import { readFileSync } from 'node:fs'
+describe('pay record and post again', () => {
+  it('shows a pay record only with 3 or more answers', () => {
+    expect(payLine({ onTime: 2, total: 2 })).toBeNull()
+    expect(payLine(null)).toBeNull()
+    expect(payLine({ onTime: 2, total: 3 })).toContain('2 of 3')
+  })
+  it('counts pay answers per poster', async () => {
+    const rows = [{ reviewee_id: 'a', tags: ['paid_on_time'] }, { reviewee_id: 'a', tags: ['paid_late', 'fair_rate'] }, { reviewee_id: 'b', tags: ['paid_on_time'] }]
+    const client: any = { from: () => ({ select: () => ({ in: () => ({ overlaps: () => Promise.resolve({ data: rows }) }) }) }) }
+    expect(await payRecords(client, ['a', 'b'])).toEqual({ a: { onTime: 1, total: 2 }, b: { onTime: 1, total: 1 } })
+  })
+  it('the pay question, post again and reach are wired in', () => {
+    expect(readFileSync('app/review/[id]/page.tsx', 'utf8')).toContain('Did they pay on time')
+    expect(readFileSync('app/post-load/_client.tsx', 'utf8')).toContain("get('from')")
+    expect(readFileSync('app/dashboard/_client.tsx', 'utf8')).toContain('Pilot cars alerted')
+  })
 })

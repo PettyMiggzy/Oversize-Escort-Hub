@@ -58,6 +58,7 @@ export const REVIEW_TAGS: Record<'escort' | 'carrier', { key: string; label: str
   ],
   carrier: [
     { key: 'paid_on_time', label: 'Paid on time' },
+    { key: 'paid_late', label: 'Paid late' },
     { key: 'clear_info', label: 'Clear load info' },
     { key: 'fair_rate', label: 'Fair rate' },
     { key: 'communicates', label: 'Good communication' },
@@ -70,3 +71,10 @@ export function cleanTags(v: unknown, revieweeRole: string): string[] {
   if (!Array.isArray(v)) return []
   return [...new Set(v.filter((x): x is string => typeof x === 'string' && list.includes(x)))].slice(0, 6)
 }
+
+/** Pay answers are asked as a Yes/No question, not shown as chips. */
+export const PAY_TAGS = ['paid_on_time', 'paid_late']
+export const MIN_PAY_ANSWERS = 3
+export type PayRecord = { onTime: number; total: number }
+/** Only shown once enough people have answered; one answer says nothing. */
+export const payLine = (r: PayRecord | null | undefined) => (r && r.total >= MIN_PAY_ANSWERS ? `Paid on time ${r.onTime} of ${r.total} times (reported by pilot cars who worked for them)` : null)

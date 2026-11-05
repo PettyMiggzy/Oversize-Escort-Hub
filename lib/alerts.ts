@@ -6,6 +6,7 @@ import { createClient } from '@supabase/supabase-js'
 import { createHmac, timingSafeEqual } from 'crypto'
 import { sendEmail } from '@/lib/email'
 import { sendWebPushToUser } from '@/lib/push'
+import { sendNativePushToUsers } from '@/lib/native-push'
 import { isDemoLoad } from '@/lib/demo-loads'
 
 const SITE = 'https://www.oversize-escort-hub.com'
@@ -67,8 +68,31 @@ async function alertUser(userId: string, a: Alert) {
 const line = (l: any) => `${l?.pu_city || '?'}, ${l?.pu_state || '?'} to ${l?.dl_city || '?'}, ${l?.dl_state || '?'}`
 
 async function getLoad(loadId: string) {
-  const { data } = await svc().from('loads').select('id, carrier_id, matched_escort_id, pu_city, pu_state, dl_city, dl_state, per_mile_rate, start_date, urgent, regulars_until, status, expires_at, notes').eq('id', loadId).maybeSingle()
+  const { data } = await svc().from('loads').select('id, carrier_id, matched_escort_id, pu_city, pu_state, dl_city, dl_state, per_mile_rate, start_date, urgent, regulars_until, status, expires_at, notes, alerted_count').eq('id', loadId).maybeSingle()
   return data as any
+}
+
+/** The pilot cars a new load goes to: those who cover its states or have not set any yet, with an email and not suspended. */
+async function loadAudience(client: ReturnType<typeof svc>, load: { pu_state?: string | null; dl_state?: string | null; carrier_id?: string | null }) {
+  const { data: escorts } = await client.from('profiles')
+    .select(`${PERSON_COLS}, availability_states`)
+    .eq('role', 'escort')
+    .neq('id', load.carrier_id ?? '')
+  const wanted = [load.pu_state, load.dl_state].filter(Boolean).map((s) => String(s).toUpperCase())
+  return ((escorts || []) as any[]).filter((e) => {
+    if (!e.email || e.suspended) return false
+    const states: string[] = (e.availability_states || []).map((s: string) => String(s).toUpperCase())
+    return !states.length || wanted.some((w) => states.includes(w))
+  }).slice(0, MAX_LOAD_RECIPIENTS)
+}
+
+/** How many pilot cars a load posted now would reach, and how many of them told us their states. Used to show the poster their reach. */
+export async function countLoadReach(load: { pu_state?: string | null; dl_state?: string | null; carrier_id?: string | null; notes?: string | null }) {
+  if (isDemoLoad(load.notes)) return { reach: 0, inYourStates: 0 }
+  const who = await loadAudience(svc(), load)
+  const wanted = [load.pu_state, load.dl_state].filter(Boolean).map((s) => String(s).toUpperCase())
+  const inYourStates = who.filter((e) => (e.availability_states || []).some((s: string) => wanted.includes(String(s).toUpperCase()))).length
+  return { reach: who.length, inYourStates }
 }
 
 /** A new load went up: tell escorts who cover its states (or have not set any states yet). */
@@ -77,15 +101,7 @@ export async function alertEscortsNewLoad(loadId: string) {
   if (!load) return { sent: 0 }
   if (isDemoLoad(load.notes)) return { sent: 0 }
   const client = svc()
-  const { data: escorts } = await client.from('profiles')
-    .select(`${PERSON_COLS}, availability_states`)
-    .eq('role', 'escort')
-    .neq('id', load.carrier_id)
-  const wanted = [load.pu_state, load.dl_state].filter(Boolean).map((s: string) => s.toUpperCase())
-  const who = (escorts || []).filter((e: any) => {
-    const states: string[] = (e.availability_states || []).map((s: string) => String(s).toUpperCase())
-    return !states.length || wanted.some((w: string) => states.includes(w))
-  }).slice(0, MAX_LOAD_RECIPIENTS)
+  const who = await loadAudience(client, load)
   const rate = load.per_mile_rate != null ? ` Pays $${load.per_mile_rate}/mile.` : ''
   const a: Alert = {
     subject: `New load: ${line(load)}`,
@@ -98,6 +114,10 @@ export async function alertEscortsNewLoad(loadId: string) {
     if (await deliver(client, e as Person, a)) sent++
     await sleep(SEND_GAP_MS)
   }
+  // the phone apps hear about it too once their push keys exist (a no-op until then)
+  try { await sendNativePushToUsers(who.map((e: any) => e.id as string), { title: a.headline, body: line(load), url: a.path }) } catch { /* best effort */ }
+  // remember how many pilot cars were told, so the poster can see their reach
+  try { await client.from('loads').update({ alerted_count: Number(load.alerted_count ?? 0) + who.length }).eq('id', loadId) } catch { /* the count is a nicety */ }
   return { sent, considered: who.length }
 }
 
@@ -123,6 +143,7 @@ export async function alertRegularsNewLoad(loadId: string) {
     try { await sendWebPushToUser(p.id, { title: a.headline, body: line(load), url: a.path }) } catch {}
     await sleep(SEND_GAP_MS)
   }
+  try { await client.from('loads').update({ alerted_count: Number(load.alerted_count ?? 0) + ids.length }).eq('id', loadId) } catch { /* the count is a nicety */ }
   return { sent, considered: ids.length }
 }
 
