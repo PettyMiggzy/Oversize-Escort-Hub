@@ -31,6 +31,7 @@ const SCHEMA = {
   notifications: ['id', 'user_id', 'message', 'read', 'created_at'],
   profiles: ['equipment', 'email_alerts', 'id', 'created_at', 'full_name', 'email', 'phone', 'state', 'company_name', 'role', 'tier', 'stripe_customer_id', 'bio', 'vehicle', 'states_licensed', 'p_evo_verified', 'bgc_verified', 'vehicle_verified', 'admin_verified', 'rating', 'total_jobs', 'reliability_score', 'response_time', 'is_available', 'req_high_pole', 'req_route_survey', 'ctts_bc', 'ctts_ab', 'oapc', 'sask_pilot', 'lineman_cert', 'bgc_pending', 'bgc_document_url', 'availability_states', 'referral_code', 'referred_by', 'avg_rating', 'review_count', 'avatar_url', 'notification_states', 'suspended', 'sms_opt_in', 'fmcsa_verified', 'dot_number', 'mc_number', 'breakdown_protocol_enabled', 'bgc_paid', 'pevo_paid', 'pevo_verified', 'deadhead_active', 'deadhead_destination_city', 'deadhead_destination_state', 'tier_updated_at', 'stripe_subscription_id', 'dd214_pending', 'dd214_url', 'verified_tier', 'tier1_pending', 'tier2_pending', 'prior_role'],
   push_subscriptions: ['id', 'user_id', 'subscription', 'created_at'],
+  sms_inbound: ['id', 'phone', 'created_at'],
   sms_pending: ['id', 'phone', 'payload', 'created_at'],
   quick_post_drafts: ['id', 'token_hash', 'email', 'payload', 'ip_hash', 'created_at', 'used_at', 'user_id', 'password_set_at'],
   referrals: ['id', 'referrer_id', 'referred_id', 'code', 'status', 'created_at', 'converted_at'],

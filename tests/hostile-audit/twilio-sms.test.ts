@@ -383,3 +383,29 @@ test('a badly formatted text gets plain help with the right format', async () =>
   expect(getDb().tables.loads ?? []).toHaveLength(0)
   expect(await (await postTwilio({ Body: 'HELP' })).text()).toContain('lead 2.25')
 })
+
+test('one number cannot flood us: after 20 texts an hour we go silent, but STOP still works', async () => {
+  carrier(true)
+  let last = ''
+  for (let i = 0; i < 22; i++) last = await (await postTwilio({ Body: 'hello' })).text()
+  expect(last).not.toContain('<Message>')
+  expect(getDb().tables.loads ?? []).toHaveLength(0)
+  const stop = await (await postTwilio({ Body: 'STOP' })).text()
+  expect(stop).toContain('unsubscribed')
+})
+
+test('the whole line is capped per day, and only so many new numbers can start a post', async () => {
+  carrier(true)
+  const now = new Date().toISOString()
+  getDb().tables.sms_inbound = Array.from({ length: 1501 }, (_, i) => ({ id: `i${i}`, phone: `+1555000${i}`, created_at: now }))
+  const res = await (await postTwilio({ Body: 'flat Dallas TX Tulsa OK 12/31/2026 Lead 2.5' })).text()
+  expect(res).not.toContain('Load posted')
+  expect(getDb().tables.loads ?? []).toHaveLength(0)
+
+  resetHostile()
+  getDb().tables.profiles = []
+  getDb().tables.sms_pending = Array.from({ length: 100 }, (_, i) => ({ id: `p${i}`, phone: `+1666000${i}`, payload: {}, created_at: new Date().toISOString() }))
+  const busy = await (await postTwilio({ Body: 'flat Dallas TX Tulsa OK 12/31/2026 Lead 2.5' })).text()
+  expect(busy).toContain('very busy')
+  expect(getDb().tables.sms_pending).toHaveLength(100)
+})

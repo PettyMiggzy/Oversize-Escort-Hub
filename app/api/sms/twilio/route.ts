@@ -76,6 +76,10 @@ async function optIn(phone: string) {
 }
 
 const MAX_LOADS_PER_DAY = 30
+// Every text we answer costs us money, so one number and the whole line are both capped. Past the cap we stay silent.
+const MAX_TEXTS_PER_NUMBER_HOUR = 20
+const MAX_TEXTS_ALL_DAY = 1500
+const MAX_NEW_NUMBER_STARTS_DAY = 100
 const POSTER_ROLES = ['carrier', 'broker', 'escort', 'fleet_manager', 'admin']
 
 type SmsSender = { id: string; sms_opt_in: boolean; role: string | null; suspended: boolean }
@@ -173,6 +177,21 @@ async function handleEmailReply(phone: string, email: string): Promise<NextRespo
   return twiml('OEH: Sent. Open the email and tap Confirm to post your load. After that you can just text loads to this number.')
 }
 
+// Counts this text and says whether this number or the whole line is past its cap.
+async function overLimit(phone: string): Promise<boolean> {
+  try {
+    const hourAgo = new Date(Date.now() - 3600000).toISOString()
+    const dayAgo = new Date(Date.now() - 86400000).toISOString()
+    await svc.from('sms_inbound').insert({ phone })
+    const { data: mine } = await svc.from('sms_inbound').select('id').eq('phone', phone).gte('created_at', hourAgo).limit(MAX_TEXTS_PER_NUMBER_HOUR + 2)
+    if ((mine?.length ?? 0) > MAX_TEXTS_PER_NUMBER_HOUR) return true
+    const { data: all } = await svc.from('sms_inbound').select('id').gte('created_at', dayAgo).limit(MAX_TEXTS_ALL_DAY + 2)
+    return (all?.length ?? 0) > MAX_TEXTS_ALL_DAY
+  } catch {
+    return false
+  }
+}
+
 async function postLoad(phone: string, messageText: string): Promise<NextResponse> {
   const result = parseSms(messageText)
   if (!result.ok) {
@@ -187,6 +206,8 @@ async function postLoad(phone: string, messageText: string): Promise<NextRespons
     if (stopped && stopped.length > 0) return twiml('OEH: This number is unsubscribed. Reply START to opt in.')
     const { data: made } = await svc.from('quick_post_drafts').select('id').gte('created_at', new Date(Date.now() - 86400000).toISOString()).limit(LIMITS.perDayAll + 1)
     if ((made?.length ?? 0) > LIMITS.perDayAll) return twiml('OEH: We are very busy right now. Please try again later or post at oversize-escort-hub.com.')
+    const { data: starts } = await svc.from('sms_pending').select('id').gte('created_at', new Date(Date.now() - 86400000).toISOString()).limit(MAX_NEW_NUMBER_STARTS_DAY + 1)
+    if ((starts?.length ?? 0) >= MAX_NEW_NUMBER_STARTS_DAY) return twiml('OEH: We are very busy right now. Please try again later or post at oversize-escort-hub.com.')
     await svc.from('sms_pending').delete().eq('phone', phone)
     await svc.from('sms_pending').insert({ phone, payload: result.data })
     return twiml('OEH: Got your load. One quick step so nobody posts in your name: reply with your email address and we will send a link to confirm. You only do this once.')
@@ -286,6 +307,7 @@ export async function POST(req: NextRequest) {
       await optIn(phone)
       return twiml('Oversize Escort Hub: You are opted in. Reply HELP for help or STOP to unsubscribe. Msg & data rates may apply.')
     }
+    if (await overLimit(phone)) return twiml(null)
     if (upper === 'HELP') return twiml(HELP_TEXT)
 
     const em = messageText.match(EMAIL_RE)

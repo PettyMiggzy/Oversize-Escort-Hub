@@ -112,6 +112,14 @@ export async function POST(req: NextRequest) {
         })))
       }
     } catch { /* best effort */ }
+    // At most 30 account-free or texted loads a day may alert pilot cars; past that they post but stay quiet (the admins are told)
+    let quiet = false
+    try {
+      const { data: day } = await svc.from('loads').select('id').in('source', ['sms', 'quick_post']).gte('created_at', new Date(Date.now() - 86400000).toISOString()).limit(31)
+      quiet = (day?.length ?? 0) > 30
+      if (quiet) await Promise.allSettled(ADMIN_EMAILS.map((to) => sendEmail({ to, subject: 'OEH: text and quick-post loads passed 30 today', html: '<p style="font-family:Arial,sans-serif">More than 30 loads came in today without an account or by text. They are posted, but pilot cars are no longer alerted for them until tomorrow. Check the admin panel for spam.</p>' })))
+    } catch { /* if the count fails, alert as before */ }
+    if (quiet) return
     await Promise.allSettled([
       ...ids.map((i) => notifyDeadhead(i)),
       notifyProEscorts({ load_id: loadId, pu_state: p.pickupState, dl_state: p.destinationState }),
