@@ -88,3 +88,18 @@ Questions: reply to this email.
 
 Brian
 Oversize Escort Hub
+
+## Correction for the fake test load alert (drafted 2026-11-06, NOT SENT: needs the owner's OK)
+
+On 2026-11-06 about 12:33 UTC a test text load ("Testville TX to Faketown OK") alerted about 40 real pilot cars and carriers by email and in-app. The load and the in-app notes were deleted. Optional: send this short note to the same people (their addresses are in Resend's sent list for that subject), or send nothing, since it was one email.
+
+**Subject:** Please ignore the "Testville TX" load alert
+
+Hi,
+
+You got an alert this morning about a load from Testville, TX to Faketown, OK. That was a test on our side, not a real job. Sorry for the noise. We removed it.
+
+New: you can now post a load to the board by text, and test posts are kept private so this won't happen again.
+
+Brian
+Oversize Escort Hub

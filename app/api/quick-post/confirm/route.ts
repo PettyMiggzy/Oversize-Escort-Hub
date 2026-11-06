@@ -99,6 +99,7 @@ export async function POST(req: NextRequest) {
   if (!load?.id) return NextResponse.json({ error: 'Could not post the load. Please try again.' }, { status: 500 })
 
   const loadId = load.id as string
+  if ((p as any).isTest) return NextResponse.json({ ok: true, loadId, newAccount: created, email, practice: true })
   runAfter(async () => {
     // Tell the admins so a bad post is seen within minutes (at most 10 of these emails a day)
     try {

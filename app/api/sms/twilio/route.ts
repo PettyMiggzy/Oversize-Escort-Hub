@@ -161,7 +161,7 @@ async function handleEmailReply(phone: string, email: string): Promise<NextRespo
     name: 'New carrier', company: '', phone,
     pickupCity: d.puCity, pickupState: d.puState, destinationCity: d.dlCity, destinationState: d.dlState,
     escortType: d.positions[0], escortCount: d.positions.length, positions: d.positions,
-    boardType, rate: d.perMileRate, dateNeeded: d.startDate, holdDays: d.holdDays ?? 1, notes: 'Posted by text', viaText: true,
+    boardType, rate: d.perMileRate, dateNeeded: d.startDate, holdDays: d.holdDays ?? 1, notes: d.isTest ? 'ZZTEST practice text post. Not a real job.' : 'Posted by text', viaText: true, isTest: !!d.isTest,
   }
   const { token, hash } = newToken()
   const { error } = await svc.from('quick_post_drafts').insert({ token_hash: hash, email: addr, payload, ip_hash: ip })
@@ -246,7 +246,7 @@ async function postLoad(phone: string, messageText: string): Promise<NextRespons
       pay_type: 'FastPay',
       start_date: d.startDate,
       expires_at: expiresAt,
-      notes: messageText,
+      notes: d.isTest ? `ZZTEST practice text post. Not a real job. ${messageText}`.slice(0, 500) : messageText,
     }
     const { data: inserted, error: insErr } = await svc.from('loads').insert(insertRow).select('id').single()
     if (insErr || !inserted?.id) {

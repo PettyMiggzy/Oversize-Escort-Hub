@@ -74,11 +74,15 @@ export type ParsedSmsLoad = {
   positions: string[]
   perMileRate: number
   holdDays: number
+  isTest: boolean
 }
 
 export function parseSms(text: string): { ok: true; data: ParsedSmsLoad } | { ok: false; error: string } {
   const rawTokens = text.replace(/,/g, ' ').replace(/\.(?!\d)/g, ' ').replace(/\s+/g, ' ').trim().split(' ')
   let tokens = rawTokens[0]?.toUpperCase() === 'OEH' ? rawTokens.slice(1) : rawTokens
+  // "TEST" first: a practice post nobody else sees and nobody is alerted about
+  let isTest = false
+  if (tokens[0]?.toUpperCase() === 'TEST') { isTest = true; tokens = tokens.slice(1) }
   // "Nov 10" becomes "11/10" so people can write the date the way they talk
   for (let i = 0; i < tokens.length - 1; i++) {
     const mo = MONTHS[tokens[i].toLowerCase().replace(/[^a-z]/g, '')]
@@ -113,7 +117,9 @@ export function parseSms(text: string): { ok: true; data: ParsedSmsLoad } | { ok
 
   const puCity = titleCase(tokens.slice(1, puStateIdx).join(' '))
   const puState = tokens[puStateIdx].toUpperCase()
-  const dlCity = titleCase(tokens.slice(puStateIdx + 1, dlStateIdx).join(' '))
+  const dlWords = tokens.slice(puStateIdx + 1, dlStateIdx)
+  if (dlWords.length > 1 && dlWords[0].toLowerCase() === 'to') dlWords.shift()
+  const dlCity = titleCase(dlWords.join(' '))
   const dlState = tokens[dlStateIdx].toUpperCase()
 
   const rest = tokens.slice(dlStateIdx + 1)
@@ -134,7 +140,7 @@ export function parseSms(text: string): { ok: true; data: ParsedSmsLoad } | { ok
 
   return {
     ok: true,
-    data: { boardType: board, puCity, puState, dlCity, dlState, startDate, positions, perMileRate, holdDays },
+    data: { boardType: board, puCity, puState, dlCity, dlState, startDate, positions, perMileRate, holdDays, isTest },
   }
 }
 

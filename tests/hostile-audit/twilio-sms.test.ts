@@ -409,3 +409,22 @@ test('the whole line is capped per day, and only so many new numbers can start a
   expect(busy).toContain('very busy')
   expect(getDb().tables.sms_pending).toHaveLength(100)
 })
+
+import { parseSms as parseSmsFinal } from '@/lib/sms-parse'
+test('"to" before the drop-off city is not part of the city name', () => {
+  const r = parseSmsFinal('Testville TX to Faketown OK 12/31/2026 lead 2.25')
+  expect(r.ok && r.data.dlCity).toBe('Faketown')
+  expect(r.ok && r.data.puCity).toBe('Testville')
+})
+
+test('a TEST text posts a practice load that is hidden and alerts nobody', async () => {
+  carrier(true)
+  getDb().tables.profiles.push({ id: 'e9', role: 'escort', email: 'p@x.com', suspended: false, availability_states: [] })
+  const xml = await (await postTwilio({ Body: 'TEST Dallas TX to Tulsa OK 12/31/2026 lead 2.25' })).text()
+  expect(xml).toContain('Load posted')
+  const loads = getDb().tables.loads ?? []
+  expect(loads).toHaveLength(1)
+  expect(String(loads[0].notes)).toMatch(/^ZZTEST/)
+  await new Promise((r) => setTimeout(r, 50))
+  expect(getDb().tables.notifications ?? []).toHaveLength(0)
+})
