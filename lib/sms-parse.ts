@@ -10,6 +10,8 @@ const US_STATES = new Set([
 ])
 
 export const MAX_POSITIONS = 6
+export const isUsState = (v: string) => US_STATES.has(String(v || '').toUpperCase())
+export const normalizePositionName = (raw: string) => normalizePosition(raw)
 export const MAX_RATE = 50
 
 function titleCase(s: string): string {

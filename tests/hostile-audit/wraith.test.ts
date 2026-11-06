@@ -146,8 +146,9 @@ test('per-person limits stop it before the model is called', async () => {
 })
 
 test('only the cheap Haiku models, no tools that write, and the prompt keeps the OEH rules', () => {
-  expect(WRAITH_TOOLS.map((t) => t.name).sort()).toEqual(['find_escorts', 'my_bids', 'my_expiring_documents', 'my_fleet', 'my_posted_loads', 'prepare_bid', 'prepare_claim', 'search_open_loads', 'typical_rates', 'whats_new'])
+  expect(WRAITH_TOOLS.map((t) => t.name).sort()).toEqual(['find_escorts', 'my_bids', 'my_expiring_documents', 'my_fleet', 'my_posted_loads', 'prepare_bid', 'prepare_claim', 'prepare_post_load', 'search_open_loads', 'typical_rates', 'whats_new'])
   expect(WRAITH_SYSTEM).toMatch(/cannot bid, claim, post, accept or change anything yourself/)
+  expect(WRAITH_SYSTEM).toMatch(/prepare_post_load/)
   expect(WRAITH_SYSTEM).toMatch(/OEH does not check anyone/)
   expect(WRAITH_SYSTEM).toMatch(/I'm Wraith, OEH's automated assistant/)
   expect(speakable('## Hi **there** _you_ https://x.y/z')).toBe('Hi there you')
@@ -171,4 +172,25 @@ test('the voice page never lets text from the assistant become a link to another
   const client = fs.readFileSync('components/wraith/WraithClient.tsx', 'utf8')
   expect(client).toMatch(/l\.href\.startsWith\('\/'\)/)
   expect(client).not.toMatch(/dangerouslySetInnerHTML/)
+})
+
+
+test('prepare_post_load only puts a filled-in form button on screen and checks everything', async () => {
+  const svc = serviceClient()
+  const before = (getDb().tables.loads ?? []).length
+  const ok = await runWraithTool('prepare_post_load', { pickup_city: 'Dallas', pickup_state: 'tx', dropoff_city: 'Oklahoma City', dropoff_state: 'OK', date: '2099-11-20', positions: ['lead', 'high pole'], rate_per_mile: 2.25, keep_posted_days: 3 }, ME, svc)
+  const j = JSON.parse(ok.json)
+  expect(j.ok).toBe(true)
+  expect(j.note).toMatch(/Nothing has been posted/)
+  expect(ok.links[0].href).toMatch(/^\/post-load\?pc=Dallas&ps=TX&dc=Oklahoma\+City&ds=OK&d=2099-11-20&pos=Lead%2CHigh\+Pole&rate=2\.25&hold=72$/)
+  expect(getDb().tables.loads ?? []).toHaveLength(before)
+  for (const bad of [{ pickup_state: 'ZZ' }, { date: '2001-01-01' }, { positions: [] }, { rate_per_mile: 900 }, { pickup_city: '<>' }]) {
+    const r = JSON.parse((await runWraithTool('prepare_post_load', { pickup_city: 'Dallas', pickup_state: 'TX', dropoff_city: 'Tulsa', dropoff_state: 'OK', date: '2099-11-20', positions: ['lead'], rate_per_mile: 2, keep_posted_days: 1, ...bad }, ME, svc)).json)
+    expect(r.ok).toBe(false)
+  }
+})
+
+test('prepare_post_load strips markup out of the city names', async () => {
+  const r = await runWraithTool('prepare_post_load', { pickup_city: '<b>Dallas</b>', pickup_state: 'TX', dropoff_city: 'Tulsa', dropoff_state: 'OK', date: '2099-11-20', positions: ['lead'], rate_per_mile: 2, keep_posted_days: 1 }, ME, serviceClient())
+  expect(r.links[0].href).not.toMatch(/[<>]|%3C|%3E/)
 })

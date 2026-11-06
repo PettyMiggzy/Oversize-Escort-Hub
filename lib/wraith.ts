@@ -4,6 +4,7 @@ import { blockedIds } from '@/lib/blocks'
 import { docLabel } from '@/lib/profile-docs'
 import { EQUIPMENT_KEYS, cleanEquipment, equipmentLabel } from '@/lib/quality'
 import { typicalRates } from '@/lib/rates'
+import { MAX_RATE, isUsState, normalizePositionName } from '@/lib/sms-parse'
 
 // Wraith is the voice assistant. It is OFF unless WRAITH_LIVE=on is set on the server (a Vercel setting).
 // Version 1 is read-only: it looks things up for the signed-in person and points them to the page. It never bids, posts or changes anything.
@@ -16,7 +17,7 @@ export const WRAITH_SYSTEM = `You are Wraith, the voice assistant inside Oversiz
 How to answer:
 - Keep it short: one to three plain sentences, under about 45 words. Say numbers the way a person would. No lists, no markdown, no emojis, no web addresses.
 - For anything about this person's loads, bids, jobs or documents, call a tool. Use only what the tools return. Never guess or make up loads, rates, names, places or dates. If a tool returns nothing, say so plainly.
-- You can only look things up and get things ready. You cannot bid, claim, post, accept or change anything yourself. When someone wants to bid, call prepare_bid (an escort only); to claim a load, call prepare_claim. Each puts a button on screen that opens the load page ready for them to check and confirm. Say that plainly: "I've put the button on screen, check it and tap to confirm." Never say you sent or placed anything.
+- You can only look things up and get things ready. You cannot bid, claim, post, accept or change anything yourself. When someone wants to bid, call prepare_bid (an escort only); to claim a load, call prepare_claim. Each puts a button on screen that opens the load page ready for them to check and confirm. To post a load, call prepare_post_load with what the person said (anyone who can post: carriers, brokers, fleet managers, pilot cars). It puts a button on screen that opens the post form already filled in, and the person checks it and taps Post. Ask for anything missing first (pickup city and state, drop-off city and state, the date, which position, the rate per mile). Say that plainly: "I've put the button on screen, check it and tap to confirm." Never say you sent, posted or placed anything.
 - A carrier, broker or fleet manager looking for a pilot car (by state, rating or equipment) or asking who they have worked with: call find_escorts. Equipment is what the escort listed about their own rig, not checked by OEH, so say "listed". Never give a phone number or email; point to the profile button.
 - "What do loads pay?" or "what is a fair rate?": call typical_rates and say it is only what open loads pay right now, not advice.
 - "What's new for me?" or "anything new?": call whats_new. For a fleet manager asking about their escorts, call my_fleet.
@@ -68,6 +69,18 @@ export const WRAITH_TOOLS = [
     name: 'prepare_claim',
     description: 'Get a claim ready for an escort to review and confirm. Puts a button on screen that opens the load. It does not claim anything. Use a load id from search_open_loads.',
     input_schema: { type: 'object' as const, properties: { load_id: { type: 'string', description: 'The load id from search_open_loads.' } }, required: ['load_id'], additionalProperties: false },
+  },
+  {
+    name: 'prepare_post_load',
+    description: 'Get a new load ready to post. Puts a button on screen that opens the post form with everything filled in; it does not post anything. Only call it once you have the pickup city and state, drop-off city and state, the date, at least one position and the rate per mile.',
+    input_schema: { type: 'object' as const, properties: {
+      pickup_city: { type: 'string' }, pickup_state: { type: 'string', description: 'Two-letter state code.' },
+      dropoff_city: { type: 'string' }, dropoff_state: { type: 'string', description: 'Two-letter state code.' },
+      date: { type: 'string', description: 'The date needed as YYYY-MM-DD.' },
+      positions: { type: 'array', items: { type: 'string' }, description: 'Positions needed: lead, chase, high pole, rear.' },
+      rate_per_mile: { type: 'number', description: 'Dollars per mile.' },
+      keep_posted_days: { type: 'number', description: 'How many days to keep it posted, 1 to 7. Use 1 if not said.' },
+    }, required: ['pickup_city', 'pickup_state', 'dropoff_city', 'dropoff_state', 'date', 'positions', 'rate_per_mile', 'keep_posted_days'], additionalProperties: false },
   },
   {
     name: 'find_escorts',
@@ -206,6 +219,27 @@ export async function runWraithTool(name: string, input: unknown, userId: string
       ? { label: `Review $${amt} bid: ${route}`.slice(0, 70), href: `/loads/${id}?bid=${amt}` }
       : { label: `Review and claim: ${route}`.slice(0, 70), href: `/loads/${id}` })
     return done({ ok: true, ready: name === 'prepare_bid' ? `bid of ${amt} dollars` : 'claim', route, note: 'A button is on screen. Nothing has been placed; the person must open it and confirm.' })
+  }
+
+  if (name === 'prepare_post_load') {
+    const inp = (input || {}) as Row
+    const { data: me } = await svc.from('profiles').select('role').eq('id', userId).maybeSingle()
+    if (!['carrier', 'broker', 'escort', 'fleet_manager', 'admin'].includes(s((me as Row | null)?.role))) return done({ ok: false, reason: 'This account cannot post loads.' })
+    const clean = (v: unknown) => (typeof v === 'string' ? v.replace(/[^A-Za-z .'-]/g, '').trim().slice(0, 40) : '')
+    const pc = clean(inp.pickup_city), dc = clean(inp.dropoff_city)
+    const ps = clean(inp.pickup_state).toUpperCase(), ds = clean(inp.dropoff_state).toUpperCase()
+    const date = typeof inp.date === 'string' ? inp.date.trim() : ''
+    const rate = Number(inp.rate_per_mile)
+    const days = Math.min(7, Math.max(1, Math.round(Number(inp.keep_posted_days) || 1)))
+    const pos = Array.isArray(inp.positions) ? [...new Set((inp.positions as unknown[]).map((x) => normalizePositionName(clean(x))).filter(Boolean))].slice(0, 6) : []
+    const dateOk = /^\d{4}-\d{2}-\d{2}$/.test(date) && Date.parse(date + 'T23:59:59') >= Date.now() - 86400000
+    if (!pc || !dc || !isUsState(ps) || !isUsState(ds)) return done({ ok: false, reason: 'I need the pickup and drop-off city and a two-letter state for each.' })
+    if (!dateOk) return done({ ok: false, reason: 'I need a date that has not passed.' })
+    if (!pos.length) return done({ ok: false, reason: 'Which position do you need: lead, chase, high pole or rear?' })
+    if (!(rate > 0 && rate <= MAX_RATE)) return done({ ok: false, reason: 'I could not use that rate per mile.' })
+    const q = new URLSearchParams({ pc, ps, dc, ds, d: date, pos: pos.join(','), rate: String(Math.round(rate * 100) / 100), hold: String(days * 24) })
+    links.unshift({ label: `Review and post: ${pc} ${ps} to ${dc} ${ds}`.slice(0, 70), href: `/post-load?${q.toString()}` })
+    return done({ ok: true, ready: 'new load', route: `${pc}, ${ps} to ${dc}, ${ds}`, date, positions: pos, rate: `${rate.toFixed(2)} dollars a mile`, note: 'A button is on screen. Nothing has been posted; the person must open it, check it and tap Post.' })
   }
 
   if (name === 'typical_rates') {

@@ -69,7 +69,18 @@ export function PostLoadPageClient() {
         setPostingAsPilot(p?.role === 'escort' || p?.role === 'fleet_manager')
         fetch('/api/regulars').then(r => r.json()).then(d => setRegularsCount(Array.isArray(d?.regulars) ? d.regulars.length : 0)).catch(() => {})
         // "Post again": copy one of your own earlier loads (the date is left blank on purpose)
-        const from = new URLSearchParams(window.location.search).get('from')
+        const qp = new URLSearchParams(window.location.search)
+        // Wraith hands over a filled-in form (everything is checked again when the person taps Post)
+        if (qp.get('pc') && qp.get('dc')) {
+          const okState = (v: string | null) => (v && (US_STATES.includes(v.toUpperCase()) || CA_PROVINCES.includes(v.toUpperCase())) ? v.toUpperCase() : '')
+          setPickupCity((qp.get('pc') || '').slice(0, 40)); setPickupState(okState(qp.get('ps')))
+          setDestCity((qp.get('dc') || '').slice(0, 40)); setDestState(okState(qp.get('ds')))
+          const dd = qp.get('d') || ''; if (/^\d{4}-\d{2}-\d{2}$/.test(dd)) setDateNeeded(dd)
+          const OPTS = ['Lead','Chase','High Pole','Lineman','Rear Steer','Survey','Flagger']; const ps = (qp.get('pos') || '').split(',').map(x => x.trim()).map(x => x === 'Rear' ? 'Rear Steer' : x).filter(x => OPTS.includes(x)).slice(0, 6); if (ps.length) setPositions(ps)
+          const r = Number(qp.get('rate')); if (r > 0 && r <= 50) setRate(r)
+          const hh = Number(qp.get('hold')); if ([24, 48, 72, 120, 168].includes(hh)) setHoldHours(hh)
+        }
+        const from = qp.get('from')
         if (from) {
           const { data: old } = await supabase.from('loads').select('*').eq('id', from).eq('carrier_id', user.id).maybeSingle()
           if (old) {

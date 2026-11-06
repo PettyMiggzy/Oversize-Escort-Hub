@@ -35,6 +35,14 @@ const NEXT: [string, string][] = [
 
 const LOG: { date: string; title: string; items: string[] }[] = [
   {
+    date: 'November 6, 2026',
+    title: 'Tell Wraith the load and it gets the post ready',
+    items: [
+      'Say the pickup, drop-off, date, position and rate, and Wraith fills in the post form for you.',
+      'You check it and tap Post. Wraith never posts a load on its own.',
+    ],
+  },
+  {
     date: 'November 1, 2026',
     title: 'Wraith can find pilot cars and tell you what loads pay',
     items: [
