@@ -103,3 +103,28 @@ New: you can now post a load to the board by text, and test posts are kept priva
 
 Brian
 Oversize Escort Hub
+
+## Carrier-only email: text your load (tightened 2026-11-06, NOT SENT: needs the owner's OK; the extension sends it one by one)
+
+To the 6 signed-up carriers only (none has a phone number on their profile, so their first text goes through the one-time email step; the email says so). Do not send before the owner has texted a `TEST` load from his own phone, and needs the footer address decision (CAN-SPAM).
+
+**Subject:** Post a load by text, 10 seconds
+
+Hi [first name],
+
+Need a lead or chase car? You can now post your load to Oversize Escort Hub by text. No app, no login.
+
+Text this number: (855) 601-4751
+
+Write it the way you'd say it:
+Dallas TX to Oklahoma City OK Nov 20 lead 2.25
+
+Pilot cars in those states get alerted. The first time, we text back for your email so nobody can post in your name. Tap the link we send, and after that every load is just a text.
+
+Free. We don't check posts or people, so confirm the details with the pilot car like always. Reply STOP to any text and we stop.
+
+Brian
+Oversize Escort Hub
+oversize-escort-hub.com
+
+[footer: business address and an unsubscribe line, to be set by the owner]
