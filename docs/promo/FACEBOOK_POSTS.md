@@ -27,3 +27,31 @@ Use the "Share this load" link on the load to get the card and link.
 - Answer people's real questions before you mention the site.
 - Don't name or criticize other apps or companies.
 - If an admin says no, stop and thank them.
+
+## Text-a-load page post (drafted 2026-11-05; the video is `text-your-load.mp4`, kept outside the repo)
+
+Post it only after a real test load by text works end to end. Pin it to the page.
+
+**Main post**
+
+Too busy to open an app? Then just text it.
+
+Text your oversize load to (855) 601-4751:
+
+Dallas TX to Oklahoma City OK Nov 20 lead 2.25
+
+That's it. It posts to the Oversize Escort Hub board and pilot cars in those states get alerted. Free. No app. No login.
+
+First time, we ask for your email once so nobody can post in your name. After that, every load is just a text.
+
+Carriers, brokers, and pilot cars passing work along: save the number, next time you need cover, text it.
+
+We don't check posts or people, so confirm the details with the other side like always.
+
+oversize-escort-hub.com
+
+**Short version (for the first comment or a story)**
+
+Need a lead or chase car? Text the load to (855) 601-4751. Free, no app. oversize-escort-hub.com
+
+**Rules for any copy**: never "the only", "verified", "vetted", "guaranteed"; no pay or safety promises; no text alerts to drivers promised (paid add-on later).
